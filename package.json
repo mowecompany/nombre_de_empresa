@@ -39,7 +39,6 @@
       "Views/**",
       "php/**",
       "database/**",
-      "!database/*.db",
       "!database/*.db.*",
       "!database/installer/**",
       "autoload.php",
