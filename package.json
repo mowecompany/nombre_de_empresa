@@ -64,7 +64,7 @@
         ]
       },
       {
-        "from": "installer/database.db",
+        "from": "database/database.db",
         "to": "database/database.db",
         "filter": [
           "database.db"
@@ -77,7 +77,8 @@
       ],
       "icon": "logo.ico",
       "legalTrademarks": "AUTOSERVICIO MI ESTRELLA",
-      "signAndEditExecutable": true
+      "signAndEditExecutable": false,
+      "signDlls": false
     },
     "nsis": {
       "installerIcon": "logo.ico",
