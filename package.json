@@ -1,0 +1,97 @@
+{
+  "name": "autoservicio-la-estrella-desktop",
+  "productName": "AUTOSERVICIO MI ESTRELLA",
+  "version": "1.0.5",
+  "description": "Aplicación de escritorio para la gestión de AUTOSERVICIO MI ESTRELLA.",
+  "author": "AUTOSERVICIO MI ESTRELLA",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "cross-env APP_PORT=8000 electron .",
+    "start:dev": "cross-env APP_ENV=development APP_BASE_URL=http://127.0.0.1:8000 APP_PORT=8000 electron .",
+    "build": "cross-env APP_ENV=production electron-builder --windows nsis",
+    "build:installer": "npm run build",
+    "dist": "npm run build"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "electron": "^26.3.0",
+    "electron-builder": "^24.6.0"
+  },
+  "build": {
+    "appId": "com.autoservicio.miestrella.desktop",
+    "productName": "AUTOSERVICIO MI ESTRELLA",
+    "artifactName": "AUTOSERVICIO MI ESTRELLA Setup v1.0.5.exe",
+    "icon": "logo.ico",
+    "directories": {
+      "output": "dist",
+      "buildResources": "electron/build"
+    },
+    "asar": false,
+    "files": [
+      "electron/**",
+      "Config/**",
+      "Assets/**",
+      "Controllers/**",
+      "Helpers/**",
+      "Libraries/**",
+      "Models/**",
+      "Views/**",
+      "php/**",
+      "database/**",
+      "!database/*.db",
+      "!database/*.db.*",
+      "!database/installer/**",
+      "autoload.php",
+      "favicon.ico",
+      "logo.ico",
+      "index.php",
+      "package.json",
+      "tmp/**",
+      "!dist{,/**}",
+      "!npm-cache-temp{,/**}",
+      "!electron/build/app_icon.ico",
+      "!**/*.md",
+      "!**/*.log",
+      "!**/.git{,/**}"
+    ],
+    "extraResources": [
+      {
+        "from": "php",
+        "to": "php",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "database/installer/database.db",
+        "to": "database/database.db",
+        "filter": [
+          "database.db"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "logo.ico",
+      "legalTrademarks": "AUTOSERVICIO MI ESTRELLA",
+      "signAndEditExecutable": true
+    },
+    "nsis": {
+      "installerIcon": "logo.ico",
+      "uninstallerIcon": "logo.ico",
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AUTOSERVICIO MI ESTRELLA",
+      "include": "electron/installer.nsh"
+    }
+  },
+  "dependencies": {
+  }
+}

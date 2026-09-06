@@ -1,0 +1,53 @@
+# Deshabilitar caché
+<IfModule mod_headers.c>
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+</IfModule>
+
+# Forzar recarga de PHP
+<IfModule mod_php.c>
+    php_value opcache.enable 0
+    php_value opcache.revalidate_freq 0
+</IfModule>
+
+# Permitir CORS y deshabilitar caché
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET,POST,OPTIONS,DELETE,PUT"
+    Header set Access-Control-Allow-Headers "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # don't rewrite existing files or directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    RewriteRule ^$ index.php?ruta=inicio [QSA,L]
+    # simple rules – target index.php located in the same folder
+    RewriteRule ^tienda/?$ index.php?ruta=tienda [QSA,L]
+    RewriteRule ^inicio/?$ index.php?ruta=inicio [QSA,L]
+    RewriteRule ^home/?$ index.php?ruta=home [QSA,L]
+    RewriteRule ^nosotros/?$ index.php?ruta=nosotros [QSA,L]
+    RewriteRule ^contacto/?$ index.php?ruta=contacto [QSA,L]
+    RewriteRule ^tienda/search/?$ index.php?ruta=tienda_search [QSA,L]
+    RewriteRule ^tienda/categoria/([^/]+)/?$ index.php?ruta=tienda_categoria&param=$1 [QSA,L]
+    RewriteRule ^tienda/producto/([^/]+)/?$ index.php?ruta=tienda_producto&param=$1 [QSA,L]
+
+    RewriteRule ^carrito/?$ index.php?ruta=carrito [QSA,L]
+    RewriteRule ^carrito/addCarrito/?$ index.php?ruta=carrito_addcarrito [QSA,L]
+    RewriteRule ^carrito/delItem/?$ index.php?ruta=carrito_delitem [QSA,L]
+    RewriteRule ^carrito/delCarrito/?$ index.php?ruta=carrito_delcarrito [QSA,L]
+    RewriteRule ^carrito/updCarrito/?$ index.php?ruta=carrito_updcarrito [QSA,L]
+    RewriteRule ^carrito/getCarrito/?$ index.php?ruta=carrito_getcarrito [QSA,L]
+    RewriteRule ^carrito/procesarpago/?$ index.php?ruta=carrito_procesarpago [QSA,L]
+    RewriteRule ^carrito/confirmarPago/?$ index.php?ruta=carrito_confirmarpago [QSA,L]
+    RewriteRule ^carrito/confirmacion/?$ index.php?ruta=carrito_confirmacion [QSA,L]
+    RewriteRule ^factura/generarFactura/([0-9]+)/?$ index.php?ruta=factura_generarfactura&param=$1 [QSA,L]
+
+    # fallback: let index.php resolve additional pretty routes
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>

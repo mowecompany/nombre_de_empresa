@@ -1,0 +1,66 @@
+# Dependencias
+node_modules/
+npm-cache-temp/
+
+# Compilacion y distribucion de Electron
+dist/
+build/
+*.exe
+*.exe.blockmap
+*.nsis.7z
+*.dmg
+*.appimage
+
+# Entornos locales y secretos
+.env
+.env.*
+!.env.example
+
+# Logs y salidas generadas
+*.log
+app-start.log
+error.log
+server_err.txt
+server_out.txt
+lint_output.txt
+validacion_resultado.txt
+
+# Archivos temporales
+.tmp/
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Datos locales y respaldos de bases de datos
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.bak
+*.backup
+*.sqlite
+*.sqlite3
+
+# Respaldos y archivos generados con fecha
+*.sql.bak
+*.zip
+
+# Cobertura y caches de herramientas
+coverage/
+.nyc_output/
+.cache/
+.eslintcache
+
+# Configuracion local de editores
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.idea/
+
+# Archivos de sistema y accesos directos locales
+*.url

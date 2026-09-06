@@ -1,0 +1,5 @@
+# Ignorar base de datos local SQLite
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
