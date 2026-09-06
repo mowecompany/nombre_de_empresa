@@ -702,22 +702,6 @@ function normalizePdfFileName(value) {
   return safe.toLowerCase().endsWith('.pdf') ? safe : `${safe}.pdf`;
 }
 
-async function waitForPrintImages(webContents) {
-  await webContents.executeJavaScript(`(() => {
-    const images = Array.from(document.images);
-    if (!images.length) return true;
-    return Promise.all(images.map((image) => {
-      if (image.complete) return Promise.resolve();
-      return new Promise((resolve) => {
-        const finish = () => resolve();
-        image.addEventListener('load', finish, { once: true });
-        image.addEventListener('error', finish, { once: true });
-        setTimeout(finish, 4000);
-      });
-    })).then(() => true);
-  })()`);
-}
-
 ipcMain.handle('print-html', async (_, payload = {}) => {
   try {
     const html = String(payload.html || '');
@@ -759,7 +743,7 @@ ipcMain.handle('print-html', async (_, payload = {}) => {
       : htmlConControles;
     await printWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(htmlLocal));
     await printWindow.webContents.executeJavaScript(`document.title = ${JSON.stringify(tituloDocumento)}`);
-    await waitForPrintImages(printWindow.webContents);
+    await new Promise((resolve) => setTimeout(resolve, 250));
     if (payload.preview) {
       printWindow.show();
       printWindow.focus();
@@ -824,7 +808,7 @@ ipcMain.handle('save-html-pdf', async (_, payload = {}) => {
     });
     const pdfHtml = html.replace('</head>', '<meta name="viewport" content="width=device-width, initial-scale=1"><style>@page{size:A4;margin:12mm}html,body{display:block!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;min-height:273mm!important;margin:0!important;padding:0!important;box-sizing:border-box}body{font-size:12px!important}.print-wrapper,.header,footer,table{display:table!important;width:100%!important;max-width:none!important;min-width:100%!important;box-sizing:border-box}.print-wrapper{display:block!important;padding:0!important}.header{display:flex!important;margin-bottom:16px!important}.header h1{font-size:22px!important}.header .info{max-width:64%!important}.logo-empresa img{width:150px!important;height:110px!important}.empresa{font-size:20px!important}.meta{font-size:13px!important}.subtitulo{font-size:15px!important}table{table-layout:fixed!important;font-size:12px!important}th,td{padding:8px!important;font-size:12px!important}#electron-preview-controls{display:none!important}</style></head>');
     await pdfWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(pdfHtml));
-    await waitForPrintImages(pdfWindow.webContents);
+    await new Promise((resolve) => setTimeout(resolve, 250));
     const pdf = await pdfWindow.webContents.printToPDF({
       printBackground: true,
       pageSize: { width: 210000, height: 297000 },
@@ -852,13 +836,6 @@ ipcMain.handle('save-exported-database', async (_, filename, data) => {
   }
 
   fs.writeFileSync(result.filePath, Buffer.from(data));
-
-  dialog.showMessageBox(mainWindow, {
-    type: 'info',
-    title: 'Exportación completada',
-    message: 'La base de datos del taller de mecánica se guardó correctamente.',
-    buttons: ['Aceptar']
-  });
 
   return { saved: true, filePath: result.filePath, filename };
 });

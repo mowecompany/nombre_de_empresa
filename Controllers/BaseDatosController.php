@@ -161,8 +161,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'impo
     }
 
     $directory = dirname($databasePath);
-    $backupPath = $databasePath . '.before-import-' . date('YmdHis');
-    $temporaryPath = $databasePath . '.importing';
+    $temporaryRoot = sys_get_temp_dir();
+    $backupPath = $temporaryRoot . DIRECTORY_SEPARATOR . 'mecanica_before_import_' . bin2hex(random_bytes(8)) . '.db';
+    $temporaryPath = $temporaryRoot . DIRECTORY_SEPARATOR . 'mecanica_import_db_' . bin2hex(random_bytes(8)) . '.db';
     $temporaryDirectory = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'mecanica_import_' . bin2hex(random_bytes(8));
     try {
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
@@ -244,6 +245,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'impo
         error_log('Error importando respaldo: ' . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'No se pudo importar la base de datos: ' . $e->getMessage()]);
     } finally {
+        if (file_exists($backupPath)) {
+            @unlink($backupPath);
+        }
+        if (file_exists($temporaryPath)) {
+            @unlink($temporaryPath);
+        }
         if (is_dir($temporaryDirectory)) {
             $removeDirectory = static function (string $directory) use (&$removeDirectory): void {
                 foreach (scandir($directory) ?: [] as $item) {

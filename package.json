@@ -1,7 +1,7 @@
 {
   "name": "autoservicio-la-estrella-desktop",
   "productName": "AUTOSERVICIO MI ESTRELLA",
-  "version": "1.0.6",
+  "version": "1.0.5",
   "description": "Aplicación de escritorio para la gestión de AUTOSERVICIO MI ESTRELLA.",
   "author": "AUTOSERVICIO MI ESTRELLA",
   "private": true,
@@ -21,7 +21,7 @@
   "build": {
     "appId": "com.autoservicio.miestrella.desktop",
     "productName": "AUTOSERVICIO MI ESTRELLA",
-    "artifactName": "AUTOSERVICIO MI ESTRELLA Setup v1.0.6.exe",
+    "artifactName": "AUTOSERVICIO MI ESTRELLA Setup v1.0.5.exe",
     "icon": "logo.ico",
     "directories": {
       "output": "dist",
@@ -58,7 +58,7 @@
     "extraResources": [
       {
         "from": "php",
-        "to": "php",
+        "from": "database/database.db",
         "filter": [
           "**/*"
         ]
