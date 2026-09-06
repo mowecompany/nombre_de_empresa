@@ -58,13 +58,13 @@
     "extraResources": [
       {
         "from": "php",
-        "from": "database/database.db",
+        "to": "php",
         "filter": [
           "**/*"
         ]
       },
       {
-        "from": "database/installer/database.db",
+        "from": "installer/database.db",
         "to": "database/database.db",
         "filter": [
           "database.db"
