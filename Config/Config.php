@@ -1,4 +1,7 @@
 <?php
+// Forzar SQLite explícitamente
+require_once __DIR__ . '/database_config.php';
+
 function config_env(string $key, $default = null) {
     $value = getenv($key);
     if ($value !== false) {
@@ -20,7 +23,7 @@ if (!defined('APP_ENV')) {
 
 // Conexión de base de datos: mysql o sqlite
 if (!defined('DB_CONNECTION')) {
-    define('DB_CONNECTION', config_env('DB_CONNECTION', 'mysql'));
+    define('DB_CONNECTION', config_env('DB_CONNECTION', 'sqlite'));
 }
 
 // MySQL por compatibilidad actual, SQLite solo si se selecciona.

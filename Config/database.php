@@ -1,11 +1,14 @@
 <?php
+// Forzar SQLite explícitamente
+require_once __DIR__ . '/database_config.php';
+
 if (!class_exists('Database', false)) {
     class Database {
         public static function connect() {
             try {
                 self::loadEnvFile();
 
-                $connectionType = strtoupper(trim(self::env('DB_CONNECTION', defined('DB_CONNECTION') ? DB_CONNECTION : 'mysql')));
+                $connectionType = strtoupper(trim(self::env('DB_CONNECTION', defined('DB_CONNECTION') ? DB_CONNECTION : 'sqlite')));
                 if ($connectionType === 'SQLITE') {
                     $sqlitePath = self::env('SQLITE_PATH', defined('SQLITE_PATH') ? SQLITE_PATH : dirname(__DIR__) . '/database/database.db');
                     $sqlitePath = self::normalizePath($sqlitePath);

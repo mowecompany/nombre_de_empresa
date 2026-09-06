@@ -9,7 +9,7 @@
                 require_once $configPath;
             }
 
-            $connectionType = defined('DB_CONNECTION') ? strtolower(trim(DB_CONNECTION)) : 'mysql';
+            $connectionType = defined('DB_CONNECTION') ? strtolower(trim(DB_CONNECTION)) : 'sqlite';
             if ($connectionType === 'sqlite') {
                 if (!defined('SQLITE_PATH')) {
                     throw new Exception('SQLITE_PATH no está definido para la conexión SQLite.');
