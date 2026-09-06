@@ -46,18 +46,7 @@ if (!defined('DB_CHARSET')) {
 // SQLite: carpeta database/database.db
 if (!defined('SQLITE_PATH')) {
     $sqlitePath = config_env('SQLITE_PATH', 'database/database.db');
-    
-    // Detectar si estamos en modo Electron empaquetado
-    $isElectronPackaged = isset($_SERVER['HTTP_USER_AGENT']) && stripos($_SERVER['HTTP_USER_AGENT'], 'Electron') !== false;
-    
-    if ($isElectronPackaged) {
-        // En modo Electron empaquetado, usar ruta relativa
-        $sqlitePath = 'database/database.db';
-    } elseif (!preg_match('/^(?:[a-zA-Z]:\\\\|\\\\|\/)/', $sqlitePath)) {
-        // En desarrollo, usar ruta absoluta
-        $sqlitePath = dirname(__DIR__) . '/' . ltrim($sqlitePath, '\\/.');
-    }
-    
+    // Usar siempre ruta relativa para que funcione tanto en desarrollo como en producción
     $sqlitePath = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $sqlitePath);
     define('SQLITE_PATH', $sqlitePath);
 }
