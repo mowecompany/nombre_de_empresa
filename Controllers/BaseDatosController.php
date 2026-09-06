@@ -178,13 +178,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'impo
             if (!mkdir($temporaryDirectory, 0755, true) && !is_dir($temporaryDirectory)) {
                 throw new RuntimeException('No se pudo preparar el respaldo temporal.');
             }
+
+            $clearTemporaryDirectory = static function (string $directory) use (&$clearTemporaryDirectory): void {
+                foreach (scandir($directory) ?: [] as $item) {
+                    if ($item === '.' || $item === '..') {
+                        continue;
+                    }
+                    $path = $directory . DIRECTORY_SEPARATOR . $item;
+                    is_dir($path) ? $clearTemporaryDirectory($path) : @unlink($path);
+                }
+            };
+
+            $zipExtracted = false;
             if (class_exists('ZipArchive')) {
                 $zip = new ZipArchive();
-                if ($zip->open($uploaded['tmp_name']) !== true || !$zip->extractTo($temporaryDirectory)) {
-                    throw new RuntimeException('No se pudo extraer el respaldo ZIP.');
+                if ($zip->open($uploaded['tmp_name']) === true) {
+                    $zipExtracted = $zip->extractTo($temporaryDirectory) === true
+                        && file_exists($temporaryDirectory . DIRECTORY_SEPARATOR . 'database.db');
+                    $zip->close();
                 }
-                $zip->close();
-            } else {
+                if (!$zipExtracted) {
+                    $clearTemporaryDirectory($temporaryDirectory);
+                }
+            }
+            if (!$zipExtracted) {
                 $command = $quoteWindowsPath($tarPath) . ' -xf ' . $quoteWindowsPath($uploaded['tmp_name']) . ' -C ' . $quoteWindowsPath($temporaryDirectory);
                 exec($command, $output, $exitCode);
                 if ($exitCode !== 0) {

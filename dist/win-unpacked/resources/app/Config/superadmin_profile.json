@@ -1,0 +1,17 @@
+{
+    "nombre": "PERFIL GLOBAL",
+    "logo": "Assets/images/Empresas/superadmin_global_20260726_204020_cfc29260.png",
+    "direccion": "Colombia",
+    "telefono": "3182140886",
+    "correo": "nauj8pacheco@gmail.com",
+    "sobre_nosotros": "",
+    "redes_sociales": {
+        "facebook_url": "",
+        "instagram_url": "",
+        "whatsapp_url": "",
+        "linkedin_url": "",
+        "youtube_url": "",
+        "tiktok_url": ""
+    },
+    "updated_at": "2026-07-26T20:40:20-05:00"
+}

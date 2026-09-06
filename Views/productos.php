@@ -2167,39 +2167,52 @@ try {
                     resolve({ valid: false, sizeValid: false, dimensionsValid: false, width: 0, height: 0, sizeLabel, message: 'Formato inválido. Debe ser PNG, JPG o JPEG.' });
                     return;
                 }
+                if (file.size >= rules.maxBytes) {
+                    resolve({ valid: false, sizeValid: false, dimensionsValid: false, width: 0, height: 0, sizeLabel, message: 'El peso supera el límite permitido.' });
+                    return;
+                }
 
                 const objectUrl = URL.createObjectURL(file);
                 const image = new Image();
+                let settled = false;
+                const finish = (result) => {
+                    if (settled) return;
+                    settled = true;
+                    clearTimeout(timeoutId);
+                    URL.revokeObjectURL(objectUrl);
+                    resolve(result);
+                };
+                const timeoutId = setTimeout(() => {
+                    finish({ valid: false, sizeValid: false, dimensionsValid: false, width: 0, height: 0, sizeLabel, message: 'La imagen tardó demasiado en cargarse.' });
+                }, 1000);
                 image.onload = () => {
                     const width = Number(image.naturalWidth || 0);
                     const height = Number(image.naturalHeight || 0);
-                    URL.revokeObjectURL(objectUrl);
 
-                    const sizeValid = file.size < rules.maxBytes;
+                    const sizeValid = true;
                     const requiredWidth = typeof rules.width === 'number' ? rules.width : null;
                     const requiredHeight = typeof rules.height === 'number' ? rules.height : null;
                     const dimensionsValid = (requiredWidth === null || width === requiredWidth) && (requiredHeight === null || height === requiredHeight);
 
                     if (!sizeValid && !dimensionsValid) {
-                        resolve({ valid: false, sizeValid: false, dimensionsValid: false, width, height, sizeLabel, message: 'El peso y las medidas no cumplen con lo requerido.' });
+                        finish({ valid: false, sizeValid: false, dimensionsValid: false, width, height, sizeLabel, message: 'El peso y las medidas no cumplen con lo requerido.' });
                         return;
                     }
 
                     if (!sizeValid) {
-                        resolve({ valid: false, sizeValid: false, dimensionsValid: true, width, height, sizeLabel, message: 'El peso supera el límite permitido.' });
+                        finish({ valid: false, sizeValid: false, dimensionsValid: true, width, height, sizeLabel, message: 'El peso supera el límite permitido.' });
                         return;
                     }
 
                     if (!dimensionsValid) {
-                        resolve({ valid: false, sizeValid: true, dimensionsValid: false, width, height, sizeLabel, message: 'Las medidas no coinciden con las requeridas.' });
+                        finish({ valid: false, sizeValid: true, dimensionsValid: false, width, height, sizeLabel, message: 'Las medidas no coinciden con las requeridas.' });
                         return;
                     }
 
-                    resolve({ valid: true, sizeValid: true, dimensionsValid: true, width, height, sizeLabel, message: 'Imagen válida para guardar.' });
+                    finish({ valid: true, sizeValid: true, dimensionsValid: true, width, height, sizeLabel, message: 'Imagen válida para guardar.' });
                 };
                 image.onerror = () => {
-                    URL.revokeObjectURL(objectUrl);
-                    resolve({ valid: false, sizeValid: false, dimensionsValid: false, width: 0, height: 0, sizeLabel, message: 'No se pudo leer la imagen seleccionada.' });
+                    finish({ valid: false, sizeValid: false, dimensionsValid: false, width: 0, height: 0, sizeLabel, message: 'No se pudo leer la imagen seleccionada.' });
                 };
                 image.src = objectUrl;
             });

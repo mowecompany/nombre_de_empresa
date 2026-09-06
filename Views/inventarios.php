@@ -462,7 +462,7 @@ if (is_file($logoPdfPath)) {
 
         .productos-categoria-salida-grid {
             display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
+            grid-template-columns: repeat(8, minmax(0, 1fr));
             gap: 14px;
             padding: 18px;
             max-height: 65vh;
@@ -477,7 +477,7 @@ if (is_file($logoPdfPath)) {
             color: var(--primary-blue) !important;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1100px) {
             .productos-categoria-salida-grid {
                 grid-template-columns: repeat(4, minmax(0, 1fr));
             }
@@ -2285,9 +2285,9 @@ if (is_file($logoPdfPath)) {
                         </select>
                     </div>
                     <div id="categoriasSalidaPanel" style="display:flex; flex-wrap:wrap; align-items:center; gap:2px; margin:0; min-width:0; transform:translateX(20px);">
-                        <button type="button" class="categoria-salida-option" data-categoria-id="frutas" onclick="abrirProductosCategoriaSalida('frutas', 'FRUTAS')" style="height:42px; padding:6px 8px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:11px; font-weight:700; text-transform:uppercase;"><i class="fas fa-apple-whole"></i> FRUTAS</button>
-                        <button type="button" class="categoria-salida-option" data-categoria-id="verduras" onclick="abrirProductosCategoriaSalida('verduras', 'VERDURAS')" style="height:42px; padding:6px 8px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:11px; font-weight:700; text-transform:uppercase;"><i class="fas fa-carrot"></i> VERDURAS</button>
-                        <button type="button" class="categoria-salida-option" data-categoria-id="carnicos-refrigerados" onclick="abrirProductosCategoriaSalida('carnicos-refrigerados', 'CÁRNICOS Y REFRIGERADOS')" style="height:42px; padding:6px 8px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:11px; font-weight:700; text-transform:uppercase;"><i class="fas fa-drumstick-bite"></i> CÁRNICOS Y REFRIGERADOS</button>
+                        <button type="button" class="categoria-salida-option" data-categoria-id="frutas" onclick="abrirProductosCategoriaSalida('frutas', 'FRUTAS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-apple-whole"></i> FRUTAS</button>
+                        <button type="button" class="categoria-salida-option" data-categoria-id="verduras" onclick="abrirProductosCategoriaSalida('verduras', 'VERDURAS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-carrot"></i> VERDURAS</button>
+                        <button type="button" class="categoria-salida-option" data-categoria-id="carnicos-refrigerados" onclick="abrirProductosCategoriaSalida('carnicos-refrigerados', 'CÁRNICOS Y REFRIGERADOS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-drumstick-bite"></i> CÁRNICOS Y REFRIGERADOS</button>
                     </div>
                     </div>
                     <div id="productoSalidaPreview" style="margin-top: 10px; text-align: center;"></div>
@@ -2382,10 +2382,16 @@ if (is_file($logoPdfPath)) {
     </div>
 
     <div id="productosCategoriaSalidaModal" class="modal" style="z-index:1200;">
-        <div class="modal-content" style="max-width:1100px; width:calc(100% - 28px);">
+        <div class="modal-content" style="max-width:1250px; width:calc(100% - 28px);">
             <div class="modal-header">
                 <h2 id="productosCategoriaSalidaTitulo"><i class="fas fa-store"></i> PRODUCTOS</h2>
-                <button class="close-btn" type="button" onclick="cerrarModal('productosCategoriaSalidaModal')">&times;</button>
+                <div style="display:flex; align-items:center; gap:10px; min-width:0; margin-left:auto;">
+                    <div style="display:flex; align-items:center; width:20%; min-width:150px; max-width:220px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; overflow:hidden;">
+                        <input type="search" id="buscarProductosCategoriaSalida" placeholder="BUSCAR..." autocomplete="off" style="width:100%; min-width:0; border:0; outline:0; padding:8px 10px; font-size:12px; text-transform:uppercase;">
+                        <span style="padding:0 9px; color:#64748b;"><i class="fas fa-search"></i></span>
+                    </div>
+                    <button class="close-btn" type="button" onclick="cerrarModal('productosCategoriaSalidaModal')">&times;</button>
+                </div>
             </div>
             <div id="productosCategoriaSalidaGrid" class="productos-categoria-salida-grid"></div>
         </div>
@@ -3217,6 +3223,10 @@ if (is_file($logoPdfPath)) {
         // Cerrar modal
         function cerrarModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'salidaModal') {
+                const referenciaAnterior = document.getElementById('referenciaSalida')?.value?.trim();
+                if (referenciaAnterior) referenciasVentaReservadas.delete(referenciaAnterior);
+            }
             const form = document.getElementById(modalId).querySelector('form');
             if (form) form.reset();
             if (modalId === 'entradaModal') {
@@ -3761,6 +3771,7 @@ if (is_file($logoPdfPath)) {
             const select = document.getElementById('productoSalida');
             const grid = document.getElementById('productosCategoriaSalidaGrid');
             const tituloEl = document.getElementById('productosCategoriaSalidaTitulo');
+            const buscador = document.getElementById('buscarProductosCategoriaSalida');
             const pesoBarra = document.getElementById('pesoCategoriaSalidaBarra');
             if (!select || !grid) return;
 
@@ -3778,11 +3789,13 @@ if (is_file($logoPdfPath)) {
                 if ((parseFloat(option.dataset.stock || '0') || 0) <= 0) return false;
                 return perteneceGrupoCategoriaSalida(option.dataset.categoriaNombre || '', categoria);
             });
+            opciones.sort((a, b) => (parseInt(b.value, 10) || 0) - (parseInt(a.value, 10) || 0));
 
             const iconoTitulo = categoria === 'frutas'
                 ? 'fa-apple-whole'
                 : (categoria === 'verduras' ? 'fa-carrot' : 'fa-drumstick-bite');
             if (tituloEl) tituloEl.innerHTML = `<i class="fas ${iconoTitulo}"></i> ${titulo}`;
+            if (buscador) buscador.value = '';
             grid.innerHTML = '';
             if (!opciones.length) {
                 grid.innerHTML = '<div style="grid-column:1/-1; padding:32px; text-align:center; color:#64748b; font-weight:700;">NO HAY PRODUCTOS DISPONIBLES EN ESTA CATEGORÍA</div>';
@@ -3793,12 +3806,14 @@ if (is_file($logoPdfPath)) {
                     tarjeta.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:9px; min-height:190px; padding:14px 10px; border:1px solid #dbe4ec; border-radius:10px; background:#fff; color:#1e293b; cursor:pointer; box-shadow:0 3px 10px rgba(15,23,42,.07); text-align:center;';
                     const imagen = resolverImagenProductoInventario(option.dataset.imagen || '');
                     const nombre = (option.dataset.nombre || option.textContent || '').trim();
+                    const codigo = String(option.dataset.codigo || '').replace(/[/*()]/g, '').trim();
+                    tarjeta.dataset.searchText = `${nombre} ${codigo}`.toUpperCase();
                     const esPorKiloTarjeta = ['1', 'true', 'si', 'sí'].includes(String(option.dataset.ventaPorKilo || '').toLowerCase()) || categoria === 'frutas' || categoria === 'verduras';
                     const precio = parseFloat(option.dataset.precio || 0) || 0;
                     const stock = parseFloat(option.dataset.stock || 0) || 0;
                     tarjeta.disabled = stock <= 0;
                     tarjeta.style.opacity = stock > 0 ? '1' : '0.55';
-                    tarjeta.innerHTML = `<img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)} / KG</span>`;
+                    tarjeta.innerHTML = `<span style="min-height:18px; color:#2563eb; font-size:11px; font-weight:800; letter-spacing:.3px;">${escapeHtmlInventario(codigo)}</span><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)} / KG</span>`;
                     tarjeta.addEventListener('click', () => {
                         select.value = option.value;
                         productoSalidaSeleccionadoPorCategoria = {
@@ -3828,7 +3843,22 @@ if (is_file($logoPdfPath)) {
                     grid.appendChild(tarjeta);
                 });
             }
+            if (buscador) {
+                buscador.oninput = () => {
+                    const termino = buscador.value.trim().toUpperCase();
+                    grid.querySelectorAll('button[data-search-text]').forEach((tarjeta) => {
+                        tarjeta.style.display = !termino || tarjeta.dataset.searchText.includes(termino) ? 'flex' : 'none';
+                    });
+                };
+                buscador.onkeydown = (event) => {
+                    if (event.key === 'Escape') {
+                        buscador.value = '';
+                        buscador.dispatchEvent(new Event('input'));
+                    }
+                };
+            }
             abrirModal('productosCategoriaSalidaModal');
+            setTimeout(() => buscador?.focus(), 80);
         }
 
         function actualizarEstadoBalanzaSalida(estado) {
@@ -4643,25 +4673,27 @@ if (is_file($logoPdfPath)) {
             const longitud = texto.length;
             const esResumenVentas = /^(efectivo|transferencia|ganancia|valorVentas)(Dia|Mes)$/.test(elementoId)
                 || elementoId === 'totalDiaCard'
-                || elementoId === 'gananciaDiaCard'
-                || (elementoId === 'valorTotal' && Boolean(window.electronAPI));
+                || elementoId === 'gananciaDiaCard';
+            const esValorInventario = elementoId === 'valorTotal';
 
             let tamano = esResumenVentas ? 22 : 32;
+            if (esValorInventario) tamano = 32;
             if (!esResumenVentas) {
                 if (longitud >= 14) {
-                    tamano = 18;
+                    tamano = esValorInventario ? 22 : 18;
                 } else if (longitud >= 12) {
-                    tamano = 20;
+                    tamano = esValorInventario ? 24 : 20;
                 } else if (longitud >= 10) {
-                    tamano = 24;
+                    tamano = esValorInventario ? 26 : 24;
                 } else if (longitud >= 8) {
-                    tamano = 28;
+                    tamano = esValorInventario ? 28 : 28;
                 }
             }
 
             valorEl.style.fontSize = tamano + 'px';
             if (!esResumenVentas) {
-                while (valorEl.scrollWidth > valorEl.clientWidth && tamano > 12) {
+                const tamanoMinimo = esValorInventario ? 20 : 12;
+                while (valorEl.scrollWidth > valorEl.clientWidth && tamano > tamanoMinimo) {
                     tamano -= 1;
                     valorEl.style.fontSize = tamano + 'px';
                 }
@@ -8528,11 +8560,6 @@ if (is_file($logoPdfPath)) {
                     // Actualizar campo oculto de código
                     if (codigoField) {
                         codigoField.value = codigo || '';
-                    }
-
-                    const referenciaField = document.getElementById('referenciaSalida');
-                    if (referenciaField && !referenciaField.value) {
-                        referenciaField.value = generarReferenciaVenta();
                     }
 
                     const cantidadField = document.getElementById('cantidadSalida');
