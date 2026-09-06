@@ -959,7 +959,7 @@ class Inventario {
                 $params[':fecha_fin'] = $filtro['fecha_fin'];
             }
             
-            $sql .= " ORDER BY s.fecha_salida DESC";
+            $sql .= " ORDER BY s.fecha_salida DESC, s.id DESC";
             
             $query = $this->db->prepare($sql);
             

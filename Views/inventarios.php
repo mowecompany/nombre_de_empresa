@@ -727,6 +727,64 @@ if (is_file($logoPdfPath)) {
             line-height: 1.1;
         }
 
+        .acumulado-mes-resumen {
+            display: flex;
+            align-items: stretch;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .acumulado-mes-card {
+            min-width: 195px;
+            padding: 11px 15px;
+            border: 1px solid #e4eaf0;
+            border-left: 4px solid #1f3f57;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #f8fbfd 0%, #eef4f7 100%);
+            box-shadow: 0 3px 9px rgba(31, 63, 87, 0.08);
+        }
+
+        .acumulado-mes-card.ganancia {
+            border-left-color: #c69214;
+            background: linear-gradient(135deg, #fffdf5 0%, #fff8df 100%);
+        }
+
+        .acumulado-mes-card-label {
+            display: block;
+            margin-bottom: 3px;
+            color: #64748b;
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: .35px;
+        }
+
+        .acumulado-mes-card-value {
+            display: block;
+            color: #1f3f57;
+            font-size: 18px;
+            font-weight: 900;
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .acumulado-mes-card.ganancia .acumulado-mes-card-value {
+            color: #8a6500;
+        }
+
+        @media (max-width: 700px) {
+            .acumulado-mes-resumen {
+                width: 100%;
+                justify-content: stretch;
+                margin-top: 10px;
+            }
+
+            .acumulado-mes-card {
+                min-width: 0;
+                flex: 1;
+            }
+        }
+
         .stat-card {
             background: white;
             border-radius: 12px;
@@ -2503,7 +2561,16 @@ if (is_file($logoPdfPath)) {
                     <div class="card">
                         <div class="card-header">
                             <h3><i class="fas fa-list"></i> PRODUCTOS MÁS VENDIDOS DEL MES</h3>
-                            <span id="resumenAcumuladoMes" style="margin-left: auto; font-size: 16px; color: #1f3f57; font-weight: 900;"></span>
+                            <div class="acumulado-mes-resumen" aria-label="Resumen acumulado del mes">
+                                <div class="acumulado-mes-card ganancia">
+                                    <span class="acumulado-mes-card-label"><i class="fas fa-coins"></i> GANANCIA REAL</span>
+                                    <strong id="acumuladoMesGanancia" class="acumulado-mes-card-value">$0</strong>
+                                </div>
+                                <div class="acumulado-mes-card">
+                                    <span class="acumulado-mes-card-label"><i class="fas fa-chart-line"></i> ACUMULADO DEL MES</span>
+                                    <strong id="acumuladoMesValor" class="acumulado-mes-card-value">$0</strong>
+                                </div>
+                            </div>
                         </div>
                         <div class="table-wrapper-principal scrollbar-custom">
                             <table>
@@ -5374,10 +5441,20 @@ if (is_file($logoPdfPath)) {
                             });
                         };
 
+                        const numeroReferenciaSalida = (referencia) => {
+                            const coincidencia = String(referencia || '').match(/(\d+)\s*$/);
+                            return coincidencia ? Number(coincidencia[1]) : -1;
+                        };
+
                         const salidasOrdenadas = [...data.data].sort((a, b) => {
-                            const fechaB = parseFechaInventario(b.fecha_salida || b.fecha_movimiento || b.fecha || b.created_at);
+                            const referenciaA = String(a.referencia || '').trim();
+                            const referenciaB = String(b.referencia || '').trim();
+                            const numeroA = numeroReferenciaSalida(referenciaA);
+                            const numeroB = numeroReferenciaSalida(referenciaB);
+                            if (numeroA !== numeroB) return numeroB - numeroA;
                             const fechaA = parseFechaInventario(a.fecha_salida || a.fecha_movimiento || a.fecha || a.created_at);
-                            if (fechaB !== fechaA) return fechaB - fechaA;
+                            const fechaB = parseFechaInventario(b.fecha_salida || b.fecha_movimiento || b.fecha || b.created_at);
+                            if (fechaA !== fechaB) return fechaB - fechaA;
                             return (Number(b.id) || 0) - (Number(a.id) || 0);
                         });
 
@@ -5420,18 +5497,23 @@ if (is_file($logoPdfPath)) {
                         const gruposPorFecha = {};
 
                         Object.values(grupos)
-                            .sort((a, b) => parseFechaInventario(b.fechaRaw) - parseFechaInventario(a.fechaRaw) || (Number(b.items?.[0]?.id) || 0) - (Number(a.items?.[0]?.id) || 0))
+                            .sort((a, b) => numeroReferenciaSalida(b.referencia) - numeroReferenciaSalida(a.referencia) || parseFechaInventario(b.fechaRaw) - parseFechaInventario(a.fechaRaw) || (Number(b.items?.[0]?.id) || 0) - (Number(a.items?.[0]?.id) || 0))
                             .forEach(grupo => {
                                 const fechaDia = formatarFechaDia(grupo.fechaRaw);
                                 if (!gruposPorFecha[fechaDia]) {
                                     gruposPorFecha[fechaDia] = {
                                         grupos: [],
                                         ultimaFechaTimestamp: 0,
+                                        mayorReferencia: -1,
                                         totalUnidades: 0,
                                         totalValor: 0
                                     };
                                 }
                                 gruposPorFecha[fechaDia].grupos.push(grupo);
+                                gruposPorFecha[fechaDia].mayorReferencia = Math.max(
+                                    gruposPorFecha[fechaDia].mayorReferencia,
+                                    numeroReferenciaSalida(grupo.referencia)
+                                );
                                 gruposPorFecha[fechaDia].ultimaFechaTimestamp = Math.max(
                                     gruposPorFecha[fechaDia].ultimaFechaTimestamp,
                                     parseFechaInventario(grupo.fechaRaw) || 0
@@ -5441,7 +5523,7 @@ if (is_file($logoPdfPath)) {
                             });
 
                         Object.entries(gruposPorFecha)
-                            .sort(([, grupoA], [, grupoB]) => grupoB.ultimaFechaTimestamp - grupoA.ultimaFechaTimestamp)
+                            .sort(([, grupoA], [, grupoB]) => grupoB.mayorReferencia - grupoA.mayorReferencia || grupoB.ultimaFechaTimestamp - grupoA.ultimaFechaTimestamp)
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
@@ -6136,8 +6218,10 @@ if (is_file($logoPdfPath)) {
                 .then(data => {
                     console.log('Respuesta obtenerVentasMes:', data);
                     if (!data.success) {
-                        const resumenAcumuladoMesError = document.getElementById('resumenAcumuladoMes');
-                        if (resumenAcumuladoMesError) resumenAcumuladoMesError.textContent = '';
+                        const acumuladoMesValorError = document.getElementById('acumuladoMesValor');
+                        const acumuladoMesGananciaError = document.getElementById('acumuladoMesGanancia');
+                        if (acumuladoMesValorError) acumuladoMesValorError.textContent = '$0';
+                        if (acumuladoMesGananciaError) acumuladoMesGananciaError.textContent = '$0';
                         if (mostrarError) {
                             Swal.fire({
                                 icon: 'error',
@@ -6179,10 +6263,10 @@ if (is_file($logoPdfPath)) {
                     if (document.getElementById('transferenciaMes')) document.getElementById('transferenciaMes').textContent = formatoMonedaCompleta(ventas.total_transferencia || 0);
                     ajustarTamanoResumenVentas('Mes');
 
-                    const resumenAcumuladoMes = document.getElementById('resumenAcumuladoMes');
-                    if (resumenAcumuladoMes) {
-                        resumenAcumuladoMes.textContent = `ACUM. MES· VENTAS: ${formatoMonedaCompleta(ventas.valor_total_ventas || 0)} · GANANCIA REAL: ${formatoMonedaCompleta(ventas.ganancia_total_mes || ventas.ganancia_mes || 0)}`;
-                    }
+                    const acumuladoMesValor = document.getElementById('acumuladoMesValor');
+                    const acumuladoMesGanancia = document.getElementById('acumuladoMesGanancia');
+                    if (acumuladoMesValor) acumuladoMesValor.textContent = formatoMonedaCompleta(ventas.valor_total_ventas || 0);
+                    if (acumuladoMesGanancia) acumuladoMesGanancia.textContent = formatoMonedaCompleta(ventas.ganancia_total_mes || ventas.ganancia_mes || 0);
                     
                     // Actualizar desglose por día/producto
                     const ventasPorDiaTabla = document.getElementById('ventasPorDiaTabla');

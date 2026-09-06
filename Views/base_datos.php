@@ -76,7 +76,9 @@ $baseUrl = rtrim((string)base_url(), '/');
                 const filename = match ? match[1] : `base_datos_AUTOSERVICIO MI ESTRELLA
 _${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
                 if (window.electronAPI?.saveExportedDatabase) {
-                    await window.electronAPI.saveExportedDatabase(filename, await blob.arrayBuffer());
+                    const saveResult = await window.electronAPI.saveExportedDatabase(filename, await blob.arrayBuffer());
+                    if (!saveResult?.saved) return;
+                    await Swal.fire('Exportación completada', 'La base de datos se guardó correctamente.', 'success');
                     return;
                 }
                 const downloadUrl = URL.createObjectURL(blob);
@@ -85,6 +87,7 @@ _${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
                 download.download = filename;
                 download.click();
                 URL.revokeObjectURL(downloadUrl);
+                await Swal.fire('Exportación completada', 'La base de datos se exportó correctamente.', 'success');
             } catch (error) {
                 Swal.fire('Error', error.message || 'No se pudo exportar la base de datos.', 'error');
             }
