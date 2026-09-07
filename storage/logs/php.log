@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 [27-Jul-2026 03:32:23 Europe/Berlin] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
 [27-Jul-2026 03:32:23 Europe/Berlin] SQLite directory exists: yes
 [27-Jul-2026 03:32:23 Europe/Berlin] SQLite directory writable: yes
@@ -52646,3 +52647,863 @@ Stack trace:
 [06-Sep-2026 18:33:07 America/Bogota] SQLite file exists: yes
 [06-Sep-2026 18:33:07 America/Bogota] SQLite file writable: yes
 [06-Sep-2026 18:33:07 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+=======
+[06-Sep-2026 20:53:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:53:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:53:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:53:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:53:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:53:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:48 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:48 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:53:48 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:53:48 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:53:48 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:53:48 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:48 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:48 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:53:48 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:53:48 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:53:48 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:53:48 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:48 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:48 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:53:48 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:53:48 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:53:48 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:53:48 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:49 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:49 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:53:49 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:53:49 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:53:49 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:53:49 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:59 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:59 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:53:59 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:53:59 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:53:59 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:53:59 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:59 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:53:59 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:53:59 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:53:59 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:53:59 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:53:59 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:54:14 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:54:14 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:54:14 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:54:14 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:54:14 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:54:14 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:54:14 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:54:14 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:54:14 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:54:14 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:54:14 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:54:14 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:54:14 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:57:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:57:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:57:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:57:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:57:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:52 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:52 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:57:52 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:52 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:52 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:57:52 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:52 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:52 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:57:52 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:52 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:57:52 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:57:52 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:57:52 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:21 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:21 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:58:21 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:21 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:21 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:58:21 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:21 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:21 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:58:21 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:21 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:21 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:58:21 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:58:21 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:27 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:27 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:58:27 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:27 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:27 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:58:27 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:27 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:27 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:58:27 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:27 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:58:27 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:58:27 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:58:27 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:59:27 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:59:27 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:59:27 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:59:27 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:59:27 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:59:27 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:59:27 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:59:27 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:59:27 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:59:27 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 20:59:27 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 20:59:27 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 20:59:27 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:00:03 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:00:03 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:00:03 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:00:03 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:00:03 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:00:03 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:00:03 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:00:03 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:00:03 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:00:03 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:00:03 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:00:03 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:00:03 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:01 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:01 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:01 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:01 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:01 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:01 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:01 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:01 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:01 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:01 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:01 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:01 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:01 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:51 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:51 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:51 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:51 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:51 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:51 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:51 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:51 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:51 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:51 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:01:51 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:01:51 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:01:51 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:04 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:04 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:03:04 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:04 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:04 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:03:04 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:04 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:04 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:03:04 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:04 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:04 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:03:04 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:03:04 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:03:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:03:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:03:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:03:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:03:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:03:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:01 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:01 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:01 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:01 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:01 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:01 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:01 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:01 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:01 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:01 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:01 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:01 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:01 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:06 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:06 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:06 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:06 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:06 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:06 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:06 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:06 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:06 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:06 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:06 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:06 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:06 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:23 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:23 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:23 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:23 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:23 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:23 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:23 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:23 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:23 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:23 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:23 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:23 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:23 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:58 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:58 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:58 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:58 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:58 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:58 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:58 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:58 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:58 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:58 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:05:58 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:05:58 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:05:58 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:03 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:03 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:06:03 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:03 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:03 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:06:03 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:03 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:03 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:06:03 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:03 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:03 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:06:03 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:06:03 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:06:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:06:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:06:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:06:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:06:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:06:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:20 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:20 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:07:20 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:20 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:20 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:07:20 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:20 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:20 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:07:20 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:20 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:20 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:07:20 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:07:20 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:54 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:54 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:07:54 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:54 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:54 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:07:54 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:54 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:54 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:07:54 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:54 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:07:54 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:07:54 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:07:54 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:08:15 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:08:15 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:08:15 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:08:15 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:08:15 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:08:15 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:08:15 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:08:15 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:08:15 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:08:15 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:08:15 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:08:15 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:08:15 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:09:25 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:09:25 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:09:25 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:09:25 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:09:25 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:09:25 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:09:25 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:09:25 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:09:25 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:09:25 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:09:25 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:09:25 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:09:25 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:10:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:10:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:10:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:36 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:36 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:10:36 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:10:36 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:51 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:51 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:10:51 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:51 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:51 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:10:51 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:51 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:51 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:10:51 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:51 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:10:51 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:10:51 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:10:51 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:22 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:22 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:11:22 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:22 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:22 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:11:22 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:22 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:22 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:11:22 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:22 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:22 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:11:22 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:11:22 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:44 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:44 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:11:44 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:44 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:44 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:11:44 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:44 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:44 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:11:44 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:44 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:11:44 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:11:44 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:11:44 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:12:44 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:12:44 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:12:44 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:12:44 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:12:44 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:12:44 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:12:44 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:12:44 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:12:44 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:12:44 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:12:44 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:12:44 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:12:44 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:06 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:06 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:06 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:06 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:06 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:06 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:06 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:06 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:06 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:06 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:06 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:06 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:06 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:10 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:10 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:10 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:10 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:12 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:12 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:12 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:12 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:12 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:12 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:14 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:14 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:14 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:14 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:14 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:14 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:14 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:14 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:14 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:14 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:13:14 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:13:14 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:13:14 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:37 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:37 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:32:37 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:37 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:37 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:32:37 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:37 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:37 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:32:37 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:37 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:37 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:32:37 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:32:37 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:32:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:32:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:32:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:42 America/Bogota] SQLite requested path: C:\xampp\htdocs\nombre_de_empresa\database\database.db
+[06-Sep-2026 21:32:42 America/Bogota] SQLite directory exists: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite directory writable: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite file exists: yes
+[06-Sep-2026 21:32:42 America/Bogota] SQLite file writable: yes
+[06-Sep-2026 21:32:42 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
+>>>>>>> Stashed changes

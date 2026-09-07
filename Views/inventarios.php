@@ -1352,19 +1352,207 @@ if (is_file($logoPdfPath)) {
         }
 
         .producto-color-cell {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: grid;
+            justify-items: center;
+            align-content: center;
             gap: 6px;
-            min-width: 150px;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
             text-align: center;
         }
 
         .producto-color-name {
             display: block;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
             text-align: center;
             line-height: 1.2;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        #salidasTable.resumen-inventario-table {
+            table-layout: fixed;
+        }
+
+        #resumen #salidasTable.resumen-inventario-table th,
+        #resumen #salidasTable.resumen-inventario-table td {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+
+        #salidasTable.resumen-inventario-table td.producto-resumen-cell {
+            display: table-cell;
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: normal;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        #salidasTable.resumen-inventario-table td.producto-resumen-cell > .producto-color-cell,
+        #salidasTable.resumen-inventario-table td.producto-resumen-cell > .producto-color-cell > .producto-color-name {
+            position: static;
+            left: auto;
+            right: auto;
+            transform: none;
+        }
+
+        #resumen #salidasTable.resumen-inventario-table .producto-color-cell,
+        #resumen #salidasTable.resumen-inventario-table .producto-color-name {
+            justify-self: center;
+            text-align: center !important;
+        }
+
+        .inventario-detalle-table {
+            table-layout: fixed;
+        }
+
+        .inventario-detalle-table th,
+        .inventario-detalle-table td {
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        .inventario-detalle-table td.producto-nombre-cell {
+            text-align: center !important;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        .inventario-detalle-table td.producto-nombre-cell > strong,
+        .inventario-detalle-table td.producto-nombre-cell > span {
+            display: block;
+            width: 100%;
+            text-align: center !important;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .inventario-detalle-table tr.group-date > td {
+            padding: 12px 16px;
+            text-align: left !important;
+            vertical-align: middle !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        .group-date-summary {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: flex-start;
+            gap: 8px 24px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .group-date-total,
+        .group-date-metric {
+            display: flex;
+            flex-direction: row;
+            align-items: baseline;
+            gap: 6px;
+            min-width: 0;
+            text-align: left;
+        }
+
+        .group-date-details {
+            display: contents;
+        }
+
+        .group-date-total .group-date-label {
+            color: #203864;
+        }
+
+        .group-date-label {
+            color: #203864;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.2;
+            flex: 0 0 auto;
+        }
+
+        .group-date-value {
+            color: #203864;
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.35;
+            text-align: left;
+            overflow-wrap: anywhere;
+            flex: 0 1 auto;
+        }
+
+        .entrada-imagen-nombre {
+            display: block;
+            max-width: 100%;
+            margin-top: 4px;
+            color: #334155;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.2;
+            text-align: center;
+            overflow-wrap: anywhere;
+        }
+
+        .entrada-imagen-container {
+            flex-direction: column;
+        }
+
+        .ventas-detalle-table {
+            table-layout: fixed;
+        }
+
+        .ventas-detalle-table th,
+        .ventas-detalle-table td {
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        .ventas-fecha-hora {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            line-height: 1.25;
+        }
+
+        .ventas-fecha-hora span {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .group-date-summary {
+                gap: 6px 14px;
+            }
+
+            .group-date-total,
+            .group-date-metric {
+                text-align: left;
+            }
+        }
+
+        #salidasTable.resumen-inventario-table.con-id td.producto-resumen-cell {
+            width: 18%;
+        }
+
+        #salidasTable.resumen-inventario-table.sin-id td.producto-resumen-cell {
+            width: 20%;
         }
 
         .producto-color-chip {
@@ -1941,7 +2129,7 @@ if (is_file($logoPdfPath)) {
                     <?php endif; ?>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-                    <table id="salidasTable" style="min-width: 900px;">
+                    <table id="salidasTable" class="resumen-inventario-table <?= $puedeVerID ? 'con-id' : 'sin-id' ?>" style="min-width: 900px;">
                         <thead>
                             <tr>
                                 <th style="width: 80px;"><i class="fas fa-image"></i></th>
@@ -1987,7 +2175,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-                    <table id="movimientosTable" style="min-width: 900px;">
+                    <table id="movimientosTable" class="inventario-detalle-table" style="min-width: 900px;">
                         <thead>
                             <tr>
                                 <th style="width: 80px;"><i class="fas fa-image"></i></th>
@@ -2031,7 +2219,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-                    <table style="min-width: 900px;">
+                    <table class="inventario-detalle-table tabla-salidas-inventario" style="min-width: 900px;">
                         <thead>
                             <tr>
                                 <th><i class="fas fa-receipt"></i> VENTA</th>
@@ -2071,7 +2259,7 @@ if (is_file($logoPdfPath)) {
                     <?php endif; ?>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-                    <table style="min-width: 900px;">
+                    <table class="inventario-detalle-table tabla-movimientos-inventario" style="min-width: 900px;">
                         <thead>
                             <tr>
                                 <th><i class="fas fa-receipt"></i> VENTA</th>
@@ -2488,7 +2676,7 @@ if (is_file($logoPdfPath)) {
                             <h3><i class="fas fa-list"></i> PRODUCTOS VENDIDOS HOY</h3>
                         </div>
                         <div class="table-wrapper scrollbar-custom" style="max-height: 400px;">
-                            <table>
+                            <table class="ventas-detalle-table ventas-hoy-table">
                                 <thead>
                                     <tr>
                                         <th><i class="fas fa-clock"></i> FECHA Y HORA</th>
@@ -2579,7 +2767,7 @@ if (is_file($logoPdfPath)) {
                             </div>
                         </div>
                         <div class="table-wrapper-principal scrollbar-custom">
-                            <table>
+                            <table class="ventas-detalle-table ventas-mes-table">
                                 <thead>
                                     <tr>
                                         <th><i class="fas fa-image"></i> IMG</th>
@@ -5112,7 +5300,7 @@ if (is_file($logoPdfPath)) {
                                 </td>
                                 ${puedeVerID ? `<td>${item.id || 'N/A'}</td>` : ''}
                                 <td>${(item.codigo || 'N/A').toUpperCase()}</td>
-                                <td>
+                                <td class="producto-resumen-cell">
                                     <div class="producto-color-cell">
                                         <strong class="producto-color-name">${escapeHtmlInventario(String(item.nombre || 'N/A').toUpperCase())}</strong>
                                         <span class="producto-color-chip" style="background:${escapeHtmlInventario(colorHex || '#d1d5db')}"></span>
@@ -5228,7 +5416,27 @@ if (is_file($logoPdfPath)) {
                                 const grupoFecha = gruposPorFecha[fechaDia];
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
-                                headerRow.innerHTML = `<td colspan="${obtenerColspanEntradas()}">TOTAL ${fechaDia} · CANTIDAD: ${grupoFecha.totalCantidad.toLocaleString('es-CO')} · VALOR COMPRA: ${formatoMonedaCompleta(grupoFecha.totalValorCompra)}</td>`;
+                                headerRow.innerHTML = `
+                                    <td colspan="${obtenerColspanEntradas()}">
+                                        <div class="group-date-summary">
+                                            <div class="group-date-total">
+                                                <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                                <strong class="group-date-value">${grupoFecha.items.length}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">FECHA:</span>
+                                                <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">CANTIDAD:</span>
+                                                <strong class="group-date-value">${grupoFecha.totalCantidad.toLocaleString('es-CO')}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">VALOR DE COMPRA:</span>
+                                                <strong class="group-date-value">${formatoMonedaCompleta(grupoFecha.totalValorCompra)}</strong>
+                                            </div>
+                                        </div>
+                                    </td>`;
                                 tbody.appendChild(headerRow);
 
                                 grupoFecha.items.forEach(datos => {
@@ -5237,10 +5445,11 @@ if (is_file($logoPdfPath)) {
                                     const row = document.createElement('tr');
                                     row.innerHTML = `
                                         <td style="text-align: center;">
-                                            <div class="img-container">
+                                            <div class="img-container entrada-imagen-container">
                                                 <img src="${imgSrc}" alt="${escapeHtmlInventario(item.producto_nombre)}" class="producto-img" 
                                                      onerror="this.onerror=null;this.src=base_url+'/favicon.ico'" 
                                                      loading="lazy">
+                                                <span class="entrada-imagen-nombre">${escapeHtmlInventario((item.producto_nombre || 'PRODUCTO').toUpperCase())}</span>
                                             </div>
                                         </td>
                                         ${puedeVerID ? `<td>${item.id}</td>` : ''}
@@ -5559,7 +5768,27 @@ if (is_file($logoPdfPath)) {
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
-                                headerRow.innerHTML = `<td colspan="${obtenerColspanSalidas()}">TOTAL ${fechaDia} · CANTIDAD: ${grupoFecha.totalUnidades.toLocaleString('es-CO')} · VALOR: ${formatoMonedaInventario(grupoFecha.totalValor)}</td>`;
+                                headerRow.innerHTML = `
+                                    <td colspan="${obtenerColspanSalidas()}">
+                                        <div class="group-date-summary">
+                                            <div class="group-date-total">
+                                                <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                                <strong class="group-date-value">${grupoFecha.grupos.reduce((total, grupo) => total + grupo.items.length, 0)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">FECHA:</span>
+                                                <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">CANTIDAD:</span>
+                                                <strong class="group-date-value">${grupoFecha.totalUnidades.toLocaleString('es-CO')}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">VALOR TOTAL:</span>
+                                                <strong class="group-date-value">${formatoMonedaInventario(grupoFecha.totalValor)}</strong>
+                                            </div>
+                                        </div>
+                                    </td>`;
                                 tbody.appendChild(headerRow);
 
                                 grupoFecha.grupos.forEach(grupo => {
@@ -5782,7 +6011,23 @@ if (is_file($logoPdfPath)) {
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
-                                headerRow.innerHTML = `<td colspan="${obtenerColspanMovimientos()}">TOTAL ${fechaDia} · CANTIDAD: ${grupoFecha.totalUnidades.toLocaleString('es-CO')}</td>`;
+                                headerRow.innerHTML = `
+                                    <td colspan="${obtenerColspanMovimientos()}">
+                                        <div class="group-date-summary">
+                                            <div class="group-date-total">
+                                                <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                                <strong class="group-date-value">${grupoFecha.grupos.reduce((total, grupo) => total + grupo.items.length, 0)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">FECHA:</span>
+                                                <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">CANTIDAD:</span>
+                                                <strong class="group-date-value">${grupoFecha.totalUnidades.toLocaleString('es-CO')}</strong>
+                                            </div>
+                                        </div>
+                                    </td>`;
                                 tbody.appendChild(headerRow);
 
                                 grupoFecha.grupos.forEach(grupo => {
@@ -6191,13 +6436,10 @@ if (is_file($logoPdfPath)) {
                                 const gananciaValor = parseFloat(item.total_ganancia ?? item.ganancia_total ?? 0) || 0;
                                 const imgSrc = resolverImagenProductoInventario(item.imagen);
                                 const fechaHoraVenta = item.ultima_venta
-                                    ? new Date(item.ultima_venta).toLocaleString('es-CO', {
-                                        year: 'numeric', month: '2-digit', day: '2-digit',
-                                        hour: '2-digit', minute: '2-digit', second: '2-digit'
-                                    })
-                                    : '-';
+                                    ? fechaHoraImpresion(item.ultima_venta)
+                                    : { fecha: '-', hora: '-' };
                                 row.innerHTML = `
-                                    <td>${fechaHoraVenta}</td>
+                                    <td><div class="ventas-fecha-hora"><span>${escapeHtmlInventario(fechaHoraVenta.fecha)}</span><span>${escapeHtmlInventario(fechaHoraVenta.hora)}</span></div></td>
                                     <td style="text-align:center;"><img src="${imgSrc}" alt="${escapeHtmlInventario(item.nombre)}" class="producto-img" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:#fff;padding:2px;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"></td>
                                     <td><strong>${item.codigo}</strong></td>
                                     <td>${item.nombre}</td>
@@ -6360,10 +6602,31 @@ if (is_file($logoPdfPath)) {
                             const pintarResumenDia = (fechaDia) => {
                                 if (!fechaDia) return;
                                 const rowTotalDia = document.createElement('tr');
-                                rowTotalDia.style.background = '#f6fbff';
+                                rowTotalDia.className = 'group-date';
                                 rowTotalDia.innerHTML = `
-                                    <td colspan="8" style="font-weight: 700; color: #2f4a5a;">
-                                        TOTAL ${fechaDia}· GANANCIA: ${formatoMonedaCompleta(gananciaDiaAcumulada)}· VENTA: ${formatoMonedaCompleta(totalDiaAcumulado)}
+                                    <td colspan="8">
+                                        <div class="group-date-summary">
+                                            <div class="group-date-total">
+                                                <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                                <strong class="group-date-value">${unidadesDiaAcumuladas.toLocaleString('es-CO')}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">FECHA:</span>
+                                                <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">CANTIDAD:</span>
+                                                <strong class="group-date-value">${unidadesDiaAcumuladas.toLocaleString('es-CO')}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">TOTAL:</span>
+                                                <strong class="group-date-value">${formatoMonedaCompleta(totalDiaAcumulado)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">GANANCIA:</span>
+                                                <strong class="group-date-value">${formatoMonedaCompleta(gananciaDiaAcumulada)}</strong>
+                                            </div>
+                                        </div>
                                     </td>
                                 `;
                                 productosVendidosMes.appendChild(rowTotalDia);
@@ -6394,7 +6657,31 @@ if (is_file($logoPdfPath)) {
                                     const unidadesDia = infoDia ? parseInt(infoDia.unidades_dia || 0) : 0;
                                     const totalDia = infoDia ? parseFloat(infoDia.total_dia || 0) : 0;
                                     const gananciaDia = infoDia ? parseFloat(infoDia.ganancia_dia || 0) : 0;
-                                    grp.innerHTML = `<td colspan="8">${item.fecha}· UNIDADES: ${unidadesDia.toLocaleString('es-CO')}· TOTAL: ${formatoMonedaCompleta(totalDia)}· GANANCIA: ${formatoMonedaCompleta(gananciaDia)}</td>`;
+                                    grp.innerHTML = `
+                                        <td colspan="8">
+                                            <div class="group-date-summary">
+                                                <div class="group-date-total">
+                                                    <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                                    <strong class="group-date-value">${unidadesDia.toLocaleString('es-CO')}</strong>
+                                                </div>
+                                                <div class="group-date-metric">
+                                                    <span class="group-date-label">FECHA:</span>
+                                                    <strong class="group-date-value">${escapeHtmlInventario(item.fecha)}</strong>
+                                                </div>
+                                                <div class="group-date-metric">
+                                                    <span class="group-date-label">CANTIDAD:</span>
+                                                    <strong class="group-date-value">${unidadesDia.toLocaleString('es-CO')}</strong>
+                                                </div>
+                                                <div class="group-date-metric">
+                                                    <span class="group-date-label">TOTAL:</span>
+                                                    <strong class="group-date-value">${formatoMonedaCompleta(totalDia)}</strong>
+                                                </div>
+                                                <div class="group-date-metric">
+                                                    <span class="group-date-label">GANANCIA:</span>
+                                                    <strong class="group-date-value">${formatoMonedaCompleta(gananciaDia)}</strong>
+                                                </div>
+                                            </div>
+                                        </td>`;
                                     productosVendidosMes.appendChild(grp);
 
                                     fechaActual = item.fecha;

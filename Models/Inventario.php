@@ -1431,6 +1431,7 @@ class Inventario {
             }
 
             $tieneDescuentoCol = $this->columnaDescuentoProductos() !== '';
+            $tieneVentaPorKilo = $this->columnaExiste('productos', 'venta_por_kilo');
             $columnaGanancia = $this->columnaPorcentajeGananciaProductos();
             $tienePorcentajeGananciaCol = $columnaGanancia !== '';
             $exprDescuentoBase = $this->exprDescuentoProducto('p');
@@ -1468,6 +1469,7 @@ class Inventario {
                         IFNULL(p.venta_por_kilo, 0) as venta_por_kilo,
                         IFNULL(p.stock, 0) as stock, 
                         IFNULL(p.precio, 0) as precio,
+                        " . ($tieneVentaPorKilo ? "COALESCE(p.venta_por_kilo, 0)" : "0") . " as venta_por_kilo,
                         {$exprDescuento} as descuento_porcentaje,
                         {$exprGananciaBasePct} as porcentaje_ganancia,
                         {$exprPrecioFinal} as precio_final,
@@ -1488,6 +1490,7 @@ class Inventario {
                         IFNULL(p.venta_por_kilo, 0) as venta_por_kilo,
                         IFNULL(p.stock, 0) as stock, 
                         IFNULL(p.precio, 0) as precio,
+                        0 as venta_por_kilo,
                         {$exprDescuento} as descuento_porcentaje,
                         {$exprGananciaBasePct} as porcentaje_ganancia,
                         {$exprPrecioFinal} as precio_final,

@@ -406,7 +406,11 @@ expose_php = On
 ; Maximum execution time of each script, in seconds
 ; https://php.net/max-execution-time
 ; Note: This directive is hardcoded to 0 for the CLI SAPI
+<<<<<<< Updated upstream
 max_execution_time = 300
+=======
+max_execution_time = 30
+>>>>>>> Stashed changes
 
 ; Maximum amount of time each script may spend parsing request data. It's a good
 ; idea to limit this time on productions servers in order to eliminate unexpectedly
@@ -416,7 +420,11 @@ max_execution_time = 300
 ; Development Value: 60 (60 seconds)
 ; Production Value: 60 (60 seconds)
 ; https://php.net/max-input-time
+<<<<<<< Updated upstream
 max_input_time = 300
+=======
+max_input_time = 60
+>>>>>>> Stashed changes
 
 ; Maximum input variable nesting level
 ; https://php.net/max-input-nesting-level
@@ -432,7 +440,11 @@ max_input_time = 300
 
 ; Maximum amount of memory a script may consume
 ; https://php.net/memory-limit
+<<<<<<< Updated upstream
 memory_limit = 512M
+=======
+memory_limit = 128M
+>>>>>>> Stashed changes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Error handling and logging ;
@@ -700,7 +712,11 @@ auto_globals_jit = On
 ; Its value may be 0 to disable the limit. It is ignored if POST data reading
 ; is disabled through enable_post_data_reading.
 ; https://php.net/post-max-size
+<<<<<<< Updated upstream
 post_max_size = 512M
+=======
+post_max_size = 8M
+>>>>>>> Stashed changes
 
 ; Automatically add files before PHP document.
 ; https://php.net/auto-prepend-file
@@ -767,7 +783,11 @@ user_dir =
 ; https://php.net/extension-dir
 ;extension_dir = "./"
 ; On windows:
+<<<<<<< Updated upstream
 extension_dir = "ext"
+=======
+;extension_dir = "ext"
+>>>>>>> Stashed changes
 
 ; Directory where the temporary files should be placed.
 ; Defaults to the system default (see sys_get_temp_dir)
@@ -852,7 +872,11 @@ file_uploads = On
 
 ; Maximum allowed size for uploaded files.
 ; https://php.net/upload-max-filesize
+<<<<<<< Updated upstream
 upload_max_filesize = 512M
+=======
+upload_max_filesize = 2M
+>>>>>>> Stashed changes
 
 ; Maximum number of files that can be uploaded via a single request
 max_file_uploads = 20
@@ -935,12 +959,17 @@ default_socket_timeout = 60
 ;extension=gmp
 ;extension=intl
 ;extension=imap
+<<<<<<< Updated upstream
 extension=mbstring
+=======
+;extension=mbstring
+>>>>>>> Stashed changes
 ;extension=exif      ; Must be after mbstring as it depends on it
 ;extension=mysqli
 ;extension=oci8_12c  ; Use with Oracle Database 12c Instant Client
 ;extension=oci8_19  ; Use with Oracle Database 19 Instant Client
 ;extension=odbc
+<<<<<<< Updated upstream
 extension=openssl
 extension=pdo_firebird
 extension=pdo_mysql
@@ -950,6 +979,17 @@ extension=pdo_pgsql
 extension=pdo_sqlite
 extension=pgsql
 extension=shmop
+=======
+;extension=openssl
+;extension=pdo_firebird
+;extension=pdo_mysql
+;extension=pdo_oci
+;extension=pdo_odbc
+;extension=pdo_pgsql
+;extension=pdo_sqlite
+;extension=pgsql
+;extension=shmop
+>>>>>>> Stashed changes
 
 ; The MIBS data available in the PHP distribution must be installed.
 ; See https://www.php.net/manual/en/snmp.installation.php
@@ -958,7 +998,11 @@ extension=shmop
 ;extension=soap
 ;extension=sockets
 ;extension=sodium
+<<<<<<< Updated upstream
 extension=sqlite3
+=======
+;extension=sqlite3
+>>>>>>> Stashed changes
 ;extension=tidy
 ;extension=xsl
 ;extension=zip

@@ -59,7 +59,11 @@ $rolActualNorm = strtr($rolActualNorm, ['á' => 'a', 'é' => 'e', 'í' => 'i', '
 $esSuperAdmin = ($rolActualNorm === 'super administrador');
 $esAdministradorContexto = ($rolActualNorm === 'administrador') || ($esSuperAdmin && !empty($_SESSION['superadmin_modo_empresa']));
 $filtrarCategoriasPorUsuario = false;
+<<<<<<< Updated upstream
 $mostrarColumnaId = $esSuperAdmin;
+=======
+$mostrarColumnaId = true;
+>>>>>>> Stashed changes
 
 // Obtener categorías para el select
 try {
@@ -778,15 +782,26 @@ try {
 
         /* Anchos de columnas específicas para productos */
         <?php if ($mostrarColumnaId): ?>
+<<<<<<< Updated upstream
         th:nth-child(1), td:nth-child(1) { width: 4%; }      /* ID */
         th:nth-child(2), td:nth-child(2) { width: 7%; }      /* CÓDIGO */
         th:nth-child(3), td:nth-child(3) { width: 9%; }      /* CÓDIGO DE BARRAS */
         th:nth-child(4), td:nth-child(4) { width: 9%; }      /* NOMBRE */
+=======
+        th:nth-child(1), td:nth-child(1) { width: 5%; }      /* ID */
+        th:nth-child(2), td:nth-child(2) { width: 7%; }      /* CÓDIGO */
+        th:nth-child(3), td:nth-child(3) { width: 9%; }      /* CÓDIGO DE BARRAS */
+        th:nth-child(4), td:nth-child(4) { width: 8%; }      /* NOMBRE */
+>>>>>>> Stashed changes
         th:nth-child(5), td:nth-child(5) { width: 9%; min-width: 100px; } /* DESCRIPCIÓN */
         th:nth-child(6), td:nth-child(6) { width: 7%; }      /* PRECIO */
         th:nth-child(7), td:nth-child(7) { width: 6%; }      /* STOCK */
         th:nth-child(8), td:nth-child(8) { width: 6%; }      /* VENTA */
+<<<<<<< Updated upstream
         th:nth-child(9), td:nth-child(9) { width: 7%; }      /* CATEGORÍA */
+=======
+        th:nth-child(9), td:nth-child(9) { width: 9%; }      /* CATEGORÍA */
+>>>>>>> Stashed changes
         th:nth-child(10), td:nth-child(10) { width: 6%; }    /* COLOR */
         th:nth-child(11), td:nth-child(11) { width: 8%; }    /* IMAGEN */
         th:nth-child(12), td:nth-child(12) { width: 8%; }    /* ESTADO */
@@ -821,6 +836,27 @@ try {
             vertical-align: middle;
         }
 
+<<<<<<< Updated upstream
+=======
+        th.product-header {
+            vertical-align: top;
+        }
+
+        th.product-header i {
+            display: block;
+            margin: 0 0 5px;
+        }
+
+        th.product-header.id-header {
+            vertical-align: middle;
+        }
+
+        th.product-header.id-header i {
+            display: inline-block;
+            margin: 0 5px 0 0;
+        }
+
+>>>>>>> Stashed changes
         tr:hover {
             background-color: rgba(47, 74, 90, 0.04);
             transition: background-color 0.2s ease;
@@ -2046,6 +2082,7 @@ try {
                     <thead>
                         <tr>
                             <?php if ($mostrarColumnaId): ?>
+<<<<<<< Updated upstream
                             <th><i class="fas fa-hashtag"></i> ID</th>
                             <?php endif; ?>
                             <th><i class="fas fa-barcode"></i> CÓDIGO</th>
@@ -2060,6 +2097,22 @@ try {
                             <th><i class="fas fa-image"></i> IMAGEN</th>
                             <th><i class="fas fa-toggle-on"></i> ESTADO</th>
                             <th><i class="fas fa-tools"></i> ACCIONES</th>
+=======
+                            <th class="product-header id-header"><i class="fas fa-hashtag"></i> ID</th>
+                            <?php endif; ?>
+                            <th class="product-header"><i class="fas fa-barcode"></i> CÓDIGO</th>
+                            <th class="product-header"><i class="fas fa-qrcode"></i> CÓDIGO DE BARRAS</th>
+                            <th class="product-header"><i class="fas fa-box"></i> NOMBRE</th>
+                            <th class="product-header"><i class="fas fa-file-alt"></i> DESCRIPCIÓN</th>
+                            <th class="product-header"><i class="fas fa-dollar-sign"></i> PRECIO</th>
+                            <th class="product-header"><i class="fas fa-cubes"></i> STOCK</th>
+                            <th class="product-header"><i class="fas fa-weight-scale"></i> VENTA</th>
+                            <th class="product-header"><i class="fas fa-tag"></i> CATEGORÍA</th>
+                            <th class="product-header"><i class="fas fa-palette"></i> COLOR</th>
+                            <th class="product-header"><i class="fas fa-image"></i> IMAGEN</th>
+                            <th class="product-header"><i class="fas fa-toggle-on"></i> ESTADO</th>
+                            <th class="product-header"><i class="fas fa-tools"></i> ACCIONES</th>
+>>>>>>> Stashed changes
                         </tr>
                     </thead>
                     <tbody id="productos-tbody">
