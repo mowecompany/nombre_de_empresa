@@ -11979,13 +11979,9 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
         const getQuantityUnit = (product) => {
             const value = product?.venta_por_kilo ?? product?.ventaPorKilo ?? product?.unidad;
-<<<<<<< Updated upstream
-            return ['1', 'true', 'si', 'sí', 'kg', 'kilo', 'kilogramo'].includes(String(value ?? '').trim().toLowerCase()) ? 'KG' : 'UN';
-=======
             const unidadNormalizada = String(value ?? '').trim().toLowerCase();
             const esProductoPorKilo = ['1', 'true', 'si', 'sí', 'kg', 'kilo', 'kilogramo', 'kilogramos'].includes(unidadNormalizada);
             return esProductoPorKilo ? 'KG' : 'UN';
->>>>>>> Stashed changes
         };
 
         const formatQuantityWithUnit = (valor, product) => `${formatQuantityColombia(valor)} ${getQuantityUnit(product)}`;

@@ -1431,10 +1431,7 @@ class Inventario {
             }
 
             $tieneDescuentoCol = $this->columnaDescuentoProductos() !== '';
-<<<<<<< Updated upstream
-=======
             $tieneVentaPorKilo = $this->columnaExiste('productos', 'venta_por_kilo');
->>>>>>> Stashed changes
             $columnaGanancia = $this->columnaPorcentajeGananciaProductos();
             $tienePorcentajeGananciaCol = $columnaGanancia !== '';
             $exprDescuentoBase = $this->exprDescuentoProducto('p');
@@ -1469,15 +1466,9 @@ class Inventario {
                         p.nombre, 
                         p.imagen,
                         p.color,
-<<<<<<< Updated upstream
-                        IFNULL(p.venta_por_kilo, 0) as venta_por_kilo,
-                        IFNULL(p.stock, 0) as stock, 
-                        IFNULL(p.precio, 0) as precio,
-=======
                         IFNULL(p.stock, 0) as stock, 
                         IFNULL(p.precio, 0) as precio,
                         " . ($tieneVentaPorKilo ? "COALESCE(p.venta_por_kilo, 0)" : "0") . " as venta_por_kilo,
->>>>>>> Stashed changes
                         {$exprDescuento} as descuento_porcentaje,
                         {$exprGananciaBasePct} as porcentaje_ganancia,
                         {$exprPrecioFinal} as precio_final,
@@ -1495,15 +1486,9 @@ class Inventario {
                         p.nombre, 
                         p.imagen,
                         p.color,
-<<<<<<< Updated upstream
-                        IFNULL(p.venta_por_kilo, 0) as venta_por_kilo,
-                        IFNULL(p.stock, 0) as stock, 
-                        IFNULL(p.precio, 0) as precio,
-=======
                         IFNULL(p.stock, 0) as stock, 
                         IFNULL(p.precio, 0) as precio,
                         0 as venta_por_kilo,
->>>>>>> Stashed changes
                         {$exprDescuento} as descuento_porcentaje,
                         {$exprGananciaBasePct} as porcentaje_ganancia,
                         {$exprPrecioFinal} as precio_final,

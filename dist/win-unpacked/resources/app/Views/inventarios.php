@@ -1352,14 +1352,6 @@ if (is_file($logoPdfPath)) {
         }
 
         .producto-color-cell {
-<<<<<<< Updated upstream
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            min-width: 150px;
-=======
             display: grid;
             justify-items: center;
             align-content: center;
@@ -1369,16 +1361,11 @@ if (is_file($logoPdfPath)) {
             max-width: 100%;
             margin: 0 auto;
             box-sizing: border-box;
->>>>>>> Stashed changes
             text-align: center;
         }
 
         .producto-color-name {
             display: block;
-<<<<<<< Updated upstream
-            text-align: center;
-            line-height: 1.2;
-=======
             width: 100%;
             max-width: 100%;
             margin: 0 auto;
@@ -1566,7 +1553,6 @@ if (is_file($logoPdfPath)) {
 
         #salidasTable.resumen-inventario-table.sin-id td.producto-resumen-cell {
             width: 20%;
->>>>>>> Stashed changes
         }
 
         .producto-color-chip {
@@ -2143,11 +2129,7 @@ if (is_file($logoPdfPath)) {
                     <?php endif; ?>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-<<<<<<< Updated upstream
-                    <table id="salidasTable" style="min-width: 900px;">
-=======
                     <table id="salidasTable" class="resumen-inventario-table <?= $puedeVerID ? 'con-id' : 'sin-id' ?>" style="min-width: 900px;">
->>>>>>> Stashed changes
                         <thead>
                             <tr>
                                 <th style="width: 80px;"><i class="fas fa-image"></i></th>
@@ -2193,11 +2175,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-<<<<<<< Updated upstream
-                    <table id="movimientosTable" style="min-width: 900px;">
-=======
                     <table id="movimientosTable" class="inventario-detalle-table" style="min-width: 900px;">
->>>>>>> Stashed changes
                         <thead>
                             <tr>
                                 <th style="width: 80px;"><i class="fas fa-image"></i></th>
@@ -2241,11 +2219,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-<<<<<<< Updated upstream
-                    <table style="min-width: 900px;">
-=======
                     <table class="inventario-detalle-table tabla-salidas-inventario" style="min-width: 900px;">
->>>>>>> Stashed changes
                         <thead>
                             <tr>
                                 <th><i class="fas fa-receipt"></i> VENTA</th>
@@ -2285,11 +2259,7 @@ if (is_file($logoPdfPath)) {
                     <?php endif; ?>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-<<<<<<< Updated upstream
-                    <table style="min-width: 900px;">
-=======
                     <table class="inventario-detalle-table tabla-movimientos-inventario" style="min-width: 900px;">
->>>>>>> Stashed changes
                         <thead>
                             <tr>
                                 <th><i class="fas fa-receipt"></i> VENTA</th>
@@ -2706,11 +2676,7 @@ if (is_file($logoPdfPath)) {
                             <h3><i class="fas fa-list"></i> PRODUCTOS VENDIDOS HOY</h3>
                         </div>
                         <div class="table-wrapper scrollbar-custom" style="max-height: 400px;">
-<<<<<<< Updated upstream
-                            <table>
-=======
                             <table class="ventas-detalle-table ventas-hoy-table">
->>>>>>> Stashed changes
                                 <thead>
                                     <tr>
                                         <th><i class="fas fa-clock"></i> FECHA Y HORA</th>
@@ -2801,11 +2767,7 @@ if (is_file($logoPdfPath)) {
                             </div>
                         </div>
                         <div class="table-wrapper-principal scrollbar-custom">
-<<<<<<< Updated upstream
-                            <table>
-=======
                             <table class="ventas-detalle-table ventas-mes-table">
->>>>>>> Stashed changes
                                 <thead>
                                     <tr>
                                         <th><i class="fas fa-image"></i> IMG</th>
@@ -5338,11 +5300,7 @@ if (is_file($logoPdfPath)) {
                                 </td>
                                 ${puedeVerID ? `<td>${item.id || 'N/A'}</td>` : ''}
                                 <td>${(item.codigo || 'N/A').toUpperCase()}</td>
-<<<<<<< Updated upstream
-                                <td>
-=======
                                 <td class="producto-resumen-cell">
->>>>>>> Stashed changes
                                     <div class="producto-color-cell">
                                         <strong class="producto-color-name">${escapeHtmlInventario(String(item.nombre || 'N/A').toUpperCase())}</strong>
                                         <span class="producto-color-chip" style="background:${escapeHtmlInventario(colorHex || '#d1d5db')}"></span>
@@ -5458,9 +5416,6 @@ if (is_file($logoPdfPath)) {
                                 const grupoFecha = gruposPorFecha[fechaDia];
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
-<<<<<<< Updated upstream
-                                headerRow.innerHTML = `<td colspan="${obtenerColspanEntradas()}">TOTAL ${fechaDia} · CANTIDAD: ${grupoFecha.totalCantidad.toLocaleString('es-CO')} · VALOR COMPRA: ${formatoMonedaCompleta(grupoFecha.totalValorCompra)}</td>`;
-=======
                                 headerRow.innerHTML = `
                                     <td colspan="${obtenerColspanEntradas()}">
                                         <div class="group-date-summary">
@@ -5482,7 +5437,6 @@ if (is_file($logoPdfPath)) {
                                             </div>
                                         </div>
                                     </td>`;
->>>>>>> Stashed changes
                                 tbody.appendChild(headerRow);
 
                                 grupoFecha.items.forEach(datos => {
@@ -5491,18 +5445,11 @@ if (is_file($logoPdfPath)) {
                                     const row = document.createElement('tr');
                                     row.innerHTML = `
                                         <td style="text-align: center;">
-<<<<<<< Updated upstream
-                                            <div class="img-container">
-                                                <img src="${imgSrc}" alt="${escapeHtmlInventario(item.producto_nombre)}" class="producto-img" 
-                                                     onerror="this.onerror=null;this.src=base_url+'/favicon.ico'" 
-                                                     loading="lazy">
-=======
                                             <div class="img-container entrada-imagen-container">
                                                 <img src="${imgSrc}" alt="${escapeHtmlInventario(item.producto_nombre)}" class="producto-img" 
                                                      onerror="this.onerror=null;this.src=base_url+'/favicon.ico'" 
                                                      loading="lazy">
                                                 <span class="entrada-imagen-nombre">${escapeHtmlInventario((item.producto_nombre || 'PRODUCTO').toUpperCase())}</span>
->>>>>>> Stashed changes
                                             </div>
                                         </td>
                                         ${puedeVerID ? `<td>${item.id}</td>` : ''}
@@ -5821,9 +5768,6 @@ if (is_file($logoPdfPath)) {
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
-<<<<<<< Updated upstream
-                                headerRow.innerHTML = `<td colspan="${obtenerColspanSalidas()}">TOTAL ${fechaDia} · CANTIDAD: ${grupoFecha.totalUnidades.toLocaleString('es-CO')} · VALOR: ${formatoMonedaInventario(grupoFecha.totalValor)}</td>`;
-=======
                                 headerRow.innerHTML = `
                                     <td colspan="${obtenerColspanSalidas()}">
                                         <div class="group-date-summary">
@@ -5845,7 +5789,6 @@ if (is_file($logoPdfPath)) {
                                             </div>
                                         </div>
                                     </td>`;
->>>>>>> Stashed changes
                                 tbody.appendChild(headerRow);
 
                                 grupoFecha.grupos.forEach(grupo => {
@@ -6068,9 +6011,6 @@ if (is_file($logoPdfPath)) {
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
-<<<<<<< Updated upstream
-                                headerRow.innerHTML = `<td colspan="${obtenerColspanMovimientos()}">TOTAL ${fechaDia} · CANTIDAD: ${grupoFecha.totalUnidades.toLocaleString('es-CO')}</td>`;
-=======
                                 headerRow.innerHTML = `
                                     <td colspan="${obtenerColspanMovimientos()}">
                                         <div class="group-date-summary">
@@ -6088,7 +6028,6 @@ if (is_file($logoPdfPath)) {
                                             </div>
                                         </div>
                                     </td>`;
->>>>>>> Stashed changes
                                 tbody.appendChild(headerRow);
 
                                 grupoFecha.grupos.forEach(grupo => {
@@ -6497,20 +6436,10 @@ if (is_file($logoPdfPath)) {
                                 const gananciaValor = parseFloat(item.total_ganancia ?? item.ganancia_total ?? 0) || 0;
                                 const imgSrc = resolverImagenProductoInventario(item.imagen);
                                 const fechaHoraVenta = item.ultima_venta
-<<<<<<< Updated upstream
-                                    ? new Date(item.ultima_venta).toLocaleString('es-CO', {
-                                        year: 'numeric', month: '2-digit', day: '2-digit',
-                                        hour: '2-digit', minute: '2-digit', second: '2-digit'
-                                    })
-                                    : '-';
-                                row.innerHTML = `
-                                    <td>${fechaHoraVenta}</td>
-=======
                                     ? fechaHoraImpresion(item.ultima_venta)
                                     : { fecha: '-', hora: '-' };
                                 row.innerHTML = `
                                     <td><div class="ventas-fecha-hora"><span>${escapeHtmlInventario(fechaHoraVenta.fecha)}</span><span>${escapeHtmlInventario(fechaHoraVenta.hora)}</span></div></td>
->>>>>>> Stashed changes
                                     <td style="text-align:center;"><img src="${imgSrc}" alt="${escapeHtmlInventario(item.nombre)}" class="producto-img" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:#fff;padding:2px;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"></td>
                                     <td><strong>${item.codigo}</strong></td>
                                     <td>${item.nombre}</td>
@@ -6673,12 +6602,6 @@ if (is_file($logoPdfPath)) {
                             const pintarResumenDia = (fechaDia) => {
                                 if (!fechaDia) return;
                                 const rowTotalDia = document.createElement('tr');
-<<<<<<< Updated upstream
-                                rowTotalDia.style.background = '#f6fbff';
-                                rowTotalDia.innerHTML = `
-                                    <td colspan="8" style="font-weight: 700; color: #2f4a5a;">
-                                        TOTAL ${fechaDia}· GANANCIA: ${formatoMonedaCompleta(gananciaDiaAcumulada)}· VENTA: ${formatoMonedaCompleta(totalDiaAcumulado)}
-=======
                                 rowTotalDia.className = 'group-date';
                                 rowTotalDia.innerHTML = `
                                     <td colspan="8">
@@ -6704,7 +6627,6 @@ if (is_file($logoPdfPath)) {
                                                 <strong class="group-date-value">${formatoMonedaCompleta(gananciaDiaAcumulada)}</strong>
                                             </div>
                                         </div>
->>>>>>> Stashed changes
                                     </td>
                                 `;
                                 productosVendidosMes.appendChild(rowTotalDia);
@@ -6735,9 +6657,6 @@ if (is_file($logoPdfPath)) {
                                     const unidadesDia = infoDia ? parseInt(infoDia.unidades_dia || 0) : 0;
                                     const totalDia = infoDia ? parseFloat(infoDia.total_dia || 0) : 0;
                                     const gananciaDia = infoDia ? parseFloat(infoDia.ganancia_dia || 0) : 0;
-<<<<<<< Updated upstream
-                                    grp.innerHTML = `<td colspan="8">${item.fecha}· UNIDADES: ${unidadesDia.toLocaleString('es-CO')}· TOTAL: ${formatoMonedaCompleta(totalDia)}· GANANCIA: ${formatoMonedaCompleta(gananciaDia)}</td>`;
-=======
                                     grp.innerHTML = `
                                         <td colspan="8">
                                             <div class="group-date-summary">
@@ -6763,7 +6682,6 @@ if (is_file($logoPdfPath)) {
                                                 </div>
                                             </div>
                                         </td>`;
->>>>>>> Stashed changes
                                     productosVendidosMes.appendChild(grp);
 
                                     fechaActual = item.fecha;

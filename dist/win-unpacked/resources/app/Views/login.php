@@ -34,11 +34,7 @@ if (!is_file(ROOT_PATH . $loginLogoPath)) {
 $loginFavicon = $loginLoadingLogo;
 $loginCompanyName = isset($_SESSION['empresa_nombre']) && trim((string)$_SESSION['empresa_nombre']) !== ''
     ? trim((string)$_SESSION['empresa_nombre'])
-<<<<<<< Updated upstream
-    : (defined('NOMBRE_EMPRESA') && trim((string)NOMBRE_EMPRESA) !== '' ? (string)NOMBRE_EMPRESA : 'AUTOSERVICIO LA ESTRELLA');
-=======
     : (defined('NOMBRE_EMPRESA') && trim((string)NOMBRE_EMPRESA) !== '' ? (string)NOMBRE_EMPRESA : 'AUTOSERVICIO MI ESTRELLA');
->>>>>>> Stashed changes
 $correoPrefillLogin = trim((string)($_GET['correo'] ?? $_GET['email'] ?? ''));
 
 ?>

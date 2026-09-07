@@ -1,2 +1,0 @@
-dist/AUTOSERVICIO[[:space:]]MI[[:space:]]ESTRELLA[[:space:]]Setup[[:space:]]v1.0.5.exe filter=lfs diff=lfs merge=lfs -text
-dist/win-unpacked/AUTOSERVICIO[[:space:]]MI[[:space:]]ESTRELLA.exe filter=lfs diff=lfs merge=lfs -text
