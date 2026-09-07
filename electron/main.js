@@ -6,8 +6,8 @@ const crypto = require('crypto');
 const net = require('net');
 const http = require('http');
 
-const APP_NAME = 'AUTOSERVICIO LA ESTRELLA';
-const COMPANY_NAME = 'AUTOSERVICIO LA ESTRELLA';
+const APP_NAME = 'AUTOSERVICIO MI ESTRELLA';
+const COMPANY_NAME = 'AUTOSERVICIO MI ESTRELLA';
 const SERVER_HOST = '127.0.0.1';
 const DEFAULT_PORT = 8000;
 const MAX_PORT = 8010;

@@ -4,7 +4,7 @@
     define('CURRENCY', 'COP');       // Código ISO de moneda
     define('SPD', ',');              // Separador de decimales (coma)
     define('SPM', '.');              // Separador de miles (punto)
-    define('NOMBRE_EMPRESA', 'AUTOSERVICIO LA ESTRELLA');
+    define('NOMBRE_EMPRESA', 'AUTOSERVICIO MI ESTRELLA');
     if(!defined('COSTOENVIO')){
         define('COSTOENVIO', 0);
     }

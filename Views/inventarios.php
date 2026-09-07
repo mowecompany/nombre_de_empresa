@@ -462,7 +462,7 @@ if (is_file($logoPdfPath)) {
 
         .productos-categoria-salida-grid {
             display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
+            grid-template-columns: repeat(8, minmax(0, 1fr));
             gap: 14px;
             padding: 18px;
             max-height: 65vh;
@@ -477,7 +477,7 @@ if (is_file($logoPdfPath)) {
             color: var(--primary-blue) !important;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1100px) {
             .productos-categoria-salida-grid {
                 grid-template-columns: repeat(4, minmax(0, 1fr));
             }
@@ -1352,19 +1352,207 @@ if (is_file($logoPdfPath)) {
         }
 
         .producto-color-cell {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: grid;
+            justify-items: center;
+            align-content: center;
             gap: 6px;
-            min-width: 150px;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
             text-align: center;
         }
 
         .producto-color-name {
             display: block;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            box-sizing: border-box;
             text-align: center;
             line-height: 1.2;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        #salidasTable.resumen-inventario-table {
+            table-layout: fixed;
+        }
+
+        #resumen #salidasTable.resumen-inventario-table th,
+        #resumen #salidasTable.resumen-inventario-table td {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+
+        #salidasTable.resumen-inventario-table td.producto-resumen-cell {
+            display: table-cell;
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: normal;
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        #salidasTable.resumen-inventario-table td.producto-resumen-cell > .producto-color-cell,
+        #salidasTable.resumen-inventario-table td.producto-resumen-cell > .producto-color-cell > .producto-color-name {
+            position: static;
+            left: auto;
+            right: auto;
+            transform: none;
+        }
+
+        #resumen #salidasTable.resumen-inventario-table .producto-color-cell,
+        #resumen #salidasTable.resumen-inventario-table .producto-color-name {
+            justify-self: center;
+            text-align: center !important;
+        }
+
+        .inventario-detalle-table {
+            table-layout: fixed;
+        }
+
+        .inventario-detalle-table th,
+        .inventario-detalle-table td {
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        .inventario-detalle-table td.producto-nombre-cell {
+            text-align: center !important;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        .inventario-detalle-table td.producto-nombre-cell > strong,
+        .inventario-detalle-table td.producto-nombre-cell > span {
+            display: block;
+            width: 100%;
+            text-align: center !important;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .inventario-detalle-table tr.group-date > td {
+            padding: 12px 16px;
+            text-align: left !important;
+            vertical-align: middle !important;
+            position: relative;
+            z-index: 1;
+        }
+
+        .group-date-summary {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: flex-start;
+            gap: 8px 24px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .group-date-total,
+        .group-date-metric {
+            display: flex;
+            flex-direction: row;
+            align-items: baseline;
+            gap: 6px;
+            min-width: 0;
+            text-align: left;
+        }
+
+        .group-date-details {
+            display: contents;
+        }
+
+        .group-date-total .group-date-label {
+            color: #203864;
+        }
+
+        .group-date-label {
+            color: #203864;
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1.2;
+            flex: 0 0 auto;
+        }
+
+        .group-date-value {
+            color: #203864;
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.35;
+            text-align: left;
+            overflow-wrap: anywhere;
+            flex: 0 1 auto;
+        }
+
+        .entrada-imagen-nombre {
+            display: block;
+            max-width: 100%;
+            margin-top: 4px;
+            color: #334155;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.2;
+            text-align: center;
+            overflow-wrap: anywhere;
+        }
+
+        .entrada-imagen-container {
+            flex-direction: column;
+        }
+
+        .ventas-detalle-table {
+            table-layout: fixed;
+        }
+
+        .ventas-detalle-table th,
+        .ventas-detalle-table td {
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+
+        .ventas-fecha-hora {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            line-height: 1.25;
+        }
+
+        .ventas-fecha-hora span {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .group-date-summary {
+                gap: 6px 14px;
+            }
+
+            .group-date-total,
+            .group-date-metric {
+                text-align: left;
+            }
+        }
+
+        #salidasTable.resumen-inventario-table.con-id td.producto-resumen-cell {
+            width: 18%;
+        }
+
+        #salidasTable.resumen-inventario-table.sin-id td.producto-resumen-cell {
+            width: 20%;
         }
 
         .producto-color-chip {
@@ -1941,7 +2129,7 @@ if (is_file($logoPdfPath)) {
                     <?php endif; ?>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-                    <table id="salidasTable" style="min-width: 900px;">
+                    <table id="salidasTable" class="resumen-inventario-table <?= $puedeVerID ? 'con-id' : 'sin-id' ?>" style="min-width: 900px;">
                         <thead>
                             <tr>
                                 <th style="width: 80px;"><i class="fas fa-image"></i></th>
@@ -1987,7 +2175,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-                    <table id="movimientosTable" style="min-width: 900px;">
+                    <table id="movimientosTable" class="inventario-detalle-table" style="min-width: 900px;">
                         <thead>
                             <tr>
                                 <th style="width: 80px;"><i class="fas fa-image"></i></th>
@@ -2031,7 +2219,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-                    <table style="min-width: 900px;">
+                    <table class="inventario-detalle-table tabla-salidas-inventario" style="min-width: 900px;">
                         <thead>
                             <tr>
                                 <th><i class="fas fa-receipt"></i> VENTA</th>
@@ -2071,7 +2259,7 @@ if (is_file($logoPdfPath)) {
                     <?php endif; ?>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
-                    <table style="min-width: 900px;">
+                    <table class="inventario-detalle-table tabla-movimientos-inventario" style="min-width: 900px;">
                         <thead>
                             <tr>
                                 <th><i class="fas fa-receipt"></i> VENTA</th>
@@ -2285,9 +2473,9 @@ if (is_file($logoPdfPath)) {
                         </select>
                     </div>
                     <div id="categoriasSalidaPanel" style="display:flex; flex-wrap:wrap; align-items:center; gap:2px; margin:0; min-width:0; transform:translateX(20px);">
-                        <button type="button" class="categoria-salida-option" data-categoria-id="frutas" onclick="abrirProductosCategoriaSalida('frutas', 'FRUTAS')" style="height:42px; padding:6px 8px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:11px; font-weight:700; text-transform:uppercase;"><i class="fas fa-apple-whole"></i> FRUTAS</button>
-                        <button type="button" class="categoria-salida-option" data-categoria-id="verduras" onclick="abrirProductosCategoriaSalida('verduras', 'VERDURAS')" style="height:42px; padding:6px 8px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:11px; font-weight:700; text-transform:uppercase;"><i class="fas fa-carrot"></i> VERDURAS</button>
-                        <button type="button" class="categoria-salida-option" data-categoria-id="carnicos-refrigerados" onclick="abrirProductosCategoriaSalida('carnicos-refrigerados', 'CÁRNICOS Y REFRIGERADOS')" style="height:42px; padding:6px 8px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:11px; font-weight:700; text-transform:uppercase;"><i class="fas fa-drumstick-bite"></i> CÁRNICOS Y REFRIGERADOS</button>
+                        <button type="button" class="categoria-salida-option" data-categoria-id="frutas" onclick="abrirProductosCategoriaSalida('frutas', 'FRUTAS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-apple-whole"></i> FRUTAS</button>
+                        <button type="button" class="categoria-salida-option" data-categoria-id="verduras" onclick="abrirProductosCategoriaSalida('verduras', 'VERDURAS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-carrot"></i> VERDURAS</button>
+                        <button type="button" class="categoria-salida-option" data-categoria-id="carnicos-refrigerados" onclick="abrirProductosCategoriaSalida('carnicos-refrigerados', 'CÁRNICOS Y REFRIGERADOS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-drumstick-bite"></i> CÁRNICOS Y REFRIGERADOS</button>
                     </div>
                     </div>
                     <div id="productoSalidaPreview" style="margin-top: 10px; text-align: center;"></div>
@@ -2382,10 +2570,16 @@ if (is_file($logoPdfPath)) {
     </div>
 
     <div id="productosCategoriaSalidaModal" class="modal" style="z-index:1200;">
-        <div class="modal-content" style="max-width:1100px; width:calc(100% - 28px);">
+        <div class="modal-content" style="max-width:1250px; width:calc(100% - 28px);">
             <div class="modal-header">
                 <h2 id="productosCategoriaSalidaTitulo"><i class="fas fa-store"></i> PRODUCTOS</h2>
-                <button class="close-btn" type="button" onclick="cerrarModal('productosCategoriaSalidaModal')">&times;</button>
+                <div style="display:flex; align-items:center; gap:10px; min-width:0; margin-left:auto;">
+                    <div style="display:flex; align-items:center; width:20%; min-width:150px; max-width:220px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; overflow:hidden;">
+                        <input type="search" id="buscarProductosCategoriaSalida" placeholder="BUSCAR..." autocomplete="off" style="width:100%; min-width:0; border:0; outline:0; padding:8px 10px; font-size:12px; text-transform:uppercase;">
+                        <span style="padding:0 9px; color:#64748b;"><i class="fas fa-search"></i></span>
+                    </div>
+                    <button class="close-btn" type="button" onclick="cerrarModal('productosCategoriaSalidaModal')">&times;</button>
+                </div>
             </div>
             <div id="productosCategoriaSalidaGrid" class="productos-categoria-salida-grid"></div>
         </div>
@@ -2482,7 +2676,7 @@ if (is_file($logoPdfPath)) {
                             <h3><i class="fas fa-list"></i> PRODUCTOS VENDIDOS HOY</h3>
                         </div>
                         <div class="table-wrapper scrollbar-custom" style="max-height: 400px;">
-                            <table>
+                            <table class="ventas-detalle-table ventas-hoy-table">
                                 <thead>
                                     <tr>
                                         <th><i class="fas fa-clock"></i> FECHA Y HORA</th>
@@ -2573,7 +2767,7 @@ if (is_file($logoPdfPath)) {
                             </div>
                         </div>
                         <div class="table-wrapper-principal scrollbar-custom">
-                            <table>
+                            <table class="ventas-detalle-table ventas-mes-table">
                                 <thead>
                                     <tr>
                                         <th><i class="fas fa-image"></i> IMG</th>
@@ -3217,6 +3411,10 @@ if (is_file($logoPdfPath)) {
         // Cerrar modal
         function cerrarModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'salidaModal') {
+                const referenciaAnterior = document.getElementById('referenciaSalida')?.value?.trim();
+                if (referenciaAnterior) referenciasVentaReservadas.delete(referenciaAnterior);
+            }
             const form = document.getElementById(modalId).querySelector('form');
             if (form) form.reset();
             if (modalId === 'entradaModal') {
@@ -3761,6 +3959,7 @@ if (is_file($logoPdfPath)) {
             const select = document.getElementById('productoSalida');
             const grid = document.getElementById('productosCategoriaSalidaGrid');
             const tituloEl = document.getElementById('productosCategoriaSalidaTitulo');
+            const buscador = document.getElementById('buscarProductosCategoriaSalida');
             const pesoBarra = document.getElementById('pesoCategoriaSalidaBarra');
             if (!select || !grid) return;
 
@@ -3778,11 +3977,13 @@ if (is_file($logoPdfPath)) {
                 if ((parseFloat(option.dataset.stock || '0') || 0) <= 0) return false;
                 return perteneceGrupoCategoriaSalida(option.dataset.categoriaNombre || '', categoria);
             });
+            opciones.sort((a, b) => (parseInt(b.value, 10) || 0) - (parseInt(a.value, 10) || 0));
 
             const iconoTitulo = categoria === 'frutas'
                 ? 'fa-apple-whole'
                 : (categoria === 'verduras' ? 'fa-carrot' : 'fa-drumstick-bite');
             if (tituloEl) tituloEl.innerHTML = `<i class="fas ${iconoTitulo}"></i> ${titulo}`;
+            if (buscador) buscador.value = '';
             grid.innerHTML = '';
             if (!opciones.length) {
                 grid.innerHTML = '<div style="grid-column:1/-1; padding:32px; text-align:center; color:#64748b; font-weight:700;">NO HAY PRODUCTOS DISPONIBLES EN ESTA CATEGORÍA</div>';
@@ -3793,12 +3994,14 @@ if (is_file($logoPdfPath)) {
                     tarjeta.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:9px; min-height:190px; padding:14px 10px; border:1px solid #dbe4ec; border-radius:10px; background:#fff; color:#1e293b; cursor:pointer; box-shadow:0 3px 10px rgba(15,23,42,.07); text-align:center;';
                     const imagen = resolverImagenProductoInventario(option.dataset.imagen || '');
                     const nombre = (option.dataset.nombre || option.textContent || '').trim();
+                    const codigo = String(option.dataset.codigo || '').replace(/[/*()]/g, '').trim();
+                    tarjeta.dataset.searchText = `${nombre} ${codigo}`.toUpperCase();
                     const esPorKiloTarjeta = ['1', 'true', 'si', 'sí'].includes(String(option.dataset.ventaPorKilo || '').toLowerCase()) || categoria === 'frutas' || categoria === 'verduras';
                     const precio = parseFloat(option.dataset.precio || 0) || 0;
                     const stock = parseFloat(option.dataset.stock || 0) || 0;
                     tarjeta.disabled = stock <= 0;
                     tarjeta.style.opacity = stock > 0 ? '1' : '0.55';
-                    tarjeta.innerHTML = `<img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)} / KG</span>`;
+                    tarjeta.innerHTML = `<span style="min-height:18px; color:#2563eb; font-size:11px; font-weight:800; letter-spacing:.3px;">${escapeHtmlInventario(codigo)}</span><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)} / KG</span>`;
                     tarjeta.addEventListener('click', () => {
                         select.value = option.value;
                         productoSalidaSeleccionadoPorCategoria = {
@@ -3828,7 +4031,22 @@ if (is_file($logoPdfPath)) {
                     grid.appendChild(tarjeta);
                 });
             }
+            if (buscador) {
+                buscador.oninput = () => {
+                    const termino = buscador.value.trim().toUpperCase();
+                    grid.querySelectorAll('button[data-search-text]').forEach((tarjeta) => {
+                        tarjeta.style.display = !termino || tarjeta.dataset.searchText.includes(termino) ? 'flex' : 'none';
+                    });
+                };
+                buscador.onkeydown = (event) => {
+                    if (event.key === 'Escape') {
+                        buscador.value = '';
+                        buscador.dispatchEvent(new Event('input'));
+                    }
+                };
+            }
             abrirModal('productosCategoriaSalidaModal');
+            setTimeout(() => buscador?.focus(), 80);
         }
 
         function actualizarEstadoBalanzaSalida(estado) {
@@ -4643,25 +4861,27 @@ if (is_file($logoPdfPath)) {
             const longitud = texto.length;
             const esResumenVentas = /^(efectivo|transferencia|ganancia|valorVentas)(Dia|Mes)$/.test(elementoId)
                 || elementoId === 'totalDiaCard'
-                || elementoId === 'gananciaDiaCard'
-                || (elementoId === 'valorTotal' && Boolean(window.electronAPI));
+                || elementoId === 'gananciaDiaCard';
+            const esValorInventario = elementoId === 'valorTotal';
 
             let tamano = esResumenVentas ? 22 : 32;
+            if (esValorInventario) tamano = 32;
             if (!esResumenVentas) {
                 if (longitud >= 14) {
-                    tamano = 18;
+                    tamano = esValorInventario ? 22 : 18;
                 } else if (longitud >= 12) {
-                    tamano = 20;
+                    tamano = esValorInventario ? 24 : 20;
                 } else if (longitud >= 10) {
-                    tamano = 24;
+                    tamano = esValorInventario ? 26 : 24;
                 } else if (longitud >= 8) {
-                    tamano = 28;
+                    tamano = esValorInventario ? 28 : 28;
                 }
             }
 
             valorEl.style.fontSize = tamano + 'px';
             if (!esResumenVentas) {
-                while (valorEl.scrollWidth > valorEl.clientWidth && tamano > 12) {
+                const tamanoMinimo = esValorInventario ? 20 : 12;
+                while (valorEl.scrollWidth > valorEl.clientWidth && tamano > tamanoMinimo) {
                     tamano -= 1;
                     valorEl.style.fontSize = tamano + 'px';
                 }
@@ -5080,7 +5300,7 @@ if (is_file($logoPdfPath)) {
                                 </td>
                                 ${puedeVerID ? `<td>${item.id || 'N/A'}</td>` : ''}
                                 <td>${(item.codigo || 'N/A').toUpperCase()}</td>
-                                <td>
+                                <td class="producto-resumen-cell">
                                     <div class="producto-color-cell">
                                         <strong class="producto-color-name">${escapeHtmlInventario(String(item.nombre || 'N/A').toUpperCase())}</strong>
                                         <span class="producto-color-chip" style="background:${escapeHtmlInventario(colorHex || '#d1d5db')}"></span>
@@ -5196,7 +5416,27 @@ if (is_file($logoPdfPath)) {
                                 const grupoFecha = gruposPorFecha[fechaDia];
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
-                                headerRow.innerHTML = `<td colspan="${obtenerColspanEntradas()}">TOTAL ${fechaDia} · CANTIDAD: ${grupoFecha.totalCantidad.toLocaleString('es-CO')} · VALOR COMPRA: ${formatoMonedaCompleta(grupoFecha.totalValorCompra)}</td>`;
+                                headerRow.innerHTML = `
+                                    <td colspan="${obtenerColspanEntradas()}">
+                                        <div class="group-date-summary">
+                                            <div class="group-date-total">
+                                                <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                                <strong class="group-date-value">${grupoFecha.items.length}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">FECHA:</span>
+                                                <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">CANTIDAD:</span>
+                                                <strong class="group-date-value">${grupoFecha.totalCantidad.toLocaleString('es-CO')}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">VALOR DE COMPRA:</span>
+                                                <strong class="group-date-value">${formatoMonedaCompleta(grupoFecha.totalValorCompra)}</strong>
+                                            </div>
+                                        </div>
+                                    </td>`;
                                 tbody.appendChild(headerRow);
 
                                 grupoFecha.items.forEach(datos => {
@@ -5205,10 +5445,11 @@ if (is_file($logoPdfPath)) {
                                     const row = document.createElement('tr');
                                     row.innerHTML = `
                                         <td style="text-align: center;">
-                                            <div class="img-container">
+                                            <div class="img-container entrada-imagen-container">
                                                 <img src="${imgSrc}" alt="${escapeHtmlInventario(item.producto_nombre)}" class="producto-img" 
                                                      onerror="this.onerror=null;this.src=base_url+'/favicon.ico'" 
                                                      loading="lazy">
+                                                <span class="entrada-imagen-nombre">${escapeHtmlInventario((item.producto_nombre || 'PRODUCTO').toUpperCase())}</span>
                                             </div>
                                         </td>
                                         ${puedeVerID ? `<td>${item.id}</td>` : ''}
@@ -5527,7 +5768,27 @@ if (is_file($logoPdfPath)) {
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
-                                headerRow.innerHTML = `<td colspan="${obtenerColspanSalidas()}">TOTAL ${fechaDia} · CANTIDAD: ${grupoFecha.totalUnidades.toLocaleString('es-CO')} · VALOR: ${formatoMonedaInventario(grupoFecha.totalValor)}</td>`;
+                                headerRow.innerHTML = `
+                                    <td colspan="${obtenerColspanSalidas()}">
+                                        <div class="group-date-summary">
+                                            <div class="group-date-total">
+                                                <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                                <strong class="group-date-value">${grupoFecha.grupos.reduce((total, grupo) => total + grupo.items.length, 0)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">FECHA:</span>
+                                                <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">CANTIDAD:</span>
+                                                <strong class="group-date-value">${grupoFecha.totalUnidades.toLocaleString('es-CO')}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">VALOR TOTAL:</span>
+                                                <strong class="group-date-value">${formatoMonedaInventario(grupoFecha.totalValor)}</strong>
+                                            </div>
+                                        </div>
+                                    </td>`;
                                 tbody.appendChild(headerRow);
 
                                 grupoFecha.grupos.forEach(grupo => {
@@ -5750,7 +6011,23 @@ if (is_file($logoPdfPath)) {
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
-                                headerRow.innerHTML = `<td colspan="${obtenerColspanMovimientos()}">TOTAL ${fechaDia} · CANTIDAD: ${grupoFecha.totalUnidades.toLocaleString('es-CO')}</td>`;
+                                headerRow.innerHTML = `
+                                    <td colspan="${obtenerColspanMovimientos()}">
+                                        <div class="group-date-summary">
+                                            <div class="group-date-total">
+                                                <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                                <strong class="group-date-value">${grupoFecha.grupos.reduce((total, grupo) => total + grupo.items.length, 0)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">FECHA:</span>
+                                                <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">CANTIDAD:</span>
+                                                <strong class="group-date-value">${grupoFecha.totalUnidades.toLocaleString('es-CO')}</strong>
+                                            </div>
+                                        </div>
+                                    </td>`;
                                 tbody.appendChild(headerRow);
 
                                 grupoFecha.grupos.forEach(grupo => {
@@ -6159,13 +6436,10 @@ if (is_file($logoPdfPath)) {
                                 const gananciaValor = parseFloat(item.total_ganancia ?? item.ganancia_total ?? 0) || 0;
                                 const imgSrc = resolverImagenProductoInventario(item.imagen);
                                 const fechaHoraVenta = item.ultima_venta
-                                    ? new Date(item.ultima_venta).toLocaleString('es-CO', {
-                                        year: 'numeric', month: '2-digit', day: '2-digit',
-                                        hour: '2-digit', minute: '2-digit', second: '2-digit'
-                                    })
-                                    : '-';
+                                    ? fechaHoraImpresion(item.ultima_venta)
+                                    : { fecha: '-', hora: '-' };
                                 row.innerHTML = `
-                                    <td>${fechaHoraVenta}</td>
+                                    <td><div class="ventas-fecha-hora"><span>${escapeHtmlInventario(fechaHoraVenta.fecha)}</span><span>${escapeHtmlInventario(fechaHoraVenta.hora)}</span></div></td>
                                     <td style="text-align:center;"><img src="${imgSrc}" alt="${escapeHtmlInventario(item.nombre)}" class="producto-img" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:#fff;padding:2px;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"></td>
                                     <td><strong>${item.codigo}</strong></td>
                                     <td>${item.nombre}</td>
@@ -6328,10 +6602,31 @@ if (is_file($logoPdfPath)) {
                             const pintarResumenDia = (fechaDia) => {
                                 if (!fechaDia) return;
                                 const rowTotalDia = document.createElement('tr');
-                                rowTotalDia.style.background = '#f6fbff';
+                                rowTotalDia.className = 'group-date';
                                 rowTotalDia.innerHTML = `
-                                    <td colspan="8" style="font-weight: 700; color: #2f4a5a;">
-                                        TOTAL ${fechaDia}· GANANCIA: ${formatoMonedaCompleta(gananciaDiaAcumulada)}· VENTA: ${formatoMonedaCompleta(totalDiaAcumulado)}
+                                    <td colspan="8">
+                                        <div class="group-date-summary">
+                                            <div class="group-date-total">
+                                                <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                                <strong class="group-date-value">${unidadesDiaAcumuladas.toLocaleString('es-CO')}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">FECHA:</span>
+                                                <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">CANTIDAD:</span>
+                                                <strong class="group-date-value">${unidadesDiaAcumuladas.toLocaleString('es-CO')}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">TOTAL:</span>
+                                                <strong class="group-date-value">${formatoMonedaCompleta(totalDiaAcumulado)}</strong>
+                                            </div>
+                                            <div class="group-date-metric">
+                                                <span class="group-date-label">GANANCIA:</span>
+                                                <strong class="group-date-value">${formatoMonedaCompleta(gananciaDiaAcumulada)}</strong>
+                                            </div>
+                                        </div>
                                     </td>
                                 `;
                                 productosVendidosMes.appendChild(rowTotalDia);
@@ -6362,7 +6657,31 @@ if (is_file($logoPdfPath)) {
                                     const unidadesDia = infoDia ? parseInt(infoDia.unidades_dia || 0) : 0;
                                     const totalDia = infoDia ? parseFloat(infoDia.total_dia || 0) : 0;
                                     const gananciaDia = infoDia ? parseFloat(infoDia.ganancia_dia || 0) : 0;
-                                    grp.innerHTML = `<td colspan="8">${item.fecha}· UNIDADES: ${unidadesDia.toLocaleString('es-CO')}· TOTAL: ${formatoMonedaCompleta(totalDia)}· GANANCIA: ${formatoMonedaCompleta(gananciaDia)}</td>`;
+                                    grp.innerHTML = `
+                                        <td colspan="8">
+                                            <div class="group-date-summary">
+                                                <div class="group-date-total">
+                                                    <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                                    <strong class="group-date-value">${unidadesDia.toLocaleString('es-CO')}</strong>
+                                                </div>
+                                                <div class="group-date-metric">
+                                                    <span class="group-date-label">FECHA:</span>
+                                                    <strong class="group-date-value">${escapeHtmlInventario(item.fecha)}</strong>
+                                                </div>
+                                                <div class="group-date-metric">
+                                                    <span class="group-date-label">CANTIDAD:</span>
+                                                    <strong class="group-date-value">${unidadesDia.toLocaleString('es-CO')}</strong>
+                                                </div>
+                                                <div class="group-date-metric">
+                                                    <span class="group-date-label">TOTAL:</span>
+                                                    <strong class="group-date-value">${formatoMonedaCompleta(totalDia)}</strong>
+                                                </div>
+                                                <div class="group-date-metric">
+                                                    <span class="group-date-label">GANANCIA:</span>
+                                                    <strong class="group-date-value">${formatoMonedaCompleta(gananciaDia)}</strong>
+                                                </div>
+                                            </div>
+                                        </td>`;
                                     productosVendidosMes.appendChild(grp);
 
                                     fechaActual = item.fecha;
@@ -8528,11 +8847,6 @@ if (is_file($logoPdfPath)) {
                     // Actualizar campo oculto de código
                     if (codigoField) {
                         codigoField.value = codigo || '';
-                    }
-
-                    const referenciaField = document.getElementById('referenciaSalida');
-                    if (referenciaField && !referenciaField.value) {
-                        referenciaField.value = generarReferenciaVenta();
                     }
 
                     const cantidadField = document.getElementById('cantidadSalida');

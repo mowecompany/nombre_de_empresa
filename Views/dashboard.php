@@ -6355,7 +6355,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
         }
 
         .info-card > *:not(h3):not(.chart-body) {
-            overflow-y: auto;
+
             max-height: 320px;
         }
 
@@ -6591,6 +6591,10 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             max-height: 220px;
         }
 
+        .chart-body.chart-body-bar-mode {
+            max-height: 400px;
+        }
+
         .chart-inline-list-panel-selected {
             display: flex;
             align-items: center;
@@ -6678,6 +6682,30 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             max-height: 220px;
             object-fit: contain;
             margin: 0 auto;
+        }
+
+        .chart-canvas-wrapper.chart-circle-mode {
+            max-height: 200px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-canvas-wrapper.chart-circle-mode canvas {
+            width: 200px !important;
+            height: 200px !important;
+            max-height: 200px;
+        }
+
+        .chart-canvas-wrapper.chart-bar-mode {
+            height: 400px;
+            max-height: 400px;
+            overflow-y: auto;
+            align-items: flex-start;
+            justify-content: flex-start;
+        }
+
+        .chart-canvas-wrapper.chart-bar-mode canvas {
+            max-height: none;
         }
 
         .chart-list-panel-wrapper {
@@ -11941,15 +11969,33 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
         let lastVentasPorMes = null;
         const productColorPalette = ['#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51', '#6a4c93', '#1b3b5f', '#3b3f5c', '#4f6d7a', '#7d3c98'];
 
-        const formatCurrencyColombia = (valor) => {
+        const formatQuantityColombia = (valor) => {
             const numero = Number(valor) || 0;
-            return `COP $${numero.toLocaleString('es-CO', {
+            return numero.toLocaleString('es-CO', {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
-            })}`;
+            });
         };
 
-        const formatAxisCurrencyColombia = (valor) => {
+        const getQuantityUnit = (product) => {
+            const value = product?.venta_por_kilo ?? product?.ventaPorKilo ?? product?.unidad;
+<<<<<<< Updated upstream
+            return ['1', 'true', 'si', 'sí', 'kg', 'kilo', 'kilogramo'].includes(String(value ?? '').trim().toLowerCase()) ? 'KG' : 'UN';
+=======
+            const unidadNormalizada = String(value ?? '').trim().toLowerCase();
+            const esProductoPorKilo = ['1', 'true', 'si', 'sí', 'kg', 'kilo', 'kilogramo', 'kilogramos'].includes(unidadNormalizada);
+            return esProductoPorKilo ? 'KG' : 'UN';
+>>>>>>> Stashed changes
+        };
+
+        const formatQuantityWithUnit = (valor, product) => `${formatQuantityColombia(valor)} ${getQuantityUnit(product)}`;
+
+        const formatSalesCurrency = (valor) => '$' + (Number(valor) || 0).toLocaleString('es-CO', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        });
+
+        const formatAxisQuantityColombia = (valor) => {
             const numero = Number(valor) || 0;
             return numero.toLocaleString('es-CO', {
                 minimumFractionDigits: 0,
@@ -12001,18 +12047,21 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             if (isBarChart) {
                 chartCanvas.width = wrapperWidth;
                 chartCanvas.style.width = '100%';
-                const canvasHeight = Math.max(260, labels.length * 30 + 80);
+                const canvasHeight = Math.max(400, labels.length * 42 + 60);
                 chartCanvas.height = canvasHeight;
                 chartCanvas.style.height = `${canvasHeight}px`;
             } else {
-                const pieSize = Math.min(Math.max(wrapperWidth * 0.82, 220), 330);
+                const pieSize = Math.min(Math.max(wrapperWidth * 0.68, 200), 240);
                 chartCanvas.width = pieSize;
                 chartCanvas.height = pieSize;
                 chartCanvas.style.width = '100%';
                 chartCanvas.style.height = `${pieSize}px`;
             }
             if (wrapper) {
+                wrapper.parentElement?.classList.toggle('chart-body-bar-mode', isBarChart);
                 wrapper.classList.toggle('chart-wrapper-fixed-height', isBarChart && labels.length > 8);
+                wrapper.classList.toggle('chart-bar-mode', isBarChart);
+                wrapper.classList.toggle('chart-circle-mode', !isBarChart);
             }
 
             const chartLabels = isBarChart && labels.length > 8 ? labels.slice(0, 8) : labels;
@@ -12030,8 +12079,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 borderWidth: chartLabelsFull.map(() => 1),
                 borderRadius: 6,
                 minBarLength: 0,
-                maxBarThickness: isBarChart ? 14 : 56,
-                barThickness: isBarChart ? 8 : 42,
+                maxBarThickness: isBarChart ? 20 : 56,
+                barThickness: isBarChart ? 16 : 42,
                 categoryPercentage: isBarChart ? 0.9 : 0.8,
                 barPercentage: isBarChart ? 0.95 : 0.9
             };
@@ -12062,6 +12111,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 options: {
                     responsive: false,
                     maintainAspectRatio: false,
+                        devicePixelRatio: isBarChart ? Math.max(window.devicePixelRatio || 1, 1.5) : undefined,
                     animation: { duration: 260 },
                     interaction: { mode: 'nearest', intersect: false },
                     indexAxis: isBarChart ? 'y' : 'x',
@@ -12075,7 +12125,11 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                             callbacks: {
                                 label: (context) => {
                                     const parsedValue = context.parsed?.x ?? context.parsed?.y ?? context.parsed;
-                                    return `${context.label}: ${formatCurrencyColombia(parsedValue)}`;
+                                    const product = chartProductSummaries[chartId]?.[context.dataIndex];
+                                    const valueLabel = chartId === 'ventasChart'
+                                        ? formatSalesCurrency(parsedValue)
+                                        : formatQuantityWithUnit(parsedValue, product);
+                                    return `${context.label}: ${valueLabel}`;
                                 }
                             }
                         }
@@ -12094,7 +12148,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                                 autoSkip: false,
                                 maxRotation: 0,
                                 minRotation: 0,
-                                font: { size: 8 }
+                                font: { size: 12, weight: '600' }
                             },
                             grid: { display: false }
                         }
@@ -12156,7 +12210,11 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             }
             const resolvedColor = String(color || '').trim() || '#3b82f6';
             const resolvedValue = Number(value || 0);
-            badge.innerHTML = `<span class="badge-dot" style="background:${escapeHtml(resolvedColor)}"></span><span class="badge-text" style="color:${escapeHtml(resolvedColor)}">${escapeHtml(normalizedName)}</span><span class="badge-value" style="color:${escapeHtml(resolvedColor)}">${escapeHtml(formatCurrencyColombia(resolvedValue))}</span>`;
+            const selectedProduct = (chartProductSummaries[chartId] || []).find((product) => String(product.nombre || '').trim().toUpperCase() === normalizedName);
+            const badgeValue = chartId === 'ventasChart'
+                ? formatSalesCurrency(resolvedValue)
+                : formatQuantityWithUnit(resolvedValue, selectedProduct);
+            badge.innerHTML = `<span class="badge-dot" style="background:${escapeHtml(resolvedColor)}"></span><span class="badge-text" style="color:${escapeHtml(resolvedColor)}">${escapeHtml(normalizedName)}</span><span class="badge-value" style="color:${escapeHtml(resolvedColor)}">${escapeHtml(badgeValue)}</span>`;
         };
 
         const getColorForKey = (key, fallbackColor = null) => {
@@ -12223,6 +12281,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                         ...item,
                         nombre: String(item?.nombre || 'SIN NOMBRE').trim(),
                         valor: Number(item?.valor ?? item?.ventas_30dias ?? item?.entradas_30dias ?? 0),
+                        venta_por_kilo: item?.venta_por_kilo ?? 0,
                         categoria: String(item?.categoria || item?.categoria_nombre || item?.category || item?.grupo || 'SIN CATEGORÍA').trim()
                     }))
                 : [];
@@ -12273,7 +12332,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                                         <span class="product-color-chip" style="background:${escapeHtml(item.color || '#d1d5db')};"></span>
                                         <span class="product-label">${escapeHtml(item.nombre)}</span>
                                     </div>
-                                    <span class="product-value">${formatCurrencyColombia(item.valor)}</span>
+                                    <span class="product-value">${chartId === 'ventasChart' ? formatSalesCurrency(item.valor) : formatQuantityWithUnit(item.valor, item)}</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -12449,6 +12508,17 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             chartSelectionState[chartId] = normalizedName;
             const chart = charts.find((entry) => entry && entry.canvas && entry.canvas.id === chartId);
             applySelectionStateToChart(chartId, chart, false);
+            if (chart && chartTypes[chartId] === 'bar') {
+                const selectedIndex = chart.data.labels.findIndex((label) => String(label || '').trim().toUpperCase() === normalizedName);
+                const wrapper = chart.canvas?.parentElement;
+                const point = selectedIndex >= 0 ? chart.getDatasetMeta(0)?.data?.[selectedIndex] : null;
+                if (wrapper && point && Number.isFinite(Number(point.y))) {
+                    wrapper.scrollTo({
+                        top: Math.max(0, Number(point.y) - (wrapper.clientHeight / 2)),
+                        behavior: 'smooth'
+                    });
+                }
+            }
             document.querySelectorAll(`.chart-inline-list-item[data-chart-id="${chartId}"]`).forEach((item) => {
                 item.classList.toggle('is-selected', String(item.dataset.chartProduct || '').toUpperCase() === normalizedName);
             });
@@ -12490,7 +12560,9 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     container.appendChild(tooltip);
                 }
                 const lbl = escapeHtml(String(productName || ''));
-                tooltip.innerHTML = `<div class="tooltip-label">${lbl}</div><div class="tooltip-value">${formatCurrencyColombia(value)}</div><button class="tooltip-clear-btn" aria-label="Quitar selección">✕</button>`;
+                const tooltipProduct = (chartProductSummaries[chartId] || []).find((product) => String(product.nombre || '').trim().toUpperCase() === String(productName || '').trim().toUpperCase());
+                const tooltipValue = chartId === 'ventasChart' ? formatSalesCurrency(value) : formatQuantityWithUnit(value, tooltipProduct);
+                tooltip.innerHTML = `<div class="tooltip-label">${lbl}</div><div class="tooltip-value">${tooltipValue}</div><button class="tooltip-clear-btn" aria-label="Quitar selección">✕</button>`;
                 tooltip.style.position = 'absolute';
                 tooltip.style.display = 'inline-flex';
                 tooltip.style.zIndex = '1001';
@@ -12656,12 +12728,12 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             chart.config.options.plugins.tooltip.displayColors = false;
             chart.config.options.plugins.tooltip.callbacks.label = (context) => {
                 const parsedValue = context.parsed?.x ?? context.parsed?.y ?? context.parsed;
-                return `${context.label}: ${formatCurrencyColombia(parsedValue)}`;
+                                    return `${context.label}: ${formatQuantityColombia(parsedValue)}`;
             };
 
             if (isBarChart) {
-                chart.config.data.datasets[0].barThickness = 8;
-                chart.config.data.datasets[0].maxBarThickness = 14;
+                chart.config.data.datasets[0].barThickness = 16;
+                chart.config.data.datasets[0].maxBarThickness = 20;
                 chart.config.data.datasets[0].borderRadius = 6;
                 chart.config.data.datasets[0].minBarLength = 0;
                 const barMaxValue = Math.max(...(chart.config.data.datasets[0].data || []).map((x) => Number(x) || 0));
@@ -12677,7 +12749,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     stepSize: barMaxValue > 0 ? barStep : undefined,
                     callback: (value) => {
                         if (!Number.isInteger(value)) return '';
-                        return formatAxisCurrencyColombia(value);
+                        return chartId === 'ventasChart' ? formatSalesCurrency(value) : formatAxisQuantityColombia(value);
                     }
                 };
                 chart.config.options.scales = {
@@ -12696,7 +12768,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                             autoSkip: false,
                             maxRotation: 0,
                             minRotation: 0,
-                            font: { size: 8 }
+                            font: { size: 12, weight: '600' }
                         },
                         grid: {
                             display: false
@@ -12777,11 +12849,11 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     if (isBarChart) {
                         ctx.canvas.width = canvasWidth;
                         ctx.canvas.style.width = '100%';
-                        const canvasHeight = Math.max(320, labels.length * 42 + 60);
+                        const canvasHeight = Math.max(400, labels.length * 42 + 60);
                         ctx.canvas.height = canvasHeight;
                         ctx.canvas.style.height = `${canvasHeight}px`;
                     } else {
-                        const pieSize = Math.min(Math.max(canvasWidth * 0.82, 220), 330);
+                        const pieSize = Math.min(Math.max(canvasWidth * 0.68, 200), 240);
                         ctx.canvas.width = pieSize;
                         ctx.canvas.height = pieSize;
                         ctx.canvas.style.width = '100%';
@@ -12798,7 +12870,10 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 const chartData = isBarChart && data.length > 8 ? data.slice(0, 8) : data;
                 const chartColors = isBarChart && backgroundColors.length > 8 ? backgroundColors.slice(0, 8) : backgroundColors;
                 if (wrapper) {
+                    wrapper.parentElement?.classList.toggle('chart-body-bar-mode', isBarChart);
                     wrapper.classList.toggle('chart-wrapper-fixed-height', isBarChart && labels.length > 8);
+                    wrapper.classList.toggle('chart-bar-mode', isBarChart);
+                    wrapper.classList.toggle('chart-circle-mode', !isBarChart);
                 }
                 const chartLabelsFull = labels;
                 const chartDataFull = data;
@@ -12812,8 +12887,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     borderWidth: chartLabelsFull.map(() => 1),
                     borderRadius: 6,
                     minBarLength: 0,
-                    maxBarThickness: isBarChart ? 14 : 56,
-                    barThickness: isBarChart ? 8 : 42,
+                    maxBarThickness: isBarChart ? 20 : 56,
+                    barThickness: isBarChart ? 16 : 42,
                     categoryPercentage: isBarChart ? 0.9 : 0.8,
                     barPercentage: isBarChart ? 0.95 : 0.9
                 };
@@ -12828,6 +12903,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     options: {
                         responsive: false,
                         maintainAspectRatio: false,
+                        devicePixelRatio: isBarChart ? Math.max(window.devicePixelRatio || 1, 1.5) : undefined,
                         animation: {
                             duration: 260
                         },
@@ -12853,7 +12929,11 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                                 callbacks: {
                                     label: (context) => {
                                         const parsedValue = context.parsed?.x ?? context.parsed?.y ?? context.parsed;
-                                        return `${context.label}: ${parsedValue}`;
+                                        const product = chartProductSummaries[chartId]?.[context.dataIndex];
+                                        const valueLabel = chartId === 'ventasChart'
+                                            ? formatSalesCurrency(parsedValue)
+                                            : formatQuantityWithUnit(parsedValue, product);
+                                        return `${context.label}: ${valueLabel}`;
                                     }
                                 }
                             }
@@ -12874,7 +12954,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                                 stepSize: barMaxValue > 0 ? barStep : undefined,
                                 callback: (value) => {
                                     if (!Number.isInteger(value)) return '';
-                                    return formatAxisCurrencyColombia(value);
+                                    return chartId === 'ventasChart' ? formatSalesCurrency(value) : formatAxisQuantityColombia(value);
                                 }
                             };
                             return {
@@ -12894,7 +12974,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                                         maxRotation: 0,
                                         minRotation: 0,
                                         font: {
-                                            size: 8
+                                            size: 11,
+                                            weight: '600'
                                         }
                                     },
                                     grid: {
@@ -12976,6 +13057,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     .map((item) => ({
                         nombre: String(item[labelKey] || 'SIN NOMBRE').toUpperCase(),
                         valor: Number(item[valueKey] || 0),
+                        venta_por_kilo: item.venta_por_kilo ?? 0,
                         categoria: String(item.categoria || item.categoria_nombre || item.category || item.grupo || 'SIN CATEGORÍA').toUpperCase(),
                         color: getColorForKey(item[labelKey], item.color || item.color_hex || item.color_producto)
                     }))
@@ -13296,7 +13378,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
         function construirTablaAlertaStock(productos, color, mostrarStock) {
             if (!productos.length) return '';
-            const filas = productos.slice(0, 10).map(producto => {
+            const filas = productos.map(producto => {
                 const nombreImagen = String(producto.imagen || '').trim();
                 const imagen = nombreImagen && nombreImagen !== 'favicon.ico'
                     ? `${baseAlertaStock}/Assets/images/productos/${encodeURI(nombreImagen.replace(/\\/g, '/'))}`
@@ -13304,8 +13386,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 const stock = `<td style="width:62px;padding:6px 7px;text-align:center;color:${color};font-weight:800;font-size:13px;vertical-align:middle;">${producto.stock}</td>`;
                 return `<tr style="border-bottom:1px solid #f0f2f4;text-transform:uppercase;"><td style="width:62px;padding:6px 5px;"><img src="${imagen}" alt="" style="width:46px;height:46px;object-fit:contain;border-radius:7px;border:1px solid #e5e7eb;background:#fff;" onerror="this.src='${baseAlertaStock}/favicon.ico'"></td><td style="width:125px;padding:6px 7px;text-align:left;color:#263238;font-weight:700;font-size:13px;vertical-align:middle;word-break:break-word;">${producto.codigo}</td><td style="padding:6px 7px;text-align:left;color:#53636d;font-size:13px;vertical-align:middle;overflow-wrap:anywhere;">${producto.nombre}</td>${stock}</tr>`;
             }).join('');
-            const restantes = productos.length > 10 ? `<div style="padding-top:6px;color:#697780;font-size:12px;">Y ${productos.length - 10} PRODUCTO(S) MÁS</div>` : '';
-            return `<section style="margin:0 0 12px;padding:12px;border:1px solid ${color}55;border-left:5px solid ${color};border-radius:10px;background:#fff;text-transform:uppercase;"><div style="font-size:14px;font-weight:800;color:${color};text-align:left;margin-bottom:7px;">${mostrarStock ? 'URGENTES' : 'CRÍTICOS'}</div><table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px;"><thead><tr style="border-bottom:2px solid #e5e7eb;color:#7a8790;font-size:11px;"><th style="width:62px;padding:5px;text-align:left;position:sticky;top:0;z-index:2;background:#fff;">IMG</th><th style="width:125px;padding:5px 7px;text-align:left;position:sticky;top:0;z-index:2;background:#fff;">CÓDIGO</th><th style="padding:5px 7px;text-align:left;position:sticky;top:0;z-index:2;background:#fff;">NOMBRE</th><th style="width:62px;padding:5px 7px;text-align:center;position:sticky;top:0;z-index:2;background:#fff;">STOCK</th></tr></thead><tbody>${filas}</tbody></table>${restantes}</section>`;
+            return `<section style="margin:0 0 12px;padding:12px;border:1px solid ${color}55;border-left:5px solid ${color};border-radius:10px;background:#fff;text-transform:uppercase;"><div style="font-size:14px;font-weight:800;color:${color};text-align:left;margin-bottom:7px;">${mostrarStock ? 'URGENTES' : 'CRÍTICOS'}</div><table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px;"><thead><tr style="border-bottom:2px solid #e5e7eb;color:#7a8790;font-size:11px;"><th style="width:62px;padding:5px;text-align:left;position:sticky;top:0;z-index:2;background:#fff;">IMG</th><th style="width:125px;padding:5px 7px;text-align:left;position:sticky;top:0;z-index:2;background:#fff;">CÓDIGO</th><th style="padding:5px 7px;text-align:left;position:sticky;top:0;z-index:2;background:#fff;">NOMBRE</th><th style="width:62px;padding:5px 7px;text-align:center;position:sticky;top:0;z-index:2;background:#fff;">STOCK</th></tr></thead><tbody>${filas}</tbody></table></section>`;
         }
 
         async function verificarProductosStockCero(motivo = 'horario') {

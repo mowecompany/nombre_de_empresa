@@ -1,0 +1,3459 @@
+[01-Apr-2025 01:07:45 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs/Config/Config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:07:45 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs/Config/Config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:17
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:08:25 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs/Config/Config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:08:25 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs/Config/Config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:17
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:09:07 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs/Config/Config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:09:07 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs/Config/Config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:17
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:09:40 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs/Config/Config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:09:40 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs/Config/Config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:17
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:09:41 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs/Config/Config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:09:41 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs/Config/Config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:17
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:09:41 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs/Config/Config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[01-Apr-2025 01:09:41 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs/Config/Config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:17
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 17
+[31-Mar-2025 18:10:14 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Controllers\UsuarioController" not found in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:53
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 53
+[31-Mar-2025 18:10:19 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Controllers\UsuarioController" not found in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:53
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 53
+[31-Mar-2025 18:10:21 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Controllers\UsuarioController" not found in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:53
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 53
+[31-Mar-2025 18:11:02 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Controllers\UsuarioController" not found in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:53
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 53
+[31-Mar-2025 18:11:11 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Controllers\UsuarioController" not found in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:53
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 53
+[31-Mar-2025 18:11:31 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Controllers\Database" not found in C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php:166
+Stack trace:
+#0 C:\xampp\htdocs\partner_innovacion\Views\usuarios.php(21): require_once()
+#1 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php on line 166
+[31-Mar-2025 18:12:04 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Controllers\Usuario" not found in C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php:16
+Stack trace:
+#0 C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php(173): Controllers\UsuarioController->__construct(Object(PDO))
+#1 C:\xampp\htdocs\partner_innovacion\Views\usuarios.php(21): require_once('C:\\xampp\\htdocs...')
+#2 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php on line 16
+[31-Mar-2025 18:12:05 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Controllers\Usuario" not found in C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php:16
+Stack trace:
+#0 C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php(173): Controllers\UsuarioController->__construct(Object(PDO))
+#1 C:\xampp\htdocs\partner_innovacion\Views\usuarios.php(21): require_once('C:\\xampp\\htdocs...')
+#2 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php on line 16
+[31-Mar-2025 18:12:05 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Controllers\Usuario" not found in C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php:16
+Stack trace:
+#0 C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php(173): Controllers\UsuarioController->__construct(Object(PDO))
+#1 C:\xampp\htdocs\partner_innovacion\Views\usuarios.php(21): require_once('C:\\xampp\\htdocs...')
+#2 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php on line 16
+[31-Mar-2025 18:12:34 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Database" not found in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php:46
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Views\usuarios.php on line 46
+[31-Mar-2025 18:13:00 America/Bogota] PHP Fatal error:  Uncaught Error: Class "Models\PDO" not found in C:\xampp\htdocs\partner_innovacion\Models\Usuario.php:58
+Stack trace:
+#0 C:\xampp\htdocs\partner_innovacion\Controllers\UsuarioController.php(21): Models\Usuario->obtenerUsuarios()
+#1 C:\xampp\htdocs\partner_innovacion\Views\usuarios.php(58): Controllers\UsuarioController->listarUsuarios()
+#2 {main}
+  thrown in C:\xampp\htdocs\partner_innovacion\Models\Usuario.php on line 58
+[31-Mar-2025 18:13:49 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:13:49 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:13:49 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:06 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:06 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:06 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:12 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:12 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:12 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:24 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:24 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:24 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:35 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:35 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:14:35 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:17:47 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:17:47 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[31-Mar-2025 18:17:47 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[03-Apr-2025 15:55:51 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[03-Apr-2025 15:55:51 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[03-Apr-2025 15:55:51 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[16-Apr-2025 16:55:56 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[16-Apr-2025 16:55:56 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[16-Apr-2025 16:55:56 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:40:57 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:40:57 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:40:57 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:41:19 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:41:19 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:41:19 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:47:34 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:47:34 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:47:34 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:47:55 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:47:55 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:47:55 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:50:49 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:50:49 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[07-May-2025 16:50:49 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:54:48 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:54:48 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:54:48 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:55:21 America/Bogota] Error: No se encontró login o usuario_id en la sesión
+[14-Jul-2025 19:55:54 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:55:54 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:55:54 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:58:00 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:58:00 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:58:00 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:59:38 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:59:38 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 19:59:38 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:00:31 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Cliente
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:00:31 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:00:31 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:00:36 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:00:36 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:00:36 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:00:58 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:00:58 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:00:58 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:02:47 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:02:47 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:02:47 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:04:31 America/Bogota] Usuarios obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => juan josé
+            [apellidos] => pacheco parado
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3182140886
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1004860718
+            [rol] => Super Administrador
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Yedinso
+            [apellidos] => pacheco
+            [correo] => yedinso8pacheco@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => deivids jesus
+            [apellidos] => ortega 
+            [correo] => deivids8ortega@gmail.com
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1000000000
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => felipe
+            [apellidos] => quinta ropero
+            [correo] => felipe8quintana@gmail.com
+            [telefono] => 3165789090
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234563333
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [4] => Array
+        (
+            [id] => 5
+            [nombre] => Admin
+            [apellidos] => Sistema
+            [correo] => nauj8pacheco@gmail.com
+            [telefono] => 3000000000
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+    [5] => Array
+        (
+            [id] => 6
+            [nombre] => juan josé
+            [apellidos] => pacheco
+            [correo] => admin@sistema.com123455
+            [telefono] => 3182147776
+            [tipo_documento] => Cédula de Ciudadanía
+            [documento] => 1234567890
+            [rol] => Administrador
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:04:31 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+
+[14-Jul-2025 20:04:31 America/Bogota] Roles obtenidos: Array
+(
+    [0] => Array
+        (
+            [id] => 1
+            [nombre] => Super Administrador
+            [descripcion] => sup
+            [estado] => 1
+        )
+
+    [1] => Array
+        (
+            [id] => 2
+            [nombre] => Administrador
+            [descripcion] => supe
+            [estado] => 1
+        )
+
+    [2] => Array
+        (
+            [id] => 3
+            [nombre] => Cliente
+            [descripcion] => c
+            [estado] => 1
+        )
+
+    [3] => Array
+        (
+            [id] => 4
+            [nombre] => usuario
+            [descripcion] => u
+            [estado] => 1
+        )
+
+)
+

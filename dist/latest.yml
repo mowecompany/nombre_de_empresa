@@ -1,0 +1,16 @@
+version: 1.0.5
+files:
+  - url: AUTOSERVICIO-MI-ESTRELLA-Setup-v1.0.5.exe
+<<<<<<< Updated upstream
+    sha512: DENHrRStvkydcZC84V/S003FZCtj54+vvP9Z5OdyKXe25/VnjOFNJEqNYmMIZwClLOru3AGa4Zu4SDgQJyvHFw==
+    size: 193902461
+path: AUTOSERVICIO-MI-ESTRELLA-Setup-v1.0.5.exe
+sha512: DENHrRStvkydcZC84V/S003FZCtj54+vvP9Z5OdyKXe25/VnjOFNJEqNYmMIZwClLOru3AGa4Zu4SDgQJyvHFw==
+releaseDate: '2026-09-06T23:37:15.812Z'
+=======
+    sha512: vAs9GlbaVjQz9/B3VYLcmfssxX7HB8m59DRRFAKHf6d77qPOT7GJKUqhndoNaKHPzcoOSa5l/c4dM9Y/4hLWlw==
+    size: 193855801
+path: AUTOSERVICIO-MI-ESTRELLA-Setup-v1.0.5.exe
+sha512: vAs9GlbaVjQz9/B3VYLcmfssxX7HB8m59DRRFAKHf6d77qPOT7GJKUqhndoNaKHPzcoOSa5l/c4dM9Y/4hLWlw==
+releaseDate: '2026-09-07T02:30:05.899Z'
+>>>>>>> Stashed changes
