@@ -601,8 +601,12 @@ if (is_file($logoPdfPath)) {
             padding-top: <?php echo $esEnIframe ? '0' : '80px'; ?>;
             background-color: #f8f9fa;
             font-family: var(--font-saira);
-            overflow: hidden;
+            overflow: auto;
             min-height: 100vh;
+        }
+
+        body.modal-open {
+            overflow: hidden !important;
         }
 
         .title_equipo {
@@ -1192,9 +1196,14 @@ if (is_file($logoPdfPath)) {
         #stockTotalModal .modal-header,
         #valorInventarioModal .modal-header,
         #reordenModal .modal-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #fff;
             padding: 24px 24px 16px 24px;
             margin-bottom: 0;
             flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.08);
         }
 
         #ventasDiaModal .modal-content > div,
@@ -1214,6 +1223,46 @@ if (is_file($logoPdfPath)) {
         #reordenModal .table-wrapper {
             max-height: 45vh !important;
             overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        #ventasDiaModal,
+        #todosProductosModal,
+        #stockTotalModal,
+        #valorInventarioModal,
+        #reordenModal {
+            align-items: center;
+            overflow: hidden !important;
+        }
+
+        #ventasDiaModal .modal-content,
+        #todosProductosModal .modal-content,
+        #stockTotalModal .modal-content,
+        #valorInventarioModal .modal-content,
+        #reordenModal .modal-content {
+            height: auto !important;
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+
+        #ventasDiaModal .modal-content > div,
+        #todosProductosModal .modal-content > div,
+        #stockTotalModal .modal-content > div,
+        #valorInventarioModal .modal-content > div,
+        #reordenModal .modal-content > div {
+            overflow: visible !important;
+        }
+
+        #ventasDiaModal .table-wrapper,
+        #ventasDiaModal .table-wrapper-principal,
+        #todosProductosModal .table-wrapper,
+        #stockTotalModal .table-wrapper,
+        #valorInventarioModal .table-wrapper,
+        #reordenModal .table-wrapper {
+            height: auto !important;
+            max-height: none !important;
+            overflow-y: visible !important;
             overflow-x: auto;
         }
 
@@ -1891,15 +1940,17 @@ if (is_file($logoPdfPath)) {
         }
 
         .inventario-main-scroll {
-            height: calc(100vh - 150px) !important;
-            max-height: calc(100vh - 150px) !important;
-            overflow-y: auto !important;
+            height: auto !important;
+            max-height: none !important;
+            overflow-y: visible !important;
             padding-bottom: 25px !important;
         }
 
         .inventario-main-scroll .table-wrapper,
         .inventario-main-scroll .table-wrapper-principal {
             overflow-y: visible !important;
+            max-height: none !important;
+            height: auto !important;
         }
 
         #carritoSalidaBody td,
@@ -3384,6 +3435,7 @@ if (is_file($logoPdfPath)) {
             if (!modal) return;
             const yaEstabaActivo = modal.classList.contains('active');
             modal.classList.add('active');
+            document.body.classList.add('modal-open');
             if (modalId === 'salidaModal') {
                 if (!yaEstabaActivo) {
                     const referenciaField = document.getElementById('referenciaSalida');
@@ -3411,6 +3463,9 @@ if (is_file($logoPdfPath)) {
         // Cerrar modal
         function cerrarModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
+            if (!document.querySelector('.modal.active')) {
+                document.body.classList.remove('modal-open');
+            }
             if (modalId === 'salidaModal') {
                 const referenciaAnterior = document.getElementById('referenciaSalida')?.value?.trim();
                 if (referenciaAnterior) referenciasVentaReservadas.delete(referenciaAnterior);

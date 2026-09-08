@@ -78,8 +78,8 @@ $categorias = [];
             background-color: #f8f9fa;
             font-family: var(--font-saira);
             text-transform: uppercase;
-            overflow: hidden;
-            height: 100vh;
+            overflow: auto;
+            height: auto;
         }
 
 
@@ -1590,7 +1590,9 @@ $categorias = [];
 
         .table-wrapper {
             overflow-x: auto;
-            overflow-y: auto;
+            overflow-y: visible;
+            max-height: none !important;
+            height: auto !important;
         }
 
         .table-wrapper::-webkit-scrollbar,
@@ -1615,8 +1617,8 @@ $categorias = [];
         }
 
         .main-scroll-panel {
-            max-height: calc(100vh - 140px) !important;
-            overflow-y: auto !important;
+            max-height: none !important;
+            overflow-y: visible !important;
             padding-bottom: 120px !important;
         }
     </style>
