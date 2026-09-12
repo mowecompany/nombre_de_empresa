@@ -847,8 +847,13 @@ class Usuario {
             $esSuperAdmin = $this->esSuperAdmin();
             $usarAdminId = $this->existeColumna($this->table, 'admin_id');
             $usuarioSesionId = (int)($_SESSION['usuario_id'] ?? 0);
+            $tieneCodigo = $this->existeColumna($this->table, 'codigo');
             $columnas = "nombre, apellidos, correo, telefono, documento, tipo_documento, contrasena, rol, estado, {$colEmpresa}";
             $valores = ":nombre, :apellidos, :correo, :telefono, :documento, :tipo_documento, :contrasena, :rol, :estado, :empresa_id";
+            if ($tieneCodigo) {
+                $columnas .= ', codigo';
+                $valores .= ', :codigo';
+            }
             if ($usarAdminId) {
                 $columnas .= ", admin_id";
                 $valores .= ", :admin_id";
@@ -877,6 +882,10 @@ class Usuario {
             $stmt->bindParam(':contrasena', $contrasenaHash);
             $stmt->bindParam(':rol', $data['rol']);
             $stmt->bindParam(':estado', $data['estado']);
+            if ($tieneCodigo) {
+                $codigo = trim((string)($data['codigo'] ?? ''));
+                $stmt->bindValue(':codigo', $codigo !== '' ? $codigo : null, $codigo !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
+            }
             $empresaIdValida = $this->resolverEmpresaIdParaRegistro($data, $esSuperAdmin);
 
             if ($empresaIdValida <= 0) {
@@ -926,12 +935,14 @@ class Usuario {
 
             $colEmpresa = $this->getColumnaEmpresaUsuario();
             $usuarioTieneImagen = $this->existeColumna($this->table, 'imagen');
+            $usuarioTieneCodigo = $this->existeColumna($this->table, 'codigo');
             $empresaTieneImagen = $this->existeColumna('empresas', 'imagen');
             
             $selectImagen = $usuarioTieneImagen ? ", u.imagen" : ", NULL AS imagen";
             $selectImagenEmpresa = $empresaTieneImagen ? ", e.imagen AS empresa_imagen" : ", NULL AS empresa_imagen";
+            $selectCodigo = $this->existeColumna($this->table, 'codigo') ? ", u.codigo" : ", NULL AS codigo";
             
-            $query = "SELECT u.id, u.nombre, u.apellidos, u.correo, u.telefono, u.tipo_documento, u.documento, u.rol, u.estado,
+            $query = "SELECT u.id, u.nombre, u.apellidos, u.correo, u.telefono, u.tipo_documento, u.documento, u.rol, u.estado{$selectCodigo},
                         COALESCE(e.nombre, 'N/A') AS empresa_nombre,
                         e.tipo_empresa_id AS tipo_empresa_nombre,
                         NULL AS admin_id, 'N/A' AS administrador_nombre
@@ -939,13 +950,19 @@ class Usuario {
                         {$selectImagenEmpresa}
                      FROM " . $this->table . " u
                      LEFT JOIN empresas e ON e.id = u.{$colEmpresa}
-                     WHERE u.rol NOT IN ('Cliente', 'cliente', 'CLIENTE')
                      ORDER BY u.id DESC";
             
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
             
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($usuarios as &$usuario) {
+                if (isset($usuario['documento'])) {
+                    $usuario['documento'] = $this->desencriptar($usuario['documento']);
+                }
+            }
+            unset($usuario);
+            return $usuarios;
         } catch(PDOException $e) {
             error_log("Error en obtenerUsuarios: " . $e->getMessage());
             return [];
@@ -1071,6 +1088,7 @@ class Usuario {
             $colEmpresa = $this->getColumnaEmpresaUsuario();
             $usuarioTieneAdminId = $this->existeColumna($this->table, 'admin_id');
             $usuarioTieneImagen = $this->existeColumna($this->table, 'imagen');
+            $usuarioTieneCodigo = $this->existeColumna($this->table, 'codigo');
             // Encriptar correo y documento
             $correo_encriptado = $this->encriptar($datos['correo']);
             $documento_encriptado = $this->encriptar($datos['documento']);
@@ -1083,6 +1101,10 @@ class Usuario {
                     documento = :documento,
                     tipo_documento = :tipo_documento,
                     rol = :rol";
+
+            if ($usuarioTieneCodigo && array_key_exists('codigo', $datos)) {
+                $sql .= ", codigo = :codigo";
+            }
 
             $rolObjetivoEsAdmin = $this->esRolAdministrador($datos['rol'] ?? '');
             $actualizarEmpresa = $esSuperAdmin
@@ -1134,6 +1156,9 @@ class Usuario {
             $stmt->bindParam(':documento', $documento_encriptado);
             $stmt->bindParam(':tipo_documento', $datos['tipo_documento']);
             $stmt->bindParam(':rol', $datos['rol']);
+            if ($usuarioTieneCodigo && array_key_exists('codigo', $datos)) {
+                $stmt->bindValue(':codigo', trim((string)$datos['codigo']), PDO::PARAM_STR);
+            }
             if ((!$esSuperAdmin || $forzarFiltroEmpresa) && !$permitirAutoActualizacionSinEmpresa) {
                 $stmt->bindValue(':empresa_id', $forzarFiltroEmpresa ? $empresaIdSesion : $this->getEmpresaIdSesion(), PDO::PARAM_INT);
             }
@@ -1569,7 +1594,7 @@ class Usuario {
         return $ok;
     }
 
-    public function crearUsuario($nombre, $apellidos, $correo, $telefono, $documento, $tipo_documento, $rol, $contrasena, $empresaId = null, $idTiposEmpresa = null, $imagen = null) {
+    public function crearUsuario($nombre, $apellidos, $correo, $telefono, $documento, $tipo_documento, $rol, $contrasena, $empresaId = null, $idTiposEmpresa = null, $imagen = null, $codigo = null) {
         // Encriptar correo y documento
         $correo_encriptado = $this->encriptar($correo);
         $documento_encriptado = $this->encriptar($documento);
@@ -1584,6 +1609,7 @@ class Usuario {
         $usuarioSesionId = (int)($_SESSION['usuario_id'] ?? 0);
         $usarTipoEmpresa = ($idTiposEmpresa !== null && $this->existeColumna($this->table, 'id_tipos_empresa'));
         $usarImagen = $this->existeColumna($this->table, 'imagen');
+        $usarCodigo = $this->existeColumna($this->table, 'codigo');
         $siguienteId = $this->obtenerSiguienteIdUsuario();
         $columnas = "id, nombre, apellidos, correo, telefono, documento, tipo_documento, rol, contrasena, estado, {$colEmpresa}";
         $valores = ":id, :nombre, :apellidos, :correo, :telefono, :documento, :tipo_documento, :rol, :contrasena, 1, :empresa_id";
@@ -1598,6 +1624,10 @@ class Usuario {
         if ($usarImagen) {
             $columnas .= ", imagen";
             $valores .= ", :imagen";
+        }
+        if ($usarCodigo) {
+            $columnas .= ", codigo";
+            $valores .= ", :codigo";
         }
         
         $sql = "INSERT INTO usuarios ({$columnas}) VALUES ({$valores})";
@@ -1656,6 +1686,9 @@ class Usuario {
                 $stmt->bindValue(':imagen', substr($imagenValor, 0, 255), PDO::PARAM_STR);
             }
         }
+        if ($usarCodigo) {
+            $stmt->bindValue(':codigo', trim((string)$codigo), PDO::PARAM_STR);
+        }
         if ($usarAdminId) {
             $adminIdFinal = $usuarioSesionId > 0 ? $usuarioSesionId : ($this->getAdminIdSesion() ?? 0);
             if ($adminIdFinal && $adminIdFinal > 0) {
@@ -1664,7 +1697,9 @@ class Usuario {
                 $stmt->bindValue(':admin_id', null, PDO::PARAM_NULL);
             }
         }
-        $hashedPassword = password_hash($contrasena, PASSWORD_BCRYPT);
+        $hashedPassword = $esCliente && trim((string)$contrasena) === ''
+            ? ''
+            : password_hash($contrasena, PASSWORD_BCRYPT);
         $stmt->bindParam(':contrasena', $hashedPassword);
         $ok = $stmt->execute();
 

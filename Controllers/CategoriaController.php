@@ -95,8 +95,15 @@ try {
                     if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === 0) {
                         $imagenInfo = guardarImagenSubidaValidada('imagen', [
                             'label' => 'La imagen de la categoría',
-                            'max_bytes' => 500 * 1024,
-                            'allowed_mimes' => ['image/png' => 'png'],
+                            'max_bytes' => 25 * 1024 * 1024,
+                            'allowed_mimes' => [
+                                'image/png' => 'png',
+                                'image/jpeg' => 'jpg',
+                                'image/pjpeg' => 'jpg',
+                                'image/webp' => 'webp',
+                            ],
+                            'normalize_square' => 1000,
+                            'target_max_bytes' => 500 * 1024,
                             'rel_dir' => 'Assets/images/categorias',
                             'file_prefix' => 'categoria',
                         ]);
@@ -159,8 +166,15 @@ try {
                     try {
                         $imagenInfo = guardarImagenSubidaValidada('imagen', [
                             'label' => 'La imagen de la categoría',
-                            'max_bytes' => 500 * 1024,
-                            'allowed_mimes' => ['image/png' => 'png'],
+                            'max_bytes' => 25 * 1024 * 1024,
+                            'allowed_mimes' => [
+                                'image/png' => 'png',
+                                'image/jpeg' => 'jpg',
+                                'image/pjpeg' => 'jpg',
+                                'image/webp' => 'webp',
+                            ],
+                            'normalize_square' => 1000,
+                            'target_max_bytes' => 500 * 1024,
                             'rel_dir' => 'Assets/images/categorias',
                             'file_prefix' => 'categoria',
                         ]);

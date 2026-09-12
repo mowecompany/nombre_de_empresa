@@ -20,6 +20,23 @@ class Inventario {
         return $this->esSqlite() ? "datetime('now', 'localtime')" : 'NOW()';
     }
 
+    private function normalizarTipoSalidaInventario(?string $tipo): string {
+        $tipoNormalizado = strtolower(trim((string)($tipo ?? 'venta')));
+        $permitidos = ['venta', 'dañado', 'perdida', 'ajuste'];
+        if (in_array($tipoNormalizado, $permitidos, true)) {
+            return $tipoNormalizado;
+        }
+
+        // El esquema de salidas_inventario no acepta 'credito' en tipo_salida; el método de pago
+        // se persiste en la columna metodo_pago cuando corresponde y el tipo sigue siendo una salida válida.
+        $aliasCredito = ['venta_credito_pagada', 'venta_credito', 'credito_pagado', 'pagado', 'credito'];
+        if (in_array($tipoNormalizado, $aliasCredito, true)) {
+            return 'venta';
+        }
+
+        return 'venta';
+    }
+
     private function dbCurrentDate(): string {
         return $this->esSqlite() ? "date('now', 'localtime')" : 'CURDATE()';
     }
@@ -349,6 +366,22 @@ class Inventario {
         }
     }
 
+    private function asegurarColumnaNotasSalida(): void {
+        if ($this->columnaExiste('salidas_inventario', 'notas')) {
+            return;
+        }
+
+        try {
+            $sql = $this->esSqlite()
+                ? "ALTER TABLE salidas_inventario ADD COLUMN notas TEXT"
+                : "ALTER TABLE salidas_inventario ADD COLUMN notas TEXT NULL";
+            $this->db->exec($sql);
+            $this->columnasCache['salidas_inventario.notas'] = true;
+        } catch (Exception $e) {
+            error_log('No se pudo agregar notas a salidas_inventario: ' . $e->getMessage());
+        }
+    }
+
     private function tablaTieneEmpresaId(string $tabla): bool {
         return $this->columnaExiste($tabla, 'empresa_id');
     }
@@ -654,6 +687,7 @@ class Inventario {
     public function __construct($db) {
         $this->db = $db;
         $this->asegurarColumnaMetodoPago();
+        $this->asegurarColumnaNotasSalida();
     }
     
     // Obtener conexión a la base de datos
@@ -673,6 +707,7 @@ class Inventario {
             $salidasTieneUsuario = $this->tablaTieneUsuarioId('salidas_inventario');
             $salidasTieneFechaSalida = $this->columnaExiste('salidas_inventario', 'fecha_salida');
             $salidasTieneTipoSalida = $this->columnaExiste('salidas_inventario', 'tipo_salida');
+            $salidasTieneNotas = $this->columnaExiste('salidas_inventario', 'notas');
             $salidasTieneReferencia = $this->columnaExiste('salidas_inventario', 'referencia');
             $salidasTienePrecioVentaUnitario = $this->columnaExiste('salidas_inventario', 'precio_venta_unitario');
             $salidasTieneTotalVenta = $this->columnaExiste('salidas_inventario', 'total_venta');
@@ -701,6 +736,8 @@ class Inventario {
                     m.empresa_id,
                     COALESCE(s.referencia, 'MOV-' || CAST(m.id AS TEXT)) AS referencia,
                     COALESCE(s.metodo_pago, 'efectivo') AS metodo_pago,
+                    " . ($salidasTieneNotas ? 's.notas' : 'NULL') . " AS notas,
+                    CASE WHEN EXISTS (SELECT 1 FROM creditos cr WHERE cr.empresa_id = s.empresa_id AND TRIM(COALESCE(cr.referencia, '')) <> '' AND TRIM(cr.referencia) = TRIM(s.referencia) AND LOWER(cr.estado) = 'pagado') THEN 1 ELSE 0 END AS es_credito,
                     p.nombre AS producto_nombre,
                     p.codigo AS codigo,
                     p.imagen AS producto_imagen,
@@ -726,6 +763,8 @@ class Inventario {
                     s.id AS referencia_id,
                     s.usuario_id AS usuario_id,
                     COALESCE(s.metodo_pago, 'efectivo') AS metodo_pago,
+                    " . ($salidasTieneNotas ? 's.notas' : 'NULL') . " AS notas,
+                    CASE WHEN EXISTS (SELECT 1 FROM creditos cr WHERE cr.empresa_id = s.empresa_id AND TRIM(COALESCE(cr.referencia, '')) <> '' AND TRIM(cr.referencia) = TRIM(s.referencia) AND LOWER(cr.estado) = 'pagado') THEN 1 ELSE 0 END AS es_credito,
                     'Salida por ' || " . ($salidasTieneTipoSalida ? "CASE WHEN TRIM(COALESCE(s.tipo_salida, '')) <> '' THEN s.tipo_salida ELSE 'venta' END" : "'venta'") . " AS descripcion,
                     " . ($salidasTieneFechaSalida ? "s.fecha_salida" : $this->dbNow()) . " AS fecha_movimiento,
                     s.empresa_id,
@@ -745,6 +784,11 @@ class Inventario {
                         SELECT 1 FROM movimientos_inventario m2
                         WHERE m2.referencia_id = s.id AND m2.tipo_movimiento = 'salida'
                     )";
+
+            if ($salidasTieneNotas) {
+                $sqlMain .= " AND (m.tipo_movimiento <> 'salida' OR s.notas IS NULL OR LOWER(s.notas) NOT LIKE 'crédito pendiente %')";
+                $sqlSalidasFallback .= " AND (s.notas IS NULL OR LOWER(s.notas) NOT LIKE 'crédito pendiente %')";
+            }
 
             if ($aplicarFiltroEmpresa) {
                 $sqlMain .= " AND m.empresa_id = :empresa_id";
@@ -906,7 +950,6 @@ class Inventario {
             if ($salidasTieneEmpresa) {
                 if ($empresaId <= 0) {
                     error_log('obtenerSalidas: No se pudo resolver empresa_id, intentando fallback sin filtro de empresa');
-                    // Fallback: no se puede filtrar por empresa, así que se deja abiert
                 }
                 $sqlUpdateTipo = "UPDATE salidas_inventario SET tipo_salida='venta' WHERE (tipo_salida = '' OR tipo_salida IS NULL) AND empresa_id = " . intval($empresaId);
                 if ($filtrarPorUsuario && $salidasTieneUsuario && $usuarioId > 0) {
@@ -922,13 +965,27 @@ class Inventario {
             }
 
             $sql = "SELECT 
-                    CASE WHEN TRIM(COALESCE(s.tipo_salida, '')) <> '' THEN s.tipo_salida ELSE 'venta' END as tipo_salida, 
+                    CASE WHEN TRIM(COALESCE(s.tipo_salida, '')) <> '' THEN
+                        CASE WHEN LOWER(TRIM(s.tipo_salida)) IN ('credito', 'venta_credito_pagada', 'venta_credito', 'credito_pagado', 'pagado') THEN 'venta' ELSE s.tipo_salida END
+                    ELSE 'venta' END as tipo_salida,
+                    CASE WHEN EXISTS (
+                            SELECT 1 FROM creditos cr
+                            WHERE cr.empresa_id = s.empresa_id
+                              AND TRIM(COALESCE(cr.referencia, '')) <> ''
+                              AND TRIM(cr.referencia) = TRIM(s.referencia)
+                              AND LOWER(cr.estado) = 'pagado'
+                        ) THEN 'credito' ELSE 'venta' END as tipo_salida_efectiva,
                     s.*, p.codigo as codigo, p.nombre as producto_nombre, p.imagen as producto_imagen, 
+                    CASE WHEN EXISTS (SELECT 1 FROM creditos cr WHERE cr.empresa_id = s.empresa_id AND TRIM(COALESCE(cr.referencia, '')) <> '' AND TRIM(cr.referencia) = TRIM(s.referencia) AND LOWER(cr.estado) = 'pagado') THEN 1 ELSE 0 END AS es_credito,
                     u.nombre as usuario_nombre, u.apellidos as usuario_apellidos, u.rol as usuario_rol
                     FROM salidas_inventario s
                     INNER JOIN productos p ON s.producto_id = p.id
                     LEFT JOIN usuarios u ON s.usuario_id = u.id
                     WHERE 1=1";
+
+            if ($salidasTieneNotas) {
+                $sql .= " AND (s.notas IS NULL OR LOWER(s.notas) NOT LIKE 'crédito pendiente %')";
+            }
 
             $params = [];
             $aplicarFiltroEmpresa = $salidasTieneEmpresa && $empresaId > 0;
@@ -1122,6 +1179,7 @@ class Inventario {
         try {
             $empresaId = $this->getEmpresaId();
             $usuarioId = isset($datos['usuario_id']) ? (int)$datos['usuario_id'] : 0;
+            $omitirStock = !empty($datos['omitir_stock']);
             $salidasTieneEmpresa = $this->tablaTieneEmpresaId('salidas_inventario');
             $productosTieneEmpresa = $this->tablaTieneEmpresaId('productos');
             $entradasTieneEmpresa = $this->tablaTieneEmpresaId('entradas_inventario');
@@ -1143,7 +1201,7 @@ class Inventario {
             $stock_reservado = $this->obtenerStockReservadoOrdenesTaller((int)$datos['producto_id'], $empresaId);
             $stock_disponible_real = max(0, $stock_actual - $stock_reservado);
             
-            if ($stock_disponible_real < $datos['cantidad']) {
+            if (!$omitirStock && $stock_disponible_real < $datos['cantidad']) {
                 throw new Exception('Stock insuficiente. Disponible: ' . $stock_disponible_real);
             }
 
@@ -1151,6 +1209,7 @@ class Inventario {
             // Si el frontend pasa precio_venta (e.g. precio con descuento aplicado), usarlo; sino usar precio del producto.
             $precioVentaPasado = isset($datos['precio_venta']) && $datos['precio_venta'] > 0 ? floatval($datos['precio_venta']) : null;
             $precioVentaUnitario = $precioVentaPasado ?? floatval($producto['precio'] ?? 0);
+            $precioVentaUnitario = max($precioVentaUnitario, floatval($producto['precio'] ?? 0));
             $sqlCosto = "SELECT precio_compra FROM entradas_inventario WHERE producto_id = :producto_id";
             $paramsCosto = [':producto_id' => $datos['producto_id']];
             if ($entradasTieneEmpresa) {
@@ -1181,7 +1240,7 @@ class Inventario {
             
             $columnasInsert = ['producto_id', 'cantidad', 'tipo_salida', 'fecha_salida', 'referencia', 'usuario_id'];
             $placeholdersInsert = [':producto_id', ':cantidad', ':tipo_salida', $this->dbNow(), ':referencia', ':usuario_id'];
-            $tipoSalida = strtolower(trim((string)($datos['tipo_salida'] ?? 'venta')));
+            $tipoSalida = $this->normalizarTipoSalidaInventario((string)($datos['tipo_salida'] ?? 'venta'));
             $params = [
                 ':producto_id' => $datos['producto_id'],
                 ':cantidad' => $datos['cantidad'],
@@ -1249,19 +1308,16 @@ class Inventario {
             
             $salida_id = isset($params[':id']) ? $params[':id'] : $this->db->lastInsertId();
             
-            // Actualizar stock
-            $stock_nuevo = $stock_actual - $datos['cantidad'];
-            
-            $sqlUpdate = "UPDATE productos SET stock = :stock WHERE id = :id";
-            $queryUpdate = $this->db->prepare($sqlUpdate);
-            $paramsUpdate = [
-                ':stock' => $stock_nuevo,
-                ':id' => $datos['producto_id']
-            ];
-            $queryUpdate->execute($paramsUpdate);
+            // Un crédito ya entregó el producto al cliente; al pagarlo no se debe descontar stock otra vez.
+            $stock_nuevo = $omitirStock ? $stock_actual : $stock_actual - $datos['cantidad'];
+            if (!$omitirStock) {
+                $sqlUpdate = "UPDATE productos SET stock = :stock WHERE id = :id";
+                $queryUpdate = $this->db->prepare($sqlUpdate);
+                $queryUpdate->execute([':stock' => $stock_nuevo, ':id' => $datos['producto_id']]);
+            }
             
             // Registrar movimiento
-            $movimientoRegistrado = $this->registrarMovimiento([
+            $movimientoRegistrado = $omitirStock || $this->registrarMovimiento([
                 'producto_id' => $datos['producto_id'],
                 'tipo_movimiento' => 'salida',
                 'cantidad' => $datos['cantidad'],
@@ -1546,7 +1602,7 @@ class Inventario {
                 $havingConditions = $config['having'];
 
                 if ($tabla === 'salidas_inventario') {
-                    $filtroTabla .= " AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(tipo_salida,'')), ''), 'venta')) = 'venta'";
+                    $filtroTabla .= " AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(tipo_salida,'')), ''), 'venta')) IN ('venta', 'venta_credito_pagada')";
                 }
 
                 $sql = "SELECT DISTINCT " . $this->dbDateFormat($fechaCol, '%Y-%m') . " AS mes
@@ -1569,9 +1625,14 @@ class Inventario {
             }
 
             $meses = array_values(array_unique($meses));
+            $mesActual = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m');
+            if (!in_array($mesActual, $meses, true)) {
+                array_unshift($meses, $mesActual);
+            }
             usort($meses, static function ($a, $b) {
                 return strcmp($b, $a);
             });
+            $meses = array_values(array_unique($meses));
 
             return $meses;
         } catch(PDOException $e) {
@@ -1703,7 +1764,7 @@ class Inventario {
                     COALESCE(SUM(" . $exprTotalGanancia . "), 0) as ganancia_total
                     FROM salidas_inventario si
                     INNER JOIN productos p ON si.producto_id = p.id
-                    WHERE LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'" . $filtroSalidas . $filtroProductos;
+                    WHERE LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) IN ('venta', 'venta_credito_pagada')" . $filtroSalidas . $filtroProductos;
             
             $query = $this->db->prepare($sql);
             $query->execute();
@@ -1731,7 +1792,7 @@ class Inventario {
                     FROM salidas_inventario si
                     INNER JOIN productos p ON si.producto_id = p.id
                     WHERE DATE(si.fecha_salida) = " . ($fecha ? ':fecha' : $this->dbCurrentDate()) . "
-                    AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'" . $filtroSalidas . $filtroProductos;
+                    AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) IN ('venta', 'venta_credito_pagada')" . $filtroSalidas . $filtroProductos;
 
             $query = $this->db->prepare($sql);
             if ($fecha) {

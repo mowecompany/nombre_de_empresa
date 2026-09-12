@@ -259,7 +259,17 @@ $baseUrl = rtrim((string)base_url(), '/');
         const codesSearch = document.getElementById('codes-search');
         const codesTableWrap = document.querySelector('.table-wrap');
         const catalogScrollStorageKey = 'catalogo-productos-scroll-position';
+        const phpSessionId = (new URLSearchParams(window.location.search)).get('PHPSESSID') || '';
         let products = [];
+
+        function preservarSesionEnUrl(url) {
+            if (!phpSessionId) return url;
+            const destino = new URL(url, window.location.href);
+            if (destino.origin === window.location.origin && destino.pathname.includes('/Controllers/')) {
+                destino.searchParams.set('PHPSESSID', phpSessionId);
+            }
+            return destino.toString();
+        }
 
         function saveCatalogScrollPosition() {
             if (!codesTableWrap) return;
@@ -323,12 +333,12 @@ $baseUrl = rtrim((string)base_url(), '/');
             Object.keys(grouped).sort(categorySort.compare).forEach(category => {
                 const categoryKey = category.toLocaleLowerCase('es');
                 const categoryImage = categoryImages[categoryKey] || '';
-                rows.push(`<tr class="category-row"><td colspan="5"><span class="category-heading"><img class="category-image" src="${categoryImageUrl(categoryImage)}" alt="${escapeHtml(category)}" onerror="this.src='${baseUrl}/favicon.ico'"><i class="fas fa-tag category-icon"></i><span>${escapeHtml(category)}</span></span></td></tr>`);
+                rows.push(`<tr class="category-row"><td colspan="5"><span class="category-heading"><img class="category-image" loading="lazy" decoding="async" src="${categoryImageUrl(categoryImage)}" alt="${escapeHtml(category)}" onerror="this.src='${baseUrl}/favicon.ico'"><i class="fas fa-tag category-icon"></i><span>${escapeHtml(category)}</span></span></td></tr>`);
                 grouped[category].sort((first, second) => categorySort.compare(String(first.nombre || ''), String(second.nombre || ''))).forEach(product => {
                     const productIndex = products.indexOf(product);
                     rows.push(`
                         <tr>
-                            <td><img class="product-image" src="${imageUrl(product.imagen)}" alt="${escapeHtml(product.nombre || 'Producto')}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
+                            <td><img class="product-image" loading="lazy" decoding="async" src="${imageUrl(product.imagen)}" alt="${escapeHtml(product.nombre || 'Producto')}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
                             <td class="code-value">${escapeHtml(product.codigo || 'SIN CÓDIGO')}</td>
                             <td class="product-name">${escapeHtml(product.nombre || 'Sin nombre')}</td>
                             <td class="product-price">${formatPrice(product.precio)}</td>
@@ -351,39 +361,54 @@ $baseUrl = rtrim((string)base_url(), '/');
             return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(price);
         }
 
+        function printHtmlInPage(html) {
+            const printFrame = document.createElement('iframe');
+            printFrame.setAttribute('title', 'Vista de impresión');
+            printFrame.style.position = 'fixed';
+            printFrame.style.right = '0';
+            printFrame.style.bottom = '0';
+            printFrame.style.width = '0';
+            printFrame.style.height = '0';
+            printFrame.style.border = '0';
+            printFrame.style.visibility = 'hidden';
+            document.body.appendChild(printFrame);
+            printFrame.onload = () => {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+                setTimeout(() => printFrame.remove(), 1000);
+            };
+            const frameDocument = printFrame.contentDocument || printFrame.contentWindow.document;
+            frameDocument.open();
+            frameDocument.write(html);
+            frameDocument.close();
+        }
+
         function printProduct(product) {
             if (!product) return;
             const name = escapeHtml(product.nombre || 'Sin nombre');
-            const code = escapeHtml(product.codigo || 'SIN CÓDIGO');
+            const code = escapeHtml(String(product.codigo || 'SIN CÓDIGO').trim());
             const ventaPorKilo = [1, '1', true, 'true', 'si', 'sí'].includes(product.venta_por_kilo);
             const price = escapeHtml(formatPrice(product.precio));
             const priceUnit = ventaPorKilo ? 'X/KG' : 'C/U';
             const title = `Etiqueta ${product.codigo || product.nombre || 'producto'}`;
             const html = `<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title><style>
-                @page{size:58mm auto;margin:0}*{box-sizing:border-box}html,body{margin:0 auto;width:58mm;height:auto;min-height:0;background:#fff}body{font-family:Arial,sans-serif;color:#17212b}.label{position:relative;width:58mm;height:auto;min-height:0;margin:0 auto;padding:1mm 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1.5mm;text-align:center}.label-name{width:58mm;margin:14mm 0 0;padding:0 1mm;font-size:22px;font-weight:900;line-height:1.08;text-align:center;text-transform:uppercase}.label-price{width:58mm;margin:1mm 0 0;color:#167348;font-size:36px;font-weight:900;line-height:1.05;text-align:center}.label-unit{width:58mm;margin:0;color:#167348;font-size:16px;font-weight:900;line-height:1;text-align:center}.label-code{position:absolute;top:4mm;right:1.5mm;max-width:48mm;font-size:21px;font-weight:800;letter-spacing:.5px;text-align:right}.label-footer{width:58mm;margin-top:1mm;padding:4px 0 0;display:flex;justify-content:center;align-items:center;gap:3px;flex-wrap:nowrap;background:#fff;color:#0b1f3a;font-size:8px;font-weight:700;line-height:1;text-align:center;white-space:nowrap;border-top:1px solid #d1d5db}.label-footer span{display:inline-flex;align-items:center;justify-content:center;gap:3px;line-height:1;white-space:nowrap}.label-footer img{width:12px;height:12px;object-fit:contain;display:inline-flex;vertical-align:middle}.label-footer-wordmark{display:inline-flex;align-items:center;justify-content:center;gap:3px;font-weight:800;letter-spacing:.02em}@media print{html,body,.label{height:auto;min-height:0}}
-            </style></head><body><main class="label"><div class="label-code">${code}</div><div class="label-name">${name}</div><div class="label-price">${price}</div><div class="label-unit">${priceUnit}</div><footer class="label-footer"><span>&copy; ${new Date().getFullYear()}</span><span class="label-footer-wordmark"><img src="${baseUrl}/favicon.ico" alt="Favicon"><span>OWE COMPANY</span></span><span>TODOS LOS DERECHOS RESERVADOS</span></footer></main><script>window.onload=function(){window.print();};<\/script></body></html>`;
+                @page{size:58mm auto;margin:0}*{box-sizing:border-box}html,body{margin:0 auto;width:58mm;height:auto;min-height:0;background:#fff}body{font-family:Arial,sans-serif;color:#17212b}.label{position:relative;width:58mm;height:auto;min-height:0;margin:0 auto;padding:1mm 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1.5mm;text-align:center}.label-top{display:flex;align-items:center;justify-content:space-between;width:58mm;padding:0 1.5mm}.label-company{width:35mm;font-family:Arial,sans-serif;font-size:12px;font-style:normal;font-weight:800;line-height:1.1;letter-spacing:0;text-align:center;white-space:normal}.label-name{width:58mm;margin:8mm 0 0;padding:0;font-size:26px;font-weight:900;line-height:1.05;text-align:center;text-transform:uppercase}.label-price{width:58mm;margin:2mm 0 0;padding:0;color:#167348;font-size:40px;font-weight:900;line-height:1;text-align:center}.label-unit{width:58mm;margin:0;color:#167348;font-size:17px;font-weight:900;line-height:1;text-align:center}.label-code{max-width:20mm;font-family:Arial,sans-serif;font-size:21px;font-style:normal;font-weight:800;letter-spacing:.5px;text-align:center;white-space:nowrap}footer{width:100%;margin-top:1mm;background:#ffffff;color:#0b1f3a;padding:6px 0 0;display:flex;justify-content:center;align-items:center;gap:5px;flex-wrap:wrap;font-size:10px;font-weight:700;text-align:center;box-sizing:border-box;border-top:1px solid #d1d5db}footer span{display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1}footer .footer-wordmark{display:inline-flex;align-items:center;justify-content:center;gap:4px}footer .footer-brand-logo{width:28px;height:28px;object-fit:contain;display:inline-flex;vertical-align:middle}@media print{html,body,.label{height:auto;min-height:0}}
+            </style></head><body><main class="label"><div class="label-top"><div class="label-company">AUTOSERVICIO<br>MI ESTRELLA</div><div class="label-code">${code}</div></div><div class="label-name">${name}</div><div class="label-price">${price}</div><div class="label-unit">${priceUnit}</div><footer><span>&copy; ${new Date().getFullYear()}</span><span class="footer-wordmark"><img src="${baseUrl + '/favicon.ico'}" alt="Favicon" class="footer-brand-logo"><span>OWE COMPANY</span></span><span>TODOS LOS DERECHOS RESERVADOS</span></footer></main><script>window.onload=function(){window.print();};<\/script></body></html>`;
 
             if (typeof window.electronAPI?.printHtml === 'function') {
-                window.electronAPI.printHtml({ html, title, preview: true });
+                Promise.resolve(window.electronAPI.printHtml({ html, title, preview: true }))
+                    .catch(() => printHtmlInPage(html));
                 return;
             }
 
-            const printWindow = window.open('', '_blank', 'toolbar=0,menubar=0,scrollbars=1,resizable=1,width=520,height=460');
-            if (!printWindow) {
-                window.alert('Permite las ventanas emergentes para imprimir la etiqueta.');
-                return;
-            }
-            printWindow.document.open();
-            printWindow.document.write(html);
-            printWindow.document.close();
-            printWindow.focus();
+            printHtmlInPage(html);
         }
 
         async function loadProducts() {
             try {
                 const [productsResponse, categoriesResponse] = await Promise.all([
-                    fetch(`${baseUrl}/Controllers/ProductoController.php?action=getAll`),
-                    fetch(`${baseUrl}/Controllers/CategoriaController.php?action=getAll`)
+                    fetch(preservarSesionEnUrl(`${baseUrl}/Controllers/ProductoController.php?action=getAll`)),
+                    fetch(preservarSesionEnUrl(`${baseUrl}/Controllers/CategoriaController.php?action=getAll`))
                 ]);
                 const productsData = await productsResponse.json();
                 const categoriesData = await categoriesResponse.json();

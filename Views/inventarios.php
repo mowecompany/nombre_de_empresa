@@ -1421,6 +1421,11 @@ if (is_file($logoPdfPath)) {
             color: #0B6623;
         }
 
+        .badge-credit {
+            background: rgba(29, 78, 216, 0.12);
+            color: #1d4ed8;
+        }
+
         .badge-danger {
             background: rgba(220, 53, 69, 0.1);
             color: #dc3545;
@@ -2616,6 +2621,7 @@ if (is_file($logoPdfPath)) {
                         <select id="metodoPagoSalida" onchange="toggleCamposCreditoSalida()" required>
                             <option value="efectivo">EFECTIVO</option>
                             <option value="transferencia">TRANSFERENCIA</option>
+                            <option value="credito">CRÉDITO</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -2626,24 +2632,13 @@ if (is_file($logoPdfPath)) {
                     </div>
                     <div class="form-group" id="grupoClienteCreditoSalida" style="display:none;">
                         <label for="clienteCreditoSalida"><i class="fas fa-user-check"></i> CLIENTE *</label>
-                        <select id="clienteCreditoSalida">
-                            <option value="">SELECCIONE UN CLIENTE</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row" id="grupoAbonoCreditoSalida" style="display:none;">
-                    <div class="form-group">
-                        <label for="abonoInicialSalida"><i class="fas fa-coins"></i> ABONO INICIAL</label>
-                        <input type="number" id="abonoInicialSalida" min="0" step="0.01" value="0" autocomplete="off">
-                    </div>
-                    <div class="form-group">
-                        <label for="metodoPagoInicialSalida"><i class="fas fa-wallet"></i> MÉTODO ABONO</label>
-                        <select id="metodoPagoInicialSalida">
-                            <option value="efectivo">EFECTIVO</option>
-                            <option value="transferencia">TRANSFERENCIA</option>
-                            <option value="tarjeta">TARJETA</option>
-                        </select>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="search" id="buscarClienteCreditoSalida" placeholder="BUSCAR POR NOMBRE, DOCUMENTO O CÓDIGO" autocomplete="off" oninput="filtrarClientesCreditoSalida()" onfocus="filtrarClientesCreditoSalida()" style="flex:1; min-width:0;">
+                            <button type="button" class="btn-submit" onclick="seleccionarClienteCreditoDesdeBusqueda()" style="width:auto; min-width:0; padding:12px 14px;" title="Seleccionar cliente"><i class="fas fa-check"></i></button>
+                        </div>
+                        <input type="hidden" id="clienteCreditoSalida">
+                        <div id="clienteCreditoSalidaSeleccionado" style="display:none; margin-top:8px; border:1px solid #dbeafe; background:#eff6ff; color:#1d4ed8; border-radius:8px; padding:10px 12px; font-size:12px; font-weight:700; text-transform:uppercase;"></div>
+                        <div id="clientesCreditoSalidaOpciones" style="display:none;max-height:180px;overflow:auto;margin-top:6px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;"></div>
                     </div>
                 </div>
 
@@ -2658,6 +2653,30 @@ if (is_file($logoPdfPath)) {
                 </div>
 
                 <button type="submit" class="btn-submit"><i class="fas fa-save"></i> GUARDAR SALIDA</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalClienteCredito" class="modal" style="z-index:1300;">
+        <div class="modal-content" style="max-width:720px;">
+            <span class="close" onclick="cerrarModalClienteCredito()">&times;</span>
+            <h2 style="text-align:center;"><i class="fas fa-user-plus"></i> AGREGAR CLIENTE</h2>
+            <form id="formClienteCredito" onsubmit="guardarClienteCredito(event)" autocomplete="off">
+                <input type="hidden" name="action" value="crear">
+                <input type="hidden" name="rol" value="Cliente">
+                <div class="form-row">
+                    <div class="form-group"><label>NOMBRE:</label><input name="nombre" required></div>
+                    <div class="form-group"><label>APELLIDOS:</label><input name="apellidos" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>TIPO DE DOCUMENTO:</label><select name="tipo_documento" required><option value="Cédula de Ciudadanía">CÉDULA DE CIUDADANÍA</option><option value="Cédula de Extranjería Colombiana">CÉDULA DE EXTRANJERÍA</option><option value="Pasaporte">PASAPORTE</option></select></div>
+                    <div class="form-group"><label>DOCUMENTO:</label><input name="documento" pattern="[0-9]{1,10}" maxlength="10" required></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>CORREO:</label><input type="email" name="correo" required></div>
+                    <div class="form-group"><label>TELÉFONO:</label><input name="telefono" pattern="[0-9]{10}" maxlength="10" required></div>
+                </div>
+                <button type="submit" class="btn-submit"><i class="fas fa-save"></i> GUARDAR CLIENTE</button>
             </form>
         </div>
     </div>
@@ -3531,8 +3550,10 @@ if (is_file($logoPdfPath)) {
                 if (metodoPago) metodoPago.value = 'efectivo';
                 const clienteCredito = document.getElementById('clienteCreditoSalida');
                 if (clienteCredito) clienteCredito.value = '';
-                const abonoInicial = document.getElementById('abonoInicialSalida');
-                if (abonoInicial) abonoInicial.value = '0';
+                const buscarCliente = document.getElementById('buscarClienteCreditoSalida');
+                if (buscarCliente) buscarCliente.value = '';
+                const opcionesCliente = document.getElementById('clientesCreditoSalidaOpciones');
+                if (opcionesCliente) opcionesCliente.style.display = 'none';
                 const tipoSalida = document.getElementById('tipoSalida');
                 if (tipoSalida) tipoSalida.value = 'venta';
                 const referencia = document.getElementById('referenciaSalida');
@@ -3697,16 +3718,21 @@ if (is_file($logoPdfPath)) {
                 .replace(/'/g, '&#039;');
         }
 
-        function formatoTipoSalida(tipo) {
+        function formatoTipoSalida(tipo, metodoPago = '') {
             const valor = String(tipo || '').trim().toLowerCase();
+            const metodo = String(metodoPago || '').trim().toLowerCase();
+            if (metodo === 'credito' || valor === 'credito' || valor === 'venta_credito_pagada' || valor === 'venta_credito' || valor === 'credito_pagado' || valor === 'pagado') return 'CRÉDITO';
             if (!valor || valor === 'venta' || valor === 'salida') return 'INVENTARIO';
             if (valor === 'dañado') return 'DAÑADO';
             if (valor === 'perdida') return 'PÉRDIDA';
             return 'INVENTARIO';
         }
 
-        function etiquetaTipoSalida(tipo, ordenTallerId = 0) {
+        function etiquetaTipoSalida(tipo, ordenTallerId = 0, metodoPago = '') {
             const valor = String(tipo || '').trim().toLowerCase();
+            const metodo = String(metodoPago || '').trim().toLowerCase();
+            const esCreditoLegacy = metodo === 'credito' || valor === 'credito' || valor === 'venta_credito_pagada' || valor === 'venta_credito' || valor === 'credito_pagado' || valor === 'pagado';
+            if (esCreditoLegacy) return 'CRÉDITO';
             if (!valor || valor === 'venta' || valor === 'salida') return 'INVENTARIO';
             if (valor === 'dañado') return 'DAÑADO';
             if (valor === 'perdida') return 'PÉRDIDA';
@@ -3735,17 +3761,20 @@ if (is_file($logoPdfPath)) {
             return 'MOVIMIENTO';
         }
 
-        function generarReferenciaVenta() {
+        function generarReferenciaVenta(referenciasAdicionales = []) {
             const nombreLimpio = String(nombreEmpresa || '').trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-            const prefijo = nombreLimpio.slice(0, 2).padEnd(2, 'X');
+            const prefijo = (nombreLimpio.slice(0, 2) || 'AU').toUpperCase();
             let secuencia = 0;
             const referenciasExistentes = new Set([
-                ...Object.keys(salidasAgrupadasCache),
-                ...referenciasVentaReservadas
+                ...Object.keys(salidasAgrupadasCache).map((clave) => String(clave || '').split('|')[0].trim()),
+                ...referenciasAdicionales.map((valor) => String(valor || '').trim()),
+                ...Array.from(referenciasVentaReservadas).map((valor) => String(valor || '').trim())
             ]);
 
             referenciasExistentes.forEach((ref) => {
-                const match = String(ref || '').trim().match(new RegExp('^' + prefijo + '-(\\d+)$'));
+                const valor = String(ref || '').trim();
+                if (!valor) return;
+                const match = valor.match(new RegExp('^' + prefijo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[ -]?(\\d+)$', 'i'));
                 if (match) secuencia = Math.max(secuencia, parseInt(match[1], 10) || 0);
             });
 
@@ -3755,13 +3784,30 @@ if (is_file($logoPdfPath)) {
             return referencia;
         }
 
-        function inicializarReferenciaSalida() {
+        async function inicializarReferenciaSalida() {
             const referenciaField = document.getElementById('referenciaSalida');
             if (!referenciaField) return;
 
-            if (!referenciaField.value || !String(referenciaField.value).trim()) {
-                referenciaField.value = generarReferenciaVenta();
+            if (referenciaField.value && String(referenciaField.value).trim()) {
+                return;
             }
+
+            // Al recargar el iframe, el modal puede abrir antes de que termine
+            // cargarSalidas(); consulta la BD para no volver temporalmente a AU-01.
+            if (Object.keys(salidasAgrupadasCache).length === 0) {
+                try {
+                    const respuesta = await fetch(inventarioControllerUrl + '?action=obtenerSalidas', { cache: 'no-store' });
+                    const datos = await respuesta.json();
+                    if (datos?.success && Array.isArray(datos.data)) {
+                        referenciaField.value = generarReferenciaVenta(datos.data.map((item) => item?.referencia));
+                        return;
+                    }
+                } catch (error) {
+                    console.warn('No se pudo actualizar la secuencia de ventas:', error);
+                }
+            }
+
+            referenciaField.value = generarReferenciaVenta();
         }
 
         function limpiarNombreArchivo(referencia) {
@@ -3779,18 +3825,22 @@ if (is_file($logoPdfPath)) {
             if (Number.isNaN(fecha.getTime())) {
                 return { fecha: 'SIN FECHA', hora: 'SIN HORA' };
             }
-            const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
             return {
-                fecha: `${String(fecha.getDate()).padStart(2, '0')}/${meses[fecha.getMonth()]}/${fecha.getFullYear()}`,
+                fecha: `${String(fecha.getDate()).padStart(2, '0')}/${String(fecha.getMonth() + 1).padStart(2, '0')}/${fecha.getFullYear()}`,
                 hora: fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
             };
         }
 
         function convertirFechaLocalInventario(valor) {
             const texto = String(valor || '').trim();
+            if (!texto) return new Date(NaN);
+            const textoNormalizado = texto.includes('T') ? texto : texto.replace(' ', 'T');
+            const fecha = new Date(textoNormalizado);
+            if (!Number.isNaN(fecha.getTime())) return fecha;
             const partes = texto.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
             if (partes) {
-                return new Date(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3]), Number(partes[4]), Number(partes[5]), Number(partes[6] || 0));
+                const [, anio, mes, dia, hora, minuto, segundo] = partes;
+                return new Date(Number(anio), Number(mes) - 1, Number(dia), Number(hora), Number(minuto), Number(segundo || 0));
             }
             return new Date(valor || 0);
         }
@@ -4742,15 +4792,11 @@ if (is_file($logoPdfPath)) {
         function toggleCamposCreditoSalida() {
             const metodo = document.getElementById('metodoPagoSalida');
             const grupoCliente = document.getElementById('grupoClienteCreditoSalida');
-            const grupoAbono = document.getElementById('grupoAbonoCreditoSalida');
             const selectCliente = document.getElementById('clienteCreditoSalida');
 
             const esCredito = metodo && metodo.value === 'credito';
             if (grupoCliente) {
                 grupoCliente.style.display = esCredito ? '' : 'none';
-            }
-            if (grupoAbono) {
-                grupoAbono.style.display = esCredito ? '' : 'none';
             }
             if (selectCliente) {
                 selectCliente.required = !!esCredito;
@@ -4758,29 +4804,137 @@ if (is_file($logoPdfPath)) {
         }
 
         function cargarClientesCreditoSalida(seleccionado = '') {
-            fetch(base_url + '/Controllers/CreditosController.php?action=obtenerClientes')
+            return fetch(base_url + '/Controllers/CreditosController.php?action=obtenerClientes')
                 .then(r => r.json())
                 .then(data => {
-                    const select = document.getElementById('clienteCreditoSalida');
-                    if (!select) return;
+                    const inputCliente = document.getElementById('clienteCreditoSalida');
+                    if (!inputCliente) return data;
 
                     clientesCreditoSalida = Array.isArray(data?.data) ? data.data : [];
-                    select.innerHTML = '<option value="">SELECCIONE UN CLIENTE</option>';
-
-                    clientesCreditoSalida.forEach(cliente => {
-                        const opt = document.createElement('option');
-                        opt.value = String(cliente.id || '');
-                        opt.textContent = `${cliente.nombre || ''} ${cliente.apellidos || ''}`.trim() || `CLIENTE ${cliente.id || ''}`;
-                        select.appendChild(opt);
-                    });
-
                     if (seleccionado) {
-                        select.value = String(seleccionado);
+                        const cliente = clientesCreditoSalida.find(item => String(item.id) === String(seleccionado));
+                        if (cliente) {
+                            inputCliente.value = String(cliente.id);
+                            const buscar = document.getElementById('buscarClienteCreditoSalida');
+                            if (buscar) buscar.value = formatearClienteCredito(cliente);
+                        }
                     }
+                    filtrarClientesCreditoSalida();
+                    return data;
                 })
                 .catch(() => {
                     // No bloquear modal si falla la carga de clientes.
+                    return null;
                 });
+        }
+
+        function filtrarClientesCreditoSalida() {
+            const filtro = String(document.getElementById('buscarClienteCreditoSalida')?.value || '').trim().toLowerCase();
+            const opciones = document.getElementById('clientesCreditoSalidaOpciones');
+            if (!opciones) return;
+            const resultados = clientesCreditoSalida
+                .filter(cliente => `${cliente.nombre || ''} ${cliente.apellidos || ''} ${cliente.documento || ''} ${cliente.codigo || ''}`.toLowerCase().includes(filtro))
+                .slice(0, 30);
+            opciones.innerHTML = resultados.length
+                ? resultados.map(cliente => `<button type="button" onclick="seleccionarClienteCreditoSalida('${String(cliente.id || '').replace(/'/g, '')}')" style="display:block;width:100%;padding:9px 10px;border:0;border-bottom:1px solid #e2e8f0;background:#fff;text-align:left;cursor:pointer;">${formatearClienteCredito(cliente)}</button>`).join('')
+                : '<div style="padding:10px;color:#64748b;">NO HAY CLIENTES QUE COINCIDAN</div>';
+            opciones.style.display = filtro ? 'block' : 'none';
+        }
+
+        function mostrarClienteSeleccionadoCreditoSalida(cliente) {
+            if (!cliente) return;
+            const chip = document.getElementById('clienteCreditoSalidaSeleccionado');
+            if (chip) {
+                chip.textContent = `${cliente.nombre || ''} ${cliente.apellidos || ''}`.trim().toUpperCase() + ` | DOC: ${cliente.documento || 'N/D'} | CÓD: ${cliente.codigo || 'N/D'}`;
+                chip.style.display = 'block';
+            }
+        }
+
+        function formatearClienteCredito(cliente) {
+            const nombre = `${cliente.nombre || ''} ${cliente.apellidos || ''}`.trim() || `CLIENTE ${cliente.id || ''}`;
+            return `${nombre.toUpperCase()} | DOC: ${cliente.documento || 'N/D'} | CÓD: ${cliente.codigo || 'N/D'}`;
+        }
+
+        function seleccionarClienteCreditoDesdeBusqueda() {
+            const buscar = document.getElementById('buscarClienteCreditoSalida');
+            const idSeleccionado = document.getElementById('clienteCreditoSalida')?.value || '';
+            if (!buscar) return;
+            const filtro = String(buscar.value || '').trim().toLowerCase();
+            let cliente = null;
+            if (idSeleccionado) {
+                cliente = clientesCreditoSalida.find(item => String(item.id) === String(idSeleccionado));
+            }
+            if (!cliente && filtro) {
+                cliente = clientesCreditoSalida.find(item => {
+                    const nombreCompleto = `${item.nombre || ''} ${item.apellidos || ''}`.trim().toLowerCase();
+                    const documento = String(item.documento || '').trim().toLowerCase();
+                    const codigo = String(item.codigo || '').trim().toLowerCase();
+                    return nombreCompleto.includes(filtro) || documento.includes(filtro) || codigo.includes(filtro);
+                });
+            }
+            if (!cliente) {
+                const opciones = document.getElementById('clientesCreditoSalidaOpciones');
+                if (opciones) opciones.style.display = 'block';
+                filtrarClientesCreditoSalida();
+                Swal.fire({ icon: 'info', title: 'CLIENTE NO SELECCIONADO', text: 'Busca y selecciona un cliente antes de continuar.' });
+                return;
+            }
+            seleccionarClienteCreditoSalida(String(cliente.id));
+        }
+
+        function seleccionarClienteCreditoSalida(id) {
+            const cliente = clientesCreditoSalida.find(item => String(item.id) === String(id));
+            if (!cliente) return;
+            document.getElementById('clienteCreditoSalida').value = String(cliente.id);
+            document.getElementById('buscarClienteCreditoSalida').value = formatearClienteCredito(cliente);
+            const opciones = document.getElementById('clientesCreditoSalidaOpciones');
+            if (opciones) opciones.style.display = 'none';
+            mostrarClienteSeleccionadoCreditoSalida(cliente);
+        }
+
+        function abrirModalClienteCredito() {
+            const modal = document.getElementById('modalClienteCredito');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.classList.add('modal-open');
+                modal.querySelector('input[name="nombre"]')?.focus();
+            }
+        }
+
+        function cerrarModalClienteCredito() {
+            const modal = document.getElementById('modalClienteCredito');
+            if (modal) modal.classList.remove('active');
+            if (!document.querySelector('.modal.active')) {
+                document.body.classList.remove('modal-open');
+            }
+        }
+
+        async function guardarClienteCredito(event) {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const datos = new FormData(form);
+            const documento = String(datos.get('documento') || '').trim();
+            try {
+                const response = await fetch(base_url + '/Views/usuarios.php', { method: 'POST', body: datos });
+                const resultado = await response.json();
+                if (!resultado.success) throw new Error(resultado.message || 'No se pudo guardar el cliente');
+                const nombreBuscado = `${datos.get('nombre') || ''} ${datos.get('apellidos') || ''}`.trim().toLowerCase();
+                cerrarModalClienteCredito();
+                form.reset();
+                await cargarClientesCreditoSalida();
+                const clienteEncontrado = clientesCreditoSalida.find(cliente =>
+                    String(cliente.documento || '').trim() === documento ||
+                    `${cliente.nombre || ''} ${cliente.apellidos || ''}`.trim().toLowerCase() === nombreBuscado
+                );
+                if (clienteEncontrado) {
+                    document.getElementById('clienteCreditoSalida').value = String(clienteEncontrado.id);
+                    document.getElementById('buscarClienteCreditoSalida').value = formatearClienteCredito(clienteEncontrado);
+                    mostrarClienteSeleccionadoCreditoSalida(clienteEncontrado);
+                }
+                Swal.fire({ icon: 'success', title: 'CLIENTE AGREGADO', text: 'El cliente quedó disponible para la salida a crédito.', timer: 1800, showConfirmButton: false });
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudo agregar el cliente' });
+            }
         }
 
         function agregarProductoSalida() {
@@ -4942,11 +5096,15 @@ if (is_file($logoPdfPath)) {
             }
         }
 
-        // Cerrar modal al hacer clic fuera
+        // Cerrar modal al hacer clic fuera: bloqueado para entrada/salida para no perder productos cargados
         window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                cerrarModal(event.target.id);
+            const modal = event.target instanceof Element ? event.target.closest('.modal') : null;
+            if (!modal) return;
+            const modalId = modal.id;
+            if (modalId === 'entradaModal' || modalId === 'salidaModal') {
+                return;
             }
+            cerrarModal(modalId);
         }
 
         // Cargar estadísticas al iniciar
@@ -5742,6 +5900,11 @@ if (is_file($logoPdfPath)) {
         function parseFechaInventario(valor) {
             const texto = String(valor || '').trim();
             if (!texto) return 0;
+            const partesIso = texto.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/);
+            if (partesIso) {
+                const [, anio, mes, dia, hora, minuto, segundo] = partesIso;
+                return new Date(Number(anio), Number(mes) - 1, Number(dia), Number(hora), Number(minuto), Number(segundo || 0)).getTime();
+            }
             const fecha = new Date(texto.includes('T') ? texto : texto.replace(' ', 'T'));
             if (!Number.isNaN(fecha.getTime())) return fecha.getTime();
             const partes = texto.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
@@ -5798,15 +5961,20 @@ if (is_file($logoPdfPath)) {
 
                         const grupos = {};
                         salidasOrdenadas.forEach(item => {
-                            const key = (item.referencia && String(item.referencia).trim())
+                            const referenciaDisplay = (item.referencia && String(item.referencia).trim())
                                 ? String(item.referencia).trim()
                                 : `SIN-REF-${item.id}`;
 
+                            // Agrupar siempre por referencia para evitar duplicar facturas/ventas
+                            // cuando varias filas del mismo documento llegan con marcas de fecha ligeramente distintas.
+                            const key = referenciaDisplay;
+
                             if (!grupos[key]) {
-                                const tipo = item.tipo_salida || 'venta';
+                                const tipo = (item.tipo_salida || 'venta');
 
                                 grupos[key] = {
-                                    referencia: key,
+                                    claveAgrupacion: key,
+                                    referencia: referenciaDisplay,
                                     items: [],
                                     fechaRaw: item.fecha_salida || item.fecha_movimiento || item.fecha || item.created_at || null,
                                     tipo: tipo,
@@ -5889,39 +6057,56 @@ if (is_file($logoPdfPath)) {
                                 tbody.appendChild(headerRow);
 
                                 grupoFecha.grupos.forEach(grupo => {
-                                    salidasAgrupadasCache[grupo.referencia] = {
+                                    salidasAgrupadasCache[grupo.claveAgrupacion] = {
                                         ...grupo,
                                         fecha: convertirFechaLocalInventario(grupo.fechaRaw).toLocaleString('es-CO', { hour12: false })
                                     };
 
                                     const row = document.createElement('tr');
                                     const tipo = grupo.tipo || 'venta';
-                                    const origen = grupo.origen || origenSalida({ tipo_salida: tipo });
-                                    let tipoBadge = 'badge-info';
-                                    if (tipo === 'venta') tipoBadge = 'badge-success';
-                                    if (tipo === 'dañado' || tipo === 'perdida') tipoBadge = 'badge-danger';
+                                    const origen = grupo.origen || origenSalida({ tipo_salida: tipo, metodo_pago: grupo.metodoPago });
+                                    const etiquetaTipo = (etiquetaTipoSalida(tipo, 0, grupo.metodoPago) || '').toUpperCase();
+                                    let tipoBadge = 'badge-success';
+                                    if (etiquetaTipo === 'CRÉDITO') tipoBadge = 'badge-credit';
+                                    if (['DAÑADO', 'PÉRDIDA'].includes(etiquetaTipo)) tipoBadge = 'badge-danger';
 
                                     const productosPreview = grupo.items
                                         .slice(0, 2)
                                         .map(p => `${(p.producto_nombre || 'N/A').toUpperCase()} (${(p.codigo || 'N/A').toUpperCase()})` )
                                         .join('· ');
                                     const extra = grupo.items.length > 2 ? ` +${grupo.items.length - 2} más` : '';
+                                    const fechaHoraGrupo = fechaHoraImpresion(grupo.fechaRaw || grupo.fecha);
+                                    const usuarioNombre = String(grupo.usuarioNombre || 'N/A').trim();
+                                    const usuarioApellidos = String(grupo.usuarioApellidos || '').trim();
+                                    const usuarioRol = String(grupo.usuarioRol || '').trim();
+                                    const usuarioHtml = `<div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;">${usuarioNombre ? `<span>${escapeHtml(usuarioNombre)}</span>` : ''}${usuarioApellidos ? `<span>${escapeHtml(usuarioApellidos)}</span>` : ''}${usuarioRol ? `<span>${escapeHtml(usuarioRol)}</span>` : ''}</div>`;
 
                                     row.innerHTML = `
-                                        <td><strong>${grupo.referencia}</strong><br><small>${convertirFechaLocalInventario(grupo.fechaRaw).toLocaleString('es-CO', { hour12: false })}</small></td>
+                                        <td>
+                                            <strong>${grupo.referencia}</strong><br>
+                                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px; margin-top:4px; text-align:center;">
+                                                <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
+                                                <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
+                                            </div>
+                                        </td>
                                         <td>${productosPreview}${extra}</td>
                                         <td>${grupo.totalUnidades.toLocaleString('es-CO')}</td>
                                         <td><strong>${formatoMonedaInventario(grupo.total)}</strong></td>
-                                        <td><span class="badge ${tipoBadge}">${escapeHtml(etiquetaTipoSalida(tipo).toUpperCase())}</span></td>
-                                        <td>${String(grupo.metodoPago || 'efectivo').toUpperCase()}</td>
+                                        <td><span class="badge ${tipoBadge}">${escapeHtml(etiquetaTipo)}</span></td>
+                                        <td style="white-space: normal; word-break: break-word;">${String(grupo.metodoPago || 'efectivo').toUpperCase()}</td>
                                         <td>${(escapeHtml(origen) || 'N/A').toUpperCase()}</td>
-                                        <td>${convertirFechaLocalInventario(grupo.fechaRaw).toLocaleString('es-CO', { hour12: false })}</td>
-                                        <td>${escapeHtml(grupo.usuarioNombre)}${grupo.usuarioApellidos ? `<br>${escapeHtml(grupo.usuarioApellidos)}` : ''}${grupo.usuarioRol ? `<br>${escapeHtml(grupo.usuarioRol)}` : ''}</td>
+                                        <td>
+                                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px; text-align:center;">
+                                                <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
+                                                <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
+                                            </div>
+                                        </td>
+                                        <td>${usuarioHtml}</td>
                                         <td style="white-space: nowrap;">
-                                            <button type="button" class="btn-info btn-action" title="Ver detalle de salida" onclick="mostrarDetallesSalidaVenta('${String(grupo.referencia).replace(/'/g, "\\'")}')">
+                                            <button type="button" class="btn-info btn-action" title="Ver detalle de salida" onclick="mostrarDetallesSalidaVenta('${String(grupo.claveAgrupacion || grupo.referencia).replace(/'/g, "\\'")}')">
                                                 <i class="fas fa-eye"></i>
                                             </button>
-                                            <button type="button" class="btn-info btn-action" title="IMPRIMIR VENTA" onclick="imprimirVentaSalida('${String(grupo.referencia).replace(/'/g, "\\'")}')">
+                                            <button type="button" class="btn-info btn-action" title="IMPRIMIR VENTA" onclick="imprimirVentaSalida('${String(grupo.claveAgrupacion || grupo.referencia).replace(/'/g, "\\'")}')">
                                                 <i class="fas fa-print"></i>
                                             </button>
                                         </td>
@@ -5937,7 +6122,8 @@ if (is_file($logoPdfPath)) {
         }
         
         function mostrarDetallesSalidaVenta(referencia) {
-            const grupo = salidasAgrupadasCache[referencia];
+            const grupo = salidasAgrupadasCache[referencia]
+                || Object.values(salidasAgrupadasCache).find(item => String(item.referencia || '') === String(referencia || ''));
             if (!grupo) {
                 alert('No se encontraron detalles de la venta');
                 return;
@@ -6136,25 +6322,44 @@ if (is_file($logoPdfPath)) {
                                     const row = document.createElement('tr');
                                     const tipo = grupo.tipo || 'movimiento';
                                     const origen = grupo.origen || 'Movimiento';
+                                    const etiquetaMovimiento = tipo === 'salida'
+                                        ? (String(origen).toUpperCase() === 'CRÉDITO' ? 'CRÉDITO' : 'INVENTARIO')
+                                        : (etiquetaTipoMovimiento(tipo) || '').toUpperCase();
                                     let tipoBadge = 'badge-info';
                                     if (tipo === 'entrada') tipoBadge = 'badge-success';
-                                    if (tipo === 'salida') tipoBadge = 'badge-danger';
+                                    if (tipo === 'salida') tipoBadge = etiquetaMovimiento === 'CRÉDITO' ? 'badge-credit' : 'badge-success';
 
                                     const productosPreview = grupo.items
                                         .slice(0, 2)
                                         .map(p => `${p.producto_nombre || 'N/A'} (${p.codigo || 'N/A'})`)
                                         .join('· ');
                                     const extra = grupo.items.length > 2 ? ` +${grupo.items.length - 2} más` : '';
+                                    const fechaHoraGrupo = fechaHoraImpresion(grupo.fechaRaw || grupo.fecha);
+                                    const usuarioNombre = String(grupo.usuarioNombre || 'N/A').trim();
+                                    const usuarioApellidos = String(grupo.usuarioApellidos || '').trim();
+                                    const usuarioRol = String(grupo.usuarioRol || '').trim();
+                                    const usuarioHtml = `<div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;">${usuarioNombre ? `<span>${escapeHtml(usuarioNombre)}</span>` : ''}${usuarioApellidos ? `<span>${escapeHtml(usuarioApellidos)}</span>` : ''}${usuarioRol ? `<span>${escapeHtml(usuarioRol)}</span>` : ''}</div>`;
 
                                     row.innerHTML = `
-                                        <td><strong>${grupo.referencia}</strong><br><small>${new Date(grupo.fechaRaw || 0).toLocaleString('es-CO')}</small></td>
+                                        <td>
+                                            <strong>${grupo.referencia}</strong><br>
+                                            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px; margin-top:4px;">
+                                                <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
+                                                <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
+                                            </div>
+                                        </td>
                                         <td>${productosPreview}${extra}</td>
                                         <td>${grupo.totalUnidades.toLocaleString('es-CO')}</td>
-                                        <td><span class="badge ${tipoBadge}">${escapeHtml(etiquetaTipoMovimiento(tipo).toUpperCase())}</span></td>
+                                        <td><span class="badge ${tipoBadge}">${escapeHtml(etiquetaMovimiento)}</span></td>
                                         <td>${String(grupo.metodoPago || 'efectivo').toUpperCase()}</td>
                                         <td>${escapeHtml(origen)}</td>
-                                        <td>${new Date(grupo.fechaRaw || 0).toLocaleString('es-CO')}</td>
-                                        <td>${escapeHtml(grupo.usuarioNombre)}${grupo.usuarioApellidos ? `<br>${escapeHtml(grupo.usuarioApellidos)}` : ''}${grupo.usuarioRol ? `<br>${escapeHtml(grupo.usuarioRol)}` : ''}</td>
+                                        <td>
+                                            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;">
+                                                <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
+                                                <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
+                                            </div>
+                                        </td>
+                                        <td>${usuarioHtml}</td>
                                         <td style="white-space: nowrap;">
                                             <button type="button" class="btn-info btn-action" title="Ver detalle de movimiento" onclick="mostrarDetallesMovimiento('${String(grupo.referencia).replace(/'/g, "\\'")}')">
                                                 <i class="fas fa-eye"></i>
@@ -8609,8 +8814,6 @@ if (is_file($logoPdfPath)) {
             const notas = document.getElementById('notasSalida').value;
             const metodoPagoSalida = document.getElementById('metodoPagoSalida')?.value || 'contado';
             const clienteCreditoId = parseInt(document.getElementById('clienteCreditoSalida')?.value || '0', 10) || 0;
-            const abonoInicial = parseFloat(document.getElementById('abonoInicialSalida')?.value || '0') || 0;
-            const metodoPagoInicial = document.getElementById('metodoPagoInicialSalida')?.value || 'efectivo';
             const referenciaVenta = (document.getElementById('referenciaSalida')?.value || '').trim() || generarReferenciaVenta();
             const cantidadUnica = normalizarCantidadSalida(document.getElementById('cantidadSalida').value);
             const seleccionActual = productoSalidaSeleccionado();
@@ -8681,8 +8884,6 @@ if (is_file($logoPdfPath)) {
                 formDataCredito.append('referencia', referenciaVenta);
                 formDataCredito.append('tipo_salida', tipoSalida);
                 formDataCredito.append('notas', notas);
-                formDataCredito.append('abono_inicial', String(Math.max(0, abonoInicial)));
-                formDataCredito.append('metodo_pago_inicial', metodoPagoInicial);
                 formDataCredito.append('items', JSON.stringify(items));
 
                 try {
@@ -8699,11 +8900,17 @@ if (is_file($logoPdfPath)) {
                     Swal.fire({
                         icon: 'success',
                         title: '¡CRÉDITO REGISTRADO!',
-                        text: `Referencia ${dataCredito.data?.referencia || referenciaVenta}`,
+                        text: 'Crédito registrado. La referencia se asignará al momento de pagarlo.',
                         showConfirmButton: false,
                         timer: 2200
                     });
 
+                    const clienteCredito = document.getElementById('clienteCreditoSalida');
+                    const buscarCliente = document.getElementById('buscarClienteCreditoSalida');
+                    if (clienteCredito) clienteCredito.value = '';
+                    if (buscarCliente) buscarCliente.value = '';
+                    carritoSalida = [];
+                    renderCarritoSalida();
                     liberarEnvioSalida();
                     cerrarModal('salidaModal', false);
                     dispararRefreshInventarioGlobal();

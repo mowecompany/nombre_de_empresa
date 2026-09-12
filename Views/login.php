@@ -25,7 +25,7 @@ if (empty($_SESSION['login_token'])) {
     $_SESSION['login_token'] = bin2hex(random_bytes(32));
 }
 
-$loginLogoPath = '/logo.ico';
+$loginLogoPath = '/Assets/images/Empresas/empresa_1_20260901_185734_fe042179.png';
 $loginDefaultLogo = rtrim((string)base_url(), '/') . $loginLogoPath;
 $loginLoadingLogo = $loginDefaultLogo;
 if (!is_file(ROOT_PATH . $loginLogoPath)) {
@@ -370,15 +370,34 @@ $correoPrefillLogin = trim((string)($_GET['correo'] ?? $_GET['email'] ?? ''));
         #temporizador {
             letter-spacing: 2px;
         }
+
+        .refresh-page-btn {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 5;
+            border: 1px solid #d8e0e8;
+            border-radius: 9px;
+            background: #fff;
+            color: #2f4a5a;
+            padding: 10px 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(20, 30, 40, 0.08);
+        }
      </style>
 </head>
 <body>
+    <button type="button" class="refresh-page-btn" id="refrescarLoginBtn" title="Actualizar página" aria-label="Actualizar página"><i class="fas fa-sync-alt"></i></button>
     <div id="divLoading">
         <div>
             <img id="loginLoadingLogoImg" src="<?= htmlspecialchars($loginLoadingLogo, ENT_QUOTES, 'UTF-8'); ?>" alt="Loading">
         </div>
     </div>
     <div class="bg-hero" aria-hidden="true"></div>
+
+    <script>
+        document.getElementById('refrescarLoginBtn')?.addEventListener('click', () => window.location.reload());
+    </script>
 
     <div class="login-container" role="main" aria-labelledby="loginTitle">
         <div class="header-row">

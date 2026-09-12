@@ -1,7 +1,7 @@
 {
   "name": "autoservicio-la-estrella-desktop",
   "productName": "AUTOSERVICIO MI ESTRELLA",
-  "version": "1.0.5",
+  "version": "1.0.10",
   "description": "Aplicación de escritorio para la gestión de AUTOSERVICIO MI ESTRELLA.",
   "author": "AUTOSERVICIO MI ESTRELLA",
   "private": true,
@@ -11,17 +11,19 @@
     "start:dev": "cross-env APP_ENV=development APP_BASE_URL=http://127.0.0.1:8000 APP_PORT=8000 electron .",
     "build": "cross-env APP_ENV=production electron-builder --windows nsis",
     "build:installer": "npm run build",
+    "build:portable": "cross-env APP_ENV=production electron-builder --windows portable --config.directories.output=dist/portable --config.artifactName=\"AUTOSERVICIO MI ESTRELLA Portable v1.0.10.exe\"",
     "dist": "npm run build"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
     "electron": "^26.3.0",
-    "electron-builder": "^24.6.0"
+    "electron-builder": "^24.6.0",
+    "png-to-ico": "^3.0.2"
   },
   "build": {
     "appId": "com.autoservicio.miestrella.desktop",
     "productName": "AUTOSERVICIO MI ESTRELLA",
-    "artifactName": "AUTOSERVICIO MI ESTRELLA Setup v1.0.5.exe",
+    "artifactName": "AUTOSERVICIO MI ESTRELLA Setup v1.0.10.exe",
     "icon": "logo.ico",
     "directories": {
       "output": "dist",
@@ -91,7 +93,5 @@
       "shortcutName": "AUTOSERVICIO MI ESTRELLA",
       "include": "electron/installer.nsh"
     }
-  },
-  "dependencies": {
   }
 }

@@ -2394,6 +2394,22 @@ try {
         };
 
         const originalFetch = window.fetch.bind(window);
+        const phpSessionId = (new URLSearchParams(window.location.search)).get('PHPSESSID') || '';
+
+        function preservarSesionEnUrl(resource) {
+            if (!phpSessionId) return resource;
+            try {
+                const url = new URL(resource, window.location.href);
+                if (url.origin === window.location.origin && url.pathname.includes('/Controllers/')) {
+                    url.searchParams.set('PHPSESSID', phpSessionId);
+                    return url.toString();
+                }
+            } catch (error) {
+                console.warn('No se pudo conservar la sesión en la petición:', error);
+            }
+            return resource;
+        }
+
         window.fetch = function(resource, init) {
             if (typeof resource === 'string') {
                 const normalized = resource.trim();
@@ -2401,7 +2417,7 @@ try {
                     resource = resolveAppUrl(normalized);
                 }
             }
-            return originalFetch(resource, init);
+            return originalFetch(preservarSesionEnUrl(resource), init);
         };
 
         function resolverImagenProducto(urlImagen) {

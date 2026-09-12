@@ -2105,8 +2105,29 @@ $categorias = [];
             return resolveAppUrl('/Assets/images/categorias/' + imagenFile);
         }
 
+        const phpSessionId = (new URLSearchParams(window.location.search)).get('PHPSESSID') || '';
+
+        function preservarSesionEnUrl(url) {
+            if (!phpSessionId) return url;
+            try {
+                const destino = new URL(url, window.location.href);
+                if (destino.origin === window.location.origin && destino.pathname.includes('/Controllers/')) {
+                    destino.searchParams.set('PHPSESSID', phpSessionId);
+                    return destino.toString();
+                }
+            } catch (error) {
+                console.warn('No se pudo conservar la sesión en la petición:', error);
+            }
+            return url;
+        }
+
+        const fetchOriginal = window.fetch.bind(window);
+        window.fetch = function(resource, options) {
+            return fetchOriginal(preservarSesionEnUrl(resource), options);
+        };
+
         async function obtenerJson(url, options = {}) {
-            const response = await fetch(url, {
+            const response = await fetch(preservarSesionEnUrl(url), {
                 credentials: 'same-origin',
                 ...options
             });

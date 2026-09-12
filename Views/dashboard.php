@@ -31,6 +31,8 @@ $telefono = '';
 $rolNombre = $_SESSION['rol'] ?? '';
 $rolSesionInicial = normalizarNombreRol($rolNombre);
 $esClienteSesionDashboard = ($rolSesionInicial === 'cliente');
+$appMenuMode = defined('APP_MENU_MODE') ? strtolower((string)APP_MENU_MODE) : 'full';
+$modoMenuPortable = $appMenuMode === 'portable';
 $esSuperAdminRolSesion = in_array($rolSesionInicial, ['superadministrador', 'super administrador'], true);
 $esSuperAdminGlobalSesion = $esSuperAdminRolSesion
     && PermisosHelper::esSuperAdminSesion()
@@ -9099,27 +9101,27 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                         }
 
                         $empresaContextoActivo = (!empty($_SESSION['empresa_id']) || !empty($_SESSION['userData']['empresa_id'])) && empty($_SESSION['superadmin_modo_empresa']);
-                        $mostrarUsuarios = $esSuperAdmin || $empresaContextoActivo || (
+                        $mostrarUsuarios = !$modoMenuPortable && ($esSuperAdmin || $empresaContextoActivo || (
                             TenantHelper::moduloHabilitado('usuarios') &&
                             PermisosHelper::tienePermiso('usuarios', 'ver')
-                        );
-                        $mostrarRoles = $esSuperAdmin || $empresaContextoActivo || (
+                        ));
+                        $mostrarRoles = !$modoMenuPortable && ($esSuperAdmin || $empresaContextoActivo || (
                             TenantHelper::moduloHabilitado('roles') &&
                             PermisosHelper::tienePermiso('roles', 'ver')
-                        );
-                        $mostrarCategorias = $esSuperAdmin || $empresaContextoActivo || (
+                        ));
+                        $mostrarCategorias = $modoMenuPortable || $esSuperAdmin || $empresaContextoActivo || (
                             TenantHelper::moduloHabilitado('categorias') &&
                             PermisosHelper::tienePermiso('categorias', 'ver')
                         );
-                        $mostrarProductos = $esSuperAdmin || $empresaContextoActivo || (
+                        $mostrarProductos = $modoMenuPortable || $esSuperAdmin || $empresaContextoActivo || (
                             TenantHelper::moduloHabilitado('productos') &&
                             PermisosHelper::tienePermiso('productos', 'ver')
                         );
-                        $mostrarInventario = $esSuperAdmin || $empresaContextoActivo || (
+                        $mostrarInventario = $modoMenuPortable || $esSuperAdmin || $empresaContextoActivo || (
                             (TenantHelper::moduloHabilitado('inventario') || TenantHelper::moduloHabilitado('inventarios')) &&
                             (PermisosHelper::tienePermiso('inventario', 'ver') || PermisosHelper::tienePermiso('inventarios', 'ver'))
                         );
-                        $mostrarCreditos = $esSuperAdmin || $empresaContextoActivo || (
+                        $mostrarCreditos = $modoMenuPortable || $esSuperAdmin || $empresaContextoActivo || (
                             (TenantHelper::moduloHabilitado('creditos') || TenantHelper::moduloHabilitado('mis creditos')) &&
                             (PermisosHelper::tienePermiso('creditos', 'ver') || PermisosHelper::tienePermiso('mis creditos', 'ver'))
                         );
@@ -9183,7 +9185,19 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                        
                     <?php endif; ?>
 
-                    <?php if ($esSuperAdminGlobalSesion): ?>
+                    <?php if ($mostrarCreditos): ?>
+                        <a href="creditos.php" class="menu-item">
+                            <i class="fas fa-credit-card"></i>
+                            <span class="menu-item-text">CRÉDITOS</span>
+                        </a>
+                    <?php endif; ?>
+
+                    <a href="conexion.php" class="menu-item">
+                        <i class="fas fa-plug"></i>
+                        <span class="menu-item-text">CONEXIÓN</span>
+                    </a>
+
+                    <?php if ($esSuperAdminGlobalSesion && !$modoMenuPortable): ?>
                         <a href="base_datos.php" class="menu-item">
                             <i class="fas fa-database"></i>
                             <span class="menu-item-text">BASE DE DATOS</span>
@@ -9219,6 +9233,14 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                         <div class="chip"><i class="fas fa-user-tag"></i> <?php echo htmlspecialchars($rolNombre); ?></div>
                         <div class="chip"><i class="fas fa-key"></i> Acceso: <?php echo htmlspecialchars($rolNombre); ?></div>
                     </div>
+                    <?php if ($mostrarCreditos): ?>
+                    <div class="info-card" style="cursor:pointer;" onclick="abrirCreditosDashboard()" title="Ver créditos registrados">
+                        <h3><i class="fas fa-credit-card"></i> CRÉDITOS</h3>
+                        <div class="chip"><i class="fas fa-users"></i> CLIENTES: <strong id="creditosClientesTotal">0</strong></div>
+                        <div class="chip"><i class="fas fa-hand-holding-usd"></i> SALDO: <strong id="creditosSaldoTotal">$0</strong></div>
+                        <div id="creditosDashboardResumen" style="margin-top:10px;font-size:12px;color:#64748b;">Cargando créditos...</div>
+                    </div>
+                    <?php endif; ?>
                     <div class="info-card">
                         <h3><i class="fas fa-chart-bar"></i> VENTAS POR MES</h3>
                         <div class="chart-actions">
@@ -9289,38 +9311,6 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                         </div>
                     </div>
                     <div class="info-card">
-                        <div class="chart-movimientos-header-wrap">
-                            <h3 style="margin:0;font-size:11px;line-height:1.2;"><i class="fas fa-exchange-alt"></i> MOVIMIENTOS</h3>
-                            <div class="chart-movimientos-filter-inline">
-                                <label for="movimientosTipoFiltro" style="font-weight:700;font-size:11px;color:#334155;line-height:1;">Tipo:</label>
-                                <select id="movimientosTipoFiltro" style="padding:4px 8px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:11px;line-height:1;min-height:24px;">
-                                    <option value="entradas" selected>Entradas</option>
-                                    <option value="salidas">Salidas</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="chart-actions">
-                            <div class="chart-toggle-group">
-                                <button type="button" onclick="setChartType('movimientosChart','bar')" class="chart-toggle-btn" title="Ver barras"><i class="fas fa-minus"></i></button>
-                                <button type="button" onclick="setChartType('movimientosChart','pie')" class="chart-toggle-btn" title="Ver circular"><i class="fas fa-circle"></i></button>
-                            </div>
-                            <div class="chart-selection-center">
-                                <div id="selectionBadge-movimientosChart" class="chart-selection-badge" aria-live="polite"></div>
-                            </div>
-                            <div class="chart-list-wrapper">
-                                <button type="button" class="chart-list-btn" data-chart-list-target="movimientosChart" onclick="toggleChartListPanel('movimientosChart')">LISTA</button>
-                            </div>
-                        </div>
-                        <div class="chart-body">
-                            <div class="chart-canvas-wrapper">
-                                <canvas id="movimientosChart" width="300" height="180"></canvas>
-                            </div>
-                            <div class="chart-list-panel-wrapper">
-                                <div id="chartListPanel-movimientosChart" class="chart-inline-list-panel" aria-hidden="true"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="info-card">
                         <h3><i class="fas fa-warehouse"></i> STOCK TOTAL</h3>
                         <div class="chart-actions">
                             <div class="chart-toggle-group">
@@ -9354,6 +9344,56 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 </div>
             </section>
 
+        </div>
+    </div>
+
+    <?php if ($mostrarCreditos): ?>
+    <div id="creditosDashboardModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width:1050px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <h2 style="margin:0;"><i class="fas fa-credit-card"></i> CRÉDITOS POR CLIENTE</h2>
+                <button type="button" class="close-btn" onclick="cerrarCreditosDashboard()" title="Cerrar créditos"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="creditosDashboardLista" style="margin-top:18px;max-height:65vh;overflow:auto;">Cargando créditos...</div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <div id="conexionDashboardModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width:520px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;">
+                <h2 style="margin:0;"><i class="fas fa-plug"></i> CONEXIÓN</h2>
+                <button type="button" class="close-btn" onclick="cerrarConexionDashboard()" title="Cerrar conexión"><i class="fas fa-times"></i></button>
+            </div>
+            <p style="margin:0 0 14px;color:#475569;font-size:14px;">Ingrese la IP y el puerto del equipo principal para conectarse a la misma instalación.</p>
+
+            <div style="display:grid;grid-template-columns:1.4fr 0.8fr;gap:10px;">
+                <div>
+                    <label for="conexionDashboardIpInput" style="display:block;margin-bottom:8px;font-weight:700;color:#0f172a;">IP del equipo principal</label>
+                    <input id="conexionDashboardIpInput" type="text" placeholder="Ejemplo: 192.168.1.239" autocomplete="off" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                </div>
+                <div>
+                    <label for="conexionDashboardPortInput" style="display:block;margin-bottom:8px;font-weight:700;color:#0f172a;">Puerto</label>
+                    <input id="conexionDashboardPortInput" type="number" min="1" max="65535" placeholder="8000" autocomplete="off" style="width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;box-sizing:border-box;">
+                </div>
+            </div>
+
+            <div style="margin-top:18px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
+                    <strong style="font-size:13px;color:#0f172a;">PUERTOS GUARDADOS</strong>
+                </div>
+                <div id="conexionDashboardLista" style="display:flex;flex-direction:column;gap:8px;max-height:190px;overflow:auto;padding-right:4px;"></div>
+            </div>
+
+            <div style="margin-top:18px;">
+                <strong style="font-size:13px;color:#0f172a;">CAJAS ACTIVAS</strong>
+                <div id="cajasActivasLista" style="display:flex;flex-direction:column;gap:8px;max-height:160px;overflow:auto;padding:8px 0;"></div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
+                <button type="button" class="btn btn-secondary" onclick="cerrarConexionDashboard()">CANCELAR</button>
+                <button type="button" class="btn btn-primary" onclick="guardarConexionDashboard()">GUARDAR Y CONECTAR</button>
+            </div>
         </div>
     </div>
 
@@ -13157,7 +13197,6 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 chartProductSummaries.ventasChart = ventas.products;
                 chartProductSummaries.entradasChart = entradas.products;
                 chartProductSummaries.salidasChart = salidas.products;
-                chartProductSummaries.movimientosChart = movimientos.products;
                 chartProductSummaries.stockChart = stock.products;
 
                 // Guardar último resumen para permitir re-render sin re-fetch
@@ -13166,31 +13205,46 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 const ventasCtx = document.getElementById('ventasChart').getContext('2d');
                 const entradasCtx = document.getElementById('entradasChart').getContext('2d');
                 const salidasCtx = document.getElementById('salidasChart').getContext('2d');
-                const movimientosCtx = document.getElementById('movimientosChart').getContext('2d');
                 const stockCtx = document.getElementById('stockChart').getContext('2d');
 
                 buildChartConfig(ventasCtx, 'ventasChart', ventas.labels, ventas.values, ventas.products.map((product) => product.color));
                 buildChartConfig(entradasCtx, 'entradasChart', entradas.labels, entradas.values, entradas.products.map((product) => product.color));
                 buildChartConfig(salidasCtx, 'salidasChart', salidas.labels, salidas.values, salidas.products.map((product) => product.color));
-                buildChartConfig(movimientosCtx, 'movimientosChart', movimientos.labels, movimientos.values, movimientos.products.map((product) => product.color));
                 buildChartConfig(stockCtx, 'stockChart', stock.labels, stock.values, stock.products.map((product) => product.color));
                 reapplyPersistedChartSelection();
             }
 
+            function obtenerFechaBogota() {
+                const formatter = new Intl.DateTimeFormat('en-CA', {
+                    timeZone: 'America/Bogota',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                const parts = formatter.formatToParts(new Date());
+                const map = {};
+                parts.forEach((part) => {
+                    if (part.type !== 'literal') {
+                        map[part.type] = part.value;
+                    }
+                });
+                return new Date(`${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}`);
+            }
+
             const selector = document.getElementById('dashboardMesFiltro');
-            const currentDate = new Date();
+            const currentDate = obtenerFechaBogota();
             const currentMonthValue = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
             let mesSeleccionado = '';
             if (selector && selector.value) {
                 mesSeleccionado = selector.value;
             }
-            // Si no hay selección, sólo usar el mes actual si ese mes existe en el selector
             if (!mesSeleccionado && selector) {
-                const hasCurrent = Array.from(selector.options).some(o => o.value === currentMonthValue);
-                if (hasCurrent) {
-                    mesSeleccionado = currentMonthValue;
-                    selector.value = currentMonthValue;
-                }
+                mesSeleccionado = currentMonthValue;
+                selector.value = currentMonthValue;
             }
             const query = mesSeleccionado ? `&mes=${encodeURIComponent(mesSeleccionado)}` : '';
             console.log('Dashboard: mesSeleccionado=', mesSeleccionado, ' query=', query);
@@ -13290,7 +13344,27 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             if (!selector) return;
 
             const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            const currentDate = new Date();
+            function obtenerFechaBogota() {
+                const formatter = new Intl.DateTimeFormat('en-CA', {
+                    timeZone: 'America/Bogota',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                const parts = formatter.formatToParts(new Date());
+                const map = {};
+                parts.forEach((part) => {
+                    if (part.type !== 'literal') {
+                        map[part.type] = part.value;
+                    }
+                });
+                return new Date(`${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}`);
+            }
+            const currentDate = obtenerFechaBogota();
             const currentMonthValue = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
             const currentMonthLabel = `${meses[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
@@ -13367,7 +13441,15 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             selector.style.background = '#ffffff';
             selector.style.color = '#0f172a';
             const hasCurrent = Array.from(selector.options).some(o => o.value === currentMonthValue);
-            if (hasCurrent) selector.value = currentMonthValue;
+            if (hasCurrent) {
+                selector.value = currentMonthValue;
+            } else {
+                const option = document.createElement('option');
+                option.value = currentMonthValue;
+                option.textContent = currentMonthLabel;
+                selector.appendChild(option);
+                selector.value = currentMonthValue;
+            }
         }
 
         function clearChartSelection(chartId) {
@@ -13442,8 +13524,339 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             }
         }
 
+        const baseCreditosDashboard = '<?= htmlspecialchars(rtrim((string)base_url(), '/'), ENT_QUOTES, 'UTF-8'); ?>';
+        const cajaPresenciaStorageKey = 'autoservicioCajaPresenciaId';
+        const cajaPresenciaId = (() => {
+            let id = localStorage.getItem(cajaPresenciaStorageKey);
+            if (!id) {
+                id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+                localStorage.setItem(cajaPresenciaStorageKey, id);
+            }
+            return id;
+        })();
+
+        async function registrarPresenciaCaja() {
+            try {
+                await fetch(`${baseCreditosDashboard}/api/v1/index.php?action=presence`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        caja_id: cajaPresenciaId,
+                        nombre: window.electronAPI ? 'APP/PORTABLE' : 'NAVEGADOR',
+                        modo: <?= json_encode($modoMenuPortable ? 'portable' : 'principal'); ?>,
+                        puerto: Number(location.port || 80)
+                    })
+                });
+            } catch (error) {
+                console.warn('No se pudo registrar la presencia de la caja:', error);
+            }
+        }
+
+        async function cargarCajasActivas() {
+            const lista = document.getElementById('cajasActivasLista');
+            if (!lista) return;
+            try {
+                const respuesta = await fetch(`${baseCreditosDashboard}/api/v1/index.php?action=presence`, { credentials: 'same-origin', cache: 'no-store' });
+                const resultado = await respuesta.json();
+                const cajas = Array.isArray(resultado.data) ? resultado.data : [];
+                lista.innerHTML = cajas.length
+                    ? cajas.map(caja => `<div style="padding:8px 10px;border:1px solid #dbe4ec;border-radius:8px;background:#f8fafc;font-size:12px;"><strong>${window.escapeHtml ? window.escapeHtml(caja.nombre) : caja.nombre}</strong><br><span style="color:#64748b;">${window.escapeHtml ? window.escapeHtml(caja.ip) : caja.ip} · ${caja.modo === 'portable' ? 'PORTABLE' : 'PRINCIPAL'} · ACTIVA</span></div>`).join('')
+                    : '<div style="padding:8px 10px;color:#64748b;font-size:12px;">No hay cajas activas.</div>';
+            } catch (error) {
+                lista.innerHTML = '<div style="padding:8px 10px;color:#b91c1c;font-size:12px;">No se pudo consultar las cajas activas.</div>';
+            }
+        }
+
+        registrarPresenciaCaja();
+        window.setInterval(registrarPresenciaCaja, 15000);
+        window.setInterval(cargarCajasActivas, 15000);
+        const conexionDashboardStorageKey = 'autoservicioServidorConexiones';
+        const conexionDashboardLegacyStorageKey = 'autoservicioServidorIp';
+
+        function normalizarPuertoConexion(valor) {
+            const rawPuerto = String(valor ?? '').trim();
+            if (rawPuerto === '') return '8000';
+            const numero = Number(rawPuerto);
+            if (!Number.isInteger(numero) || numero < 1 || numero > 65535) {
+                return '8000';
+            }
+            return String(numero);
+        }
+
+        function normalizarEntradaConexion(item) {
+            const ip = String(item?.ip || '').trim().replace(/^https?:\/\//i, '').replace(/\/+$/, '').split('/')[0];
+            const port = normalizarPuertoConexion(item?.port || '8000');
+            if (!ip) return null;
+            return {
+                ip,
+                port,
+                fecha: Number(item?.fecha || Date.now())
+            };
+        }
+
+        function obtenerConexionesGuardadas() {
+            try {
+                const raw = localStorage.getItem(conexionDashboardStorageKey);
+                const conexiones = raw ? JSON.parse(raw) : [];
+                const listaNormalizada = Array.isArray(conexiones)
+                    ? conexiones
+                        .map((item) => normalizarEntradaConexion(item))
+                        .filter(Boolean)
+                    : [];
+
+                if (listaNormalizada.length > 0) {
+                    return listaNormalizada
+                        .sort((a, b) => b.fecha - a.fecha)
+                        .slice(0, 8);
+                }
+
+                const ipLegacy = localStorage.getItem(conexionDashboardLegacyStorageKey);
+                if (!ipLegacy) {
+                    return [];
+                }
+
+                const entradaLegacy = normalizarEntradaConexion({ ip: ipLegacy, port: '8000', fecha: Date.now() });
+                return entradaLegacy ? [entradaLegacy] : [];
+            } catch (error) {
+                console.warn('No se pudieron cargar las conexiones guardadas:', error);
+                return [];
+            }
+        }
+
+        function guardarConexionesGuardadas(conexiones) {
+            try {
+                localStorage.setItem(conexionDashboardStorageKey, JSON.stringify(conexiones.slice(0, 8)));
+            } catch (error) {
+                console.warn('No se pudo guardar la lista de conexiones:', error);
+            }
+        }
+
+        function renderConexionDashboardLista() {
+            const lista = document.getElementById('conexionDashboardLista');
+            if (!lista) return;
+
+            const conexiones = obtenerConexionesGuardadas();
+            if (conexiones.length === 0) {
+                lista.innerHTML = '<div style="padding:10px 12px;border:1px dashed #cbd5e1;border-radius:8px;color:#64748b;font-size:13px;">No hay puertos guardados todavía.</div>';
+                return;
+            }
+
+            lista.innerHTML = conexiones.map((conexion, index) => {
+                const esUltimo = index === 0;
+                return `
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid ${esUltimo ? '#2563eb' : '#dbeafe'};border-radius:8px;background:${esUltimo ? '#eff6ff' : '#f8fafc'};">
+                        <div style="min-width:0;">
+                            <div style="font-size:12px;color:#64748b;">${esUltimo ? 'ÚLTIMO GUARDADO' : 'PUERTO GUARDADO'}</div>
+                            <div style="font-size:14px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${window.escapeHtml ? window.escapeHtml(conexion.ip) : conexion.ip}</div>
+                            <div style="font-size:12px;color:#475569;">Puerto: ${window.escapeHtml ? window.escapeHtml(conexion.port) : conexion.port}</div>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                            <button type="button" class="btn btn-primary" onclick="conectarServidorGuardado('${window.escapeHtml ? window.escapeHtml(conexion.ip) : conexion.ip}', '${window.escapeHtml ? window.escapeHtml(conexion.port) : conexion.port}')" style="padding:8px 12px;font-size:12px;white-space:nowrap;">Conectar</button>
+                            <button type="button" class="btn btn-secondary" onclick="eliminarConexionGuardada('${window.escapeHtml ? window.escapeHtml(conexion.ip) : conexion.ip}', '${window.escapeHtml ? window.escapeHtml(conexion.port) : conexion.port}')" style="padding:8px 12px;font-size:12px;white-space:nowrap;color:#991b1b;">Eliminar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function construirUrlConexion(ip, port) {
+            const currentUrl = new URL(window.location.href);
+            const basePath = Number(port) === 80 || Number(port) === 443
+                ? '/nombre_de_empresa'
+                : currentUrl.pathname.split('/Views/')[0].replace(/\/$/, '');
+            return `${currentUrl.protocol}//${ip}:${port}${basePath}/Views/login.php`;
+        }
+
+        function conectarServidorGuardado(ip, port) {
+            const entrada = normalizarEntradaConexion({ ip, port, fecha: Date.now() });
+            if (!entrada) return;
+
+            const conexiones = obtenerConexionesGuardadas()
+                .filter((item) => !(item.ip === entrada.ip && item.port === entrada.port));
+
+            const actualizadas = [entrada, ...conexiones].slice(0, 8);
+            guardarConexionesGuardadas(actualizadas);
+
+            const ipInput = document.getElementById('conexionDashboardIpInput');
+            const portInput = document.getElementById('conexionDashboardPortInput');
+            if (ipInput) ipInput.value = entrada.ip;
+            if (portInput) portInput.value = entrada.port;
+
+            cerrarConexionDashboard();
+            window.location.href = construirUrlConexion(entrada.ip, entrada.port);
+        }
+
+        function eliminarConexionGuardada(ip, port) {
+            const conexiones = obtenerConexionesGuardadas()
+                .filter((item) => !(item.ip === ip && item.port === port));
+            guardarConexionesGuardadas(conexiones);
+            if (localStorage.getItem(conexionDashboardLegacyStorageKey) === ip) {
+                localStorage.removeItem(conexionDashboardLegacyStorageKey);
+            }
+            renderConexionDashboardLista();
+        }
+
+        function abrirConexionDashboard() {
+            const modal = document.getElementById('conexionDashboardModal');
+            const ipInput = document.getElementById('conexionDashboardIpInput');
+            const portInput = document.getElementById('conexionDashboardPortInput');
+            if (!modal || !ipInput || !portInput) return;
+
+            const conexiones = obtenerConexionesGuardadas();
+            const ultimaConexion = conexiones[0] || null;
+            ipInput.value = ultimaConexion ? ultimaConexion.ip : (localStorage.getItem(conexionDashboardLegacyStorageKey) || '');
+            portInput.value = ultimaConexion ? ultimaConexion.port : '8000';
+            renderConexionDashboardLista();
+            cargarCajasActivas();
+            modal.style.display = 'block';
+        }
+
+        function cerrarConexionDashboard() {
+            const modal = document.getElementById('conexionDashboardModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function guardarConexionDashboard() {
+            const ipInput = document.getElementById('conexionDashboardIpInput');
+            const portInput = document.getElementById('conexionDashboardPortInput');
+            if (!ipInput || !portInput) return;
+
+            const ip = String(ipInput.value || '').trim().replace(/^https?:\/\//i, '').replace(/\/+$/, '').split('/')[0];
+            const port = normalizarPuertoConexion(portInput.value);
+
+            if (!ip) {
+                ipInput.focus();
+                return;
+            }
+
+            const entrada = normalizarEntradaConexion({ ip, port, fecha: Date.now() });
+            if (!entrada) {
+                ipInput.focus();
+                return;
+            }
+
+            const conexiones = obtenerConexionesGuardadas()
+                .filter((item) => !(item.ip === entrada.ip && item.port === entrada.port));
+
+            const actualizadas = [entrada, ...conexiones].slice(0, 8);
+            guardarConexionesGuardadas(actualizadas);
+
+            try {
+                localStorage.setItem(conexionDashboardLegacyStorageKey, entrada.ip);
+            } catch (error) {
+                console.warn('No se pudo guardar la IP principal:', error);
+            }
+
+            cerrarConexionDashboard();
+            window.location.href = construirUrlConexion(entrada.ip, entrada.port);
+        }
+
+        function escaparHtmlCredito(valor) {
+            return String(valor ?? '').replace(/[&<>'"]/g, caracter => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[caracter]));
+        }
+
+        function formatoMonedaCredito(valor) {
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(valor || 0));
+        }
+
+        async function mostrarDetalleCreditoDashboard(id) {
+            const response = await fetch(`${baseCreditosDashboard}/Controllers/CreditosController.php?action=detalle&id=${encodeURIComponent(id)}`);
+            const resultado = await response.json();
+            if (!resultado.success) throw new Error(resultado.message || 'No se pudo cargar el crédito');
+            const credito = resultado.data;
+            const detalles = (credito.detalles || []).map(item => `<tr><td>${escaparHtmlCredito(item.producto_nombre || item.producto_codigo || 'Producto')}</td><td>${item.cantidad}</td><td>${formatoMonedaCredito(item.total)}</td></tr>`).join('');
+            const abonos = (credito.abonos || []).map(item => `<li>${escaparHtmlCredito(item.fecha_abono)}: ${formatoMonedaCredito(item.monto)} (${escaparHtmlCredito(item.metodo_pago)})</li>`).join('') || '<li>Sin abonos registrados</li>';
+            Swal.fire({
+                title: `CRÉDITO ${escaparHtmlCredito(credito.referencia)}`,
+                html: `<div style="text-align:left;font-size:13px;"><p><strong>CLIENTE:</strong> ${escaparHtmlCredito(`${credito.nombre || ''} ${credito.apellidos || ''}`.trim())}</p><p><strong>DOCUMENTO:</strong> ${escaparHtmlCredito(credito.documento || 'N/D')} &nbsp; <strong>CÓDIGO:</strong> ${escaparHtmlCredito(credito.codigo || 'N/D')}</p><p><strong>TOTAL:</strong> ${formatoMonedaCredito(credito.total)} &nbsp; <strong>SALDO:</strong> ${formatoMonedaCredito(credito.saldo)}</p><h4>PRODUCTOS</h4><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="text-align:left;">Producto</th><th>Cant.</th><th>Total</th></tr></thead><tbody>${detalles}</tbody></table><h4>ABONOS</h4><ul>${abonos}</ul></div>`,
+                confirmButtonText: 'CERRAR',
+                width: 680
+            });
+        }
+
+        async function cargarCreditosDashboard() {
+            const resumen = document.getElementById('creditosDashboardResumen');
+            try {
+                const response = await fetch(`${baseCreditosDashboard}/Controllers/CreditosController.php?action=listar`);
+                const resultado = await response.json();
+                if (!resultado.success) throw new Error(resultado.message || 'No se pudieron cargar los créditos');
+                const creditos = resultado.data || [];
+                const saldoTotal = creditos.reduce((total, credito) => total + Number(credito.saldo || 0), 0);
+                const clientes = new Set(creditos.map(credito => String(credito.cliente_id || '')));
+                document.getElementById('creditosClientesTotal').textContent = clientes.size;
+                document.getElementById('creditosSaldoTotal').textContent = formatoMonedaCredito(saldoTotal);
+                resumen.innerHTML = creditos.length
+                    ? creditos.slice(0, 3).map(credito => `<button type="button" onclick="event.stopPropagation();mostrarDetalleCreditoDashboard(${Number(credito.id)})" style="display:block;width:100%;margin:4px 0;padding:5px 0;border:0;background:transparent;text-align:left;color:#334155;cursor:pointer;">${escaparHtmlCredito(`${credito.nombre || ''} ${credito.apellidos || ''}`.trim())} - ${formatoMonedaCredito(credito.saldo)}</button>`).join('')
+                    : 'No hay créditos registrados.';
+            } catch (error) {
+                if (resumen) resumen.textContent = 'No se pudieron cargar los créditos.';
+                console.error(error);
+            }
+        }
+
+        function cerrarCreditosDashboard() {
+            const modal = document.getElementById('creditosDashboardModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        let creditosDashboardDetalles = [];
+        let creditosDashboardPagina = 1;
+        const creditosDashboardPorPagina = 5;
+
+        function renderizarPaginaCreditosDashboard() {
+            const lista = document.getElementById('creditosDashboardLista');
+            if (!lista) return;
+            const totalPaginas = Math.max(1, Math.ceil(creditosDashboardDetalles.length / creditosDashboardPorPagina));
+            creditosDashboardPagina = Math.min(Math.max(1, creditosDashboardPagina), totalPaginas);
+            const inicio = (creditosDashboardPagina - 1) * creditosDashboardPorPagina;
+            const pagina = creditosDashboardDetalles.slice(inicio, inicio + creditosDashboardPorPagina);
+            const fichas = pagina.map(credito => {
+                const nombreCliente = `${credito.nombre || ''} ${credito.apellidos || ''}`.trim() || 'CLIENTE SIN NOMBRE';
+                const productos = (credito.detalles || []).map(item => `<tr><td style="padding:8px;border-bottom:1px solid #e2e8f0;">${escaparHtmlCredito(item.producto_nombre || 'Producto')}<br><small>CÓD: ${escaparHtmlCredito(item.producto_codigo || 'N/D')}</small></td><td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center;">${item.cantidad}</td><td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right;">${formatoMonedaCredito(item.precio_unitario)}</td><td style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:right;">${formatoMonedaCredito(item.total)}</td></tr>`).join('');
+                return `<article style="margin-bottom:16px;padding:16px;border:1px solid #dbe4ec;border-radius:10px;background:#fff;text-align:left;"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;"><div><strong style="font-size:16px;color:#263238;">${escaparHtmlCredito(nombreCliente)}</strong><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;"><span class="chip">DOC: ${escaparHtmlCredito(credito.documento || 'N/D')}</span><span class="chip">CÓD: ${escaparHtmlCredito(credito.codigo || 'N/D')}</span><span class="chip">REF: ${escaparHtmlCredito(credito.referencia || 'N/D')}</span></div></div><div style="text-align:right;"><strong style="display:block;color:#b45309;">SALDO: ${formatoMonedaCredito(credito.saldo)}</strong><small>TOTAL: ${formatoMonedaCredito(credito.total)} | ${escaparHtmlCredito(credito.estado || 'pendiente')}</small></div></div><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="color:#64748b;"><th style="padding:7px;text-align:left;">PRODUCTO</th><th style="padding:7px;">CANT.</th><th style="padding:7px;text-align:right;">PRECIO</th><th style="padding:7px;text-align:right;">TOTAL</th></tr></thead><tbody>${productos || '<tr><td colspan="4" style="padding:12px;text-align:center;">Sin productos</td></tr>'}</tbody></table></article>`;
+            }).join('');
+            lista.innerHTML = fichas || '<p style="padding:20px;text-align:center;color:#64748b;">No hay créditos registrados.</p>';
+            if (creditosDashboardDetalles.length > creditosDashboardPorPagina) {
+                lista.innerHTML += `<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 0;"><button type="button" class="chart-list-btn" onclick="cambiarPaginaCreditosDashboard(-1)" ${creditosDashboardPagina === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><strong>PÁGINA ${creditosDashboardPagina} DE ${totalPaginas}</strong><button type="button" class="chart-list-btn" onclick="cambiarPaginaCreditosDashboard(1)" ${creditosDashboardPagina === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button></div>`;
+            }
+        }
+
+        function cambiarPaginaCreditosDashboard(direccion) {
+            creditosDashboardPagina += direccion;
+            renderizarPaginaCreditosDashboard();
+        }
+
+        async function abrirCreditosDashboard() {
+            const modal = document.getElementById('creditosDashboardModal');
+            const lista = document.getElementById('creditosDashboardLista');
+            if (!modal || !lista) return;
+            modal.style.display = 'block';
+            lista.innerHTML = 'Cargando créditos...';
+
+            try {
+                const response = await fetch(`${baseCreditosDashboard}/Controllers/CreditosController.php?action=listar`);
+                const resultado = await response.json();
+                if (!resultado.success) throw new Error(resultado.message || 'No se pudieron cargar los créditos');
+                const detalles = await Promise.all((resultado.data || []).map(async credito => {
+                    const detalleResponse = await fetch(`${baseCreditosDashboard}/Controllers/CreditosController.php?action=detalle&id=${encodeURIComponent(credito.id)}`);
+                    const detalleResultado = await detalleResponse.json();
+                    return detalleResultado.success ? detalleResultado.data : { ...credito, detalles: [], abonos: [] };
+                }));
+
+                creditosDashboardDetalles = detalles;
+                creditosDashboardPagina = 1;
+                renderizarPaginaCreditosDashboard();
+            } catch (error) {
+                lista.innerHTML = `<p style="padding:20px;text-align:center;color:#b91c1c;">${escaparHtmlCredito(error.message || 'No se pudieron cargar los créditos')}</p>`;
+            }
+        }
+
         setInterval(() => verificarProductosStockCero('horario'), alertCheckInterval);
         verificarProductosStockCero('login');
+        <?php if ($mostrarCreditos): ?>
+        cargarCreditosDashboard();
+        <?php endif; ?>
     </script>
 
 </body>

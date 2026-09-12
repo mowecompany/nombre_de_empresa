@@ -179,10 +179,15 @@ try {
                 if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === 0) {
                     $imagenInfo = guardarImagenSubidaValidada('imagen', [
                         'label' => 'La imagen del producto',
-                        'max_bytes' => 500 * 1024,
-                        'allowed_mimes' => ['image/png' => 'png'],
-                        'exact_width' => 600,
-                        'exact_height' => 1050,
+                        'max_bytes' => 25 * 1024 * 1024,
+                        'allowed_mimes' => [
+                            'image/png' => 'png',
+                            'image/jpeg' => 'jpg',
+                            'image/pjpeg' => 'jpg',
+                            'image/webp' => 'webp',
+                        ],
+                        'normalize_square' => 1000,
+                        'target_max_bytes' => 500 * 1024,
                         'rel_dir' => 'Assets/images/productos',
                         'file_prefix' => 'producto',
                     ]);
@@ -441,10 +446,15 @@ try {
                     if (isset($_FILES[$campoImagen]) && $_FILES[$campoImagen]['error'] === 0) {
                         $imagenInfo = guardarImagenSubidaValidada($campoImagen, [
                             'label' => 'La imagen del producto',
-                            'max_bytes' => 500 * 1024,
-                            'allowed_mimes' => ['image/png' => 'png', 'image/jpeg' => 'jpeg', 'image/jpg' => 'jpg'],
-                            'exact_width' => 600,
-                            'exact_height' => 1050,
+                            'max_bytes' => 25 * 1024 * 1024,
+                            'allowed_mimes' => [
+                                'image/png' => 'png',
+                                'image/jpeg' => 'jpg',
+                                'image/pjpeg' => 'jpg',
+                                'image/webp' => 'webp',
+                            ],
+                            'normalize_square' => 1000,
+                            'target_max_bytes' => 500 * 1024,
                             'rel_dir' => 'Assets/images/productos',
                             'file_prefix' => 'producto',
                         ]);
