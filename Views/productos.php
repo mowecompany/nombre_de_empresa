@@ -2584,7 +2584,7 @@ try {
             // Imagen
             let imagenHTML = '';
             const imgSrc = resolverImagenProducto(prod.imagen);
-            imagenHTML = `<div class="producto-thumb"><img class="producto-thumb-img" src="${imgSrc}" alt="${prod.nombre}" onerror="this.onerror=null;this.src='../favicon.ico';"></div>`;
+            imagenHTML = `<div class="producto-thumb"><img class="producto-thumb-img" src="${imgSrc}" alt="${prod.nombre}" onerror="this.onerror=null;this.src='${base_url}/favicon.ico';"></div>`;
             
             // Estado
             let estadoHTML = '';
@@ -3390,7 +3390,7 @@ try {
                 // Construir HTML del contenido
                 let imagenHtml = '';
                 const detalleImgSrc = resolverImagenProducto(prod.imagen);
-                imagenHtml = `<img src="${detalleImgSrc}" alt="${prod.nombre}" style="max-height: 120px; width: auto; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.onerror=null;this.src='../favicon.ico';">`;
+                imagenHtml = `<img src="${detalleImgSrc}" alt="${prod.nombre}" style="max-height: 120px; width: auto; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.onerror=null;this.src='${base_url}/favicon.ico';">`;
                 
                 const estadoText = prod.estado == 1 ? 
                     '<span class="estado-activo" style="padding: 6px 12px;"><i class="fas fa-check-circle"></i> ACTIVO</span>' : 

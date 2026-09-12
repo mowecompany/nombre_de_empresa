@@ -2269,10 +2269,18 @@ function tailFileLines(string $filePath, int $lineCount = 1200): array {
 // Actualizar ultima actividad del usuario actual (si el campo existe)
 try {
     $db = Database::connect();
-    // Verificar si el campo ultima_actividad existe
-    $checkField = $db->query("SHOW COLUMNS FROM usuarios LIKE 'ultima_actividad'");
-    if ($checkField->rowCount() > 0) {
-        $queryUpdate = "UPDATE usuarios SET ultima_actividad = NOW() WHERE id = :usuario_id";
+    // Verificar si el campo ultima_actividad existe (compatible SQLite)
+    $checkField = $db->query("PRAGMA table_info('usuarios')");
+    $fieldExists = false;
+    while ($row = $checkField->fetch(PDO::FETCH_ASSOC)) {
+        if (($row['name'] ?? '') === 'ultima_actividad') {
+            $fieldExists = true;
+            break;
+        }
+    }
+    $checkField->closeCursor();
+    if ($fieldExists) {
+        $queryUpdate = "UPDATE usuarios SET ultima_actividad = datetime('now') WHERE id = :usuario_id";
         $stmtUpdate = $db->prepare($queryUpdate);
         $stmtUpdate->execute([':usuario_id' => $usuarioId]);
     }
@@ -2358,11 +2366,18 @@ function obtenerTimestampLogDashboard($linea) {
 if ($mostrarUsuariosEnLinea) {
     try {
         $db = Database::connect();
-        
-        // Verificar si el campo ultima_actividad existe
-        $checkField = $db->query("SHOW COLUMNS FROM usuarios LIKE 'ultima_actividad'");
-        $tieneUltimaActividad = ($checkField->rowCount() > 0);
-        
+
+        // Verificar si el campo ultima_actividad existe (compatible SQLite)
+        $checkField = $db->query("PRAGMA table_info('usuarios')");
+        $tieneUltimaActividad = false;
+        while ($row = $checkField->fetch(PDO::FETCH_ASSOC)) {
+            if (($row['name'] ?? '') === 'ultima_actividad') {
+                $tieneUltimaActividad = true;
+                break;
+            }
+        }
+        $checkField->closeCursor();
+
         if ($tieneUltimaActividad) {
             // Obtener SOLO usuarios con actividad en los ultimos 15 minutos (EN LINEA)
             if ($esSuperAdminGlobalSinEmpresa) {
@@ -13568,9 +13583,10 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             }
         }
 
-        registrarPresenciaCaja();
-        window.setInterval(registrarPresenciaCaja, 15000);
-        window.setInterval(cargarCajasActivas, 15000);
+        // Deshabilitado para evitar recargas automáticas
+        // registrarPresenciaCaja();
+        // window.setInterval(registrarPresenciaCaja, 15000);
+        // window.setInterval(cargarCajasActivas, 15000);
         const conexionDashboardStorageKey = 'autoservicioServidorConexiones';
         const conexionDashboardLegacyStorageKey = 'autoservicioServidorIp';
 

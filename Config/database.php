@@ -68,7 +68,10 @@ if (!class_exists('Database', false)) {
                 ];
 
                 $conexion = new PDO($dsn, $user, $pass, $options);
-                $conexion->exec("SET NAMES '{$charset}' COLLATE '{$charset}_unicode_ci'");
+                // SQLite no soporta SET NAMES, se configura en el DSN
+                if ($connectionType !== 'SQLITE') {
+                    $conexion->exec("SET NAMES '{$charset}' COLLATE '{$charset}_unicode_ci'");
+                }
                 self::$connections[$connectionKey] = $conexion;
                 return self::$connections[$connectionKey];
             } catch (PDOException $e) {
