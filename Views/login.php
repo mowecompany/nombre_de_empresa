@@ -385,8 +385,9 @@ $correoPrefillLogin = trim((string)($_GET['correo'] ?? $_GET['email'] ?? ''));
             box-shadow: 0 4px 14px rgba(20, 30, 40, 0.08);
         }
      </style>
+    <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
 </head>
-<body>
+<body class="page-login">
     <button type="button" class="refresh-page-btn" id="refrescarLoginBtn" title="Actualizar página" aria-label="Actualizar página"><i class="fas fa-sync-alt"></i></button>
     <div id="divLoading">
         <div>
@@ -799,7 +800,7 @@ $correoPrefillLogin = trim((string)($_GET['correo'] ?? $_GET['email'] ?? ''));
                             console.log('============================');
                             window.primeraActualizacion = true;
                         }
-                        
+
                         if (diferencia <= 0) {
                             if (correoUsuario) {
                                 // Hacer llamada AJAX para resetear intentos

@@ -214,8 +214,9 @@ $baseUrl = rtrim((string)base_url(), '/');
             th, td { padding: 13px 15px; }
         }
     </style>
+    <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
 </head>
-<body>
+<body class="page-codigos">
     <main class="codes-shell">
         <header class="codes-header">
             <div>

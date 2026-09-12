@@ -37,8 +37,9 @@ $baseUrl = rtrim((string)base_url(), '/');
         #fileName { display: block; margin: 10px 0 14px; color: #60727c; font-size: 12px; overflow-wrap: anywhere; }
         @media (max-width: 650px) { body { padding: 12px; } .database-panel { padding: 20px; } .actions { grid-template-columns: 1fr; } }
     </style>
+    <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
 </head>
-<body>
+<body class="page-basedatos">
     <main class="database-panel">
         <h1><i class="fas fa-database"></i> Base de datos</h1>
         <p class="intro">Exporta o importa una copia completa del sistema, incluyendo datos e imágenes.</p>

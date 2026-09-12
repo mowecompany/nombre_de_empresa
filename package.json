@@ -79,7 +79,8 @@
       ],
       "icon": "logo.ico",
       "legalTrademarks": "AUTOSERVICIO MI ESTRELLA",
-      "signAndEditExecutable": true
+      "signAndEditExecutable": false,
+      "signDlls": false
     },
     "nsis": {
       "installerIcon": "logo.ico",
