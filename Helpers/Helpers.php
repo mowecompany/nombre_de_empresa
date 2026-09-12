@@ -84,6 +84,22 @@
             $appBaseUrl = 'http://localhost' . ($basePath !== '' ? $basePath : '/nombre_de_empresa');
         }
     }
+    // Cuando el servidor Portable se abre desde otra caja, no debemos devolver
+    // 127.0.0.1: esa dirección apunta al cliente y rompe sus peticiones AJAX.
+    $requestHost = strtolower(trim((string)($_SERVER['HTTP_HOST'] ?? '')));
+    $configuredHost = strtolower((string)(parse_url($appBaseUrl, PHP_URL_HOST) ?: ''));
+    $hostsLocales = ['localhost', '127.0.0.1', '::1'];
+    if ($requestHost !== '' && in_array($configuredHost, $hostsLocales, true)) {
+        $requestHostName = preg_replace('/:\d+$/', '', $requestHost);
+        if ($requestHostName !== '' && !in_array($requestHostName, $hostsLocales, true)) {
+            $scheme = 'http';
+            if ((!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') || (string)($_SERVER['SERVER_PORT'] ?? '') === '443') {
+                $scheme = 'https';
+            }
+            $appBaseUrl = $scheme . '://' . $requestHost;
+        }
+    }
+
     define('BASE_URL', rtrim($appBaseUrl, '/'));
 
     //Comentamos temporalmente PHPMailer hasta tenerlo instalado
@@ -691,6 +707,200 @@
         return strpos($contenido, 'tRNS') !== false;
     }
 
+    /**
+     * Crea una version cuadrada (recorte centrado), redimensionada y comprimida en PNG.
+     * Devuelve ['width' => int, 'height' => int, 'size' => int].
+     */
+    function normalizarImagenCuadrada(string $rutaOrigen, string $rutaDestino, array $opciones = []): array
+    {
+        $label = trim((string)($opciones['label'] ?? 'La imagen'));
+        $size = max(100, (int)($opciones['size'] ?? 1000));
+        $maxBytes = max(20 * 1024, (int)($opciones['max_bytes'] ?? (500 * 1024)));
+        $minSize = max(100, (int)($opciones['min_size'] ?? 600));
+
+        if (!is_file($rutaOrigen)) {
+            throw new RuntimeException('No se encontro el archivo temporal de ' . strtolower($label) . '.');
+        }
+
+        $info = @getimagesize($rutaOrigen);
+        if (!is_array($info) || empty($info['mime'])) {
+            throw new RuntimeException($label . ' no es un archivo de imagen valido.');
+        }
+
+        $mime = strtolower((string)$info['mime']);
+
+        if (!function_exists('imagecreatetruecolor')) {
+            // Sin GD: aceptar la imagen cuadrada que ya normalizo el navegador.
+            $ancho = (int)($info[0] ?? 0);
+            $alto = (int)($info[1] ?? 0);
+            $peso = (int)@filesize($rutaOrigen);
+            $tolerancia = max($maxBytes, 1024 * 1024);
+            $formatosDirectos = ['image/png', 'image/jpeg', 'image/pjpeg', 'image/webp'];
+
+            if (in_array($mime, $formatosDirectos, true) && $ancho > 0 && $ancho === $alto && $peso > 0 && $peso <= $tolerancia) {
+                if (!@copy($rutaOrigen, $rutaDestino)) {
+                    throw new RuntimeException('No se pudo guardar ' . strtolower($label) . ' en el servidor.');
+                }
+                return ['width' => $ancho, 'height' => $alto, 'size' => (int)@filesize($rutaDestino)];
+            }
+
+            if ($peso > $tolerancia) {
+                throw new RuntimeException($label . ' pesa demasiado (' . round($peso / 1024) . ' KB). Vuelve a aplicar el recorte para comprimirla.');
+            }
+
+            throw new RuntimeException($label . ' debe quedar cuadrada. Aplica el recorte antes de guardar.');
+        }
+
+
+        switch ($mime) {
+            case 'image/png':
+                $origen = @imagecreatefrompng($rutaOrigen);
+                break;
+            case 'image/jpeg':
+            case 'image/pjpeg':
+                $origen = @imagecreatefromjpeg($rutaOrigen);
+                break;
+            case 'image/webp':
+                $origen = function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($rutaOrigen) : false;
+                break;
+            case 'image/gif':
+                $origen = @imagecreatefromgif($rutaOrigen);
+                break;
+            default:
+                $origen = false;
+        }
+
+        if (!$origen) {
+            throw new RuntimeException('No se pudo leer ' . strtolower($label) . '. Formato no compatible.');
+        }
+
+        // Corregir orientacion EXIF en JPEG.
+        if (($mime === 'image/jpeg' || $mime === 'image/pjpeg') && function_exists('exif_read_data')) {
+            $exif = @exif_read_data($rutaOrigen);
+            $orientacion = is_array($exif) && isset($exif['Orientation']) ? (int)$exif['Orientation'] : 1;
+            $rotacion = 0;
+            if ($orientacion === 3) {
+                $rotacion = 180;
+            } elseif ($orientacion === 6) {
+                $rotacion = -90;
+            } elseif ($orientacion === 8) {
+                $rotacion = 90;
+            }
+            if ($rotacion !== 0) {
+                $rotada = @imagerotate($origen, $rotacion, 0);
+                if ($rotada) {
+                    imagedestroy($origen);
+                    $origen = $rotada;
+                }
+            }
+        }
+
+        $anchoOrigen = imagesx($origen);
+        $altoOrigen = imagesy($origen);
+        if ($anchoOrigen < 1 || $altoOrigen < 1) {
+            imagedestroy($origen);
+            throw new RuntimeException($label . ' no tiene dimensiones validas.');
+        }
+
+        // Recorte cuadrado centrado.
+        $lado = min($anchoOrigen, $altoOrigen);
+        $offsetX = (int)floor(($anchoOrigen - $lado) / 2);
+        $offsetY = (int)floor(($altoOrigen - $lado) / 2);
+
+        $ladosIntento = [];
+        foreach ([$size, 900, 800, 700, $minSize] as $candidato) {
+            $candidato = (int)$candidato;
+            if ($candidato >= $minSize && $candidato <= $size && !in_array($candidato, $ladosIntento, true)) {
+                $ladosIntento[] = $candidato;
+            }
+        }
+        if (empty($ladosIntento)) {
+            $ladosIntento = [$size];
+        }
+
+        $mejorLado = 0;
+        $guardado = false;
+
+        foreach ($ladosIntento as $ladoDestino) {
+            $destino = imagecreatetruecolor($ladoDestino, $ladoDestino);
+            imagealphablending($destino, false);
+            imagesavealpha($destino, true);
+            $transparente = imagecolorallocatealpha($destino, 0, 0, 0, 127);
+            imagefilledrectangle($destino, 0, 0, $ladoDestino, $ladoDestino, $transparente);
+            imagealphablending($destino, true);
+
+            imagecopyresampled(
+                $destino,
+                $origen,
+                0,
+                0,
+                $offsetX,
+                $offsetY,
+                $ladoDestino,
+                $ladoDestino,
+                $lado,
+                $lado
+            );
+
+            imagesavealpha($destino, true);
+
+            foreach ([0, 256, 128, 64] as $colores) {
+                $copia = $destino;
+                if ($colores > 0) {
+                    $copia = imagecreatetruecolor($ladoDestino, $ladoDestino);
+                    imagealphablending($copia, false);
+                    imagesavealpha($copia, true);
+                    imagecopy($copia, $destino, 0, 0, 0, 0, $ladoDestino, $ladoDestino);
+                    @imagetruecolortopalette($copia, true, $colores);
+                    imagesavealpha($copia, true);
+                }
+
+                $ok = @imagepng($copia, $rutaDestino, 9);
+                if ($copia !== $destino) {
+                    imagedestroy($copia);
+                }
+
+                if (!$ok) {
+                    continue;
+                }
+
+                clearstatcache(true, $rutaDestino);
+                $peso = (int)@filesize($rutaDestino);
+                if ($peso > 0 && $peso <= $maxBytes) {
+                    $guardado = true;
+                    $mejorLado = $ladoDestino;
+                    break;
+                }
+            }
+
+            imagedestroy($destino);
+
+            if ($guardado) {
+                break;
+            }
+        }
+
+        imagedestroy($origen);
+
+        if (!$guardado) {
+            if (is_file($rutaDestino)) {
+                @unlink($rutaDestino);
+            }
+            throw new RuntimeException('No se pudo comprimir ' . strtolower($label) . ' por debajo de ' . (int)floor($maxBytes / 1024) . ' KB. Intenta con una imagen menos compleja.');
+        }
+
+        clearstatcache(true, $rutaDestino);
+
+        return [
+            'width' => $mejorLado,
+            'height' => $mejorLado,
+            'size' => (int)@filesize($rutaDestino),
+        ];
+    }
+
+
+
+
     function guardarImagenSubidaValidada(string $campoArchivo, array $config = []): ?array
     {
         if (!isset($_FILES[$campoArchivo]) || !is_array($_FILES[$campoArchivo])) {
@@ -722,7 +932,15 @@
             throw new RuntimeException('Archivo invalido para ' . strtolower($label) . '.');
         }
 
-        $maxBytes = isset($config['max_bytes']) ? (int)$config['max_bytes'] : (500 * 1024);
+        $normalizeSquare = isset($config['normalize_square']) ? (int)$config['normalize_square'] : 0;
+        $targetMaxBytes = isset($config['target_max_bytes']) ? (int)$config['target_max_bytes'] : (500 * 1024);
+
+        if ($normalizeSquare > 0) {
+            $maxBytes = isset($config['max_bytes']) ? (int)$config['max_bytes'] : (25 * 1024 * 1024);
+        } else {
+            $maxBytes = isset($config['max_bytes']) ? (int)$config['max_bytes'] : (500 * 1024);
+        }
+
         $size = (int)($archivo['size'] ?? 0);
         if ($size <= 0 || $size >= $maxBytes) {
             $maxKb = max(1, (int)floor($maxBytes / 1024));
@@ -738,7 +956,17 @@
         $width = (int)($imageInfo[0] ?? 0);
         $height = (int)($imageInfo[1] ?? 0);
 
-        $allowedMimes = $config['allowed_mimes'] ?? ['image/png' => 'png'];
+        if ($normalizeSquare > 0) {
+            $allowedMimes = $config['allowed_mimes'] ?? [
+                'image/png' => 'png',
+                'image/jpeg' => 'jpg',
+                'image/pjpeg' => 'jpg',
+                'image/webp' => 'webp',
+            ];
+        } else {
+            $allowedMimes = $config['allowed_mimes'] ?? ['image/png' => 'png'];
+        }
+
         if (!is_array($allowedMimes) || empty($allowedMimes) || !isset($allowedMimes[$mime])) {
             $permitidos = implode(', ', array_map(static function ($value) {
                 return strtoupper((string)$value);
@@ -747,17 +975,20 @@
             throw new RuntimeException($label . ' debe estar en formato ' . $permitidos . '.');
         }
 
-        $exactWidth = isset($config['exact_width']) ? (int)$config['exact_width'] : 0;
-        $exactHeight = isset($config['exact_height']) ? (int)$config['exact_height'] : 0;
-        if (($exactWidth > 0 && $width !== $exactWidth) || ($exactHeight > 0 && $height !== $exactHeight)) {
-            throw new RuntimeException($label . ' debe medir exactamente ' . $exactWidth . ' x ' . $exactHeight . ' px.');
-        }
+        if ($normalizeSquare <= 0) {
+            $exactWidth = isset($config['exact_width']) ? (int)$config['exact_width'] : 0;
+            $exactHeight = isset($config['exact_height']) ? (int)$config['exact_height'] : 0;
+            if (($exactWidth > 0 && $width !== $exactWidth) || ($exactHeight > 0 && $height !== $exactHeight)) {
+                throw new RuntimeException($label . ' debe medir exactamente ' . $exactWidth . ' x ' . $exactHeight . ' px.');
+            }
 
-        if (!empty($config['require_transparency'])) {
-            if ($mime !== 'image/png' || !imagenPngTieneTransparencia($tmpName)) {
-                throw new RuntimeException($label . ' debe ser un PNG con fondo transparente.');
+            if (!empty($config['require_transparency'])) {
+                if ($mime !== 'image/png' || !imagenPngTieneTransparencia($tmpName)) {
+                    throw new RuntimeException($label . ' debe ser un PNG con fondo transparente.');
+                }
             }
         }
+
 
         $candidateDirs = [];
         if (!empty($config['rel_dirs']) && is_array($config['rel_dirs'])) {
@@ -801,9 +1032,31 @@
             $prefix = 'img';
         }
 
-        $extension = (string)$allowedMimes[$mime];
+        $tieneGd = function_exists('imagecreatetruecolor');
+        $extension = ($normalizeSquare > 0 && $tieneGd) ? 'png' : (string)$allowedMimes[$mime];
+
         $fileName = $prefix . '_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
         $destinoAbs = $dirAbs . '/' . $fileName;
+
+        if ($normalizeSquare > 0) {
+            $resultado = normalizarImagenCuadrada($tmpName, $destinoAbs, [
+                'size' => $normalizeSquare,
+                'max_bytes' => $targetMaxBytes,
+                'min_size' => isset($config['min_square']) ? (int)$config['min_square'] : 600,
+                'label' => $label,
+            ]);
+
+            @unlink($tmpName);
+
+            return [
+                'relative_path' => $dirRel . '/' . $fileName,
+                'file_name' => $fileName,
+                'mime' => $tieneGd ? 'image/png' : $mime,
+                'width' => (int)$resultado['width'],
+                'height' => (int)$resultado['height'],
+                'size' => (int)$resultado['size'],
+            ];
+        }
 
         if (!move_uploaded_file($tmpName, $destinoAbs)) {
             throw new RuntimeException('No se pudo guardar ' . strtolower($label) . ' en el servidor.');
@@ -817,6 +1070,7 @@
             'height' => $height,
             'size' => $size,
         ];
+
     }
 
     function eliminarArchivoProyectoSiExiste(?string $ruta): void

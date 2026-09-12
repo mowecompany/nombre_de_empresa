@@ -1918,8 +1918,8 @@ try {
                     <label for="imagen"><i class="fas fa-image"></i> AGREGAR FOTO</label>
                     <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
                         <div style="flex:1; min-width:240px;">
-                            <input type="file" id="imagen" name="imagen" accept="image/png,image/jpeg,image/jpg">
-                            <small style="display:block; margin-top:6px; color:#667085;">PNG, JPG o JPEG. Exactamente 600 × 1050 px, máximo 500 KB.</small>
+                            <input type="file" id="imagen" name="imagen" accept="image/png,image/jpeg,image/jpg,image/webp">
+                            <small style="display:block; margin-top:6px; color:#667085;">Cualquier imagen PNG, JPG, JPEG o WEBP. El sistema la recorta a un cuadrado de 1000 × 1000 px y la comprime a menos de 500 KB automáticamente.</small>
                             <div id="imagenFeedback" class="image-feedback" style="display:none;"></div>
                         </div>
                         <div style="display:flex; align-items:center; justify-content:center; min-width:180px; min-height:140px; border:1px dashed #d0d7de; border-radius:8px; padding:8px; background:#fafafa;">
@@ -1928,7 +1928,11 @@ try {
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn-save"><i class="fas fa-save"></i> GUARDAR PRODUCTO</button>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> GUARDAR PRODUCTO</button>
+                    <button type="button" id="btnEditarRecorteCrear" onclick="if (window.productoCropperCrear) window.productoCropperCrear.reopen();" style="display:none; padding:12px 16px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-crop-alt"></i> EDITAR RECORTE</button>
+                </div>
+
             </form>
         </div>
     </div>
@@ -1947,7 +1951,11 @@ try {
                     <div id="imagenActualDiv" class="imagen-actual-box">
                         <img id="imagenPreview" class="imagen-actual-preview" src="" alt="Producto" onerror="this.style.display='none'">
                         <p id="sinImagenText" style="margin: 0; color: #999;">SIN IMAGEN</p>
+                        <div style="margin-top:10px;">
+                            <button type="button" id="btnRecortarActual" onclick="recortarImagenActualProducto()" style="display:none; padding:8px 14px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; font-size:12px; cursor:pointer;"><i class="fas fa-crop-alt"></i> RECORTAR IMAGEN ACTUAL</button>
+                        </div>
                     </div>
+
                 </div>
                 
                 <?php if ($mostrarColumnaId): ?>
@@ -1994,9 +2002,9 @@ try {
                     <label for="imagenEdit"><i class="fas fa-image"></i> NUEVA IMAGEN</label>
                     <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
                         <div style="flex:1; min-width:240px;">
-                            <input type="file" id="imagenEdit" name="imagenEdit" accept="image/png,image/jpeg,image/jpg">
+                            <input type="file" id="imagenEdit" name="imagenEdit" accept="image/png,image/jpeg,image/jpg,image/webp">
                             <small style="display: block; margin-top: 6px; color: #999;">La imagen anterior se eliminará automáticamente al subir una nueva</small>
-                            <small style="display:block; margin-top:6px; color:#667085;">PNG, JPG o JPEG. Exactamente 600 × 1050 px, máximo 500 KB.</small>
+                            <small style="display:block; margin-top:6px; color:#667085;">Cualquier imagen PNG, JPG, JPEG o WEBP. El sistema la recorta a un cuadrado de 1000 × 1000 px y la comprime a menos de 500 KB automáticamente.</small>
                             <div id="imagenEditFeedback" class="image-feedback" style="display:none;"></div>
                         </div>
                         <div style="display:flex; align-items:center; justify-content:center; min-width:180px; min-height:140px; border:1px dashed #d0d7de; border-radius:8px; padding:8px; background:#fafafa;">
@@ -2006,7 +2014,11 @@ try {
                     </div>
                 </div>
 
-                <button type="submit" class="btn-save" id="btnSaveEdit"><i class="fas fa-save"></i> ACTUALIZAR PRODUCTO</button>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <button type="submit" class="btn-save" id="btnSaveEdit"><i class="fas fa-save"></i> ACTUALIZAR PRODUCTO</button>
+                    <button type="button" id="btnEditarRecorteEditar" onclick="if (window.productoCropperEditar) window.productoCropperEditar.reopen();" style="display:none; padding:12px 16px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-crop-alt"></i> EDITAR RECORTE</button>
+                </div>
+
             </form>
         </div>
     </div>
@@ -2088,6 +2100,7 @@ try {
         </div>
     </div>
 
+    <script src="<?= base_url() ?>/Assets/js/image-cropper.js"></script>
     <script>
         const mostrarColumnaId = <?= json_encode($mostrarColumnaId); ?>;
         // Funciones para ocultar/mostrar headers sticky cuando hay modales o alertas
@@ -2315,7 +2328,26 @@ try {
 
             renderImageFeedback('imagenFeedback', null);
             renderImageFeedback('imagenEditFeedback', null);
+            if (window.productoCropperCrear) window.productoCropperCrear.reset(true);
+            if (window.productoCropperEditar) window.productoCropperEditar.reset(true);
+            toggleBotonRecorte('btnEditarRecorteCrear', false);
+            toggleBotonRecorte('btnEditarRecorteEditar', false);
+            toggleBotonRecorte('btnRecortarActual', false);
         }
+
+        function toggleBotonRecorte(id, visible) {
+            const btn = document.getElementById(id);
+            if (btn) btn.style.display = visible ? 'inline-flex' : 'none';
+        }
+
+        function recortarImagenActualProducto() {
+            const img = document.getElementById('imagenPreview');
+            if (!img || !img.src || img.style.display === 'none') return;
+            if (window.productoCropperEditar) {
+                window.productoCropperEditar.loadFromUrl(img.src);
+            }
+        }
+
 
         // Función para formatear moneda Colombiana
         function formatMonedaColombia(cantidad) {
@@ -2339,6 +2371,22 @@ try {
         };
 
         const originalFetch = window.fetch.bind(window);
+        const phpSessionId = (new URLSearchParams(window.location.search)).get('PHPSESSID') || '';
+
+        function preservarSesionEnUrl(resource) {
+            if (!phpSessionId) return resource;
+            try {
+                const url = new URL(resource, window.location.href);
+                if (url.origin === window.location.origin && url.pathname.includes('/Controllers/')) {
+                    url.searchParams.set('PHPSESSID', phpSessionId);
+                    return url.toString();
+                }
+            } catch (error) {
+                console.warn('No se pudo conservar la sesión en la petición:', error);
+            }
+            return resource;
+        }
+
         window.fetch = function(resource, init) {
             if (typeof resource === 'string') {
                 const normalized = resource.trim();
@@ -2346,7 +2394,7 @@ try {
                     resource = resolveAppUrl(normalized);
                 }
             }
-            return originalFetch(resource, init);
+            return originalFetch(preservarSesionEnUrl(resource), init);
         };
 
         function resolverImagenProducto(urlImagen) {
@@ -3118,11 +3166,8 @@ try {
         async function enviarFormulario(event) {
             event.preventDefault();
 
-            const imageValid = await validateImageInput('imagen', 'imagenFeedback', PRODUCT_IMAGE_RULES);
-            if (!imageValid) {
-                mostrarAlerta('error', 'La imagen del producto debe ser PNG, medir 600 x 1050 px y pesar menos de 500 KB.');
-                return false;
-            }
+
+
 
             const codigoBarrasInput = document.getElementById('codigo_barras');
             const codigoBarrasValor = codigoBarrasInput ? codigoBarrasInput.value.trim() : '';
@@ -3465,6 +3510,8 @@ try {
                     const urlImagen = resolverImagenProducto(producto.imagen);
                     imagenPreview.src = urlImagen;
                     imagenPreview.style.display = 'block';
+                    toggleBotonRecorte('btnRecortarActual', !!producto.imagen);
+
                     imagenPreview.onerror = function() {
                         this.onerror = null;
                         this.src = '../favicon.ico';
@@ -3638,11 +3685,8 @@ try {
             if (formularioEdicion) {
                 formularioEdicion.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    validateImageInput('imagenEdit', 'imagenEditFeedback', PRODUCT_IMAGE_RULES).then((imageValid) => {
-                        if (!imageValid) {
-                            mostrarAlerta('error', 'La imagen del producto debe ser PNG, medir 600 x 1050 px y pesar menos de 500 KB.');
-                            return;
-                        }
+                    Promise.resolve(true).then(() => {
+
                     
                         const formData = new FormData();
                         formData.append('action', 'editar');
@@ -3686,58 +3730,41 @@ try {
                 });
             }
 
-            bindImageValidator('imagen', 'imagenFeedback', PRODUCT_IMAGE_RULES, function(file) {
-                const imagenPreview = document.getElementById('imagenPreviewCrear');
-                const placeholder = document.getElementById('imagenPreviewCrearPlaceholder');
-                if (!imagenPreview || !file) return;
-                const objectUrl = URL.createObjectURL(file);
-                imagenPreview.src = objectUrl;
-                imagenPreview.style.display = 'block';
-                if (placeholder) {
-                    placeholder.style.display = 'none';
-                }
-                imagenPreview.onload = function() {
-                    URL.revokeObjectURL(objectUrl);
-                };
-            }, function() {
-                const imagenPreview = document.getElementById('imagenPreviewCrear');
-                const placeholder = document.getElementById('imagenPreviewCrearPlaceholder');
-                if (imagenPreview) {
-                    imagenPreview.style.display = 'none';
-                    imagenPreview.src = '';
-                }
-                if (placeholder) {
-                    placeholder.style.display = 'inline';
-                }
-            });
-            bindImageValidator('imagenEdit', 'imagenEditFeedback', PRODUCT_IMAGE_RULES, function(file) {
-                const imagenPreview = document.getElementById('imagenPreviewNueva');
-                const placeholder = document.getElementById('imagenPreviewNuevaPlaceholder');
-                const sinImagenText = document.getElementById('sinImagenText');
-                if (!imagenPreview || !file) return;
-                const objectUrl = URL.createObjectURL(file);
-                imagenPreview.src = objectUrl;
-                imagenPreview.style.display = 'block';
-                if (placeholder) {
-                    placeholder.style.display = 'none';
-                }
-                if (sinImagenText) {
-                    sinImagenText.style.display = 'none';
-                }
-                imagenPreview.onload = function() {
-                    URL.revokeObjectURL(objectUrl);
-                };
-            }, function() {
-                const imagenPreview = document.getElementById('imagenPreviewNueva');
-                const placeholder = document.getElementById('imagenPreviewNuevaPlaceholder');
-                if (imagenPreview) {
-                    imagenPreview.style.display = 'none';
-                    imagenPreview.src = '';
-                }
-                if (placeholder) {
-                    placeholder.style.display = 'inline';
-                }
-            });
+            if (window.SquareCropper) {
+                window.productoCropperCrear = window.SquareCropper.attach({
+                    inputId: 'imagen',
+                    size: 1000,
+                    maxBytes: 500 * 1024,
+                    feedbackId: 'imagenFeedback',
+                    previewIds: ['imagenPreviewCrear'],
+                    placeholderIds: ['imagenPreviewCrearPlaceholder'],
+                    onReady: function () {
+                        toggleBotonRecorte('btnEditarRecorteCrear', true);
+                    },
+                    onClear: function () {
+                        toggleBotonRecorte('btnEditarRecorteCrear', false);
+                    }
+                });
+
+                window.productoCropperEditar = window.SquareCropper.attach({
+                    inputId: 'imagenEdit',
+                    size: 1000,
+                    maxBytes: 500 * 1024,
+                    feedbackId: 'imagenEditFeedback',
+                    previewIds: ['imagenPreviewNueva'],
+                    placeholderIds: ['imagenPreviewNuevaPlaceholder'],
+                    onReady: function () {
+                        const sinImagenText = document.getElementById('sinImagenText');
+                        if (sinImagenText) sinImagenText.style.display = 'none';
+                        toggleBotonRecorte('btnEditarRecorteEditar', true);
+                    },
+                    onClear: function () {
+                        toggleBotonRecorte('btnEditarRecorteEditar', false);
+                    }
+                });
+            }
+
+
 
             document.addEventListener('keydown', function(event) {
                 if (event.key !== 'Escape') return;

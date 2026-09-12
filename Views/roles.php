@@ -32,7 +32,7 @@ if (!isset($_SESSION['rol'])) {
 // Verificación robusta de permisos
 $rolActual = $_SESSION['rol'] ?? '';
 $rolActualNormalizado = normalizarNombreRol($rolActual);
-$esSuperAdminReal = ($rolActualNormalizado === 'superadministrador');
+$esSuperAdminReal = str_starts_with($rolActualNormalizado, 'superadministrador');
 $esSuperAdmin = PermisosHelper::esSuperAdminSesion();
 $empresaContextoActivoRoles = (!empty($_SESSION['empresa_id']) || !empty($_SESSION['userData']['empresa_id'])) && empty($_SESSION['superadmin_modo_empresa']);
 $tienePermiso = $esSuperAdmin || $empresaContextoActivoRoles || PermisosHelper::tienePermiso('roles', 'ver');

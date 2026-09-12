@@ -1,3 +1,104 @@
 # Dependencias
 node_modules/
 npm-cache-temp/
+
+# Electron
+dist/
+build/
+*.log
+out/
+ 
+# PHP embedded
+php/
+php-*/
+ 
+# Base de datos
+*.db
+*.sqlite
+*.sqlite3
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+ 
+# Configuración local
+php.ini
+.env
+.env.local
+.env.*.local
+config.local.php
+ 
+# Archivos temporales
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+ 
+# Logs
+logs/
+*.log
+error.log
+access.log
+ 
+# Caché
+.cache/
+*.cache
+ 
+# Sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+ 
+# IDE y editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+ 
+# Archivos generados
+*.exe
+*.dmg
+*.pkg
+*.deb
+*.rpm
+*.msi
+*.nsi
+*.blockmap
+ 
+# Imágenes optimizadas/caché
+Assets/images/*_optimized.*
+Assets/images/*_resized.*
+ 
+# Archivos de instalador
+installer/
+setup/
+*.iss
+ 
+# Seguridad
+*.key
+*.pem
+*.crt
+*.p12
+secrets/
+credentials/
+ 
+# Documentación generada
+docs/generated/
+*.md.bak
+ 
+# Archivos de backup
+*.bak
+*.backup
+*~
