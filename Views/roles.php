@@ -322,6 +322,38 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
             position: relative;
             scrollbar-color: linear-gradient(135deg, #3591CA 0%, #2575a8 100%) #f4f6f8;
             border-radius: 8px;
+            max-width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .roles-table {
+                min-width: 100%;
+            }
+
+            .roles-table th,
+            .roles-table td {
+                padding: 8px 6px;
+                font-size: 0.8rem;
+            }
+
+            .estadistica-card {
+                padding: 15px;
+            }
+
+            .btn-editar,
+            .btn-eliminar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .roles-table th,
+            .roles-table td {
+                padding: 6px 4px;
+                font-size: 0.7rem;
+            }
         }
 
         .table-wrapper::-webkit-scrollbar {
@@ -350,13 +382,13 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
 
         .roles-table {
             width: 100%;
-            min-width: 1200px;
+            min-width: 100%;
             border-collapse: separate;
             border-spacing: 0;
             margin: 0;
             box-sizing: border-box;
             text-transform: uppercase;
-            table-layout: fixed;
+            table-layout: auto;
             border-radius: 8px;
         }
         
@@ -402,50 +434,66 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
 
         /* Tamaños de columnas */
         .roles-table td:nth-child(2) {
-            width: 25%;
+            width: auto;
+            min-width: 150px;
+            max-width: 250px;
             font-size: 14px;
             padding: 12px 15px;
             color: #333;
         }
-        
+
         .roles-table td:nth-child(3) {
-            width: 40%;
+            width: auto;
+            min-width: 200px;
+            max-width: 400px;
             font-size: 14px;
             padding: 12px 15px;
             color: #333;
         }
-        
+
         .roles-table td:nth-child(4) {
-            width: 10%;
+            width: auto;
+            min-width: 80px;
+            max-width: 120px;
             font-size: 13px;
             padding: 12px 8px;
             color: #333;
         }
-        
+
         .roles-table td:nth-child(5) {
-            width: 15%;
+            width: auto;
+            min-width: 120px;
+            max-width: 180px;
             font-size: 12px;
             padding: 12px 8px;
             color: #333;
         }
-        
+
         .roles-table th:nth-child(2) {
-            width: 25%;
+            width: auto;
+            min-width: 150px;
+            max-width: 250px;
             padding: 15px 15px;
         }
-        
+
         .roles-table th:nth-child(3) {
-            width: 40%;
+            width: auto;
+            min-width: 200px;
+            max-width: 400px;
             padding: 15px 15px;
         }
-        
+
         .roles-table th:nth-child(4) {
-            width: 10%;
+            width: auto;
+            min-width: 80px;
+            max-width: 120px;
             padding: 15px 8px;
         }
-        
+
         .roles-table th:nth-child(5) {
-            width: 15%;
+            width: auto;
+            min-width: 120px;
+            max-width: 180px;
             padding: 15px 8px;
         }
 
@@ -1353,13 +1401,14 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
         .table-wrapper,
         .table-container,
         .permisos-table-container {
-            overflow: visible !important;
-            overflow-x: visible !important;
-            overflow-y: visible !important;
+            overflow-x: auto !important;
+            overflow-y: auto !important;
             max-height: none !important;
             height: auto !important;
-            scrollbar-width: none !important;
+            scrollbar-width: thin !important;
             padding-right: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
         }
 
         .main-scroll-panel .roles-table {
@@ -1685,8 +1734,9 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
             box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
         }
     </style>
+    <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
 </head>
-<body>
+<body class="page-roles">
     <div class="title_equipo">
         <h1><i class="fas fa-user-shield"></i> ROLES</h1>
     </div>

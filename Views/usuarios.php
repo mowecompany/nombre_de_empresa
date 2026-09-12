@@ -451,18 +451,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             min-height: 0;
             height: 100%;
             position: relative;
+            max-width: 100%;
         }
 
         table {
             width: 100%;
-            min-width: 1200px;
+            min-width: 100%;
             border-collapse: separate;
             border-spacing: 0;
             margin: 0;
             box-sizing: border-box;
             text-transform: uppercase;
-            table-layout: fixed;
+            table-layout: auto;
             border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            table {
+                min-width: 100%;
+            }
+
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.8rem;
+            }
+
+            .estadistica-card {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            th, td {
+                padding: 6px 4px;
+                font-size: 0.7rem;
+            }
+
+            .btn-editar,
+            .btn-eliminar {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
         }
         
         thead {
@@ -1562,13 +1592,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .table-wrapper,
         .table-container,
         .permisos-table-container {
-            overflow: visible !important;
-            overflow-x: visible !important;
-            overflow-y: visible !important;
+            overflow-x: auto !important;
+            overflow-y: auto !important;
             max-height: none !important;
             height: auto !important;
-            scrollbar-width: none !important;
+            scrollbar-width: thin !important;
             padding-right: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
         }
 
         .main-scroll-panel .table-wrapper table {
@@ -1936,8 +1967,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
         }
     </style>
+    <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
 </head>
-<body>
+<body class="page-usuarios">
     <div class="title_equipo">
         <h1><i class="fas fa-users"></i> USUARIOS</h1>
     </div>

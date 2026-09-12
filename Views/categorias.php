@@ -513,9 +513,9 @@ $categorias = [];
             border-top: 1px solid #dee2e6;
         }
 
-        /* Mantener ancho fijo de la tabla */
+        /* Mantener ancho de la tabla */
         .table-wrapper table {
-            table-layout: fixed;
+            table-layout: auto;
             width: 100%;
         }
         
@@ -658,13 +658,13 @@ $categorias = [];
 
         table {
             width: 100%;
-            min-width: 1200px;
+            min-width: 100%;
             border-collapse: separate;
             border-spacing: 0;
             margin: 0;
             box-sizing: border-box;
             text-transform: uppercase;
-            table-layout: fixed;
+            table-layout: auto;
             border-radius: 8px;
             font-family: var(--font-saira);
         }
@@ -718,16 +718,16 @@ $categorias = [];
                 padding: 15px;
                 max-height: calc(100vh - 250px);
             }
-            
+
             table {
-                min-width: 900px;
+                min-width: 100%;
             }
 
             th, td {
                 padding: 10px 8px;
                 font-size: 0.85rem;
             }
-            
+
             .title_equipo h1 {
                 font-size: 2.5rem;
             }
@@ -737,22 +737,44 @@ $categorias = [];
             .container {
                 max-width: 1800px;
             }
-            
+
             .modal-content {
                 max-width: 1100px;
             }
-            
+
             th, td {
                 padding: 16px 10px;
                 font-size: 1rem;
             }
-            
+
             .estadistica-card {
                 padding: 30px;
             }
-            
+
             table {
-                min-width: 1300px;
+                min-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.75rem;
+            }
+
+            .btn-action {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .button-edit-delete {
+                width: 32px;
+                height: 32px;
+            }
+
+            .estadistica-card {
+                padding: 10px;
             }
         }
 
@@ -1322,28 +1344,31 @@ $categorias = [];
             box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
         }
 
-        th:nth-child(1), td:nth-child(1) { width: 4%; min-width: 40px; }
-        th:nth-child(2), td:nth-child(2) { width: 10%; min-width: 90px; }
-        th:nth-child(3), td:nth-child(3) { width: 12%; min-width: 100px; }
-        th:nth-child(4), td:nth-child(4) { 
-            width: 15%; 
+        th:nth-child(1), td:nth-child(1) { width: auto; min-width: 40px; max-width: 80px; }
+        th:nth-child(2), td:nth-child(2) { width: auto; min-width: 90px; max-width: 150px; }
+        th:nth-child(3), td:nth-child(3) { width: auto; min-width: 100px; max-width: 150px; }
+        th:nth-child(4), td:nth-child(4) {
+            width: auto;
             min-width: 120px;
+            max-width: 200px;
             word-break: break-word;
             white-space: normal;
         }
-        th:nth-child(5), td:nth-child(5) { 
-            width: 8%; 
+        th:nth-child(5), td:nth-child(5) {
+            width: auto;
             min-width: 80px;
+            max-width: 120px;
             white-space: nowrap;
         }
-        th:nth-child(6), td:nth-child(6) { width: 12%; min-width: 110px; }
-        th:nth-child(7), td:nth-child(7) { width: 12%; min-width: 110px; }
-        th:nth-child(8), td:nth-child(8) { 
-            width: 10%; 
+        th:nth-child(6), td:nth-child(6) { width: auto; min-width: 110px; max-width: 150px; }
+        th:nth-child(7), td:nth-child(7) { width: auto; min-width: 110px; max-width: 150px; }
+        th:nth-child(8), td:nth-child(8) {
+            width: auto;
             min-width: 90px;
+            max-width: 120px;
             padding: 14px 8px;
         }
-        th:nth-child(9), td:nth-child(9) { width: 10%; min-width: 100px; }
+        th:nth-child(9), td:nth-child(9) { width: auto; min-width: 100px; max-width: 150px; }
 
         .roles-table td:hover::after {
             content: attr(title);
@@ -1579,18 +1604,19 @@ $categorias = [];
         .table-wrapper,
         .table-container,
         .permisos-table-container {
-            overflow: visible !important;
-            overflow-x: visible !important;
-            overflow-y: visible !important;
+            overflow-x: auto !important;
+            overflow-y: auto !important;
             max-height: none !important;
             height: auto !important;
             scrollbar-width: thin !important;
             padding-right: 6px !important;
+            width: 100% !important;
+            max-width: 100% !important;
         }
 
         .table-wrapper {
-            overflow-x: auto;
-            overflow-y: visible;
+            overflow-x: auto !important;
+            overflow-y: auto !important;
             max-height: none !important;
             height: auto !important;
         }
@@ -1622,8 +1648,9 @@ $categorias = [];
             padding-bottom: 120px !important;
         }
     </style>
+    <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
 </head>
-<body>
+<body class="page-categorias">
     <!-- Reemplazar la sección hero-section actual por esto -->
     <!-- Reemplazar la sección hero-section actual por esto -->
     <div class="title_equipo">
@@ -1668,8 +1695,8 @@ $categorias = [];
                     <label for="imagen"><i class="fas fa-image"></i> AGREGAR FOTO</label>
                     <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
                         <div style="flex:1; min-width:240px;">
-                            <input type="file" id="imagen" name="imagen" accept="image/png,image/jpeg,image/jpg">
-                            <small style="display:block; margin-top:6px; color:#667085;">PNG, JPG o JPEG, máximo 500 KB y exactamente 2400 × 1400 px.</small>
+                            <input type="file" id="imagen" name="imagen" accept="image/png,image/jpeg,image/jpg,image/webp">
+                            <small style="display:block; margin-top:6px; color:#667085;">Cualquier imagen PNG, JPG, JPEG o WEBP. El sistema la recorta a un cuadrado de 1000 × 1000 px y la comprime a menos de 500 KB automáticamente.</small>
                             <div id="imagenFeedback" class="image-feedback" style="display:none;"></div>
                         </div>
                         <div style="display:flex; align-items:center; justify-content:center; min-width:180px; min-height:140px; border:1px dashed #d0d7de; border-radius:8px; padding:8px; background:#fafafa;">
@@ -1681,7 +1708,11 @@ $categorias = [];
                         <img id="imagenCreatePreviewSecondary" src="" alt="Vista previa de la imagen" style="max-width:100%; max-height:180px; width:auto; height:auto; object-fit:contain; border-radius:6px; display:none;">
                     </div>
                 </div>
-                <button type="submit" class="btn-save"><i class="fas fa-save"></i> GUARDAR CATEGORÍA</button>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> GUARDAR CATEGORÍA</button>
+                    <button type="button" id="btnEditarRecorteCrear" onclick="if (window.categoriaCropperCrear) window.categoriaCropperCrear.reopen();" style="display:none; padding:12px 16px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-crop-alt"></i> EDITAR RECORTE</button>
+                </div>
+
             </form>
         </div>
     </div>
@@ -1700,11 +1731,15 @@ $categorias = [];
                     <div id="imagenActualDiv" style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
                         <img id="imagenPreview" src="" alt="Categoría" style="max-height: 160px; width: auto; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
                         <p id="sinImagenText" style="margin: 0; color: #999;">SIN IMAGEN</p>
+                        <div style="margin-top:10px;">
+                            <button type="button" id="btnRecortarActual" onclick="recortarImagenActualCategoria()" style="display:none; padding:8px 14px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; font-size:12px; cursor:pointer;"><i class="fas fa-crop-alt"></i> RECORTAR IMAGEN ACTUAL</button>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="idDisplay"><i class="fas fa-hashtag"></i> ID CATEGORÍA</label>
+
                     <input id="idDisplay" name="idDisplay" type="text" autocomplete="off" style="width: 100%; padding: 12px; border: 1px solid #e6e9ee; border-radius: 6px; font-size: 14px;">
                 </div>
                 
@@ -1722,9 +1757,9 @@ $categorias = [];
                     <label for="imagenEdit"><i class="fas fa-image"></i> NUEVA IMAGEN</label>
                     <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
                         <div style="flex:1; min-width:240px;">
-                            <input type="file" id="imagenEdit" name="imagenEdit" accept="image/png,image/jpeg,image/jpg" style="width: 100%; padding: 10px; border: 1px solid #e6e9ee; border-radius: 6px; font-size: 14px;">
+                            <input type="file" id="imagenEdit" name="imagenEdit" accept="image/png,image/jpeg,image/jpg,image/webp" style="width: 100%; padding: 10px; border: 1px solid #e6e9ee; border-radius: 6px; font-size: 14px;">
                             <small style="display: block; margin-top: 6px; color: #999;">La imagen anterior se eliminará automáticamente al subir una nueva</small>
-                            <small style="display:block; margin-top:6px; color:#667085;">PNG, JPG o JPEG, máximo 500 KB y exactamente 2400 × 1400 px.</small>
+                            <small style="display:block; margin-top:6px; color:#667085;">Cualquier imagen PNG, JPG, JPEG o WEBP. El sistema la recorta a un cuadrado de 1000 × 1000 px y la comprime a menos de 500 KB automáticamente.</small>
                             <div id="imagenEditFeedback" class="image-feedback" style="display:none;"></div>
                         </div>
                         <div style="display:flex; align-items:center; justify-content:center; min-width:180px; min-height:140px; border:1px dashed #d0d7de; border-radius:8px; padding:8px; background:#fafafa;">
@@ -1737,7 +1772,11 @@ $categorias = [];
                     </div>
                 </div>
                 
-                <button type="submit" class="btn-save"><i class="fas fa-save"></i> ACTUALIZAR CATEGORÍA</button>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> ACTUALIZAR CATEGORÍA</button>
+                    <button type="button" id="btnEditarRecorteEditar" onclick="if (window.categoriaCropperEditar) window.categoriaCropperEditar.reopen();" style="display:none; padding:12px 16px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-crop-alt"></i> EDITAR RECORTE</button>
+                </div>
+
             </form>
         </div>
     </div>
@@ -1777,6 +1816,7 @@ $categorias = [];
         </div>
     </div>
 
+    <script src="<?= base_url() ?>/Assets/js/image-cropper.js"></script>
     <script>
         // Permiso del usuario (variables globales del HTML generado por PHP arriba)
         const tienePermisoEditar = <?= json_encode($tienePermisoEditar) ?>;
@@ -2020,7 +2060,28 @@ $categorias = [];
             if (editWrap) editWrap.style.display = 'none';
             renderImageFeedback('imagenFeedback', null);
             renderImageFeedback('imagenEditFeedback', null);
+            if (window.categoriaCropperCrear) window.categoriaCropperCrear.reset(true);
+            if (window.categoriaCropperEditar) window.categoriaCropperEditar.reset(true);
+            toggleBotonRecorte('btnEditarRecorteCrear', false);
+            toggleBotonRecorte('btnEditarRecorteEditar', false);
+            toggleBotonRecorte('btnRecortarActual', false);
+
         }
+
+        function toggleBotonRecorte(id, visible) {
+            const btn = document.getElementById(id);
+            if (btn) btn.style.display = visible ? 'inline-flex' : 'none';
+        }
+
+        function recortarImagenActualCategoria() {
+            const img = document.getElementById('imagenPreview');
+            if (!img || !img.src || img.style.display === 'none') return;
+            if (window.categoriaCropperEditar) {
+                window.categoriaCropperEditar.loadFromUrl(img.src);
+            }
+        }
+
+
 
         const escapeHtml = (value) => String(value ?? '')
             .replace(/&/g, '&amp;')
@@ -2108,7 +2169,7 @@ $categorias = [];
             
             // Imagen
             const imagenSrc = resolverImagenCategoria(cat.imagen);
-            const imagenHTML = `<img src="${imagenSrc}" alt="${nombreSeguro}" style="display:block; margin:0 auto; max-width: 90px; max-height: 90px; width: auto; height: auto; object-fit: contain; border-radius: 6px;" onerror="this.onerror=null;this.src='${DEFAULT_CATEGORY_ICON}';">`;
+            const imagenHTML = `<img src="${imagenSrc}" alt="${nombreSeguro}" style="display:block; margin:0 auto; width: 90px; height: 90px; object-fit: cover; border-radius: 8px; border: 1px solid #dfe5ec; background: #f7f9fb;" onerror="this.onerror=null;this.src='${DEFAULT_CATEGORY_ICON}';">`;
             
             // Estado
             let estadoHTML = '';
@@ -2222,11 +2283,8 @@ $categorias = [];
         async function enviarFormulario(event) {
             event.preventDefault();
 
-            const imageValid = await validateImageInput('imagen', 'imagenFeedback', CATEGORY_IMAGE_RULES, 'imagenCreatePreview', 'imagenCreatePreviewWrap');
-            if (!imageValid) {
-                mostrarAlerta('error', 'La imagen de la CATEGORÍA debe ser PNG, JPG o JPEG, pesar menos de 500 KB y medir 2400 × 1400 px.');
-                return false;
-            }
+
+
             
             const formData = new FormData(document.getElementById('registroForm'));
             formData.append('action', 'crear');
@@ -2497,6 +2555,8 @@ $categorias = [];
                 document.getElementById('imagenPreview').src = resolverImagenCategoria(categoria.imagen);
                 document.getElementById('imagenPreview').style.display = 'block';
                 document.getElementById('sinImagenText').style.display = 'none';
+                toggleBotonRecorte('btnRecortarActual', !!categoria.imagen);
+
                 
                 // Controlar el campo ID: solo Super Admin puede editar
                 const inputId = document.getElementById('idDisplay');
@@ -2575,11 +2635,8 @@ $categorias = [];
                 formularioEdicion.addEventListener('submit', function(e) {
                     e.preventDefault();
 
-                    validateImageInput('imagenEdit', 'imagenEditFeedback', CATEGORY_IMAGE_RULES, 'imagenEditPreview', 'imagenEditPreviewWrap').then((imageValid) => {
-                        if (!imageValid) {
-                            mostrarAlerta('error', 'La imagen de la CATEGORÍA debe ser PNG, JPG o JPEG, pesar menos de 500 KB y medir 2400 × 1400 px.');
-                            return;
-                        }
+                    Promise.resolve(true).then(() => {
+
 
                         const formData = new FormData();
                         formData.append('action', 'editar');
@@ -2617,21 +2674,43 @@ $categorias = [];
                 });
             }
 
-            bindImageValidator('imagen', 'imagenFeedback', CATEGORY_IMAGE_RULES, null, null, 'imagenCreatePreview', 'imagenCreatePreviewWrap');
-            bindImageValidator('imagenEdit', 'imagenEditFeedback', CATEGORY_IMAGE_RULES, function(file) {
-                const imagenPreview = document.getElementById('imagenEditPreview');
-                const sinImagenText = document.getElementById('sinImagenText');
-                if (!imagenPreview || !file) return;
-                const objectUrl = URL.createObjectURL(file);
-                imagenPreview.src = objectUrl;
-                imagenPreview.style.display = 'block';
-                if (sinImagenText) {
-                    sinImagenText.style.display = 'none';
-                }
-                imagenPreview.onload = function() {
-                    URL.revokeObjectURL(objectUrl);
-                };
-            }, null, 'imagenEditPreview', 'imagenEditPreviewWrap');
+            if (window.SquareCropper) {
+                window.categoriaCropperCrear = window.SquareCropper.attach({
+                    inputId: 'imagen',
+                    size: 1000,
+                    maxBytes: 500 * 1024,
+                    feedbackId: 'imagenFeedback',
+                    previewIds: ['imagenCreatePreview', 'imagenCreatePreviewSecondary'],
+                    placeholderIds: ['imagenCreatePreviewPlaceholder'],
+                    wrapIds: ['imagenCreatePreviewWrap'],
+                    onReady: function () {
+                        toggleBotonRecorte('btnEditarRecorteCrear', true);
+                    },
+                    onClear: function () {
+                        toggleBotonRecorte('btnEditarRecorteCrear', false);
+                    }
+                });
+
+                window.categoriaCropperEditar = window.SquareCropper.attach({
+                    inputId: 'imagenEdit',
+                    size: 1000,
+                    maxBytes: 500 * 1024,
+                    feedbackId: 'imagenEditFeedback',
+                    previewIds: ['imagenEditPreview', 'imagenEditPreviewSecondary'],
+                    placeholderIds: ['imagenEditPreviewPlaceholder'],
+                    wrapIds: ['imagenEditPreviewWrap'],
+                    onReady: function () {
+                        const sinImagenText = document.getElementById('sinImagenText');
+                        if (sinImagenText) sinImagenText.style.display = 'none';
+                        toggleBotonRecorte('btnEditarRecorteEditar', true);
+                    },
+                    onClear: function () {
+                        toggleBotonRecorte('btnEditarRecorteEditar', false);
+                    }
+                });
+            }
+
+
 
             document.addEventListener('keydown', function(event) {
                 if (event.key !== 'Escape') return;

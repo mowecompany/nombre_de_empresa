@@ -16,6 +16,17 @@
     --radius: 18px;
     --navbar-gradient: linear-gradient(90deg, #005DFF, #00A8FF);
     --table-head-gradient: linear-gradient(90deg, #005DFF, #A6FF00);
+    
+    /* Responsive variables */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --font-size-base: 14px;
+    --font-size-sm: 12px;
+    --font-size-md: 16px;
+    --font-size-lg: 18px;
 }
 
 #divLoading {
@@ -317,7 +328,23 @@ button:hover,
     min-width: 260px;
     background: var(--color-card);
     border-right: 1px solid var(--color-border);
-    padding: 16px;
+    padding: var(--spacing-md);
+}
+
+@media (max-width: 1024px) {
+    .menu-column {
+        width: 220px;
+        min-width: 220px;
+        padding: var(--spacing-sm);
+    }
+}
+
+@media (max-width: 768px) {
+    .menu-column {
+        width: 100%;
+        min-width: 100%;
+        padding: var(--spacing-sm);
+    }
 }
 
 .menu-item,
@@ -437,6 +464,111 @@ textarea:focus {
     color: var(--color-text);
 }
 
+/* Fix para tablas con contenido que desborda */
+.table-wrapper table,
+.table-container table,
+.table-responsive-wrapper table,
+.estadistica-card table,
+table {
+    table-layout: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+}
+
+.table td,
+.table th,
+.table-wrapper td,
+.table-wrapper th,
+table td,
+table th {
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+    max-width: none !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+/* Asegurar que el contenedor de la tabla tenga scroll horizontal */
+.table-wrapper,
+.table-container,
+.table-responsive-wrapper,
+.estadistica-card {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* Fix para imágenes en tablas */
+table img,
+.table img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+/* Fix para contenedores principales */
+.container,
+.main-content,
+.estadistica-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 0 15px !important;
+}
+
+/* Fix para viewport */
+html, body {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+}
+
+/* Fix específico para dashboard */
+.dashboard-grid,
+.container,
+.content-area,
+.workspace-home,
+.workspace-module {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+.card-grid {
+    overflow-x: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+.info-card {
+    overflow: hidden !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+/* Fix para iframes en dashboard */
+iframe {
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
+/* Fix para canvas y gráficos */
+canvas {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* Fix para elementos de gráficos */
+.chart-canvas-wrapper,
+.chart-body,
+.chart-actions {
+    max-width: 100% !important;
+    overflow: hidden !important;
+}
+
 .section-title {
     text-align: center;
     margin-bottom: 2rem;
@@ -521,7 +653,7 @@ textarea:focus {
 
 .search-box input {
     width: 300px;
-    padding: 8px 35px 8px 15px;
+    padding: var(--spacing-sm) 35px var(--spacing-sm) var(--spacing-md);
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px;
     outline: none;
@@ -529,6 +661,20 @@ textarea:focus {
     height: 35px;
     background: rgba(255,255,255,0.1);
     color: var(--white);
+}
+
+@media (max-width: 991px) {
+    .search-box input {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-box input {
+        width: 100%;
+        height: 30px;
+        font-size: 13px;
+    }
 }
 
 .search-box input::placeholder {
@@ -646,7 +792,7 @@ textarea:focus {
 }
 
 .navbar-brand {
-    padding: 5px;
+    padding: var(--spacing-sm);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -654,9 +800,23 @@ textarea:focus {
     border-radius: 50%;
     width: 60px;
     height: 60px;
-    margin-right: 20px;
-    margin-left: -150px;
+    margin-right: var(--spacing-md);
+    margin-left: 0;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 991px) {
+    .navbar-brand {
+        margin: 0 auto var(--spacing-md);
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar-brand {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto var(--spacing-sm);
+    }
 }
 
 .navbar-brand img {

@@ -462,7 +462,7 @@ if (is_file($logoPdfPath)) {
 
         .productos-categoria-salida-grid {
             display: grid;
-            grid-template-columns: repeat(8, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             gap: 14px;
             padding: 18px;
             max-height: 65vh;
@@ -479,13 +479,23 @@ if (is_file($logoPdfPath)) {
 
         @media (max-width: 1100px) {
             .productos-categoria-salida-grid {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .productos-categoria-salida-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 10px;
+                padding: 12px;
             }
         }
 
         @media (max-width: 560px) {
             .productos-categoria-salida-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                padding: 10px;
             }
         }
 
@@ -1006,6 +1016,35 @@ if (is_file($logoPdfPath)) {
             position: relative;
             max-height: none;
             border-radius: 8px;
+            max-width: 100%;
+        }
+
+        table {
+            width: 100%;
+            min-width: 100%;
+            table-layout: auto;
+        }
+
+        @media (max-width: 768px) {
+            table {
+                min-width: 100%;
+            }
+
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.8rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            th, td {
+                padding: 6px 4px;
+                font-size: 0.7rem;
+            }
         }
         /* sales modal tables should look like usuario tables */
         #ventasDiaModal table, #ventasDiaModal th, #ventasDiaModal td {
@@ -1262,8 +1301,10 @@ if (is_file($logoPdfPath)) {
         #reordenModal .table-wrapper {
             height: auto !important;
             max-height: none !important;
-            overflow-y: visible !important;
-            overflow-x: auto;
+            overflow-y: auto !important;
+            overflow-x: auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
         }
 
         @keyframes slideIn {
@@ -1427,7 +1468,7 @@ if (is_file($logoPdfPath)) {
         }
 
         #salidasTable.resumen-inventario-table {
-            table-layout: fixed;
+            table-layout: auto;
         }
 
         #resumen #salidasTable.resumen-inventario-table th,
@@ -1462,7 +1503,7 @@ if (is_file($logoPdfPath)) {
         }
 
         .inventario-detalle-table {
-            table-layout: fixed;
+            table-layout: auto;
         }
 
         .inventario-detalle-table th,
@@ -1560,7 +1601,7 @@ if (is_file($logoPdfPath)) {
         }
 
         .ventas-detalle-table {
-            table-layout: fixed;
+            table-layout: auto;
         }
 
         .ventas-detalle-table th,
@@ -1972,7 +2013,7 @@ if (is_file($logoPdfPath)) {
 
         #salidasTable,
         #movimientosTable {
-            table-layout: fixed;
+            table-layout: auto;
         }
 
         #salidasTableBody td:nth-child(2),
@@ -2075,8 +2116,9 @@ if (is_file($logoPdfPath)) {
             text-transform: uppercase !important;
         }
     </style>
+    <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
 </head>
-<body class="inventario">
+<body class="page-inventarios inventario">
     <!-- Header -->
     <div class="title_equipo">
         <h1><i class="fas fa-boxes"></i> INVENTARIO</h1>

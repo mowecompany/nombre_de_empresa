@@ -5865,6 +5865,12 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             padding: 2px 16px 8px 16px;
             min-height: calc(100vh - var(--topbar-height) - var(--topbar-gap) - var(--footer-height) + 20px);
             box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        .container > * {
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
         .dashboard-grid {
@@ -5873,6 +5879,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             gap: 12px;
             align-items: stretch;
             min-height: 0;
+            overflow-x: hidden;
+            max-width: 100%;
         }
 
         .menu-column {
@@ -5886,6 +5894,14 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             background: #ffffff;
             box-shadow: 0 10px 24px color-mix(in srgb, var(--company-primary) 10%, transparent);
             overflow-y: auto;
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+
+        .menu-column > * {
+            max-width: 100%;
+            overflow: hidden;
+        }
             overflow-x: hidden;
         }
 
@@ -5960,12 +5976,18 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             overflow-y: auto;
             overflow-x: hidden;
             width: 100%;
+            max-width: 100%;
             margin: 0;
             box-sizing: border-box;
             border: 1px solid var(--company-border);
             border-radius: 14px;
             transition: padding 0.25s ease;
             overscroll-behavior: contain;
+        }
+
+        .content-area > * {
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
         body.cliente-dashboard .container {
@@ -6330,11 +6352,13 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 12px;
             margin-bottom: 0;
             align-items: stretch;
             grid-auto-rows: 1fr;
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .info-card {
@@ -6344,6 +6368,15 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             background: #ffffff;
             box-shadow: 0 8px 20px color-mix(in srgb, var(--company-primary) 8%, transparent);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 100%;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .info-card > * {
+            max-width: 100%;
+            overflow: hidden;
+        }
             position: relative;
             overflow: hidden;
             min-height: 320px;
@@ -6691,9 +6724,10 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
         }
 
         .chart-canvas-wrapper.chart-circle-mode canvas {
-            width: 200px !important;
-            height: 200px !important;
+            width: 100% !important;
+            height: auto !important;
             max-height: 200px;
+            max-width: 200px;
         }
 
         .chart-canvas-wrapper.chart-bar-mode {
@@ -8934,9 +8968,10 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8'); ?>/Assets/css/responsive.css">
 </head>
 
-<body class="<?= $esClienteSesionDashboard ? 'cliente-dashboard' : ''; ?>">
+<body class="page-dashboard <?= $esClienteSesionDashboard ? 'cliente-dashboard' : ''; ?>">
     <div id="divLoading">
         <div>
             <img src="<?= htmlspecialchars($empresaImagenUrl !== '' ? $empresaImagenUrl : $dashboardLoadingLogo, ENT_QUOTES, 'UTF-8'); ?>" alt="Loading">

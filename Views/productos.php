@@ -604,13 +604,13 @@ try {
             border-top: 1px solid #dee2e6;
         }
 
-        /* Mantener ancho fijo de la tabla */
+        /* Mantener ancho de la tabla */
         .table-wrapper table {
-            table-layout: fixed;
+            table-layout: auto;
             width: 100%;
         }
         .table-wrapper table {
-            table-layout: fixed;
+            table-layout: auto;
             width: 100%;
         }
         
@@ -745,13 +745,13 @@ try {
 
         table {
             width: 100%;
-            min-width: 1200px;
+            min-width: 100%;
             border-collapse: separate;
             border-spacing: 0;
             margin: 0;
             box-sizing: border-box;
             text-transform: uppercase;
-            table-layout: fixed;
+            table-layout: auto;
             border-radius: 8px;
             font-family: var(--font-saira);
         }
@@ -778,32 +778,32 @@ try {
 
         /* Anchos de columnas específicas para productos */
         <?php if ($mostrarColumnaId): ?>
-        th:nth-child(1), td:nth-child(1) { width: 5%; }      /* ID */
-        th:nth-child(2), td:nth-child(2) { width: 7%; }      /* CÓDIGO */
-        th:nth-child(3), td:nth-child(3) { width: 9%; }      /* CÓDIGO DE BARRAS */
-        th:nth-child(4), td:nth-child(4) { width: 8%; }      /* NOMBRE */
-        th:nth-child(5), td:nth-child(5) { width: 9%; min-width: 100px; } /* DESCRIPCIÓN */
-        th:nth-child(6), td:nth-child(6) { width: 7%; }      /* PRECIO */
-        th:nth-child(7), td:nth-child(7) { width: 6%; }      /* STOCK */
-        th:nth-child(8), td:nth-child(8) { width: 6%; }      /* VENTA */
-        th:nth-child(9), td:nth-child(9) { width: 9%; }      /* CATEGORÍA */
-        th:nth-child(10), td:nth-child(10) { width: 6%; }    /* COLOR */
-        th:nth-child(11), td:nth-child(11) { width: 8%; }    /* IMAGEN */
-        th:nth-child(12), td:nth-child(12) { width: 8%; }    /* ESTADO */
-        th:nth-child(13), td:nth-child(13) { width: 10%; }   /* ACCIONES */
+        th:nth-child(1), td:nth-child(1) { width: auto; min-width: 50px; max-width: 80px; }      /* ID */
+        th:nth-child(2), td:nth-child(2) { width: auto; min-width: 80px; max-width: 120px; }      /* CÓDIGO */
+        th:nth-child(3), td:nth-child(3) { width: auto; min-width: 100px; max-width: 150px; }      /* CÓDIGO DE BARRAS */
+        th:nth-child(4), td:nth-child(4) { width: auto; min-width: 100px; max-width: 200px; }      /* NOMBRE */
+        th:nth-child(5), td:nth-child(5) { width: auto; min-width: 100px; max-width: 180px; } /* DESCRIPCIÓN */
+        th:nth-child(6), td:nth-child(6) { width: auto; min-width: 70px; max-width: 100px; }      /* PRECIO */
+        th:nth-child(7), td:nth-child(7) { width: auto; min-width: 60px; max-width: 90px; }      /* STOCK */
+        th:nth-child(8), td:nth-child(8) { width: auto; min-width: 60px; max-width: 90px; }      /* VENTA */
+        th:nth-child(9), td:nth-child(9) { width: auto; min-width: 100px; max-width: 150px; }      /* CATEGORÍA */
+        th:nth-child(10), td:nth-child(10) { width: auto; min-width: 60px; max-width: 90px; }    /* COLOR */
+        th:nth-child(11), td:nth-child(11) { width: auto; min-width: 80px; max-width: 100px; }    /* IMAGEN */
+        th:nth-child(12), td:nth-child(12) { width: auto; min-width: 80px; max-width: 100px; }    /* ESTADO */
+        th:nth-child(13), td:nth-child(13) { width: auto; min-width: 120px; max-width: 180px; }   /* ACCIONES */
         <?php else: ?>
-        th:nth-child(1), td:nth-child(1) { width: 8%; }      /* CÓDIGO */
-        th:nth-child(2), td:nth-child(2) { width: 9%; }      /* CÓDIGO DE BARRAS */
-        th:nth-child(3), td:nth-child(3) { width: 10%; }     /* NOMBRE */
-        th:nth-child(4), td:nth-child(4) { width: 11%; min-width: 100px; } /* DESCRIPCIÓN */
-        th:nth-child(5), td:nth-child(5) { width: 8%; }      /* PRECIO */
-        th:nth-child(6), td:nth-child(6) { width: 6%; }      /* STOCK */
-        th:nth-child(7), td:nth-child(7) { width: 7%; }      /* VENTA */
-        th:nth-child(8), td:nth-child(8) { width: 6%; }      /* CATEGORÍA */
-        th:nth-child(9), td:nth-child(9) { width: 9%; }      /* COLOR */
-        th:nth-child(10), td:nth-child(10) { width: 8%; }    /* IMAGEN */
-        th:nth-child(11), td:nth-child(11) { width: 8%; }    /* ESTADO */
-        th:nth-child(12), td:nth-child(12) { width: 10%; }   /* ACCIONES */
+        th:nth-child(1), td:nth-child(1) { width: auto; min-width: 80px; max-width: 120px; }      /* CÓDIGO */
+        th:nth-child(2), td:nth-child(2) { width: auto; min-width: 100px; max-width: 150px; }      /* CÓDIGO DE BARRAS */
+        th:nth-child(3), td:nth-child(3) { width: auto; min-width: 100px; max-width: 200px; }     /* NOMBRE */
+        th:nth-child(4), td:nth-child(4) { width: auto; min-width: 100px; max-width: 180px; } /* DESCRIPCIÓN */
+        th:nth-child(5), td:nth-child(5) { width: auto; min-width: 70px; max-width: 100px; }      /* PRECIO */
+        th:nth-child(6), td:nth-child(6) { width: auto; min-width: 60px; max-width: 90px; }      /* STOCK */
+        th:nth-child(7), td:nth-child(7) { width: auto; min-width: 70px; max-width: 100px; }      /* VENTA */
+        th:nth-child(8), td:nth-child(8) { width: auto; min-width: 100px; max-width: 150px; }      /* CATEGORÍA */
+        th:nth-child(9), td:nth-child(9) { width: auto; min-width: 60px; max-width: 90px; }      /* COLOR */
+        th:nth-child(10), td:nth-child(10) { width: auto; min-width: 80px; max-width: 100px; }    /* IMAGEN */
+        th:nth-child(11), td:nth-child(11) { width: auto; min-width: 80px; max-width: 100px; }    /* ESTADO */
+        th:nth-child(12), td:nth-child(12) { width: auto; min-width: 120px; max-width: 180px; }   /* ACCIONES */
         <?php endif; ?>
 
         th {
@@ -853,16 +853,16 @@ try {
                 padding: 15px;
                 max-height: calc(100vh - 250px);
             }
-            
+
             table {
-                min-width: 900px;
+                min-width: 100%;
             }
 
             th, td {
                 padding: 10px 8px;
                 font-size: 0.85rem;
             }
-            
+
             .title_equipo h1 {
                 font-size: 2.5rem;
             }
@@ -872,22 +872,44 @@ try {
             .container {
                 max-width: 1800px;
             }
-            
+
             .modal-content {
                 max-width: 1100px;
             }
-            
+
             th, td {
                 padding: 16px 10px;
                 font-size: 1rem;
             }
-            
+
             .estadistica-card {
                 padding: 30px;
             }
-            
+
             table {
-                min-width: 1300px;
+                min-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.75rem;
+            }
+
+            .btn-action {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .button-edit-delete {
+                width: 32px;
+                height: 32px;
+            }
+
+            .estadistica-card {
+                padding: 10px;
             }
         }
 
@@ -1836,8 +1858,9 @@ try {
         }
 
     </style>
+    <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
 </head>
-<body>
+<body class="page-productos">
     <!-- Reemplazar la sección hero-section actual por esto -->
     <!-- Reemplazar la sección hero-section actual por esto -->
     <div class="title_equipo">
@@ -1918,8 +1941,8 @@ try {
                     <label for="imagen"><i class="fas fa-image"></i> AGREGAR FOTO</label>
                     <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
                         <div style="flex:1; min-width:240px;">
-                            <input type="file" id="imagen" name="imagen" accept="image/png,image/jpeg,image/jpg">
-                            <small style="display:block; margin-top:6px; color:#667085;">PNG, JPG o JPEG. Exactamente 600 × 1050 px, máximo 500 KB.</small>
+                            <input type="file" id="imagen" name="imagen" accept="image/png,image/jpeg,image/jpg,image/webp">
+                            <small style="display:block; margin-top:6px; color:#667085;">Cualquier imagen PNG, JPG, JPEG o WEBP. El sistema la recorta a un cuadrado de 1000 × 1000 px y la comprime a menos de 500 KB automáticamente.</small>
                             <div id="imagenFeedback" class="image-feedback" style="display:none;"></div>
                         </div>
                         <div style="display:flex; align-items:center; justify-content:center; min-width:180px; min-height:140px; border:1px dashed #d0d7de; border-radius:8px; padding:8px; background:#fafafa;">
@@ -1928,7 +1951,11 @@ try {
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn-save"><i class="fas fa-save"></i> GUARDAR PRODUCTO</button>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <button type="submit" class="btn-save"><i class="fas fa-save"></i> GUARDAR PRODUCTO</button>
+                    <button type="button" id="btnEditarRecorteCrear" onclick="if (window.productoCropperCrear) window.productoCropperCrear.reopen();" style="display:none; padding:12px 16px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-crop-alt"></i> EDITAR RECORTE</button>
+                </div>
+
             </form>
         </div>
     </div>
@@ -1947,7 +1974,11 @@ try {
                     <div id="imagenActualDiv" class="imagen-actual-box">
                         <img id="imagenPreview" class="imagen-actual-preview" src="" alt="Producto" onerror="this.style.display='none'">
                         <p id="sinImagenText" style="margin: 0; color: #999;">SIN IMAGEN</p>
+                        <div style="margin-top:10px;">
+                            <button type="button" id="btnRecortarActual" onclick="recortarImagenActualProducto()" style="display:none; padding:8px 14px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; font-size:12px; cursor:pointer;"><i class="fas fa-crop-alt"></i> RECORTAR IMAGEN ACTUAL</button>
+                        </div>
                     </div>
+
                 </div>
                 
                 <?php if ($mostrarColumnaId): ?>
@@ -1994,9 +2025,9 @@ try {
                     <label for="imagenEdit"><i class="fas fa-image"></i> NUEVA IMAGEN</label>
                     <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
                         <div style="flex:1; min-width:240px;">
-                            <input type="file" id="imagenEdit" name="imagenEdit" accept="image/png,image/jpeg,image/jpg">
+                            <input type="file" id="imagenEdit" name="imagenEdit" accept="image/png,image/jpeg,image/jpg,image/webp">
                             <small style="display: block; margin-top: 6px; color: #999;">La imagen anterior se eliminará automáticamente al subir una nueva</small>
-                            <small style="display:block; margin-top:6px; color:#667085;">PNG, JPG o JPEG. Exactamente 600 × 1050 px, máximo 500 KB.</small>
+                            <small style="display:block; margin-top:6px; color:#667085;">Cualquier imagen PNG, JPG, JPEG o WEBP. El sistema la recorta a un cuadrado de 1000 × 1000 px y la comprime a menos de 500 KB automáticamente.</small>
                             <div id="imagenEditFeedback" class="image-feedback" style="display:none;"></div>
                         </div>
                         <div style="display:flex; align-items:center; justify-content:center; min-width:180px; min-height:140px; border:1px dashed #d0d7de; border-radius:8px; padding:8px; background:#fafafa;">
@@ -2006,7 +2037,11 @@ try {
                     </div>
                 </div>
 
-                <button type="submit" class="btn-save" id="btnSaveEdit"><i class="fas fa-save"></i> ACTUALIZAR PRODUCTO</button>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                    <button type="submit" class="btn-save" id="btnSaveEdit"><i class="fas fa-save"></i> ACTUALIZAR PRODUCTO</button>
+                    <button type="button" id="btnEditarRecorteEditar" onclick="if (window.productoCropperEditar) window.productoCropperEditar.reopen();" style="display:none; padding:12px 16px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-crop-alt"></i> EDITAR RECORTE</button>
+                </div>
+
             </form>
         </div>
     </div>
@@ -2088,6 +2123,7 @@ try {
         </div>
     </div>
 
+    <script src="<?= base_url() ?>/Assets/js/image-cropper.js"></script>
     <script>
         const mostrarColumnaId = <?= json_encode($mostrarColumnaId); ?>;
         // Funciones para ocultar/mostrar headers sticky cuando hay modales o alertas
@@ -2315,7 +2351,26 @@ try {
 
             renderImageFeedback('imagenFeedback', null);
             renderImageFeedback('imagenEditFeedback', null);
+            if (window.productoCropperCrear) window.productoCropperCrear.reset(true);
+            if (window.productoCropperEditar) window.productoCropperEditar.reset(true);
+            toggleBotonRecorte('btnEditarRecorteCrear', false);
+            toggleBotonRecorte('btnEditarRecorteEditar', false);
+            toggleBotonRecorte('btnRecortarActual', false);
         }
+
+        function toggleBotonRecorte(id, visible) {
+            const btn = document.getElementById(id);
+            if (btn) btn.style.display = visible ? 'inline-flex' : 'none';
+        }
+
+        function recortarImagenActualProducto() {
+            const img = document.getElementById('imagenPreview');
+            if (!img || !img.src || img.style.display === 'none') return;
+            if (window.productoCropperEditar) {
+                window.productoCropperEditar.loadFromUrl(img.src);
+            }
+        }
+
 
         // Función para formatear moneda Colombiana
         function formatMonedaColombia(cantidad) {
@@ -3118,11 +3173,8 @@ try {
         async function enviarFormulario(event) {
             event.preventDefault();
 
-            const imageValid = await validateImageInput('imagen', 'imagenFeedback', PRODUCT_IMAGE_RULES);
-            if (!imageValid) {
-                mostrarAlerta('error', 'La imagen del producto debe ser PNG, medir 600 x 1050 px y pesar menos de 500 KB.');
-                return false;
-            }
+
+
 
             const codigoBarrasInput = document.getElementById('codigo_barras');
             const codigoBarrasValor = codigoBarrasInput ? codigoBarrasInput.value.trim() : '';
@@ -3465,6 +3517,8 @@ try {
                     const urlImagen = resolverImagenProducto(producto.imagen);
                     imagenPreview.src = urlImagen;
                     imagenPreview.style.display = 'block';
+                    toggleBotonRecorte('btnRecortarActual', !!producto.imagen);
+
                     imagenPreview.onerror = function() {
                         this.onerror = null;
                         this.src = '../favicon.ico';
@@ -3638,11 +3692,8 @@ try {
             if (formularioEdicion) {
                 formularioEdicion.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    validateImageInput('imagenEdit', 'imagenEditFeedback', PRODUCT_IMAGE_RULES).then((imageValid) => {
-                        if (!imageValid) {
-                            mostrarAlerta('error', 'La imagen del producto debe ser PNG, medir 600 x 1050 px y pesar menos de 500 KB.');
-                            return;
-                        }
+                    Promise.resolve(true).then(() => {
+
                     
                         const formData = new FormData();
                         formData.append('action', 'editar');
@@ -3686,58 +3737,41 @@ try {
                 });
             }
 
-            bindImageValidator('imagen', 'imagenFeedback', PRODUCT_IMAGE_RULES, function(file) {
-                const imagenPreview = document.getElementById('imagenPreviewCrear');
-                const placeholder = document.getElementById('imagenPreviewCrearPlaceholder');
-                if (!imagenPreview || !file) return;
-                const objectUrl = URL.createObjectURL(file);
-                imagenPreview.src = objectUrl;
-                imagenPreview.style.display = 'block';
-                if (placeholder) {
-                    placeholder.style.display = 'none';
-                }
-                imagenPreview.onload = function() {
-                    URL.revokeObjectURL(objectUrl);
-                };
-            }, function() {
-                const imagenPreview = document.getElementById('imagenPreviewCrear');
-                const placeholder = document.getElementById('imagenPreviewCrearPlaceholder');
-                if (imagenPreview) {
-                    imagenPreview.style.display = 'none';
-                    imagenPreview.src = '';
-                }
-                if (placeholder) {
-                    placeholder.style.display = 'inline';
-                }
-            });
-            bindImageValidator('imagenEdit', 'imagenEditFeedback', PRODUCT_IMAGE_RULES, function(file) {
-                const imagenPreview = document.getElementById('imagenPreviewNueva');
-                const placeholder = document.getElementById('imagenPreviewNuevaPlaceholder');
-                const sinImagenText = document.getElementById('sinImagenText');
-                if (!imagenPreview || !file) return;
-                const objectUrl = URL.createObjectURL(file);
-                imagenPreview.src = objectUrl;
-                imagenPreview.style.display = 'block';
-                if (placeholder) {
-                    placeholder.style.display = 'none';
-                }
-                if (sinImagenText) {
-                    sinImagenText.style.display = 'none';
-                }
-                imagenPreview.onload = function() {
-                    URL.revokeObjectURL(objectUrl);
-                };
-            }, function() {
-                const imagenPreview = document.getElementById('imagenPreviewNueva');
-                const placeholder = document.getElementById('imagenPreviewNuevaPlaceholder');
-                if (imagenPreview) {
-                    imagenPreview.style.display = 'none';
-                    imagenPreview.src = '';
-                }
-                if (placeholder) {
-                    placeholder.style.display = 'inline';
-                }
-            });
+            if (window.SquareCropper) {
+                window.productoCropperCrear = window.SquareCropper.attach({
+                    inputId: 'imagen',
+                    size: 1000,
+                    maxBytes: 500 * 1024,
+                    feedbackId: 'imagenFeedback',
+                    previewIds: ['imagenPreviewCrear'],
+                    placeholderIds: ['imagenPreviewCrearPlaceholder'],
+                    onReady: function () {
+                        toggleBotonRecorte('btnEditarRecorteCrear', true);
+                    },
+                    onClear: function () {
+                        toggleBotonRecorte('btnEditarRecorteCrear', false);
+                    }
+                });
+
+                window.productoCropperEditar = window.SquareCropper.attach({
+                    inputId: 'imagenEdit',
+                    size: 1000,
+                    maxBytes: 500 * 1024,
+                    feedbackId: 'imagenEditFeedback',
+                    previewIds: ['imagenPreviewNueva'],
+                    placeholderIds: ['imagenPreviewNuevaPlaceholder'],
+                    onReady: function () {
+                        const sinImagenText = document.getElementById('sinImagenText');
+                        if (sinImagenText) sinImagenText.style.display = 'none';
+                        toggleBotonRecorte('btnEditarRecorteEditar', true);
+                    },
+                    onClear: function () {
+                        toggleBotonRecorte('btnEditarRecorteEditar', false);
+                    }
+                });
+            }
+
+
 
             document.addEventListener('keydown', function(event) {
                 if (event.key !== 'Escape') return;
