@@ -7,11 +7,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkRemoteServer: async (url) => {
     return ipcRenderer.invoke('check-remote-server', url);
   },
-  discoverRemoteServer: async (options) => {
-    return ipcRenderer.invoke('discover-remote-server', options);
-  },
   getConnectionDiagnostics: async () => {
     return ipcRenderer.invoke('get-connection-diagnostics');
+  },
+  getConnectionConfig: async () => {
+    return ipcRenderer.invoke('get-connection-config');
+  },
+  saveConnectionConfig: async (config) => {
+    return ipcRenderer.invoke('save-connection-config', config);
+  },
+  getLocalNetworkAddresses: async () => {
+    return ipcRenderer.invoke('get-local-network-addresses');
   },
   saveExportedDatabase: async (filename, data) => {
     return ipcRenderer.invoke('save-exported-database', filename, data);
