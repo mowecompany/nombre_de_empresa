@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 05-09-2026 a las 06:51:43
+-- Tiempo de generación: 13-09-2026 a las 06:30:13
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -312,28 +312,31 @@ CREATE TABLE `productos` (
   `descripcion` text DEFAULT NULL,
   `precio` decimal(10,2) NOT NULL,
   `descuento_ganacia` decimal(5,2) NOT NULL DEFAULT 0.00,
+  `porcentaje_ganancia` decimal(10,2) NOT NULL DEFAULT 0.00,
   `precio_original` decimal(10,2) DEFAULT NULL,
   `stock` int(11) DEFAULT 0,
   `imagen` varchar(255) DEFAULT NULL,
+  `color` varchar(20) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT 1,
   `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
   `empresa_id` int(11) NOT NULL,
-  `usuario_id` int(11) DEFAULT NULL
+  `usuario_id` int(11) DEFAULT NULL,
+  `venta_por_kilo` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `productos`
 --
 
-INSERT INTO `productos` (`id`, `codigo`, `codigo_barras`, `categoria_id`, `nombre`, `descripcion`, `precio`, `descuento_ganacia`, `precio_original`, `stock`, `imagen`, `estado`, `fecha_creacion`, `empresa_id`, `usuario_id`) VALUES
-(1, 'AC01', '', 1, 'Aceite Repsol', 'Lubricante de alta calidad de Repsol', 26000.00, 0.00, 26000.00, 10, '1771774870_REPSOL.png', 1, '2026-03-07 20:32:19', 2, 2),
-(2, 'AC02', '', 1, 'Aceite Yamalube', 'Lubricante original de Yamaha', 26000.00, 0.00, 26000.00, 12, '1771774942_YAMALUBE.png', 1, '2026-03-07 20:32:19', 2, 2),
-(3, 'FI01', '', 2, 'Filtros FZ16', 'Filtros diseñados para la Yamaha FZ16', 0.00, 0.00, NULL, 0, '1771775054_FILTRO DE ACEITE FZ16.png', 1, '2026-03-07 20:32:19', 2, 2),
-(4, 'FI02', '', 2, 'Filtro de aceite GN125', 'Filtro de aceite diseñado para la Suzuki', 0.00, 0.00, NULL, 0, '1771775588_FILTRO ACEITE GN 125.png', 1, '2026-03-07 20:32:19', 2, 2),
-(5, 'BA01', '', 3, 'Bandas Kross', 'Bandas de transmisión originales de la marca Kross.', 0.00, 0.00, NULL, 0, '1771776128_Bandas Kross.png', 1, '2026-03-07 20:32:19', 2, 2),
-(6, 'BA02', '', 3, 'Bandas Yamaha', 'Bandas de transmisión originales de Yamaha.', 0.00, 0.00, NULL, 0, '1771776187_Bandas Yamaha.png', 1, '2026-03-07 20:32:19', 2, 2),
-(7, 'GU01', '', 4, 'Guayas FZ16', 'Guayas diseñadas para la Yamaha FZ16.', 0.00, 0.00, NULL, 0, '1771776633_guallas fz16.png', 1, '2026-03-07 20:32:19', 2, 2),
-(8, 'GU02', '', 4, 'Guaya GN', 'Guayas diseñadas para la Suzuki GN125.', 0.00, 0.00, NULL, 0, 'producto_20260514_022732_536e328e.png', 1, '2026-03-07 20:32:19', 2, 2);
+INSERT INTO `productos` (`id`, `codigo`, `codigo_barras`, `categoria_id`, `nombre`, `descripcion`, `precio`, `descuento_ganacia`, `porcentaje_ganancia`, `precio_original`, `stock`, `imagen`, `color`, `estado`, `fecha_creacion`, `empresa_id`, `usuario_id`, `venta_por_kilo`) VALUES
+(1, 'AC01', '', 1, 'Aceite Repsol', 'Lubricante de alta calidad de Repsol', 26000.00, 0.00, 0.00, 26000.00, 10, '1771774870_REPSOL.png', '#301422', 1, '2026-03-07 20:32:19', 2, 2, 0),
+(2, 'AC02', '', 1, 'Aceite Yamalube', 'Lubricante original de Yamaha', 26000.00, 0.00, 0.00, 26000.00, 12, '1771774942_YAMALUBE.png', '#96749B', 1, '2026-03-07 20:32:19', 2, 2, 0),
+(3, 'FI01', '', 2, 'Filtros FZ16', 'Filtros diseñados para la Yamaha FZ16', 0.00, 0.00, 0.00, NULL, 0, '1771775054_FILTRO DE ACEITE FZ16.png', '#A9C733', 1, '2026-03-07 20:32:19', 2, 2, 0),
+(4, 'FI02', '', 2, 'Filtro de aceite GN125', 'Filtro de aceite diseñado para la Suzuki', 0.00, 0.00, 0.00, NULL, 0, '1771775588_FILTRO ACEITE GN 125.png', '#0C96AE', 1, '2026-03-07 20:32:19', 2, 2, 0),
+(5, 'BA01', '', 3, 'Bandas Kross', 'Bandas de transmisión originales de la marca Kross.', 0.00, 0.00, 0.00, NULL, 0, '1771776128_Bandas Kross.png', '#06CCC6', 1, '2026-03-07 20:32:19', 2, 2, 0),
+(6, 'BA02', '', 3, 'Bandas Yamaha', 'Bandas de transmisión originales de Yamaha.', 0.00, 0.00, 0.00, NULL, 0, '1771776187_Bandas Yamaha.png', '#898D6F', 1, '2026-03-07 20:32:19', 2, 2, 0),
+(7, 'GU01', '', 4, 'Guayas FZ16', 'Guayas diseñadas para la Yamaha FZ16.', 0.00, 0.00, 0.00, NULL, 0, '1771776633_guallas fz16.png', '#7B6355', 1, '2026-03-07 20:32:19', 2, 2, 0),
+(8, 'GU02', '', 4, 'Guaya GN', 'Guayas diseñadas para la Suzuki GN125.', 0.00, 0.00, 0.00, NULL, 0, 'producto_20260514_022732_536e328e.png', '#B5E34D', 1, '2026-03-07 20:32:19', 2, 2, 0);
 
 -- --------------------------------------------------------
 
@@ -398,7 +401,22 @@ CREATE TABLE `salidas_inventario` (
   `porcentaje_ganancia` decimal(10,2) DEFAULT NULL,
   `total_venta` decimal(12,2) DEFAULT NULL,
   `total_ganancia` decimal(12,2) DEFAULT NULL,
-  `empresa_id` int(11) NOT NULL
+  `empresa_id` int(11) NOT NULL,
+  `metodo_pago` varchar(30) NOT NULL DEFAULT 'efectivo'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `superadmin_colores_globales`
+--
+
+CREATE TABLE `superadmin_colores_globales` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  `colores_json` longtext NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -452,8 +470,8 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombre`, `apellidos`, `correo`, `telefono`, `documento`, `tipo_documento`, `contrasena`, `rol`, `estado`, `intentos_fallidos`, `bloqueado_hasta`, `token_recuperacion_contrasena`, `fecha_expiracion_token_contrasena`, `token_recuperacion_correo`, `fecha_expiracion_token_correo`, `ultima_actividad`, `requiere_cambio_contrasena`, `empresa_id`, `admin_id`, `id_tipos_empresa`, `requiere_configuracion_empresa`) VALUES
-(1, 'juan josé', 'pacheco prado', 'l2c5++uhqbRDm/JE4Q30UVFrTXpyd3J5MloybHdTbGloRjVmdFdLL2dkYjNScjI5WXRYNktDT29aSVE9', '3182140886', 'lH+Xb9PwP2IAQBRWe3hSgEtBT3NaRTBocXJlcHRUWVRnc25NbHc9PQ==', 'Cédula de Ciudadanía', '$2y$10$7Y5LSQOZpOwbYbghedVJMODjLo.FHwB16wZScivy0K4p8d/KUCgzG', 'Super Administrador', 1, 0, NULL, NULL, NULL, NULL, NULL, '2026-05-23 19:51:38', 0, NULL, NULL, NULL, 0),
-(2, 'gabriel', 'bayona', '7hEapNnFKyHmTuf/5vuXTzIwQlU5b2RFeDdKTmxDSytzd1NnMUlnOVlVM3NMeFdZb2lFek4wWC9yY3c9', '3182410777', 'enIwrwALmGgEAJo5SrWxsDBmb0RMVjRVTjFhaDFuTzIwSEJ6bnc9PQ==', 'Cédula de Ciudadanía', '$2y$10$kEESPwNm5QpslkIHDp6ooO3vor7Wv4cuiF1JNCuyGYdQcc3PsV9r2', 'Administrador', 1, 0, NULL, NULL, NULL, NULL, NULL, '2026-05-24 10:24:10', 0, 2, NULL, 2, 0);
+(1, 'juan josé', 'pacheco prado', 'l2c5++uhqbRDm/JE4Q30UVFrTXpyd3J5MloybHdTbGloRjVmdFdLL2dkYjNScjI5WXRYNktDT29aSVE9', '3182140886', 'lH+Xb9PwP2IAQBRWe3hSgEtBT3NaRTBocXJlcHRUWVRnc25NbHc9PQ==', 'Cédula de Ciudadanía', '$2y$10$7Y5LSQOZpOwbYbghedVJMODjLo.FHwB16wZScivy0K4p8d/KUCgzG', 'Super Administrador', 1, 0, NULL, NULL, NULL, NULL, NULL, '2026-09-06 21:53:48', 0, NULL, NULL, NULL, 0),
+(2, 'gabriel', 'bayona', '7hEapNnFKyHmTuf/5vuXTzIwQlU5b2RFeDdKTmxDSytzd1NnMUlnOVlVM3NMeFdZb2lFek4wWC9yY3c9', '3182410777', 'enIwrwALmGgEAJo5SrWxsDBmb0RMVjRVTjFhaDFuTzIwSEJ6bnc9PQ==', 'Cédula de Ciudadanía', '$2y$10$kEESPwNm5QpslkIHDp6ooO3vor7Wv4cuiF1JNCuyGYdQcc3PsV9r2', 'Administrador', 1, 0, NULL, NULL, NULL, NULL, NULL, '2026-09-06 20:49:46', 0, 2, NULL, 2, 0);
 
 -- --------------------------------------------------------
 
@@ -654,6 +672,13 @@ ALTER TABLE `salidas_inventario`
   ADD KEY `idx_salidas_fecha_empresa` (`fecha_salida`,`empresa_id`);
 
 --
+-- Indices de la tabla `superadmin_colores_globales`
+--
+ALTER TABLE `superadmin_colores_globales`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_superadmin_colores_globales_usuario` (`usuario_id`);
+
+--
 -- Indices de la tabla `tipopago`
 --
 ALTER TABLE `tipopago`
@@ -779,6 +804,12 @@ ALTER TABLE `roles`
 --
 ALTER TABLE `salidas_inventario`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `superadmin_colores_globales`
+--
+ALTER TABLE `superadmin_colores_globales`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
