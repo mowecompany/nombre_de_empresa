@@ -1352,6 +1352,109 @@ class Inventario {
             return ['success' => false, 'message' => $e->getMessage()];
         }
     }
+
+    public function editarFacturaVenta(array $datos): array {
+        try {
+            $referencia = trim((string)($datos['referencia'] ?? ''));
+            $itemsEliminar = [];
+            foreach ((array)($datos['items_eliminar'] ?? []) as $item) {
+                $id = (int)$item;
+                if ($id > 0) {
+                    $itemsEliminar[] = $id;
+                }
+            }
+            $itemsEliminar = array_values(array_unique($itemsEliminar));
+
+            if ($referencia === '') {
+                throw new Exception('La referencia de la factura es requerida');
+            }
+
+            if (empty($itemsEliminar)) {
+                throw new Exception('No se seleccionó ningún producto para quitar de la factura');
+            }
+
+            $salidasTieneEmpresa = $this->tablaTieneEmpresaId('salidas_inventario');
+            $empresaId = $this->getEmpresaId();
+
+            if ($this->esSqlite()) {
+                $this->db->exec('BEGIN IMMEDIATE');
+            } else {
+                $this->db->beginTransaction();
+            }
+
+            $sql = "SELECT * FROM salidas_inventario WHERE referencia = :referencia";
+            $params = [':referencia' => $referencia];
+            if ($salidasTieneEmpresa && $empresaId > 0) {
+                $sql .= " AND empresa_id = :empresa_id";
+                $params[':empresa_id'] = $empresaId;
+            }
+
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $filasFactura = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($filasFactura)) {
+                throw new Exception('No se encontró la factura indicada');
+            }
+
+            $idsAEliminar = array_fill_keys($itemsEliminar, true);
+            $itemsEliminados = 0;
+
+            foreach ($filasFactura as $fila) {
+                $idFila = (int)($fila['id'] ?? 0);
+                if (!isset($idsAEliminar[$idFila])) {
+                    continue;
+                }
+
+                $cantidad = floatval($fila['cantidad'] ?? 0);
+                $productoId = (int)($fila['producto_id'] ?? 0);
+
+                if ($productoId > 0 && $cantidad > 0) {
+                    $stmtStock = $this->db->prepare("UPDATE productos SET stock = stock + :cantidad WHERE id = :producto_id");
+                    $stmtStock->execute([
+                        ':cantidad' => $cantidad,
+                        ':producto_id' => $productoId
+                    ]);
+                }
+
+                $stmtMovimientos = $this->db->prepare("DELETE FROM movimientos_inventario WHERE referencia_id = :referencia_id AND tipo_movimiento = 'salida'");
+                $stmtMovimientos->execute([':referencia_id' => $idFila]);
+
+                $stmtDelete = $this->db->prepare("DELETE FROM salidas_inventario WHERE id = :id");
+                $stmtDelete->execute([':id' => $idFila]);
+
+                $itemsEliminados++;
+            }
+
+            if ($this->esSqlite()) {
+                $this->db->exec('COMMIT');
+            } else {
+                $this->db->commit();
+            }
+
+            $mensaje = $itemsEliminados > 0
+                ? 'Factura actualizada correctamente. Se quitaron ' . $itemsEliminados . ' producto(s) del inventario.'
+                : 'No se encontró ningún producto seleccionado para quitar de la factura';
+
+            return [
+                'success' => $itemsEliminados > 0,
+                'message' => $mensaje,
+                'items_eliminados' => $itemsEliminados
+            ];
+        } catch (Exception $e) {
+            if ($this->esSqlite()) {
+                try { $this->db->exec('ROLLBACK'); } catch (Exception $ex) {}
+            } else {
+                try { $this->db->rollBack(); } catch (Exception $ex) {}
+            }
+
+            error_log('Error en editarFacturaVenta: ' . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
     
     // Registrar movimiento de inventario
     private function registrarMovimiento($datos) {
