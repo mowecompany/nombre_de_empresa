@@ -4,6 +4,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openExternal: async (url) => {
     return ipcRenderer.invoke('open-external', url);
   },
+  checkRemoteServer: async (url) => {
+    return ipcRenderer.invoke('check-remote-server', url);
+  },
+  getConnectionDiagnostics: async () => {
+    return ipcRenderer.invoke('get-connection-diagnostics');
+  },
   saveExportedDatabase: async (filename, data) => {
     return ipcRenderer.invoke('save-exported-database', filename, data);
   },

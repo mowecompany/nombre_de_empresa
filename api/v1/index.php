@@ -76,8 +76,10 @@ function obtener_json_input() {
  */
 $ruta = $_SERVER['REQUEST_URI'];
 $ruta = preg_replace('/\?.*/', '', $ruta); // Remover query string
+$ruta = str_replace('/nombre_de_empresa/api/v1/index.php', '', $ruta);
 $ruta = str_replace('/nombre_de_empresa/api/v1', '', $ruta);
 $metodo = $_SERVER['REQUEST_METHOD'];
+$accionApi = trim((string)($_GET['action'] ?? ''));
 
 try {
     // ===== ENDPOINT: Health Check =====
@@ -89,6 +91,55 @@ try {
             'version' => '1.0',
             'uptime' => date('Y-m-d H:i:s')
         ], 'API operativa');
+    }
+
+    // ===== ENDPOINTS: Presencia de cajas en la red local =====
+    if (($ruta === '/presence' || $accionApi === 'presence') && $metodo === 'POST') {
+        $input = obtener_json_input();
+        $cajaId = trim((string)($input['caja_id'] ?? ''));
+        if ($cajaId === '' || strlen($cajaId) > 120) {
+            api_response(false, null, 'Identificador de caja inválido', 400);
+        }
+
+        $db = Database::connect();
+        $db->exec("CREATE TABLE IF NOT EXISTS cajas_activas (
+            caja_id TEXT PRIMARY KEY,
+            nombre TEXT NOT NULL DEFAULT 'CAJA',
+            modo TEXT NOT NULL DEFAULT 'portable',
+            ip TEXT NOT NULL DEFAULT '',
+            puerto INTEGER NOT NULL DEFAULT 0,
+            usuario_id INTEGER NULL,
+            rol TEXT NULL,
+            ultima_conexion TEXT NOT NULL
+        )");
+        $stmt = $db->prepare("INSERT INTO cajas_activas (caja_id, nombre, modo, ip, puerto, usuario_id, rol, ultima_conexion)
+            VALUES (:caja_id, :nombre, :modo, :ip, :puerto, :usuario_id, :rol, :ultima_conexion)
+            ON CONFLICT(caja_id) DO UPDATE SET nombre=excluded.nombre, modo=excluded.modo, ip=excluded.ip,
+            puerto=excluded.puerto, usuario_id=excluded.usuario_id, rol=excluded.rol, ultima_conexion=excluded.ultima_conexion");
+        $stmt->execute([
+            ':caja_id' => $cajaId,
+            ':nombre' => trim((string)($input['nombre'] ?? 'CAJA')) ?: 'CAJA',
+            ':modo' => trim((string)($input['modo'] ?? 'portable')) ?: 'portable',
+            ':ip' => (string)($_SERVER['REMOTE_ADDR'] ?? ''),
+            ':puerto' => (int)($input['puerto'] ?? 0),
+            ':usuario_id' => !empty($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null,
+            ':rol' => (string)($_SESSION['rol'] ?? ''),
+            ':ultima_conexion' => date('Y-m-d H:i:s')
+        ]);
+        api_response(true, ['caja_id' => $cajaId], 'Caja registrada');
+    }
+
+    if (($ruta === '/presence' || $accionApi === 'presence') && $metodo === 'GET') {
+        $db = Database::connect();
+        $db->exec("CREATE TABLE IF NOT EXISTS cajas_activas (
+            caja_id TEXT PRIMARY KEY, nombre TEXT NOT NULL DEFAULT 'CAJA', modo TEXT NOT NULL DEFAULT 'portable',
+            ip TEXT NOT NULL DEFAULT '', puerto INTEGER NOT NULL DEFAULT 0, usuario_id INTEGER NULL, rol TEXT NULL,
+            ultima_conexion TEXT NOT NULL
+        )");
+        $stmt = $db->prepare("SELECT caja_id, nombre, modo, ip, puerto, rol, ultima_conexion FROM cajas_activas
+            WHERE datetime(ultima_conexion) >= datetime('now', '-45 seconds') ORDER BY nombre, caja_id");
+        $stmt->execute();
+        api_response(true, $stmt->fetchAll(PDO::FETCH_ASSOC), 'Cajas activas');
     }
     
     // ===== ENDPOINT: Login =====

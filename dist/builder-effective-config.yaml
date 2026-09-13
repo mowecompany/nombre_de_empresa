@@ -3,7 +3,7 @@ directories:
   buildResources: electron/build
 appId: com.autoservicio.miestrella.desktop
 productName: AUTOSERVICIO MI ESTRELLA
-artifactName: AUTOSERVICIO MI ESTRELLA Setup v1.0.5.exe
+artifactName: AUTOSERVICIO MI ESTRELLA Setup v1.0.10.exe
 icon: logo.ico
 asar: false
 files:

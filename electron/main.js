@@ -2,16 +2,15 @@ const { app, BrowserWindow, dialog, ipcMain, shell } = require('electron');
 const { spawn, spawnSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');
 const net = require('net');
 const http = require('http');
 
 const APP_NAME = 'AUTOSERVICIO MI ESTRELLA';
 const COMPANY_NAME = 'AUTOSERVICIO MI ESTRELLA';
 const SERVER_HOST = '127.0.0.1';
+const SERVER_BIND_HOST = '0.0.0.0';
 const DEFAULT_PORT = 8000;
 const MAX_PORT = 8010;
-const APP_START_PATH = '/Views/login.php';
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const ICON_PATH = path.join(PROJECT_ROOT, 'logo.ico');
 const FALLBACK_ICON_PATH = path.join(PROJECT_ROOT, 'electron', 'build', 'app_icon.ico');
@@ -19,6 +18,11 @@ const FALLBACK_ICON_PATH = path.join(PROJECT_ROOT, 'electron', 'build', 'app_ico
 function findPhpExecutable(rootDir) {
   if (!fs.existsSync(rootDir)) {
     return null;
+  }
+
+  const directExecutable = path.join(rootDir, process.platform === 'win32' ? 'php.exe' : 'php');
+  if (fs.existsSync(directExecutable) && fs.statSync(directExecutable).isFile()) {
+    return directExecutable;
   }
 
   const entries = fs.readdirSync(rootDir, { withFileTypes: true });
@@ -36,6 +40,23 @@ function findPhpExecutable(rootDir) {
   }
 
   return null;
+}
+
+function isPortableBuild() {
+  const executableName = path.basename(process.execPath || '');
+  const portableExecutable = String(process.env.PORTABLE_EXECUTABLE_FILE || '').toLowerCase();
+  const portableDirectory = String(process.env.PORTABLE_EXECUTABLE_DIR || '').toLowerCase();
+  const resourcesPath = String(process.resourcesPath || '').toLowerCase();
+  return app.isPackaged && (
+    /portable/i.test(executableName)
+    || /portable/i.test(portableExecutable)
+    || /portable/i.test(portableDirectory)
+    || /[\\/]dist[\\/]portable(?:[\\/]|$)/i.test(resourcesPath)
+  );
+}
+
+function getAppStartPath() {
+  return isPortableBuild() ? '/Views/conexion.php' : '/Views/login.php';
 }
 
 function getBundledPhpPath() {
@@ -259,7 +280,7 @@ function isPortFree(port) {
       .once('listening', () => {
         server.close(() => resolve(true));
       })
-      .listen(port, SERVER_HOST);
+      .listen(port, SERVER_BIND_HOST);
   });
 }
 
@@ -314,7 +335,10 @@ function getWritableDatabasePath() {
 
   const sourceDbPath = bundledCandidates.find((candidate) => fs.existsSync(candidate));
   const sourceFingerprint = sourceDbPath
-    ? crypto.createHash('sha256').update(fs.readFileSync(sourceDbPath)).digest('hex')
+    ? (() => {
+        const sourceStats = fs.statSync(sourceDbPath);
+        return `${sourceStats.size}:${sourceStats.mtimeMs}`;
+      })()
     : null;
   const previousFingerprint = fs.existsSync(seedMarkerPath)
     ? fs.readFileSync(seedMarkerPath, 'utf8').trim()
@@ -354,6 +378,7 @@ function buildPhpEnvironment(port) {
     APP_ENV: app.isPackaged ? 'production' : 'development',
     APP_BASE_URL: `http://${SERVER_HOST}:${port}`,
     APP_PORT: String(port),
+    APP_MENU_MODE: isPortableBuild() ? 'portable' : 'full',
     DB_CONNECTION: process.env.DB_CONNECTION || 'sqlite',
     SQLITE_PATH: sqlitePath,
     DB_CHARSET: 'utf8mb4'
@@ -385,7 +410,7 @@ function startPhpServer(port) {
       }
       phpArgs.push('-d', `extension_dir=${path.join(path.dirname(phpExecutable), 'ext')}`);
     }
-    phpArgs.push('-S', `${SERVER_HOST}:${port}`, '-t', PROJECT_ROOT);
+    phpArgs.push('-S', `${SERVER_BIND_HOST}:${port}`, '-t', PROJECT_ROOT);
 
     phpProcess = spawn(phpExecutable, phpArgs, {
       cwd: PROJECT_ROOT,
@@ -456,7 +481,7 @@ function createMainWindow(serverUrl) {
   });
 
   mainWindow.setMenuBarVisibility(false);
-  mainWindow.loadURL(`${serverUrl}${APP_START_PATH}`);
+  mainWindow.loadURL(`${serverUrl}${getAppStartPath()}`);
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.maximize();
@@ -484,15 +509,20 @@ function createMainWindow(serverUrl) {
 
   mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
     const normalizedNav = String(navigationUrl || '').trim().toLowerCase();
+
     if (
       normalizedNav === '' ||
       normalizedNav === 'about:blank' ||
       normalizedNav.startsWith('data:') ||
-      normalizedNav.startsWith('blob:') ||
-      navigationUrl.startsWith(serverUrl)
+      normalizedNav.startsWith('blob:')
     ) {
       return;
     }
+
+    if (/^https?:\/\//i.test(navigationUrl)) {
+      return;
+    }
+
     event.preventDefault();
     shell.openExternal(navigationUrl);
   });
@@ -690,6 +720,64 @@ ipcMain.handle('open-external', async (_, url) => {
   await shell.openExternal(url);
 });
 
+ipcMain.handle('check-remote-server', async (_, rawUrl) => {
+  const targetUrl = String(rawUrl || '').trim();
+  const logPath = path.join(app.getPath('desktop'), 'autoservicio-connection-diagnostics.txt');
+  const writeLog = (message) => {
+    try {
+      fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${message}\r\n`, 'utf8');
+    } catch (error) {
+      console.warn('No se pudo escribir diagnóstico de conexión:', error.message);
+    }
+  };
+
+  writeLog(`Intento de conexión: ${targetUrl || '(vacío)'}`);
+  if (!/^https?:\/\//i.test(targetUrl)) {
+    writeLog('Resultado: ERROR URL no válida');
+    return { ok: false, status: 0, error: 'URL no válida' };
+  }
+
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+
+    const request = http.get(targetUrl, { headers: { Connection: 'close' } }, (response) => {
+      response.resume();
+      response.once('end', () => {
+        const result = {
+          ok: response.statusCode >= 200 && response.statusCode < 500,
+          status: response.statusCode || 0
+        };
+        writeLog(`Resultado: HTTP ${result.status} ${result.ok ? 'OK' : 'ERROR'}`);
+        finish(result);
+      });
+    });
+
+    request.setTimeout(5000, () => {
+      request.destroy(new Error('Tiempo de espera agotado'));
+    });
+    request.once('error', (error) => {
+      writeLog(`Resultado: ERROR ${error.code || ''} ${error.message}`.trim());
+      finish({ ok: false, status: 0, error: error.message });
+    });
+  });
+});
+
+ipcMain.handle('get-connection-diagnostics', async () => {
+  const desktopPath = app.getPath('desktop');
+  const logPath = path.join(desktopPath, 'autoservicio-connection-diagnostics.txt');
+  try {
+    const content = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8') : 'No hay diagnósticos registrados todavía.';
+    return { ok: true, path: logPath, content };
+  } catch (error) {
+    return { ok: false, path: logPath, content: `No se pudo leer el diagnóstico: ${error.message}` };
+  }
+});
+
 function normalizePdfFileName(value) {
   const raw = String(value || 'documento').trim();
   const normalized = raw
@@ -741,9 +829,21 @@ ipcMain.handle('print-html', async (_, payload = {}) => {
     const htmlLocal = payload.appHeaderLayout
       ? htmlConControles.replace('</head>', '<style>.header{position:relative!important;display:block!important;min-height:230px!important;padding-right:3100px!important;box-sizing:border-box!important}.header .info{display:block!important;width:calc(100% - 310px)!important;max-width:none!important;min-width:0!important;padding:0!important}.meta-fecha .valor-fecha,.meta-hora .valor-hora{position:relative!important;left:-35px!important}.logo-empresa{position:absolute!important;top:0!important;right:-80px!important;width:300px!important;display:flex!important;flex-direction:column!important;align-items:center!important;z-index:2!important}.logo-empresa img{display:block!important;width:300px!important;height:230px!important;margin:0!important;object-fit:contain!important}.logo-empresa .empresa{font-size:18px!important;white-space:normal!important;text-align:center!important}</style></head>')
       : htmlConControles;
-    await printWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(htmlLocal));
+    await new Promise((resolve, reject) => {
+      const handleLoaded = () => {
+        printWindow.webContents.removeListener('did-fail-load', handleFailed);
+        resolve();
+      };
+      const handleFailed = (_event, errorCode, errorDescription) => {
+        printWindow.webContents.removeListener('did-finish-load', handleLoaded);
+        reject(new Error(`No se pudo cargar la vista previa: ${errorDescription || errorCode}`));
+      };
+      printWindow.webContents.once('did-finish-load', handleLoaded);
+      printWindow.webContents.once('did-fail-load', handleFailed);
+      printWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(htmlLocal));
+    });
     await printWindow.webContents.executeJavaScript(`document.title = ${JSON.stringify(tituloDocumento)}`);
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     if (payload.preview) {
       printWindow.show();
       printWindow.focus();

@@ -15,6 +15,85 @@ class UsuarioController {
     public function __construct($db) {
         $this->db = $db;
         $this->usuarioModel = new Usuario($db);
+        $this->asegurarColumnaCodigoUsuario();
+        $this->rellenarCodigosUsuariosExistentes();
+    }
+
+    private function asegurarColumnaCodigoUsuario(): void {
+        if ($this->existeColumna('usuarios', 'codigo')) {
+            return;
+        }
+
+        try {
+            $this->db->exec($this->esSqlite()
+                ? 'ALTER TABLE usuarios ADD COLUMN codigo VARCHAR(32)'
+                : 'ALTER TABLE usuarios ADD COLUMN codigo VARCHAR(32) NULL');
+        } catch (Throwable $e) {
+            if (stripos($e->getMessage(), 'duplicate column') === false && stripos($e->getMessage(), 'already exists') === false) {
+                error_log('No se pudo crear la columna codigo en usuarios: ' . $e->getMessage());
+            }
+        }
+    }
+
+    private function rellenarCodigosUsuariosExistentes(): void {
+        if (!$this->existeColumna('usuarios', 'codigo')) {
+            return;
+        }
+
+        try {
+            $stmt = $this->db->query("SELECT id, rol FROM usuarios WHERE codigo IS NULL OR TRIM(codigo) = '' ORDER BY id ASC");
+            $usuariosSinCodigo = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (empty($usuariosSinCodigo)) {
+                return;
+            }
+
+            $actualizar = $this->db->prepare('UPDATE usuarios SET codigo = :codigo WHERE id = :id');
+            foreach ($usuariosSinCodigo as $usuario) {
+                $codigo = $this->generarCodigoUsuario((string)($usuario['rol'] ?? 'Usuario'));
+                $actualizar->execute([
+                    ':codigo' => $codigo,
+                    ':id' => (int)$usuario['id'],
+                ]);
+            }
+        } catch (Throwable $e) {
+            error_log('No se pudieron completar códigos de usuarios existentes: ' . $e->getMessage());
+        }
+    }
+
+    private function generarCodigoUsuario(string $rol, string $codigoManual = ''): string {
+        $rolNormalizado = preg_replace('/[^a-z0-9]/', '', strtolower($this->normalizarRolTexto($rol)));
+        $prefijo = strtoupper(substr($rolNormalizado, 0, 2));
+        $prefijo = str_pad($prefijo, 2, 'X');
+        $esSuperAdmin = $this->esSuperAdminGlobalSesion();
+        $manual = strtoupper(trim($codigoManual));
+
+        if ($esSuperAdmin && $manual !== '') {
+            if (!preg_match('/^[A-Z0-9]{2,32}$/', $manual)) {
+                throw new Exception('El código solo puede contener letras y números');
+            }
+            return $manual;
+        }
+
+        $maximo = 0;
+        $stmt = $this->db->prepare('SELECT codigo FROM usuarios WHERE codigo LIKE :prefijo');
+        $stmt->execute([':prefijo' => $prefijo . '%']);
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $codigoExistente) {
+            $codigoExistente = strtoupper(trim((string)$codigoExistente));
+            if (preg_match('/^' . preg_quote($prefijo, '/') . '(\d+)$/', $codigoExistente, $coincidencia)) {
+                $maximo = max($maximo, (int)$coincidencia[1]);
+            }
+        }
+
+        return $prefijo . (string)($maximo + 1);
+    }
+
+    public function obtenerProximoCodigoUsuario(string $rol): string {
+        $rol = trim($rol);
+        if ($rol === '') {
+            throw new Exception('Debe seleccionar un rol');
+        }
+
+        return $this->generarCodigoUsuario($rol);
     }
 
     private function esSqlite(): bool {
@@ -746,8 +825,8 @@ class UsuarioController {
         $abrioTransaccion = false;
         try {
             $rolSesion = trim((string)($_SESSION['rol'] ?? ''));
-            $rolSesionNorm = strtr(mb_strtolower($rolSesion, 'UTF-8'), ['á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u']);
-            $esSuperAdminActual = ($rolSesionNorm === 'super administrador');
+            $rolSesionNorm = $this->normalizarRolTexto($rolSesion);
+            $esSuperAdminActual = ($rolSesionNorm === 'superadministrador');
             $esAdministradorActual = $this->esRolAdministrador($rolSesion);
             if (!isset($datos['id'])) {
                 throw new Exception('ID de usuario no especificado');
@@ -855,6 +934,11 @@ class UsuarioController {
             $datos['correo'] = trim(strtolower($datos['correo']));
             $datos['telefono'] = trim(strval($datos['telefono']));
             $datos['documento'] = trim(strval($datos['documento']));
+            $codigoExistente = trim((string)($usuarioExistente['data']['codigo'] ?? ''));
+            $codigoSolicitado = $esSuperAdminActual ? trim((string)($datos['codigo'] ?? '')) : '';
+            $datos['codigo'] = $codigoSolicitado !== ''
+                ? $this->generarCodigoUsuario((string)$datos['rol'], $codigoSolicitado)
+                : ($codigoExistente !== '' ? $codigoExistente : $this->generarCodigoUsuario((string)$datos['rol']));
 
             if (!ctype_digit($datos['documento'])) {
                 throw new Exception('El número de documento solo debe contener dígitos');
@@ -951,11 +1035,12 @@ class UsuarioController {
     public function registrarUsuario($datos) {
         try {
             $rolSesion = trim((string)($_SESSION['rol'] ?? ''));
-            $esSuperAdminActual = (mb_strtolower($rolSesion, 'UTF-8') === mb_strtolower('Super Administrador', 'UTF-8'));
+            $esSuperAdminActual = $this->normalizarRolTexto($rolSesion) === 'superadministrador';
             $rolSolicitadoNorm = $this->normalizarRolTexto((string)($datos['rol'] ?? ''));
+            $esClienteSolicitado = $rolSolicitadoNorm === 'cliente';
 
             $esNuevoAdminSolicitado = $this->esRolAdministrador((string)($datos['rol'] ?? ''));
-            if (!isset($datos['contrasena']) || trim((string)$datos['contrasena']) === '') {
+            if (!$esClienteSolicitado && (!isset($datos['contrasena']) || trim((string)$datos['contrasena']) === '')) {
                 throw new Exception('La contraseña es requerida para el registro de usuario');
             }
 
@@ -967,12 +1052,10 @@ class UsuarioController {
                 }
             }
 
-            if ($rolSolicitadoNorm === 'cliente') {
-                throw new Exception('Registro de clientes públicos no está soportado en esta instalación local.');
+            $datos['contrasena'] = trim((string)($datos['contrasena'] ?? ''));
+            if (!$esClienteSolicitado) {
+                $this->validarContrasenaSegura($datos['contrasena'], trim((string)($datos['documento'] ?? '')));
             }
-
-            $datos['contrasena'] = trim((string)$datos['contrasena']);
-            $this->validarContrasenaSegura($datos['contrasena'], trim((string)($datos['documento'] ?? '')));
 
             $idTipoEmpresa = isset($datos['id_tipos_empresa']) ? intval($datos['id_tipos_empresa']) : 0;
             $tieneImagenUsuario = $this->existeColumna('usuarios', 'imagen');
@@ -1038,6 +1121,10 @@ class UsuarioController {
             $datos['correo'] = trim(strtolower($datos['correo']));
             $datos['telefono'] = trim(strval($datos['telefono']));
             $datos['documento'] = trim(strval($datos['documento']));
+            $datos['codigo'] = $this->generarCodigoUsuario(
+                (string)$datos['rol'],
+                ''
+            );
 
             if (!ctype_digit($datos['documento'])) {
                 throw new Exception('El número de documento solo debe contener dígitos');
@@ -1081,8 +1168,9 @@ class UsuarioController {
                 $datos['rol'],
                 $datos['contrasena'],
                 isset($datos['empresa_id']) ? intval($datos['empresa_id']) : null,
-                isset($datos['id_tipos_empresa']) ? intval($datos['id_tipos_empresa']) : null,
-                isset($datos['imagen']) ? trim((string)$datos['imagen']) : null
+                $idTipoEmpresa > 0 ? $idTipoEmpresa : null,
+                isset($datos['imagen']) ? trim((string)$datos['imagen']) : null,
+                (string)$datos['codigo']
             );
 
             if (!$resultado) {
@@ -1105,7 +1193,9 @@ class UsuarioController {
                 $this->db->commit();
             }
 
-            $correoEnviado = $this->enviarCredencialesUsuario($datos);
+            $correoEnviado = $esClienteSolicitado
+                ? false
+                : $this->enviarCredencialesUsuario($datos);
 
             $mensajeExito = 'Usuario creado exitosamente';
             if (!$correoEnviado) {

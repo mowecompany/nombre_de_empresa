@@ -252,6 +252,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo json_encode($usuario);
                 break;
 
+            case 'proximo_codigo':
+                $codigo = $controller->obtenerProximoCodigoUsuario((string)($data['rol'] ?? ''));
+                echo json_encode(['success' => true, 'codigo' => $codigo]);
+                break;
+
             case 'update':
                 $resultado = $controller->actualizarUsuario($data);
                 echo json_encode($resultado);
@@ -766,8 +771,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .password-container {
             position: relative;
-            display: flex;
-            align-items: center;
+            display: block;
         }
 
         .password-container input {
@@ -778,6 +782,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .toggle-password {
             position: absolute;
             right: 16px;
+            top: 43px;
+            transform: translateY(-50%);
             cursor: pointer;
             background: none;
             border: none;
@@ -1995,74 +2001,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label><i class="fas fa-user-tag"></i> ROL: <span id="rolNoEditableHint" style="display:none; margin-left:8px; color:#c0392b;" title="No se puede cambiar el rol del usuario Super Administrador"><i class="fas fa-ban"></i></span></label>
-                        <select name="rol" id="usuarioRol" required>
-                            <option value="" data-static="1">SELECCIONE UN ROL</option>
-                            <?php
-                            $rolActual = $_SESSION['rol'] ?? '';
-                            $normalizarRol = function ($valor) {
-                                $texto = strtr(mb_strtolower(trim((string)$valor), 'UTF-8'), [
-                                    'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u'
-                                ]);
-                                $texto = preg_replace('/[^a-z0-9]+/u', ' ', $texto);
-                                $texto = trim(preg_replace('/\s+/u', ' ', (string)$texto));
-                                return str_replace(' ', '', $texto);
-                            };
-                            $rolActualNormalizado = $normalizarRol($rolActual);
-                            
-                            // Filtrar roles según el rol del usuario actual
-                            $rolesFiltrados = array_filter($roles, function($rol) use ($esSuperAdminSesion, $normalizarRol) {
-                                $rolNombreNormalizado = $normalizarRol($rol['nombre'] ?? '');
-
-                                if ($esSuperAdminSesion) {
-                                    return true; // El Super Administrador puede ver y asignar cualquier rol
-                                }
-
-                                // El Administrador puede asignar cualquier rol salvo los protegidos
-                                return !in_array($rolNombreNormalizado, ['superadministrador', 'administrador'], true);
-                            });
-
-                            // Ordenar los roles filtrados
-                            $rolesOrdenados = array_map(function($rol) {
-                                return $rol['nombre'];
-                            }, $rolesFiltrados);
-                            $rolesOrdenados = array_values(array_unique($rolesOrdenados));
-                            sort($rolesOrdenados);
-
-                            // Fallback para Administrador: evitar selector vacio si no quedaron opciones
-                            // por configuracion de roles en BD.
-                            if ($rolActualNormalizado === 'administrador' && empty($rolesOrdenados)) {
-                                $rolesDisponibles = [];
-                                foreach ($roles as $rolItem) {
-                                    $nombreRol = (string)($rolItem['nombre'] ?? '');
-                                    $normalizado = $normalizarRol($nombreRol);
-                                    if (!in_array($normalizado, ['superadministrador', 'administrador'], true)) {
-                                        $rolesDisponibles[] = $nombreRol;
-                                    }
-                                }
-
-                                $rolesDisponibles = array_values(array_unique(array_filter($rolesDisponibles)));
-                                sort($rolesDisponibles);
-
-                                if (empty($rolesDisponibles)) {
-                                    $rolesDisponibles = ['Usuario'];
-                                }
-
-                                $rolesOrdenados = $rolesDisponibles;
-                            }
-
-                            // Mostrar los roles filtrados
-                            foreach ($rolesOrdenados as $rol) {
-                                echo '<option value="' . htmlspecialchars($rol) . '" data-static="1">' . 
-                                     htmlspecialchars(strtoupper($rol)) . '</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
                         <label><i class="fas fa-id-card"></i> TIPO DE DOCUMENTO:</label>
                         <select name="tipo_documento" id="usuarioTipoDocumento" required>
                             <option value="" disabled selected>SELECCIONE EL TIPO DE DOCUMENTO</option>
@@ -2078,6 +2016,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="form-group">
                         <label><i class="fas fa-hashtag"></i> NÚMERO DE DOCUMENTO:</label>
                         <input type="text" name="documento" id="usuarioDocumento" pattern="[0-9]{1,10}" maxlength="10" title="Ingrese un número de documento válido de máximo 10 dígitos" autocomplete="off" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-user-tag"></i> ROL: <span id="rolNoEditableHint" style="display:none; margin-left:8px; color:#c0392b;" title="No se puede cambiar el rol del usuario Super Administrador"><i class="fas fa-ban"></i></span></label>
+                        <select name="rol" id="usuarioRol" required>
+                            <option value="" data-static="1">SELECCIONE UN ROL</option>
+                            <?php
+                            $rolActual = $_SESSION['rol'] ?? '';
+                            $normalizarRol = function ($valor) {
+                                $texto = strtr(mb_strtolower(trim((string)$valor), 'UTF-8'), [
+                                    'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u'
+                                ]);
+                                $texto = preg_replace('/[^a-z0-9]+/u', ' ', $texto);
+                                $texto = trim(preg_replace('/\s+/u', ' ', (string)$texto));
+                                return str_replace(' ', '', $texto);
+                            };
+                            $rolActualNormalizado = $normalizarRol($rolActual);
+                            $rolesFiltrados = array_filter($roles, function($rol) use ($esSuperAdminSesion, $normalizarRol) {
+                                $rolNombreNormalizado = $normalizarRol($rol['nombre'] ?? '');
+                                return $esSuperAdminSesion || !in_array($rolNombreNormalizado, ['superadministrador', 'administrador'], true);
+                            });
+                            $rolesOrdenados = array_values(array_unique(array_map(function($rol) { return $rol['nombre']; }, $rolesFiltrados)));
+                            sort($rolesOrdenados);
+                            if ($rolActualNormalizado === 'administrador' && empty($rolesOrdenados)) {
+                                $rolesOrdenados = ['Usuario'];
+                            }
+                            foreach ($rolesOrdenados as $rol) {
+                                echo '<option value="' . htmlspecialchars($rol) . '" data-static="1">' . htmlspecialchars(strtoupper($rol)) . '</option>';
+                            }
+                            ?>
+                        </select>
                     </div>
                 </div>
 
@@ -2099,6 +2070,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <label><i class="fas fa-image"></i> IMAGEN DE USUARIO:</label>
                         <input type="file" name="imagen_archivo" id="imagenArchivo" accept="image/jpeg,image/png,image/webp,image/gif" autocomplete="off">
                         <small style="display:block; margin-top:6px; color:#6b7280;">Opcional. JPG, PNG, WEBP o GIF, máximo 5 MB.</small>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-barcode"></i> CÓDIGO ASIGNADO:</label>
+                        <input type="text" id="usuarioCodigo" readonly aria-readonly="true" placeholder="SE GENERA AL SELECCIONAR EL ROL">
+                        <small style="display:block; margin-top:6px; color:#6b7280;">Se genera automáticamente según el rol seleccionado.</small>
                     </div>
                 </div>
 
@@ -2180,7 +2156,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $tieneAlgunPermiso = $tienePermisoEditar || $tienePermisoEliminar;
             
             // Ajustar colspan segun columnas visibles
-            $numColumnas = 4
+            $numColumnas = 6
                 + ($mostrarColumnaId ? 1 : 0)
                 + ($mostrarColumnaImagen ? 1 : 0)
                 + ($tieneAlgunPermiso ? 1 : 0);
@@ -2197,6 +2173,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <th><i class="fas fa-user"></i>Nombre</th>
                         <th><i class="fas fa-user"></i>Apellidos</th>
                         <th><i class="fas fa-phone"></i>Teléfono</th>
+                        <th><i class="fas fa-id-card"></i>Cédula</th>
+                        <th><i class="fas fa-barcode"></i>Código</th>
                         <th><i class="fas fa-user-tag"></i>Rol</th>
                         <?php if ($tieneAlgunPermiso): ?>
                             <th class="col-acciones"><i class="fas fa-edit"></i>Acciones</th>
@@ -2243,6 +2221,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 </td>
                                 <td title="<?php echo htmlspecialchars($usuario['telefono'] ?? 'NO DISPONIBLE'); ?>">
                                     <?php echo htmlspecialchars($usuario['telefono'] ?? 'NO DISPONIBLE'); ?>
+                                </td>
+                                <td title="<?php echo htmlspecialchars($usuario['documento'] ?? 'NO DISPONIBLE'); ?>">
+                                    <?php echo htmlspecialchars($usuario['documento'] ?? 'NO DISPONIBLE'); ?>
+                                </td>
+                                <td title="<?php echo htmlspecialchars($usuario['codigo'] ?? 'NO DISPONIBLE'); ?>">
+                                    <?php echo htmlspecialchars($usuario['codigo'] ?? 'NO DISPONIBLE'); ?>
                                 </td>
                                 <td title="<?php echo htmlspecialchars($usuario['rol'] ?? 'NO DISPONIBLE'); ?>">
                                     <?php echo htmlspecialchars($usuario['rol'] ?? 'NO DISPONIBLE'); ?>
@@ -2440,6 +2424,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 };
             }
         })();
+
+        async function actualizarCodigoUsuario() {
+            const selectRol = document.getElementById('usuarioRol');
+            const inputCodigo = document.getElementById('usuarioCodigo');
+            const rol = selectRol ? selectRol.value : '';
+
+            if (!inputCodigo) {
+                return;
+            }
+
+            inputCodigo.value = '';
+            if (!rol) {
+                return;
+            }
+
+            try {
+                const response = await fetch('usuarios.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ action: 'proximo_codigo', rol })
+                });
+                const resultado = await response.json();
+                if (resultado.success) {
+                    inputCodigo.value = resultado.codigo || '';
+                }
+            } catch (error) {
+                console.error('No se pudo consultar el código del usuario:', error);
+            }
+        }
         
         function toggleModal(mode = 'crear') {
             const modal = document.getElementById('registroModal');
@@ -2450,6 +2463,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             const passwordRow = document.getElementById('registroPasswordRow');
             const passwordInput = document.getElementById('usuarioContrasena');
             const passwordConfirmInput = document.getElementById('usuarioContrasenaConfirma');
+
+            if (selectRol && !selectRol.dataset.codigoListener) {
+                selectRol.addEventListener('change', () => {
+                    actualizarCodigoUsuario();
+                    actualizarCamposContrasenaPorRol();
+                });
+                selectRol.dataset.codigoListener = 'true';
+            }
             
             if (modal.style.display === 'flex') {
                 modal.style.display = 'none';
@@ -2482,6 +2503,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if (passwordConfirmInput) {
                         passwordConfirmInput.required = true;
                     }
+                    actualizarCamposContrasenaPorRol();
                     
                     // Habilitar el select de rol si estaba deshabilitado
                     selectRol.disabled = false;
@@ -2541,6 +2563,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             element.classList.toggle('fa-eye-slash', isPassword);
             element.title = isPassword ? 'OCULTAR CONTRASEÑA' : 'MOSTRAR CONTRASEÑA';
         }
+
+        function actualizarCamposContrasenaPorRol() {
+            const rol = String(document.getElementById('usuarioRol')?.value || '').trim().toLowerCase();
+            const passwordRow = document.getElementById('registroPasswordRow');
+            const passwordInput = document.getElementById('usuarioContrasena');
+            const passwordConfirmInput = document.getElementById('usuarioContrasenaConfirma');
+            const esCliente = rol === 'cliente';
+
+            if (passwordRow) {
+                passwordRow.style.display = esCliente ? 'none' : 'grid';
+            }
+            if (passwordInput) {
+                passwordInput.required = !esCliente;
+                if (esCliente) passwordInput.value = '';
+            }
+            if (passwordConfirmInput) {
+                passwordConfirmInput.required = !esCliente;
+                if (esCliente) passwordConfirmInput.value = '';
+            }
+        }
         
         function limpiarFormulario() {
             document.getElementById('registroForm').reset();
@@ -2552,6 +2594,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             document.getElementById('usuarioTelefono').value = '';
             document.getElementById('usuarioTipoDocumento').value = '';
             document.getElementById('usuarioDocumento').value = '';
+            document.getElementById('usuarioCodigo').value = '';
             document.getElementById('usuarioRol').value = '';
             const inputEmpresaImagenArchivo = document.getElementById('empresaImagenArchivo');
             const inputImagenArchivo = document.getElementById('imagenArchivo');
@@ -2884,6 +2927,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 document.getElementById('usuarioTelefono').value = data.telefono;
                 document.getElementById('usuarioTipoDocumento').value = data.tipo_documento;
                 document.getElementById('usuarioDocumento').value = data.documento;
+                document.getElementById('usuarioCodigo').value = data.codigo || '';
                 document.getElementById('usuarioEmpresaId').value = data.empresa_id || '';
                 
                 const inputEmpresaNombre = document.getElementById('empresaNombre');
@@ -3147,22 +3191,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if (esCrear) {
                     const contrasena = String(document.getElementById('usuarioContrasena').value || '').trim();
                     const contrasenaConfirma = String(document.getElementById('usuarioContrasenaConfirma').value || '').trim();
+                    const rolSeleccionado = String(document.getElementById('usuarioRol')?.value || formData.get('rol') || '').trim().toLowerCase();
+                    const esCliente = rolSeleccionado === 'cliente';
 
-                    if (!contrasena) {
+                    if (!esCliente && !contrasena) {
                         mostrarAlertaContrasena('error', 'INGRESE UNA CONTRASEÑA PARA EL USUARIO');
                         return;
                     }
 
                     const documento = String(document.getElementById('usuarioDocumento')?.value || '').trim();
-                    const errorContrasena = validarContrasenaSegura(contrasena, documento);
-                    if (errorContrasena) {
-                        mostrarAlertaContrasena('error', errorContrasena);
-                        return;
-                    }
+                    if (!esCliente) {
+                        const errorContrasena = validarContrasenaSegura(contrasena, documento);
+                        if (errorContrasena) {
+                            mostrarAlertaContrasena('error', errorContrasena);
+                            return;
+                        }
 
-                    if (contrasena !== contrasenaConfirma) {
-                        mostrarAlertaContrasena('error', 'LAS CONTRASEÑAS NO COINCIDEN');
-                        return;
+                        if (contrasena !== contrasenaConfirma) {
+                            mostrarAlertaContrasena('error', 'LAS CONTRASEÑAS NO COINCIDEN');
+                            return;
+                        }
                     }
 
                     formData.set('contrasena', contrasena);

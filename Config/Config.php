@@ -1,4 +1,46 @@
 <?php
+function loadConfigEnvFile(): void {
+    static $loaded = false;
+    if ($loaded) {
+        return;
+    }
+
+    $loaded = true;
+    $envPath = __DIR__ . '/.env';
+    if (!is_file($envPath)) {
+        return;
+    }
+
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($lines === false) {
+        return;
+    }
+
+    foreach ($lines as $line) {
+        $trimmed = trim($line);
+        if ($trimmed === '' || strpos($trimmed, '#') === 0) {
+            continue;
+        }
+
+        $parts = explode('=', $line, 2);
+        if (count($parts) !== 2) {
+            continue;
+        }
+
+        $name = trim($parts[0]);
+        $value = trim($parts[1]);
+        if ($name === '') {
+            continue;
+        }
+
+        if (getenv($name) === false) {
+            putenv("{$name}={$value}");
+        }
+        $_ENV[$name] = $value;
+        $_SERVER[$name] = $value;
+    }
+}
+
 function config_env(string $key, $default = null) {
     $value = getenv($key);
     if ($value !== false) {
@@ -12,6 +54,8 @@ function config_env(string $key, $default = null) {
     }
     return $default;
 }
+
+loadConfigEnvFile();
 
 // Entorno y rutas
 if (!defined('APP_ENV')) {
@@ -53,6 +97,11 @@ if (!defined('SQLITE_PATH')) {
 // URL base para resources, útil para Electron / servidor local.
 if (!defined('APP_BASE_URL')) {
     define('APP_BASE_URL', config_env('APP_BASE_URL', 'http://127.0.0.1:8000'));
+}
+
+// Modo del menú principal: full o portable.
+if (!defined('APP_MENU_MODE')) {
+    define('APP_MENU_MODE', config_env('APP_MENU_MODE', 'full'));
 }
 
 // Ruta de log para errores de PHP

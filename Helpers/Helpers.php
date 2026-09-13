@@ -84,6 +84,22 @@
             $appBaseUrl = 'http://localhost' . ($basePath !== '' ? $basePath : '/nombre_de_empresa');
         }
     }
+    // Cuando el servidor Portable se abre desde otra caja, no debemos devolver
+    // 127.0.0.1: esa dirección apunta al cliente y rompe sus peticiones AJAX.
+    $requestHost = strtolower(trim((string)($_SERVER['HTTP_HOST'] ?? '')));
+    $configuredHost = strtolower((string)(parse_url($appBaseUrl, PHP_URL_HOST) ?: ''));
+    $hostsLocales = ['localhost', '127.0.0.1', '::1'];
+    if ($requestHost !== '' && in_array($configuredHost, $hostsLocales, true)) {
+        $requestHostName = preg_replace('/:\d+$/', '', $requestHost);
+        if ($requestHostName !== '' && !in_array($requestHostName, $hostsLocales, true)) {
+            $scheme = 'http';
+            if ((!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') || (string)($_SERVER['SERVER_PORT'] ?? '') === '443') {
+                $scheme = 'https';
+            }
+            $appBaseUrl = $scheme . '://' . $requestHost;
+        }
+    }
+
     define('BASE_URL', rtrim($appBaseUrl, '/'));
 
     //Comentamos temporalmente PHPMailer hasta tenerlo instalado

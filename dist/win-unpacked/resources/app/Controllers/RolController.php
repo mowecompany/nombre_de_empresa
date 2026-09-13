@@ -28,6 +28,7 @@ try {
         $nombre = trim((string)($inputData['nombre'] ?? $_POST['nombre'] ?? ''));
         $descripcion = trim((string)($inputData['descripcion'] ?? $_POST['descripcion'] ?? ''));
         $rolActual = normalizarNombreRol($_SESSION['rol'] ?? '');
+        $esSuperAdministrador = str_starts_with($rolActual, 'superadministrador');
         $nombreNormalizado = normalizarNombreRol($nombre);
         
         if (empty($nombre)) {
@@ -38,7 +39,7 @@ try {
             exit;
         }
         
-        if ($rolActual !== 'super administrador' && in_array($nombreNormalizado, ['administrador', 'super administrador', 'cliente'], true)) {
+        if (!$esSuperAdministrador && in_array($nombreNormalizado, ['administrador', 'superadministrador', 'cliente'], true)) {
             echo json_encode([
                 'success' => false,
                 'message' => 'No puedes crear un rol con ese nombre desde este perfil'
@@ -62,6 +63,23 @@ try {
         $empresaId = isset($_SESSION['empresa_id'])
             ? (int)$_SESSION['empresa_id']
             : (isset($_SESSION['userData']['empresa_id']) ? (int)$_SESSION['userData']['empresa_id'] : 0);
+
+        // El superadministrador global no tiene empresa en sesión, pero roles.empresa_id es obligatorio.
+        $empresaValida = false;
+        if ($empresaId > 0) {
+            $empresaCheck = $db->prepare('SELECT 1 FROM empresas WHERE id = :id LIMIT 1');
+            $empresaCheck->execute([':id' => $empresaId]);
+            $empresaValida = (bool)$empresaCheck->fetchColumn();
+        }
+
+        if (!$empresaValida) {
+            $empresaStmt = $db->query('SELECT id FROM empresas ORDER BY id ASC LIMIT 1');
+            $empresaId = (int)($empresaStmt->fetchColumn() ?: 0);
+        }
+
+        if ($empresaId <= 0) {
+            throw new RuntimeException('No existe una empresa válida para asociar el rol');
+        }
 
         // Insertar el nuevo rol
         $insertStmt = $db->prepare("INSERT INTO roles (nombre, descripcion, estado, empresa_id) VALUES (:nombre, :descripcion, 1, :empresa_id)");
@@ -123,7 +141,7 @@ try {
         $nombreAnterior = trim($currentRol['nombre']);
         $nombreAnteriorNormalizado = normalizarNombreRol($nombreAnterior);
 
-        if ($rolActual !== 'super administrador' && in_array($nombreNormalizado, ['administrador', 'super administrador', 'cliente'], true)) {
+        if ($rolActual !== 'superadministrador' && in_array($nombreNormalizado, ['administrador', 'superadministrador', 'cliente'], true)) {
             echo json_encode([
                 'success' => false,
                 'message' => 'No puedes renombrar un rol con ese nombre desde este perfil'
@@ -131,7 +149,7 @@ try {
             exit;
         }
 
-        if ($rolActual !== 'super administrador' && in_array($nombreAnteriorNormalizado, ['administrador', 'super administrador'], true)) {
+        if ($rolActual !== 'superadministrador' && in_array($nombreAnteriorNormalizado, ['administrador', 'superadministrador'], true)) {
             echo json_encode([
                 'success' => false,
                 'message' => 'No puedes modificar este rol protegido'

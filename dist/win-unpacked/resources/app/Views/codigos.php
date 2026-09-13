@@ -41,6 +41,7 @@ $baseUrl = rtrim((string)base_url(), '/');
         body {
             margin: 0;
             min-height: 100vh;
+            overflow: auto;
             padding: 80px 15px 0;
             background-color: var(--page);
             color: var(--ink);
@@ -127,15 +128,17 @@ $baseUrl = rtrim((string)base_url(), '/');
         .search-box input::placeholder { text-transform: uppercase; }
         .search-box i { order: 2; color: #2f4a5a; }
 
-        .table-wrap { width: 100%; overflow-x: auto; overflow-y: auto; max-height: calc(100vh - 300px); }
+        .table-wrap { width: 100%; overflow-x: auto; overflow-y: visible; max-height: none; }
         table { width: 100%; min-width: 1200px; border-collapse: separate; border-spacing: 0; margin: 0; box-sizing: border-box; text-transform: uppercase; table-layout: fixed; border-radius: 8px; font-family: var(--font-saira); }
         thead { position: sticky; top: 0; z-index: 5; }
         th, td { padding: 14px 10px; vertical-align: middle; text-align: center; border-bottom: 1px solid #e6e9ee; font-size: .95rem; line-height: 1.4; word-break: break-word; white-space: normal; height: auto; max-height: 100px; overflow: hidden; }
         th { background: white; color: #2f4a5a; font-weight: 600; text-transform: uppercase; border-bottom: 2px solid #2f4a5a; letter-spacing: .5px; box-shadow: 0 2px 4px rgba(47, 74, 90, .08); }
         th i, td i { margin-right: 5px; vertical-align: middle; }
         th:nth-child(1), td:nth-child(1) { width: 18%; }
-        th:nth-child(2), td:nth-child(2) { width: 20%; }
-        th:nth-child(3), td:nth-child(3) { width: 62%; }
+        th:nth-child(2), td:nth-child(2) { width: 16%; }
+        th:nth-child(3), td:nth-child(3) { width: 35%; }
+        th:nth-child(4), td:nth-child(4) { width: 15%; }
+        th:nth-child(5), td:nth-child(5) { width: 16%; }
         tbody tr:last-child td { border-bottom: 0; }
         tr:hover { background-color: rgba(47, 74, 90, .04); transition: background-color .2s ease; }
 
@@ -178,6 +181,29 @@ $baseUrl = rtrim((string)base_url(), '/');
 
         .code-value { color: #2f4a5a; font-size: .95rem; font-weight: 800; letter-spacing: .02em; text-align: center; }
         .product-name { font-size: 1rem; font-weight: 700; text-align: center; }
+        .product-price { color: #1f7a52; font-size: 1rem; font-weight: 800; text-align: center; white-space: nowrap; }
+        .print-product-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 40px;
+            min-width: 42px;
+            margin: 0 auto;
+            padding: 0;
+            border: 0;
+            border-radius: 8px;
+            background: #2f4a5a;
+            color: #fff;
+            cursor: pointer;
+            font: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: background-color .2s ease, transform .2s ease;
+        }
+        .print-product-button:hover { background: #203864; transform: translateY(-1px); }
+        .print-product-button:focus-visible { outline: 3px solid rgba(53, 145, 202, .35); outline-offset: 2px; }
         .empty-state { padding: 54px 20px; color: var(--muted); text-align: center; }
         .empty-state i { display: block; margin-bottom: 12px; color: #b7c7d5; font-size: 32px; }
 
@@ -214,10 +240,12 @@ $baseUrl = rtrim((string)base_url(), '/');
                             <th>Imagen</th>
                             <th>Código</th>
                             <th>Nombre del producto</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="codes-body">
-                        <tr><td colspan="3" class="empty-state"><i class="fas fa-spinner fa-spin"></i>Cargando...</td></tr>
+                        <tr><td colspan="5" class="empty-state"><i class="fas fa-spinner fa-spin"></i>Cargando...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -229,7 +257,41 @@ $baseUrl = rtrim((string)base_url(), '/');
         const codesBody = document.getElementById('codes-body');
         const codesCount = document.getElementById('codes-count');
         const codesSearch = document.getElementById('codes-search');
+        const codesTableWrap = document.querySelector('.table-wrap');
+        const catalogScrollStorageKey = 'catalogo-productos-scroll-position';
+        const phpSessionId = (new URLSearchParams(window.location.search)).get('PHPSESSID') || '';
         let products = [];
+
+        function preservarSesionEnUrl(url) {
+            if (!phpSessionId) return url;
+            const destino = new URL(url, window.location.href);
+            if (destino.origin === window.location.origin && destino.pathname.includes('/Controllers/')) {
+                destino.searchParams.set('PHPSESSID', phpSessionId);
+            }
+            return destino.toString();
+        }
+
+        function saveCatalogScrollPosition() {
+            if (!codesTableWrap) return;
+            sessionStorage.setItem(catalogScrollStorageKey, JSON.stringify({
+                top: window.scrollY,
+                left: codesTableWrap.scrollLeft
+            }));
+        }
+
+        function restoreCatalogScrollPosition() {
+            if (!codesTableWrap) return;
+            try {
+                const savedPosition = JSON.parse(sessionStorage.getItem(catalogScrollStorageKey) || 'null');
+                if (!savedPosition) return;
+                requestAnimationFrame(() => {
+                    window.scrollTo(0, Number(savedPosition.top) || 0);
+                    codesTableWrap.scrollLeft = Number(savedPosition.left) || 0;
+                });
+            } catch (error) {
+                sessionStorage.removeItem(catalogScrollStorageKey);
+            }
+        }
 
         function imageUrl(image) {
             const value = String(image || '').trim();
@@ -255,7 +317,7 @@ $baseUrl = rtrim((string)base_url(), '/');
 
             codesCount.textContent = `${visible.length} PRODUCTO${visible.length === 1 ? '' : 'S'}`;
             if (!visible.length) {
-                codesBody.innerHTML = '<tr><td colspan="3" class="empty-state"><i class="fas fa-box-open"></i>No hay productos que coincidan.</td></tr>';
+                codesBody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-box-open"></i>No hay productos que coincidan.</td></tr>';
                 return;
             }
 
@@ -271,13 +333,16 @@ $baseUrl = rtrim((string)base_url(), '/');
             Object.keys(grouped).sort(categorySort.compare).forEach(category => {
                 const categoryKey = category.toLocaleLowerCase('es');
                 const categoryImage = categoryImages[categoryKey] || '';
-                rows.push(`<tr class="category-row"><td colspan="3"><span class="category-heading"><img class="category-image" src="${categoryImageUrl(categoryImage)}" alt="${escapeHtml(category)}" onerror="this.src='${baseUrl}/favicon.ico'"><i class="fas fa-tag category-icon"></i><span>${escapeHtml(category)}</span></span></td></tr>`);
+                rows.push(`<tr class="category-row"><td colspan="5"><span class="category-heading"><img class="category-image" loading="lazy" decoding="async" src="${categoryImageUrl(categoryImage)}" alt="${escapeHtml(category)}" onerror="this.src='${baseUrl}/favicon.ico'"><i class="fas fa-tag category-icon"></i><span>${escapeHtml(category)}</span></span></td></tr>`);
                 grouped[category].sort((first, second) => categorySort.compare(String(first.nombre || ''), String(second.nombre || ''))).forEach(product => {
+                    const productIndex = products.indexOf(product);
                     rows.push(`
                         <tr>
-                            <td><img class="product-image" src="${imageUrl(product.imagen)}" alt="${escapeHtml(product.nombre || 'Producto')}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
+                            <td><img class="product-image" loading="lazy" decoding="async" src="${imageUrl(product.imagen)}" alt="${escapeHtml(product.nombre || 'Producto')}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
                             <td class="code-value">${escapeHtml(product.codigo || 'SIN CÓDIGO')}</td>
                             <td class="product-name">${escapeHtml(product.nombre || 'Sin nombre')}</td>
+                            <td class="product-price">${formatPrice(product.precio)}</td>
+                            <td><button type="button" class="print-product-button" data-product-index="${productIndex}" title="Imprimir etiqueta" aria-label="Imprimir etiqueta"><i class="fas fa-print"></i></button></td>
                         </tr>
                     `);
                 });
@@ -290,11 +355,60 @@ $baseUrl = rtrim((string)base_url(), '/');
             return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[character]));
         }
 
+        function formatPrice(value) {
+            const price = Number(value);
+            if (!Number.isFinite(price)) return 'COP $0';
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(price);
+        }
+
+        function printHtmlInPage(html) {
+            const printFrame = document.createElement('iframe');
+            printFrame.setAttribute('title', 'Vista de impresión');
+            printFrame.style.position = 'fixed';
+            printFrame.style.right = '0';
+            printFrame.style.bottom = '0';
+            printFrame.style.width = '0';
+            printFrame.style.height = '0';
+            printFrame.style.border = '0';
+            printFrame.style.visibility = 'hidden';
+            document.body.appendChild(printFrame);
+            printFrame.onload = () => {
+                printFrame.contentWindow.focus();
+                printFrame.contentWindow.print();
+                setTimeout(() => printFrame.remove(), 1000);
+            };
+            const frameDocument = printFrame.contentDocument || printFrame.contentWindow.document;
+            frameDocument.open();
+            frameDocument.write(html);
+            frameDocument.close();
+        }
+
+        function printProduct(product) {
+            if (!product) return;
+            const name = escapeHtml(product.nombre || 'Sin nombre');
+            const code = escapeHtml(String(product.codigo || 'SIN CÓDIGO').trim());
+            const ventaPorKilo = [1, '1', true, 'true', 'si', 'sí'].includes(product.venta_por_kilo);
+            const price = escapeHtml(formatPrice(product.precio));
+            const priceUnit = ventaPorKilo ? 'X/KG' : 'C/U';
+            const title = `Etiqueta ${product.codigo || product.nombre || 'producto'}`;
+            const html = `<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title><style>
+                @page{size:58mm auto;margin:0}*{box-sizing:border-box}html,body{margin:0 auto;width:58mm;height:auto;min-height:0;background:#fff}body{font-family:Arial,sans-serif;color:#17212b}.label{position:relative;width:58mm;height:auto;min-height:0;margin:0 auto;padding:1mm 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1.5mm;text-align:center}.label-top{display:flex;align-items:center;justify-content:space-between;width:58mm;padding:0 1.5mm}.label-company{width:35mm;font-family:Arial,sans-serif;font-size:12px;font-style:normal;font-weight:800;line-height:1.1;letter-spacing:0;text-align:center;white-space:normal}.label-name{width:58mm;margin:8mm 0 0;padding:0;font-size:26px;font-weight:900;line-height:1.05;text-align:center;text-transform:uppercase}.label-price{width:58mm;margin:2mm 0 0;padding:0;color:#167348;font-size:40px;font-weight:900;line-height:1;text-align:center}.label-unit{width:58mm;margin:0;color:#167348;font-size:17px;font-weight:900;line-height:1;text-align:center}.label-code{max-width:20mm;font-family:Arial,sans-serif;font-size:21px;font-style:normal;font-weight:800;letter-spacing:.5px;text-align:center;white-space:nowrap}footer{width:100%;margin-top:1mm;background:#ffffff;color:#0b1f3a;padding:6px 0 0;display:flex;justify-content:center;align-items:center;gap:5px;flex-wrap:wrap;font-size:10px;font-weight:700;text-align:center;box-sizing:border-box;border-top:1px solid #d1d5db}footer span{display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1}footer .footer-wordmark{display:inline-flex;align-items:center;justify-content:center;gap:4px}footer .footer-brand-logo{width:28px;height:28px;object-fit:contain;display:inline-flex;vertical-align:middle}@media print{html,body,.label{height:auto;min-height:0}}
+            </style></head><body><main class="label"><div class="label-top"><div class="label-company">AUTOSERVICIO<br>MI ESTRELLA</div><div class="label-code">${code}</div></div><div class="label-name">${name}</div><div class="label-price">${price}</div><div class="label-unit">${priceUnit}</div><footer><span>&copy; ${new Date().getFullYear()}</span><span class="footer-wordmark"><img src="${baseUrl + '/favicon.ico'}" alt="Favicon" class="footer-brand-logo"><span>OWE COMPANY</span></span><span>TODOS LOS DERECHOS RESERVADOS</span></footer></main><script>window.onload=function(){window.print();};<\/script></body></html>`;
+
+            if (typeof window.electronAPI?.printHtml === 'function') {
+                Promise.resolve(window.electronAPI.printHtml({ html, title, preview: true }))
+                    .catch(() => printHtmlInPage(html));
+                return;
+            }
+
+            printHtmlInPage(html);
+        }
+
         async function loadProducts() {
             try {
                 const [productsResponse, categoriesResponse] = await Promise.all([
-                    fetch(`${baseUrl}/Controllers/ProductoController.php?action=getAll`),
-                    fetch(`${baseUrl}/Controllers/CategoriaController.php?action=getAll`)
+                    fetch(preservarSesionEnUrl(`${baseUrl}/Controllers/ProductoController.php?action=getAll`)),
+                    fetch(preservarSesionEnUrl(`${baseUrl}/Controllers/CategoriaController.php?action=getAll`))
                 ]);
                 const productsData = await productsResponse.json();
                 const categoriesData = await categoriesResponse.json();
@@ -308,14 +422,23 @@ $baseUrl = rtrim((string)base_url(), '/');
                     });
                 }
                 renderProducts();
+                restoreCatalogScrollPosition();
             } catch (error) {
                 codesCount.textContent = 'ERROR AL CARGAR';
-                codesBody.innerHTML = '<tr><td colspan="3" class="empty-state"><i class="fas fa-triangle-exclamation"></i>No fue posible cargar los productos.</td></tr>';
+                codesBody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-triangle-exclamation"></i>No fue posible cargar los productos.</td></tr>';
             }
         }
 
         let categoryImages = {};
         codesSearch.addEventListener('input', renderProducts);
+        codesTableWrap?.addEventListener('scroll', saveCatalogScrollPosition, { passive: true });
+        window.addEventListener('scroll', saveCatalogScrollPosition, { passive: true });
+        window.addEventListener('beforeunload', saveCatalogScrollPosition);
+        codesBody.addEventListener('click', event => {
+            const button = event.target.closest('.print-product-button');
+            if (!button) return;
+            printProduct(products[Number(button.dataset.productIndex)]);
+        });
         loadProducts();
     </script>
 </body>

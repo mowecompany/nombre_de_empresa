@@ -1,6 +1,8 @@
 <?php
 if (!class_exists('Database', false)) {
     class Database {
+        private static array $connections = [];
+
         public static function connect() {
             try {
                 self::loadEnvFile();
@@ -9,20 +11,17 @@ if (!class_exists('Database', false)) {
                 if ($connectionType === 'SQLITE') {
                     $sqlitePath = self::env('SQLITE_PATH', defined('SQLITE_PATH') ? SQLITE_PATH : dirname(__DIR__) . '/database/database.db');
                     $sqlitePath = self::normalizePath($sqlitePath);
+                    $connectionKey = 'sqlite:' . $sqlitePath;
+                    if (isset(self::$connections[$connectionKey])) {
+                        return self::$connections[$connectionKey];
+                    }
                     $sqliteDir = dirname($sqlitePath);
-
-                    error_log('SQLite requested path: ' . $sqlitePath);
-                    error_log('SQLite directory exists: ' . (is_dir($sqliteDir) ? 'yes' : 'no'));
-                    error_log('SQLite directory writable: ' . (is_writable($sqliteDir) ? 'yes' : 'no'));
-                    error_log('SQLite file exists: ' . (file_exists($sqlitePath) ? 'yes' : 'no'));
-                    error_log('SQLite file writable: ' . (file_exists($sqlitePath) && is_writable($sqlitePath) ? 'yes' : 'no'));
 
                     if (!is_dir($sqliteDir) && !mkdir($sqliteDir, 0755, true) && !is_dir($sqliteDir)) {
                         throw new RuntimeException('No se pudo crear el directorio SQLite: ' . $sqliteDir);
                     }
 
                     if (!file_exists($sqlitePath)) {
-                        error_log('SQLite database no existe. Se intentará crear: ' . $sqlitePath);
                         try {
                             $handle = fopen($sqlitePath, 'c');
                             if ($handle !== false) {
@@ -41,13 +40,13 @@ if (!class_exists('Database', false)) {
                         PDO::ATTR_TIMEOUT            => 5,
                     ];
 
-                    error_log('Conectando SQLite con DSN: ' . $dsn);
                     $conexion = new PDO($dsn, null, null, $options);
                     $conexion->exec('PRAGMA foreign_keys = ON');
                     $conexion->exec('PRAGMA journal_mode = WAL');
                     $conexion->exec("PRAGMA encoding = 'UTF-8'");
 
-                    return $conexion;
+                    self::$connections[$connectionKey] = $conexion;
+                    return self::$connections[$connectionKey];
                 }
 
                 $host = self::env('DB_HOST', defined('DB_HOST') ? DB_HOST : 'localhost');
@@ -55,6 +54,10 @@ if (!class_exists('Database', false)) {
                 $pass = self::env('DB_PASSWORD', defined('DB_PASSWORD') ? DB_PASSWORD : '');
                 $db   = self::env('DB_NAME', defined('DB_NAME') ? DB_NAME : 'db_partner');
                 $charset = self::env('DB_CHARSET', defined('DB_CHARSET') ? DB_CHARSET : 'utf8mb4');
+                $connectionKey = "mysql:{$host}:{$db}:{$user}:{$charset}";
+                if (isset(self::$connections[$connectionKey])) {
+                    return self::$connections[$connectionKey];
+                }
 
                 $dsn = "mysql:host={$host};dbname={$db};charset={$charset}";
                 $options = [
@@ -66,7 +69,8 @@ if (!class_exists('Database', false)) {
 
                 $conexion = new PDO($dsn, $user, $pass, $options);
                 $conexion->exec("SET NAMES '{$charset}' COLLATE '{$charset}_unicode_ci'");
-                return $conexion;
+                self::$connections[$connectionKey] = $conexion;
+                return self::$connections[$connectionKey];
             } catch (PDOException $e) {
                 error_log('Database connect error: ' . $e->getMessage());
                 if (PHP_SAPI === 'cli') {
@@ -103,6 +107,11 @@ if (!class_exists('Database', false)) {
         }
 
         private static function loadEnvFile(): void {
+            static $loaded = false;
+            if ($loaded) {
+                return;
+            }
+            $loaded = true;
             $envPath = dirname(__DIR__) . '/Config/.env';
             if (!file_exists($envPath)) {
                 return;

@@ -546,6 +546,26 @@ class Producto {
     public function setPorcentajeGanancia($porcentaje_ganancia) { $this->porcentaje_ganancia = $porcentaje_ganancia; }
     public function setColor($color) { $this->color = $color; }
 
+    private function obtenerPrecioMaximoHistorico(int $productoId, float $precioDeseado): float {
+        $precioDeseado = max(0, (float)$precioDeseado);
+        try {
+            if ($productoId > 0) {
+                $stmt = $this->db->prepare("SELECT precio, precio_original FROM productos WHERE id = :id LIMIT 1");
+                $stmt->execute([':id' => $productoId]);
+                $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($registro) {
+                    $precioActual = max(0, (float)($registro['precio'] ?? 0));
+                    $precioOriginal = max(0, (float)($registro['precio_original'] ?? 0));
+                    return max($precioDeseado, $precioActual, $precioOriginal);
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('No se pudo calcular precio histórico: ' . $e->getMessage());
+        }
+
+        return $precioDeseado;
+    }
+
     private function normalizarTextoParaPrefijo($texto) {
         $texto = trim((string)$texto);
         if ($texto === '') {
@@ -820,17 +840,32 @@ class Producto {
             $empresaId = $this->getEmpresaId();
             $usuarioId = $this->getUsuarioOwnerId();
             $tieneUsuarioId = $this->tieneColumnaUsuarioIdProductos();
+            $tienePrecioOriginal = $this->tieneColumnaPrecioOriginal();
             // Generar código automáticamente si no se proporcionó
             if (empty($this->codigo)) {
                 $this->codigo = $this->generarCodigo();
             }
 
+            if ($this->precio !== null && $this->precio !== '') {
+                $this->precio = $this->obtenerPrecioMaximoHistorico(0, (float)$this->precio);
+            }
+
             if ($tieneUsuarioId) {
-                $sql = "INSERT INTO productos (codigo, codigo_barras, nombre, descripcion, precio, imagen, categoria_id, estado, stock, empresa_id, usuario_id) 
+                if ($tienePrecioOriginal) {
+                    $sql = "INSERT INTO productos (codigo, codigo_barras, nombre, descripcion, precio, precio_original, imagen, categoria_id, estado, stock, empresa_id, usuario_id) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)";
+                } else {
+                    $sql = "INSERT INTO productos (codigo, codigo_barras, nombre, descripcion, precio, imagen, categoria_id, estado, stock, empresa_id, usuario_id) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)";
+                }
             } else {
-                $sql = "INSERT INTO productos (codigo, codigo_barras, nombre, descripcion, precio, imagen, categoria_id, estado, stock, empresa_id) 
+                if ($tienePrecioOriginal) {
+                    $sql = "INSERT INTO productos (codigo, codigo_barras, nombre, descripcion, precio, precio_original, imagen, categoria_id, estado, stock, empresa_id) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)";
+                } else {
+                    $sql = "INSERT INTO productos (codigo, codigo_barras, nombre, descripcion, precio, imagen, categoria_id, estado, stock, empresa_id) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)";
+                }
             }
             $stmt = $this->db->prepare($sql);
             $imagenGuardar = trim((string)$this->getImagen());
@@ -844,11 +879,14 @@ class Producto {
                 $this->getNombre(),
                 $this->getDescripcion(),
                 $this->getPrecio(),
-                $imagenGuardar,
-                $this->getCategoriaId(),
-                $this->getStock(),
-                $empresaId
             ];
+            if ($tienePrecioOriginal) {
+                $params[] = $this->getPrecio();
+            }
+            $params[] = $imagenGuardar;
+            $params[] = $this->getCategoriaId();
+            $params[] = $this->getStock();
+            $params[] = $empresaId;
             if ($tieneUsuarioId) {
                 $params[] = $usuarioId > 0 ? $usuarioId : null;
             }
@@ -1288,6 +1326,9 @@ class Producto {
 
             // Construimos la consulta de actualización
             // ahora sí permitimos modificar precio y stock si se proporcionan
+            if ($this->precio !== null) {
+                $this->precio = $this->obtenerPrecioMaximoHistorico((int)$this->id, (float)$this->precio);
+            }
             $sql = "UPDATE productos SET nombre = ?, descripcion = ?";
             $params = [
                 $this->nombre,
@@ -1298,6 +1339,11 @@ class Producto {
             if ($this->precio !== null) {
                 $sql .= ", precio = ?";
                 $params[] = $this->precio;
+                if ($tienePrecioOriginal) {
+                    $sql .= ", precio_original = CASE WHEN precio_original IS NULL OR precio_original < ? THEN ? ELSE precio_original END";
+                    $params[] = $this->precio;
+                    $params[] = $this->precio;
+                }
             }
 
             // stock

@@ -8,7 +8,7 @@
         initialized: false,
     };
 
-    const MIN_VISIBLE_MS = 220;
+    const MIN_VISIBLE_MS = 80;
     const FAILSAFE_MS = 8000;
     const INACTIVITY_TIMEOUT_MS = 60 * 60 * 1000; // 1 hora
     let inactivityTimeoutId = null;
