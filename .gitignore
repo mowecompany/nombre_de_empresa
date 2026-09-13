@@ -102,3 +102,4 @@ docs/generated/
 *.bak
 *.backup
 *~
+database/database.db

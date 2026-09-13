@@ -1866,3 +1866,7 @@
 [07-Sep-2026 19:34:14 America/Bogota] Conectando SQLite con DSN: sqlite:C:\xampp\htdocs\nombre_de_empresa\database\database.db
 [10-Sep-2026 22:45:13 America/Bogota] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php on line 124
 [11-Sep-2026 20:59:16 America/Bogota] No hay rol definido en la sesión
+[12-Sep-2026 23:55:58 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1417
+[12-Sep-2026 23:56:40 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1417
+[12-Sep-2026 23:56:59 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1417
+[13-Sep-2026 00:04:19 America/Bogota] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php on line 124

@@ -380,15 +380,15 @@ try {
                     throw new Exception('La referencia de la factura es requerida');
                 }
 
-                $itemsEliminarRaw = $_POST['items_eliminar'] ?? '[]';
-                $itemsEliminar = json_decode((string)$itemsEliminarRaw, true);
-                if (!is_array($itemsEliminar)) {
-                    $itemsEliminar = [];
+                $itemsActualizarRaw = $_POST['items_actualizar'] ?? $_POST['items_eliminar'] ?? '[]';
+                $itemsActualizar = json_decode((string)$itemsActualizarRaw, true);
+                if (!is_array($itemsActualizar)) {
+                    $itemsActualizar = [];
                 }
 
                 $resultado = $this->inventario->editarFacturaVenta([
                     'referencia' => $referencia,
-                    'items_eliminar' => $itemsEliminar
+                    'items_actualizar' => $itemsActualizar
                 ]);
 
                 echo json_encode($resultado);

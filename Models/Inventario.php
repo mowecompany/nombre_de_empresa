@@ -946,6 +946,7 @@ class Inventario {
             $filtrarPorUsuario = $this->debeFiltrarPorUsuario();
             $salidasTieneEmpresa = $this->tablaTieneEmpresaId('salidas_inventario');
             $salidasTieneUsuario = $this->tablaTieneUsuarioId('salidas_inventario');
+            $salidasTieneNotas = $this->columnaExiste('salidas_inventario', 'notas');
             // corregir registros existentes con tipo_salida vacío para que se traten como venta
             if ($salidasTieneEmpresa) {
                 if ($empresaId <= 0) {
@@ -1356,21 +1357,38 @@ class Inventario {
     public function editarFacturaVenta(array $datos): array {
         try {
             $referencia = trim((string)($datos['referencia'] ?? ''));
-            $itemsEliminar = [];
-            foreach ((array)($datos['items_eliminar'] ?? []) as $item) {
-                $id = (int)$item;
-                if ($id > 0) {
-                    $itemsEliminar[] = $id;
+            $itemsActualizarRaw = $datos['items_actualizar'] ?? $datos['items_eliminar'] ?? [];
+            $itemsActualizar = [];
+
+            foreach ((array)$itemsActualizarRaw as $item) {
+                if (is_array($item)) {
+                    $id = (int)($item['id'] ?? 0);
+                    $cantidad = isset($item['cantidad']) ? floatval($item['cantidad']) : 0;
+                    if ($id > 0) {
+                        $itemsActualizar[] = [
+                            'id' => $id,
+                            'cantidad' => max(0, $cantidad)
+                        ];
+                    }
+                } elseif (is_numeric($item)) {
+                    $id = (int)$item;
+                    if ($id > 0) {
+                        $itemsActualizar[] = [
+                            'id' => $id,
+                            'cantidad' => 0
+                        ];
+                    }
                 }
             }
-            $itemsEliminar = array_values(array_unique($itemsEliminar));
+
+            $itemsActualizar = array_values($itemsActualizar);
 
             if ($referencia === '') {
                 throw new Exception('La referencia de la factura es requerida');
             }
 
-            if (empty($itemsEliminar)) {
-                throw new Exception('No se seleccionó ningún producto para quitar de la factura');
+            if (empty($itemsActualizar)) {
+                throw new Exception('No se seleccionó ningún producto para ajustar');
             }
 
             $salidasTieneEmpresa = $this->tablaTieneEmpresaId('salidas_inventario');
@@ -1397,33 +1415,126 @@ class Inventario {
                 throw new Exception('No se encontró la factura indicada');
             }
 
-            $idsAEliminar = array_fill_keys($itemsEliminar, true);
-            $itemsEliminados = 0;
-
+            $filasPorId = [];
             foreach ($filasFactura as $fila) {
                 $idFila = (int)($fila['id'] ?? 0);
-                if (!isset($idsAEliminar[$idFila])) {
+                if ($idFila > 0) {
+                    $filasPorId[$idFila] = $fila;
+                }
+            }
+
+            $itemsActualizados = 0;
+            $unidadesDevueltas = 0;
+            $productosAjustados = [];
+
+            foreach ($itemsActualizar as $itemPedido) {
+                $idFila = (int)($itemPedido['id'] ?? 0);
+                $cantidadNueva = floatval($itemPedido['cantidad'] ?? 0);
+                $fila = $filasPorId[$idFila] ?? null;
+
+                if (!$fila) {
                     continue;
                 }
 
-                $cantidad = floatval($fila['cantidad'] ?? 0);
-                $productoId = (int)($fila['producto_id'] ?? 0);
-
-                if ($productoId > 0 && $cantidad > 0) {
-                    $stmtStock = $this->db->prepare("UPDATE productos SET stock = stock + :cantidad WHERE id = :producto_id");
-                    $stmtStock->execute([
-                        ':cantidad' => $cantidad,
-                        ':producto_id' => $productoId
-                    ]);
+                $cantidadOriginal = floatval($fila['cantidad'] ?? 0);
+                if ($cantidadNueva > $cantidadOriginal + 0.000001) {
+                    throw new Exception('No puedes aumentar una cantidad de una venta ya registrada. Solo puedes reducirla o quitarla.');
                 }
 
-                $stmtMovimientos = $this->db->prepare("DELETE FROM movimientos_inventario WHERE referencia_id = :referencia_id AND tipo_movimiento = 'salida'");
-                $stmtMovimientos->execute([':referencia_id' => $idFila]);
+                $cantidadDevuelta = $cantidadOriginal - $cantidadNueva;
+                $cantidadDevuelta = max(0, $cantidadDevuelta);
 
-                $stmtDelete = $this->db->prepare("DELETE FROM salidas_inventario WHERE id = :id");
-                $stmtDelete->execute([':id' => $idFila]);
+                if ($cantidadDevuelta > 0) {
+                    $productoId = (int)($fila['producto_id'] ?? 0);
+                    if ($productoId > 0) {
+                        $stmtStock = $this->db->prepare("UPDATE productos SET stock = stock + :cantidad WHERE id = :producto_id");
+                        $stmtStock->execute([
+                            ':cantidad' => $cantidadDevuelta,
+                            ':producto_id' => $productoId
+                        ]);
+                    }
+                    $unidadesDevueltas += $cantidadDevuelta;
+                }
 
-                $itemsEliminados++;
+                if ($cantidadNueva <= 0) {
+                    $stmtMovimientos = $this->db->prepare("DELETE FROM movimientos_inventario WHERE referencia_id = :referencia_id AND tipo_movimiento = 'salida'");
+                    $stmtMovimientos->execute([':referencia_id' => $idFila]);
+
+                    $stmtDelete = $this->db->prepare("DELETE FROM salidas_inventario WHERE id = :id");
+                    $stmtDelete->execute([':id' => $idFila]);
+                    $productosAjustados[] = $idFila;
+                    $itemsActualizados++;
+                    continue;
+                }
+
+                $precioVentaUnitario = floatval($fila['precio_venta_unitario'] ?? $fila['precio_venta'] ?? $fila['precio'] ?? 0);
+                if ($precioVentaUnitario <= 0 && !empty($fila['producto_id'])) {
+                    $stmtPrecio = $this->db->prepare("SELECT precio FROM productos WHERE id = :producto_id LIMIT 1");
+                    $stmtPrecio->execute([':producto_id' => $fila['producto_id']]);
+                    $precioVentaUnitario = floatval($stmtPrecio->fetchColumn() ?: 0);
+                }
+
+                $costoUnitario = floatval($fila['costo_unitario'] ?? 0);
+                if ($costoUnitario <= 0 && !empty($fila['producto_id'])) {
+                    $stmtCosto = $this->db->prepare("SELECT precio_compra FROM entradas_inventario WHERE producto_id = :producto_id ORDER BY fecha_entrada DESC LIMIT 1");
+                    $stmtCosto->execute([':producto_id' => $fila['producto_id']]);
+                    $costoUnitario = floatval($stmtCosto->fetchColumn() ?: 0);
+                }
+
+                $gananciaUnitaria = max(0, $precioVentaUnitario - $costoUnitario);
+                $porcentajeGanancia = $costoUnitario > 0 ? (($gananciaUnitaria / $costoUnitario) * 100) : 0;
+                $totalVenta = $precioVentaUnitario * $cantidadNueva;
+                $totalGanancia = $gananciaUnitaria * $cantidadNueva;
+
+                $sqlUpdate = "UPDATE salidas_inventario SET cantidad = :cantidad";
+                $paramsUpdate = [
+                    ':cantidad' => $cantidadNueva,
+                    ':id' => $idFila
+                ];
+
+                if ($this->columnaExiste('salidas_inventario', 'precio_venta_unitario')) {
+                    $sqlUpdate .= ", precio_venta_unitario = :precio_venta_unitario";
+                    $paramsUpdate[':precio_venta_unitario'] = $precioVentaUnitario;
+                }
+
+                if ($this->columnaExiste('salidas_inventario', 'total_venta')) {
+                    $sqlUpdate .= ", total_venta = :total_venta";
+                    $paramsUpdate[':total_venta'] = $totalVenta;
+                }
+
+                if ($this->columnaExiste('salidas_inventario', 'costo_unitario')) {
+                    $sqlUpdate .= ", costo_unitario = :costo_unitario";
+                    $paramsUpdate[':costo_unitario'] = $costoUnitario;
+                }
+
+                if ($this->columnaExiste('salidas_inventario', 'ganancia_unitaria')) {
+                    $sqlUpdate .= ", ganancia_unitaria = :ganancia_unitaria";
+                    $paramsUpdate[':ganancia_unitaria'] = $gananciaUnitaria;
+                }
+
+                if ($this->columnaExiste('salidas_inventario', 'porcentaje_ganancia')) {
+                    $sqlUpdate .= ", porcentaje_ganancia = :porcentaje_ganancia";
+                    $paramsUpdate[':porcentaje_ganancia'] = $porcentajeGanancia;
+                }
+
+                if ($this->columnaExiste('salidas_inventario', 'total_ganancia')) {
+                    $sqlUpdate .= ", total_ganancia = :total_ganancia";
+                    $paramsUpdate[':total_ganancia'] = $totalGanancia;
+                }
+
+                $sqlUpdate .= " WHERE id = :id";
+
+                $stmtUpdate = $this->db->prepare($sqlUpdate);
+                $stmtUpdate->execute($paramsUpdate);
+
+                $stmtMovimientos = $this->db->prepare("UPDATE movimientos_inventario SET cantidad = :cantidad, stock_nuevo = stock_anterior - :cantidad, fecha_movimiento = :fecha_movimiento WHERE referencia_id = :referencia_id AND tipo_movimiento = 'salida'");
+                $stmtMovimientos->execute([
+                    ':cantidad' => $cantidadNueva,
+                    ':fecha_movimiento' => date('Y-m-d H:i:s'),
+                    ':referencia_id' => $idFila
+                ]);
+
+                $itemsActualizados++;
             }
 
             if ($this->esSqlite()) {
@@ -1432,14 +1543,16 @@ class Inventario {
                 $this->db->commit();
             }
 
-            $mensaje = $itemsEliminados > 0
-                ? 'Factura actualizada correctamente. Se quitaron ' . $itemsEliminados . ' producto(s) del inventario.'
-                : 'No se encontró ningún producto seleccionado para quitar de la factura';
+            $mensaje = $itemsActualizados > 0
+                ? 'Factura actualizada correctamente. Se devolvieron ' . $unidadesDevueltas . ' unidad(es) al inventario.'
+                : 'No se encontraron cambios para aplicar';
 
             return [
-                'success' => $itemsEliminados > 0,
+                'success' => $itemsActualizados > 0,
                 'message' => $mensaje,
-                'items_eliminados' => $itemsEliminados
+                'items_actualizados' => $itemsActualizados,
+                'unidades_devueltas' => $unidadesDevueltas,
+                'productos_eliminados' => $productosAjustados
             ];
         } catch (Exception $e) {
             if ($this->esSqlite()) {

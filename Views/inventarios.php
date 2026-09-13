@@ -2344,7 +2344,7 @@ if (is_file($logoPdfPath)) {
 
     <!-- MODAL: DETALLES DE MOVIMIENTOS AGRUPADOS -->
     <div id="detallesMovimientosModal" class="modal">
-        <div class="modal-content" style="width: 90%; max-width: 900px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-content" style="width: min(95vw, 1100px); max-width: 1100px; max-height: 90vh; overflow-y: auto;">
             <div class="modal-header">
                 <h2 id="detallesModalTitle"><i class="fas fa-file-invoice"></i> DETALLES DE MOVIMIENTOS</h2>
                 <button class="close-btn" onclick="cerrarModal('detallesMovimientosModal')">&times;</button>
@@ -5058,6 +5058,7 @@ if (is_file($logoPdfPath)) {
         window.onclick = function(event) {
             const modal = event.target instanceof Element ? event.target.closest('.modal') : null;
             if (!modal) return;
+            if (event.target !== modal) return;
             const modalId = modal.id;
             if (modalId === 'entradaModal' || modalId === 'salidaModal') {
                 return;
@@ -6100,26 +6101,31 @@ if (is_file($logoPdfPath)) {
                 return;
             }
 
-            const modal = document.getElementById('detallesMovimientosModal');
             const content = document.getElementById('detallesMovimientosContent');
             const titleElement = document.getElementById('detallesModalTitle');
             titleElement.innerHTML = '<i class="fas fa-edit"></i> EDITAR FACTURA';
 
             const filas = grupo.items.map(item => {
                 const cantidad = parseFloat(item.cantidad || 0) || 0;
+                const id = Number(item.id || 0);
                 const precio = obtenerPrecioUnitarioSalidaItem(item);
                 const subtotal = obtenerSubtotalSalidaItem(item);
                 const imagen = item.producto_imagen ? `<img src="${resolveAppUrl('/Assets/images/productos/' + item.producto_imagen)}" style="max-width: 50px; max-height: 50px; object-fit: contain;">` : '<div style="width: 50px; height: 50px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">S/img</div>';
 
                 return `
-                    <tr>
-                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;"><input type="checkbox" name="itemEditarFactura" value="${Number(item.id || 0)}" data-producto="${escapeHtml(item.producto_nombre || '')}" data-cantidad="${cantidad}"></td>
-                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${imagen}</td>
-                        <td style="border: 1px solid #ddd; padding: 10px;">${(escapeHtml(item.producto_nombre) || '').toUpperCase()}</td>
-                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${(item.codigo || 'N/A').toUpperCase()}</td>
-                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${cantidad.toLocaleString('es-CO')}</td>
-                        <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">${formatoMonedaInventario(precio)}</td>
-                        <td style="border: 1px solid #ddd; padding: 10px; text-align: right; font-weight: bold;">${formatoMonedaInventario(subtotal)}</td>
+                    <tr data-precio-unitario="${precio}">
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">${imagen}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">${(escapeHtml(item.producto_nombre) || '').toUpperCase()}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">${(item.codigo || 'N/A').toUpperCase()}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">
+                            <div class="factura-cantidad-editor" style="display: inline-flex; align-items: center; gap: 4px; justify-content: center;">
+                                <button type="button" class="btn-action" data-step="-1" onclick="cambiarCantidadFacturaControl(this, -1)" title="Quitar 1" style="width: 28px; height: 28px; padding: 0; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">−</button>
+                                <input type="number" name="itemEditarFactura" value="${cantidad}" min="0" max="${cantidad}" step="1" data-id="${id}" data-original="${cantidad}" style="width: 56px; text-align: center; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; font-weight: 600; background: #fff; box-sizing: border-box;" oninput="validarCantidadFacturaControl(this)" onchange="validarCantidadFacturaControl(this)" />
+                                <button type="button" class="btn-action" data-step="1" onclick="cambiarCantidadFacturaControl(this, 1)" title="Agregar 1" style="width: 28px; height: 28px; padding: 0; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">+</button>
+                            </div>
+                        </td>
+                        <td class="factura-precio-unitario" style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">${formatoMonedaInventario(precio)}</td>
+                        <td class="factura-subtotal" style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle; font-weight: bold;">${formatoMonedaInventario(subtotal)}</td>
                     </tr>
                 `;
             }).join('');
@@ -6128,28 +6134,27 @@ if (is_file($logoPdfPath)) {
                 <div style="font-family: Arial, sans-serif; color: #333;">
                     <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #3591CA; padding-bottom: 15px;">
                         <h3 style="margin: 0; color: #3591CA;">Editar factura ${escapeHtml(referencia)}</h3>
-                        <p style="margin: 5px 0; font-size: 12px; color: #666;">Marca los productos que deseas quitar de la factura y luego guarda los cambios.</p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #666;">Ajusta la cantidad de cada producto. Si dejas el valor en 0, ese producto se elimina de la factura y regresa al inventario.</p>
                     </div>
                     <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
                         <thead>
                             <tr style="background-color: #f0f0f0;">
-                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center; width: 50px;">Quitar</th>
                                 <th style="border: 1px solid #ddd; padding: 10px; text-align: center; width: 60px;">Imagen</th>
-                                <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Producto</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Producto</th>
                                 <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Código</th>
-                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Cantidad</th>
-                                <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Precio Unit.</th>
-                                <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Subtotal</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center; min-width: 150px;">Cantidad</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Precio Unit.</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Subtotal</th>
                             </tr>
                         </thead>
-                        <tbody>${filas || '<tr><td colspan="7" style="padding: 14px; text-align: center;">No hay productos para editar.</td></tr>'}</tbody>
+                        <tbody>${filas || '<tr><td colspan="6" style="padding: 14px; text-align: center;">No hay productos para editar.</td></tr>'}</tbody>
                     </table>
-                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; display: flex; justify-content: flex-end; gap: 10px;">
-                        <button type="button" class="btn-action" onclick="cerrarModal('detallesMovimientosModal')" style="padding: 10px 20px; background-color: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+                        <button type="button" class="btn-nuevo" onclick="cerrarModal('detallesMovimientosModal')" style="padding: 8px 14px; background: #64748b; border-color: #64748b; font-size: 12px; line-height: 1.1;">
                             <i class="fas fa-times"></i> CANCELAR
                         </button>
-                        <button type="button" class="btn-action" onclick="guardarEdicionFacturaVenta('${String(referencia).replace(/'/g, "\\'")}')" style="padding: 10px 20px; background-color: #3591CA; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
-                            <i class="fas fa-save"></i> ACTUALIZAR FACTURA
+                        <button type="button" class="btn-nuevo" onclick="guardarEdicionFacturaVenta('${String(referencia).replace(/'/g, "\\'")}')" style="padding: 8px 14px; font-size: 12px; line-height: 1.1;">
+                            <i class="fas fa-save"></i> ACTUALIZAR
                         </button>
                     </div>
                 </div>
@@ -6158,24 +6163,61 @@ if (is_file($logoPdfPath)) {
             abrirModal('detallesMovimientosModal');
         }
 
-        async function guardarEdicionFacturaVenta(referencia) {
-            const seleccionados = Array.from(document.querySelectorAll('input[name="itemEditarFactura"]:checked'))
-                .map(input => Number(input.value))
-                .filter(id => Number.isFinite(id) && id > 0);
+        function cambiarCantidadFacturaControl(button, delta) {
+            const editor = button.closest('.factura-cantidad-editor');
+            if (!editor) return;
+            const input = editor.querySelector('input[name="itemEditarFactura"]');
+            if (!input) return;
 
-            if (!seleccionados.length) {
+            const original = Math.max(0, parseFloat(input.dataset.original || input.value || 0) || 0);
+            let nuevoValor = Math.max(0, parseFloat(input.value || 0) || 0);
+            nuevoValor = Math.min(Math.max(nuevoValor + delta, 0), original);
+            input.value = String(nuevoValor);
+            input.setAttribute('max', String(original));
+            input.dataset.nuevoValor = String(nuevoValor);
+        }
+
+        function validarCantidadFacturaControl(input) {
+            const original = Math.max(0, parseFloat(input.dataset.original || input.value || 0) || 0);
+            const valor = Math.max(0, Math.min(parseFloat(input.value || 0) || 0, original));
+            input.value = String(valor);
+
+            const fila = input.closest('tr');
+            if (!fila) return;
+
+            const precioUnitario = parseFloat(fila.dataset.precioUnitario || 0) || 0;
+            const subtotalCell = fila.querySelector('.factura-subtotal');
+            if (subtotalCell) {
+                const nuevoSubtotal = precioUnitario * valor;
+                subtotalCell.textContent = formatoMonedaInventario(nuevoSubtotal);
+            }
+        }
+
+        async function guardarEdicionFacturaVenta(referencia) {
+            const items = Array.from(document.querySelectorAll('input[name="itemEditarFactura"]'))
+                .map(input => {
+                    const id = Number(input.dataset.id || 0);
+                    const cantidad = Math.max(0, Math.min(parseFloat(input.value || 0) || 0, parseFloat(input.dataset.original || 0) || 0));
+                    return {
+                        id,
+                        cantidad
+                    };
+                })
+                .filter(item => Number.isFinite(item.id) && item.id > 0);
+
+            if (!items.length) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Selecciona productos',
-                    text: 'Debes marcar al menos un producto para quitarlo de la factura.'
+                    title: 'Sin cambios',
+                    text: 'No hay productos en la factura para actualizar.'
                 });
                 return;
             }
 
             const confirmacion = await Swal.fire({
                 icon: 'question',
-                title: '¿Editar factura?',
-                text: `Se quitarán ${seleccionados.length} producto(s) de la factura ${referencia}. El stock regresará al inventario.`,
+                title: '¿Actualizar factura?',
+                text: `Se ajustarán las cantidades de la factura ${referencia}. Si alguna queda en 0, ese producto regresará al inventario.`,
                 showCancelButton: true,
                 confirmButtonText: 'Sí, actualizar',
                 cancelButtonText: 'Cancelar'
@@ -6188,7 +6230,7 @@ if (is_file($logoPdfPath)) {
             const formData = new FormData();
             formData.append('action', 'editarFactura');
             formData.append('referencia', referencia);
-            formData.append('items_eliminar', JSON.stringify(seleccionados));
+            formData.append('items_actualizar', JSON.stringify(items));
 
             try {
                 const response = await fetch(inventarioControllerUrl, {
