@@ -6,52 +6,55 @@ if (!defined('ROOT_PATH')) {
 }
 
 require_once ROOT_PATH . '/Config/Config.php';
-require_once ROOT_PATH . '/Config/database.php';
-
-$conexionDb = Database::connect();
-$conexionDb->exec("CREATE TABLE IF NOT EXISTS conexiones_servidor (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ip TEXT NOT NULL,
-    puerto INTEGER NOT NULL,
-    estado TEXT NOT NULL DEFAULT 'no_conectado',
-    fecha INTEGER NOT NULL,
-    UNIQUE(ip, puerto)
-)");
 
 if (isset($_GET['conexion_api'])) {
     header('Content-Type: application/json; charset=UTF-8');
     $accion = (string)$_GET['conexion_api'];
 
-    if ($accion === 'listar') {
-        $stmt = $conexionDb->query('SELECT ip, puerto AS port, estado, fecha FROM conexiones_servidor ORDER BY fecha DESC LIMIT 8');
-        echo json_encode(['ok' => true, 'conexiones' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+    if ($accion === 'config') {
+        echo json_encode(['ok' => true, 'config' => read_connection_config()]);
+        exit;
+    }
+
+    if ($accion === 'red' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $ips = gethostbynamel(gethostname()) ?: [];
+        $ips = array_values(array_filter($ips, static fn($ip) => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) && !str_starts_with($ip, '127.') && !str_starts_with($ip, '169.254.')));
+        echo json_encode(['ok' => true, 'ips' => $ips]);
         exit;
     }
 
     if ($accion === 'guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $entrada = json_decode(file_get_contents('php://input'), true) ?: [];
-        $ip = trim((string)($entrada['ip'] ?? ''));
-        $puerto = filter_var($entrada['port'] ?? null, FILTER_VALIDATE_INT);
-        if ($ip === '' || !$puerto || $puerto < 1 || $puerto > 65535) {
+        $modo = (string)($entrada['mode'] ?? 'unconfigured');
+        $ip = trim((string)($entrada['server_ip'] ?? ''));
+        $lanIp = trim((string)($entrada['lan_ip'] ?? ''));
+        $puerto = filter_var($entrada['server_port'] ?? null, FILTER_VALIDATE_INT);
+        if (!in_array($modo, ['unconfigured', 'server', 'client'], true) || !$puerto || $puerto < 1 || $puerto > 65535 || ($modo === 'client' && !filter_var($ip, FILTER_VALIDATE_IP))) {
             http_response_code(400);
-            echo json_encode(['ok' => false, 'error' => 'IP o puerto inválido']);
+            echo json_encode(['ok' => false, 'error' => 'Modo, IP o puerto inválido']);
             exit;
         }
-        $stmt = $conexionDb->prepare("INSERT INTO conexiones_servidor (ip, puerto, estado, fecha)
-            VALUES (:ip, :puerto, 'conectado', :fecha)
-            ON CONFLICT(ip, puerto) DO UPDATE SET estado='conectado', fecha=excluded.fecha");
-        $stmt->execute([':ip' => $ip, ':puerto' => $puerto, ':fecha' => time() * 1000]);
-        $conexionDb->exec("UPDATE conexiones_servidor SET estado='no_conectado' WHERE NOT (ip = " . $conexionDb->quote($ip) . " AND puerto = " . (int)$puerto . ")");
-        echo json_encode(['ok' => true]);
+        if ($modo === 'server' && $lanIp !== '' && !filter_var($lanIp, FILTER_VALIDATE_IP)) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'La IP LAN seleccionada no es válida']);
+            exit;
+        }
+        $config = write_connection_config([
+            'mode' => $modo,
+            'server_ip' => $ip,
+            'server_port' => $puerto,
+            'lan_ip' => $lanIp
+        ]);
+        if (!$config) {
+            http_response_code(500);
+            echo json_encode(['ok' => false, 'error' => 'No se pudo guardar la configuración']);
+            exit;
+        }
+        echo json_encode(['ok' => true, 'config' => $config]);
         exit;
     }
 
-    if ($accion === 'eliminar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-        $entrada = json_decode(file_get_contents('php://input'), true) ?: [];
-        $ip = trim((string)($entrada['ip'] ?? ''));
-        $puerto = filter_var($entrada['port'] ?? null, FILTER_VALIDATE_INT);
-        $stmt = $conexionDb->prepare('DELETE FROM conexiones_servidor WHERE ip = :ip AND puerto = :puerto');
-        $stmt->execute([':ip' => $ip, ':puerto' => $puerto]);
+    if ($accion === 'eliminar') {
         echo json_encode(['ok' => true]);
         exit;
     }
@@ -404,8 +407,20 @@ $applicationPath = defined('APPLICATION_PATH') ? (string)APPLICATION_PATH : '';
         <section class="panel">
             <div class="form-grid">
                 <div class="field">
+                    <label for="conexionModoInput">Modo de instalación</label>
+                    <select id="conexionModoInput">
+                        <option value="unconfigured">SIN CONFIGURAR</option>
+                        <option value="server">SERVIDOR</option>
+                        <option value="client">CLIENTE</option>
+                    </select>
+                </div>
+                <div class="field">
                     <label for="conexionIpInput">IP del equipo principal</label>
-                    <input id="conexionIpInput" type="text" placeholder="Ejemplo: 192.168.1.239" autocomplete="off">
+                    <input id="conexionIpInput" type="text" placeholder="IP DEL SERVIDOR" autocomplete="off">
+                </div>
+                <div class="field" id="conexionLanField" style="display:none;">
+                    <label for="conexionLanInput">IP LAN de este servidor</label>
+                    <select id="conexionLanInput"><option value="">SELECCIONA UNA IP LAN</option></select>
                 </div>
                 <div class="field">
                     <label for="conexionPortInput">Puerto</label>
@@ -442,8 +457,11 @@ $applicationPath = defined('APPLICATION_PATH') ? (string)APPLICATION_PATH : '';
         const baseUrl = <?= json_encode((string)$baseUrl, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
         const applicationPath = <?= json_encode($applicationPath, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 
+        const modeInput = document.getElementById('conexionModoInput');
         const ipInput = document.getElementById('conexionIpInput');
         const portInput = document.getElementById('conexionPortInput');
+        const lanField = document.getElementById('conexionLanField');
+        const lanInput = document.getElementById('conexionLanInput');
         const listEl = document.getElementById('conexionLista');
         const countEl = document.getElementById('conexionesCount');
         let conexionEnCurso = false;
@@ -614,31 +632,7 @@ $applicationPath = defined('APPLICATION_PATH') ? (string)APPLICATION_PATH : '';
                         if (resultado?.ok) break;
                     }
                     if (!resultado?.ok) {
-                        if (typeof window.electronAPI.discoverRemoteServer !== 'function') {
-                            throw new Error(resultado?.error || 'El servidor no responde');
-                        }
-
-                        if (boton) boton.textContent = 'BUSCANDO EQUIPO PRINCIPAL...';
-                        const conexionesGuardadas = obtenerConexionesGuardadas();
-                        const candidatos = [ip, ...conexionesGuardadas.map((item) => item.ip)];
-                        const descubierto = await window.electronAPI.discoverRemoteServer({
-                            candidates: candidatos,
-                            excludeTargets: [`${ip}:${port}`],
-                            paths: obtenerRutasConexion().map((ruta) => `${ruta}/Views/login.php`)
-                        });
-                        if (!descubierto?.ok) {
-                            throw new Error(resultado?.error || 'El servidor no responde');
-                        }
-
-                        const nuevaEntrada = normalizarEntrada({
-                            ip: descubierto.ip,
-                            port: descubierto.port,
-                            fecha: Date.now(),
-                            estado: 'conectado'
-                        });
-                        await guardarConexionConectada(nuevaEntrada);
-                        window.location.href = construirUrlConexionConRuta(nuevaEntrada.ip, nuevaEntrada.port, nuevaEntrada.path || obtenerRutasConexion()[0]);
-                        return;
+                        throw new Error(resultado?.error || 'El servidor configurado no responde');
                     }
                 } else {
                     await fetch(destino, {
@@ -710,6 +704,109 @@ $applicationPath = defined('APPLICATION_PATH') ? (string)APPLICATION_PATH : '';
             ipInput.focus();
         }
 
+        function actualizarCamposModo() {
+            const esServidor = modeInput.value === 'server';
+            ipInput.disabled = esServidor;
+            ipInput.placeholder = esServidor ? 'IP LAN DEL SERVIDOR' : 'IP DEL SERVIDOR';
+            lanField.style.display = esServidor ? '' : 'none';
+            if (esServidor && lanInput.value) ipInput.value = lanInput.value;
+        }
+
+        async function cargarConfiguracionCentral() {
+            const respuesta = await fetch(`${baseUrl}/Views/conexion.php?conexion_api=config`, { cache: 'no-store' });
+            const datos = await respuesta.json();
+            if (!datos?.ok) throw new Error('No se pudo leer la configuración central');
+            const config = datos.config || {};
+            modeInput.value = config.mode || 'unconfigured';
+            ipInput.value = config.server_ip || '';
+            portInput.value = config.server_port || 80;
+            lanInput.value = config.lan_ip || '';
+            actualizarCamposModo();
+            if (modeInput.value === 'server') await cargarIpsLan();
+        }
+
+        async function cargarIpsLan() {
+            const respuesta = typeof window.electronAPI?.getLocalNetworkAddresses === 'function'
+                ? await window.electronAPI.getLocalNetworkAddresses().then((ips) => ({ ok: true, ips }))
+                : await fetch(`${baseUrl}/Views/conexion.php?conexion_api=red`, { cache: 'no-store' }).then((item) => item.json());
+            const ips = Array.isArray(respuesta?.ips) ? respuesta.ips : [];
+            const seleccionada = lanInput.value;
+            lanInput.innerHTML = '<option value="">SELECCIONA UNA IP LAN</option>';
+            ips.forEach((ip) => {
+                const option = document.createElement('option');
+                option.value = ip;
+                option.textContent = ip;
+                option.selected = ip === seleccionada;
+                lanInput.appendChild(option);
+            });
+            if (seleccionada && !ips.includes(seleccionada)) {
+                const option = document.createElement('option');
+                option.value = seleccionada;
+                option.textContent = seleccionada;
+                option.selected = true;
+                lanInput.appendChild(option);
+            }
+        }
+
+        function construirDestinoConfigurado(ip, port) {
+            const base = new URL(baseUrl);
+            const ruta = String(applicationPath || base.pathname.replace(/\/$/, '') || '').replace(/\/$/, '');
+            base.hostname = ip;
+            base.port = String(port);
+            base.pathname = `${ruta}/Views/login.php`;
+            base.search = '';
+            base.hash = '';
+            return base.toString();
+        }
+
+        async function comprobarDestinoConfigurado(destino) {
+            if (typeof window.electronAPI?.checkRemoteServer === 'function') {
+                return window.electronAPI.checkRemoteServer(destino);
+            }
+            const respuesta = await fetch(destino, { method: 'GET', cache: 'no-store', mode: 'no-cors' });
+            return { ok: respuesta.ok || respuesta.type === 'opaque' };
+        }
+
+        async function guardarYConectar() {
+            if (conexionEnCurso) return;
+            const modo = modeInput.value;
+            const puerto = normalizarPuerto(portInput.value);
+            const ip = modo === 'server' ? lanInput.value.trim() : ipInput.value.trim();
+            if (!['server', 'client'].includes(modo) || !ip || !puerto) {
+                Swal.fire({ icon: 'warning', title: 'CONFIGURACIÓN INCOMPLETA', text: 'Selecciona el modo, la IP del servidor y el puerto.' });
+                return;
+            }
+            conexionEnCurso = true;
+            const boton = document.getElementById('guardarConexionBtn');
+            if (boton) { boton.disabled = true; boton.textContent = 'GUARDANDO CONFIGURACIÓN...'; }
+            try {
+                const config = { mode: modo, server_ip: ip, server_port: Number(puerto), lan_ip: modo === 'server' ? ip : '' };
+                const guardado = typeof window.electronAPI?.saveConnectionConfig === 'function'
+                    ? await window.electronAPI.saveConnectionConfig(config)
+                    : await fetch(`${baseUrl}/Views/conexion.php?conexion_api=guardar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) }).then((respuesta) => respuesta.json());
+                if (!guardado?.ok) throw new Error(guardado?.error || 'No se pudo guardar la configuración');
+                if (modo === 'server') {
+                    await Swal.fire({ icon: 'success', title: 'SERVIDOR CONFIGURADO', text: guardado.requiresRestart ? 'Cierra y vuelve a abrir la aplicación para aplicar el modo servidor.' : 'La configuración del servidor fue guardada.' });
+                    return;
+                }
+                if (boton) boton.textContent = 'COMPROBANDO SERVIDOR CONFIGURADO...';
+                const destino = construirDestinoConfigurado(ip, puerto);
+                const resultado = await comprobarDestinoConfigurado(destino);
+                if (!resultado?.ok) throw new Error(resultado?.error || 'El servidor configurado no responde');
+                window.location.href = destino;
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'SERVIDOR NO DISPONIBLE', text: error.message || 'No se pudo conectar al servidor configurado.' });
+            } finally {
+                conexionEnCurso = false;
+                if (boton) { boton.disabled = false; boton.textContent = 'GUARDAR Y CONECTAR'; }
+            }
+        }
+
+        modeInput.addEventListener('change', async () => {
+            actualizarCamposModo();
+            if (modeInput.value === 'server') await cargarIpsLan();
+        });
+        lanInput.addEventListener('change', () => { if (modeInput.value === 'server') ipInput.value = lanInput.value; });
         document.getElementById('guardarConexionBtn').addEventListener('click', guardarYConectar);
         document.getElementById('limpiarConexionBtn').addEventListener('click', limpiarCampos);
         document.getElementById('refrescarConexionBtn').addEventListener('click', () => window.location.reload());
@@ -734,14 +831,11 @@ $applicationPath = defined('APPLICATION_PATH') ? (string)APPLICATION_PATH : '';
             document.getElementById('diagnosticPanel').style.display = 'none';
         });
 
-        cargarConexionesGuardadas().then(() => {
-            const ultimaConexion = conexionesGuardadas[0] || null;
-            ipInput.value = ultimaConexion ? ultimaConexion.ip : '';
-            portInput.value = ultimaConexion ? ultimaConexion.port : '';
-            renderListaConexiones();
-        }).catch((error) => {
-            console.error('No se pudieron cargar las conexiones desde la base de datos:', error);
-            renderListaConexiones();
+        cargarConfiguracionCentral().catch((error) => {
+            console.error('No se pudo cargar la configuración cliente-servidor:', error);
+            modeInput.value = 'unconfigured';
+            portInput.value = 80;
+            actualizarCamposModo();
         });
     </script>
 </body>

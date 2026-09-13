@@ -9,9 +9,9 @@ const os = require('os');
 const APP_NAME = 'AUTOSERVICIO MI ESTRELLA';
 const COMPANY_NAME = 'AUTOSERVICIO MI ESTRELLA';
 const SERVER_HOST = '127.0.0.1';
-const SERVER_BIND_HOST = '0.0.0.0';
-const DEFAULT_PORT = 8000;
-const MAX_PORT = 8010;
+const LAN_BIND_HOST = '0.0.0.0';
+const LOCAL_CLIENT_PORT = 8000;
+const DEFAULT_SERVER_PORT = 80;
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const ICON_PATH = path.join(PROJECT_ROOT, 'logo.ico');
 const FALLBACK_ICON_PATH = path.join(PROJECT_ROOT, 'electron', 'build', 'app_icon.ico');
@@ -77,9 +77,59 @@ function getBundledPhpPath() {
   return null;
 }
 
+function getConnectionConfigPath() {
+  return path.join(app.getPath('userData'), 'connection-config.json');
+}
+
+function readConnectionConfig() {
+  const defaults = {
+    mode: 'unconfigured',
+    server_ip: '',
+    server_port: DEFAULT_SERVER_PORT,
+    lan_ip: ''
+  };
+  const configPath = getConnectionConfigPath();
+  if (!fs.existsSync(configPath)) return defaults;
+  try {
+    const parsed = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const port = Number(parsed.server_port);
+    return {
+      mode: ['unconfigured', 'server', 'client'].includes(parsed.mode) ? parsed.mode : defaults.mode,
+      server_ip: String(parsed.server_ip || '').trim(),
+      server_port: Number.isInteger(port) && port >= 1 && port <= 65535 ? port : defaults.server_port,
+      lan_ip: String(parsed.lan_ip || '').trim()
+    };
+  } catch (error) {
+    console.warn('No se pudo leer la configuración cliente-servidor:', error.message);
+    return defaults;
+  }
+}
+
+function writeConnectionConfig(config) {
+  const port = Number(config.server_port);
+  const normalized = {
+    mode: ['unconfigured', 'server', 'client'].includes(config.mode) ? config.mode : 'unconfigured',
+    server_ip: String(config.server_ip || '').trim(),
+    server_port: Number.isInteger(port) && port >= 1 && port <= 65535 ? port : DEFAULT_SERVER_PORT,
+    lan_ip: String(config.lan_ip || '').trim()
+  };
+  const configPath = getConnectionConfigPath();
+  fs.mkdirSync(path.dirname(configPath), { recursive: true });
+  fs.writeFileSync(configPath, `${JSON.stringify(normalized, null, 2)}\n`, 'utf8');
+  connectionConfig = normalized;
+  return normalized;
+}
+
 let phpProcess = null;
 let mainWindow = null;
-let activePort = DEFAULT_PORT;
+let activePort = LOCAL_CLIENT_PORT;
+let activeBindHost = SERVER_HOST;
+let connectionConfig = {
+  mode: 'unconfigured',
+  server_ip: '',
+  server_port: DEFAULT_SERVER_PORT,
+  lan_ip: ''
+};
 let basculaSerial = null;
 let basculaBridgeServer = null;
 const basculaBridgeClients = new Set();
@@ -271,7 +321,7 @@ function locatePhpExecutable() {
   return null;
 }
 
-function isPortFree(port) {
+function isPortFree(port, host) {
   return new Promise((resolve) => {
     const server = net.createServer()
       .once('error', (err) => {
@@ -281,17 +331,8 @@ function isPortFree(port) {
       .once('listening', () => {
         server.close(() => resolve(true));
       })
-      .listen(port, SERVER_BIND_HOST);
+      .listen(port, host);
   });
-}
-
-async function findAvailablePort() {
-  for (let port = DEFAULT_PORT; port <= MAX_PORT; port += 1) {
-    if (await isPortFree(port)) {
-      return port;
-    }
-  }
-  throw new Error(`No hay puertos libres entre ${DEFAULT_PORT} y ${MAX_PORT}.`);
 }
 
 function waitForServerReady(port, timeout = 15000) {
@@ -380,6 +421,7 @@ function buildPhpEnvironment(port) {
     APP_BASE_URL: `http://${SERVER_HOST}:${port}`,
     APP_PORT: String(port),
     APP_MENU_MODE: isPortableBuild() ? 'portable' : 'full',
+    CONNECTION_CONFIG_PATH: getConnectionConfigPath(),
     DB_CONNECTION: process.env.DB_CONNECTION || 'sqlite',
     SQLITE_PATH: sqlitePath,
     DB_CHARSET: 'utf8mb4'
@@ -394,7 +436,7 @@ function isBundledPhpExecutable(phpExecutable) {
   return phpExecutable && phpExecutable.startsWith(bundledRoot);
 }
 
-function startPhpServer(port) {
+function startPhpServer(port, bindHost) {
   return new Promise((resolve, reject) => {
     const phpExecutable = locatePhpExecutable();
     if (!phpExecutable) {
@@ -411,7 +453,7 @@ function startPhpServer(port) {
       }
       phpArgs.push('-d', `extension_dir=${path.join(path.dirname(phpExecutable), 'ext')}`);
     }
-    phpArgs.push('-S', `${SERVER_BIND_HOST}:${port}`, '-t', PROJECT_ROOT);
+    phpArgs.push('-S', `${bindHost}:${port}`, '-t', PROJECT_ROOT);
 
     phpProcess = spawn(phpExecutable, phpArgs, {
       cwd: PROJECT_ROOT,
@@ -557,9 +599,15 @@ app.on('second-instance', () => {
 
 app.whenReady().then(async () => {
   try {
-    activePort = await findAvailablePort();
+    connectionConfig = readConnectionConfig();
+    const serverMode = connectionConfig.mode === 'server';
+    activePort = serverMode ? connectionConfig.server_port : LOCAL_CLIENT_PORT;
+    activeBindHost = serverMode ? LAN_BIND_HOST : SERVER_HOST;
+    if (!await isPortFree(activePort, activeBindHost)) {
+      throw new Error(`El puerto ${activePort} está ocupado para el modo ${serverMode ? 'servidor LAN' : 'servicio local'}.`);
+    }
     const serverUrl = `http://${SERVER_HOST}:${activePort}`;
-    await startPhpServer(activePort);
+    await startPhpServer(activePort, activeBindHost);
     createMainWindow(serverUrl);
   } catch (error) {
     showFatalError('No se pudo iniciar la aplicación.', error.message);
@@ -721,6 +769,26 @@ ipcMain.handle('open-external', async (_, url) => {
   await shell.openExternal(url);
 });
 
+ipcMain.handle('get-connection-config', async () => ({
+  ...connectionConfig,
+  path: getConnectionConfigPath()
+}));
+
+ipcMain.handle('save-connection-config', async (_, config = {}) => {
+  const saved = writeConnectionConfig(config);
+  return {
+    ok: true,
+    config: saved,
+    requiresRestart: saved.mode !== (activeBindHost === LAN_BIND_HOST ? 'server' : 'client')
+      || (saved.mode === 'server' && saved.server_port !== activePort)
+  };
+});
+
+ipcMain.handle('get-local-network-addresses', async () => Object.values(os.networkInterfaces())
+  .flatMap((interfaces) => interfaces || [])
+  .filter((item) => item.family === 'IPv4' && !item.internal && !item.address.startsWith('169.254.'))
+  .map((item) => item.address));
+
 ipcMain.handle('check-remote-server', async (_, rawUrl) => {
   const targetUrl = String(rawUrl || '').trim();
   const logPath = path.join(app.getPath('desktop'), 'autoservicio-connection-diagnostics.txt');
@@ -777,94 +845,6 @@ ipcMain.handle('check-remote-server', async (_, rawUrl) => {
       }
     }, 2500);
   });
-});
-
-function obtenerIpsLocales() {
-  return Object.values(os.networkInterfaces())
-    .flatMap((interfaces) => interfaces || [])
-    .filter((item) => item.family === 'IPv4' && !item.internal && !item.address.startsWith('169.254.'))
-    .map((item) => item.address);
-}
-
-function probarServidorLocal(ip, port, paths = ['/']) {
-  return new Promise((resolve) => {
-    const candidates = Array.isArray(paths) && paths.length > 0 ? paths : ['/'];
-    let index = 0;
-    const check = () => {
-      if (index >= candidates.length) {
-        resolve(null);
-        return;
-      }
-      const pathName = String(candidates[index++] || '/');
-      const request = http.get(`http://${ip}:${port}${pathName.startsWith('/') ? pathName : `/${pathName}`}`, { headers: { Connection: 'close' } }, (response) => {
-        response.resume();
-        response.once('end', () => {
-          if (response.statusCode >= 200 && response.statusCode < 400) {
-            resolve(pathName);
-          } else {
-            check();
-          }
-        });
-      });
-      request.setTimeout(450, () => {
-        request.destroy();
-        check();
-      });
-      request.once('error', check);
-    };
-    check();
-  });
-}
-
-ipcMain.handle('discover-remote-server', async (_, options = {}) => {
-  const excludedTargets = new Set(Array.isArray(options.excludeTargets) ? options.excludeTargets.map(String) : []);
-  const paths = Array.isArray(options.paths) && options.paths.length > 0 ? options.paths : ['/'];
-  const localIps = obtenerIpsLocales();
-  const candidates = [];
-
-  const addCandidate = (ip) => {
-    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(ip) && !candidates.includes(ip)) candidates.push(ip);
-  };
-
-  for (const ip of Array.isArray(options.candidates) ? options.candidates : []) {
-    addCandidate(String(ip));
-  }
-
-  for (const localIp of localIps) {
-    const octets = localIp.split('.');
-    if (octets.length !== 4) continue;
-    const prefix = octets.slice(0, 3).join('.');
-    for (let host = 1; host <= 254; host += 1) {
-      const ip = `${prefix}.${host}`;
-      if (!localIps.includes(ip)) addCandidate(ip);
-    }
-  }
-
-  const ports = [80, ...Array.from({ length: MAX_PORT - DEFAULT_PORT + 1 }, (_, index) => DEFAULT_PORT + index)];
-  const pending = candidates.flatMap((ip) => ports.map((port) => ({ ip, port })));
-  const concurrency = 64;
-  let cursor = 0;
-  let found = null;
-
-  const worker = async () => {
-    while (!found) {
-      const index = cursor++;
-      if (index >= pending.length) return;
-      const candidate = pending[index];
-      if (excludedTargets.has(`${candidate.ip}:${candidate.port}`)) continue;
-      const pathName = await probarServidorLocal(candidate.ip, candidate.port, paths);
-      if (pathName) {
-        found = { ...candidate, path: pathName.replace(/\/Views\/login\.php$/, '') };
-        return;
-      }
-    }
-  };
-
-  await Promise.race([
-    Promise.all(Array.from({ length: Math.min(concurrency, pending.length) }, worker)),
-    new Promise((resolve) => setTimeout(resolve, 12000))
-  ]);
-  return found ? { ok: true, ...found } : { ok: false };
 });
 
 ipcMain.handle('get-connection-diagnostics', async () => {

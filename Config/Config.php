@@ -107,7 +107,10 @@ if (!defined('APP_MENU_MODE')) {
 // Configuración local del vínculo cliente-servidor. Cada instalación tiene su propio archivo.
 if (!defined('CONNECTION_CONFIG_PATH')) {
     $connectionConfigPath = config_env('CONNECTION_CONFIG_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'connection-config.json');
-    if (!preg_match('/^(?:[a-zA-Z]:\\|\\|\/)/', $connectionConfigPath)) {
+    $isAbsoluteConnectionPath = preg_match('/^[a-zA-Z]:[\\\\\/]/', $connectionConfigPath) === 1
+        || str_starts_with($connectionConfigPath, '/')
+        || str_starts_with($connectionConfigPath, '\\');
+    if (!$isAbsoluteConnectionPath) {
         $connectionConfigPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . ltrim($connectionConfigPath, '\\/ .');
     }
     define('CONNECTION_CONFIG_PATH', str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $connectionConfigPath));

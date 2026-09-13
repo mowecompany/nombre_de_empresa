@@ -77,6 +77,9 @@
         if ($documentRoot !== '' && $rootPath !== '' && str_starts_with($rootPath, $documentRoot . '/')) {
             return '/' . trim(substr($rootPath, strlen($documentRoot)), '/');
         }
+        if ($documentRoot !== '' && $rootPath === $documentRoot) {
+            return '';
+        }
         $projectName = basename($rootPath);
         return $projectName !== '' && $projectName !== '.' ? '/' . $projectName : '';
     }
