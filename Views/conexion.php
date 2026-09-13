@@ -6,8 +6,63 @@ if (!defined('ROOT_PATH')) {
 }
 
 require_once ROOT_PATH . '/Config/Config.php';
+require_once ROOT_PATH . '/Config/database.php';
+
+$conexionDb = Database::connect();
+$conexionDb->exec("CREATE TABLE IF NOT EXISTS conexiones_servidor (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip TEXT NOT NULL,
+    puerto INTEGER NOT NULL,
+    estado TEXT NOT NULL DEFAULT 'no_conectado',
+    fecha INTEGER NOT NULL,
+    UNIQUE(ip, puerto)
+)");
+
+if (isset($_GET['conexion_api'])) {
+    header('Content-Type: application/json; charset=UTF-8');
+    $accion = (string)$_GET['conexion_api'];
+
+    if ($accion === 'listar') {
+        $stmt = $conexionDb->query('SELECT ip, puerto AS port, estado, fecha FROM conexiones_servidor ORDER BY fecha DESC LIMIT 8');
+        echo json_encode(['ok' => true, 'conexiones' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+        exit;
+    }
+
+    if ($accion === 'guardar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $entrada = json_decode(file_get_contents('php://input'), true) ?: [];
+        $ip = trim((string)($entrada['ip'] ?? ''));
+        $puerto = filter_var($entrada['port'] ?? null, FILTER_VALIDATE_INT);
+        if ($ip === '' || !$puerto || $puerto < 1 || $puerto > 65535) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'IP o puerto inválido']);
+            exit;
+        }
+        $stmt = $conexionDb->prepare("INSERT INTO conexiones_servidor (ip, puerto, estado, fecha)
+            VALUES (:ip, :puerto, 'conectado', :fecha)
+            ON CONFLICT(ip, puerto) DO UPDATE SET estado='conectado', fecha=excluded.fecha");
+        $stmt->execute([':ip' => $ip, ':puerto' => $puerto, ':fecha' => time() * 1000]);
+        $conexionDb->exec("UPDATE conexiones_servidor SET estado='no_conectado' WHERE NOT (ip = " . $conexionDb->quote($ip) . " AND puerto = " . (int)$puerto . ")");
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+
+    if ($accion === 'eliminar' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $entrada = json_decode(file_get_contents('php://input'), true) ?: [];
+        $ip = trim((string)($entrada['ip'] ?? ''));
+        $puerto = filter_var($entrada['port'] ?? null, FILTER_VALIDATE_INT);
+        $stmt = $conexionDb->prepare('DELETE FROM conexiones_servidor WHERE ip = :ip AND puerto = :puerto');
+        $stmt->execute([':ip' => $ip, ':puerto' => $puerto]);
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'error' => 'Acción de conexión no válida']);
+    exit;
+}
 
 $baseUrl = rtrim((string)base_url(), '/');
+$applicationPath = defined('APPLICATION_PATH') ? (string)APPLICATION_PATH : '';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -354,7 +409,7 @@ $baseUrl = rtrim((string)base_url(), '/');
                 </div>
                 <div class="field">
                     <label for="conexionPortInput">Puerto</label>
-                    <input id="conexionPortInput" type="number" min="1" max="65535" placeholder="8000" autocomplete="off">
+                    <input id="conexionPortInput" type="number" min="1" max="65535" placeholder="Puerto del servidor" autocomplete="off">
                 </div>
             </div>
 
@@ -384,21 +439,21 @@ $baseUrl = rtrim((string)base_url(), '/');
     </main>
 
     <script>
-        const STORAGE_KEY = 'autoservicioServidorConexiones';
-        const LEGACY_STORAGE_KEY = 'autoservicioServidorIp';
         const baseUrl = <?= json_encode((string)$baseUrl, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+        const applicationPath = <?= json_encode($applicationPath, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 
         const ipInput = document.getElementById('conexionIpInput');
         const portInput = document.getElementById('conexionPortInput');
         const listEl = document.getElementById('conexionLista');
         const countEl = document.getElementById('conexionesCount');
+        let conexionEnCurso = false;
 
         function normalizarPuerto(valor) {
             const raw = String(valor ?? '').trim();
-            if (raw === '') return '8000';
+            if (raw === '') return '';
             const numero = Number(raw);
             if (!Number.isInteger(numero) || numero < 1 || numero > 65535) {
-                return '8000';
+                return '';
             }
             return String(numero);
         }
@@ -410,9 +465,9 @@ $baseUrl = rtrim((string)base_url(), '/');
                 .replace(/\/+$/, '')
                 .split('/')[0];
 
-            const port = normalizarPuerto(item?.port || '8000');
+            const port = normalizarPuerto(item?.port);
 
-            if (!ip) {
+            if (!ip || !port) {
                 return null;
             }
 
@@ -424,49 +479,46 @@ $baseUrl = rtrim((string)base_url(), '/');
             };
         }
 
+        let conexionesGuardadas = [];
+
         function obtenerConexionesGuardadas() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                const parsed = raw ? JSON.parse(raw) : [];
-                const normalized = Array.isArray(parsed)
-                    ? parsed
-                        .map((item) => normalizarEntrada(item))
-                        .filter(Boolean)
-                    : [];
-
-                if (normalized.length > 0) {
-                    return normalized.sort((a, b) => b.fecha - a.fecha).slice(0, 8);
-                }
-
-                const legacyIp = localStorage.getItem(LEGACY_STORAGE_KEY);
-                if (!legacyIp) {
-                    return [];
-                }
-
-                const legacyEntry = normalizarEntrada({ ip: legacyIp, port: '8000', fecha: Date.now() });
-                return legacyEntry ? [legacyEntry] : [];
-            } catch (error) {
-                console.warn('No se pudieron cargar las conexiones guardadas:', error);
-                return [];
-            }
+            return conexionesGuardadas;
         }
 
-        function guardarConexionesGuardadas(conexiones) {
-            try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(conexiones.slice(0, 8)));
-            } catch (error) {
-                console.warn('No se pudo guardar la lista de conexiones:', error);
-            }
+        async function cargarConexionesGuardadas() {
+            const respuesta = await fetch(`${baseUrl}/Views/conexion.php?conexion_api=listar`, { cache: 'no-store' });
+            const datos = await respuesta.json();
+            conexionesGuardadas = Array.isArray(datos.conexiones)
+                ? datos.conexiones.map(normalizarEntrada).filter(Boolean)
+                : [];
+        }
+
+        async function guardarConexionesGuardadas(entrada) {
+            await fetch(`${baseUrl}/Views/conexion.php?conexion_api=guardar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(entrada)
+            });
+            await cargarConexionesGuardadas();
         }
 
         function construirUrlConexion(ip, port) {
+            return construirUrlConexionConRuta(ip, port, obtenerRutasConexion()[0]);
+        }
+
+        function obtenerRutasConexion() {
             const baseUrlObj = new URL(baseUrl);
-            const basePath = Number(port) === 80 || Number(port) === 443
-                ? '/nombre_de_empresa'
-                : baseUrlObj.pathname.replace(/\/$/, '');
+            const rutas = [baseUrlObj.pathname.replace(/\/$/, ''), applicationPath]
+                .map((ruta) => String(ruta || '').trim().replace(/\/$/, ''))
+                .filter((ruta, index, lista) => lista.indexOf(ruta) === index);
+            return rutas.length > 0 ? rutas : [''];
+        }
+
+        function construirUrlConexionConRuta(ip, port, basePath) {
+            const baseUrlObj = new URL(baseUrl);
             baseUrlObj.hostname = ip;
             baseUrlObj.port = String(port);
-            baseUrlObj.pathname = `${basePath}/Views/login.php`;
+            baseUrlObj.pathname = `${basePath || ''}/Views/login.php`;
             baseUrlObj.search = '';
             baseUrlObj.hash = '';
             return baseUrlObj.toString();
@@ -528,23 +580,20 @@ $baseUrl = rtrim((string)base_url(), '/');
             const entrada = normalizarEntrada({ ip, port, fecha: Date.now(), estado: 'conectado' });
             if (!entrada) return;
 
-            const conexiones = obtenerConexionesGuardadas()
-                .filter((item) => !(item.ip === entrada.ip && item.port === entrada.port))
-                .map((item) => ({ ...item, estado: 'no_conectado' }));
-
-            const actualizadas = [{ ...entrada, estado: 'conectado' }, ...conexiones].slice(0, 8);
-            guardarConexionesGuardadas(actualizadas);
-
-            localStorage.setItem(LEGACY_STORAGE_KEY, entrada.ip);
-
             ipInput.value = entrada.ip;
             portInput.value = entrada.port;
 
-            renderListaConexiones();
             conectarConComprobacion(entrada.ip, entrada.port);
         }
 
+        async function guardarConexionConectada(entrada) {
+            await guardarConexionesGuardadas(entrada);
+            renderListaConexiones();
+        }
+
         async function conectarConComprobacion(ip, port) {
+            if (conexionEnCurso) return;
+            conexionEnCurso = true;
             const boton = document.getElementById('guardarConexionBtn');
             const textoOriginal = boton ? boton.textContent : '';
             if (boton) {
@@ -555,16 +604,28 @@ $baseUrl = rtrim((string)base_url(), '/');
             const controlador = new AbortController();
             const temporizador = window.setTimeout(() => controlador.abort(), 5000);
             try {
-                const destino = construirUrlConexion(ip, port);
+                let puertoConectado = port;
+                let destino = '';
                 if (typeof window.electronAPI?.checkRemoteServer === 'function') {
-                    const resultado = await window.electronAPI.checkRemoteServer(destino);
+                    let resultado = { ok: false };
+                    for (const ruta of obtenerRutasConexion()) {
+                        destino = construirUrlConexionConRuta(ip, puertoConectado, ruta);
+                        resultado = await window.electronAPI.checkRemoteServer(destino);
+                        if (resultado?.ok) break;
+                    }
                     if (!resultado?.ok) {
                         if (typeof window.electronAPI.discoverRemoteServer !== 'function') {
                             throw new Error(resultado?.error || 'El servidor no responde');
                         }
 
                         if (boton) boton.textContent = 'BUSCANDO EQUIPO PRINCIPAL...';
-                        const descubierto = await window.electronAPI.discoverRemoteServer({ excludeIps: [ip] });
+                        const conexionesGuardadas = obtenerConexionesGuardadas();
+                        const candidatos = [ip, ...conexionesGuardadas.map((item) => item.ip)];
+                        const descubierto = await window.electronAPI.discoverRemoteServer({
+                            candidates: candidatos,
+                            excludeTargets: [`${ip}:${port}`],
+                            paths: obtenerRutasConexion().map((ruta) => `${ruta}/Views/login.php`)
+                        });
                         if (!descubierto?.ok) {
                             throw new Error(resultado?.error || 'El servidor no responde');
                         }
@@ -575,12 +636,8 @@ $baseUrl = rtrim((string)base_url(), '/');
                             fecha: Date.now(),
                             estado: 'conectado'
                         });
-                        const conexionesEncontradas = obtenerConexionesGuardadas()
-                            .filter((item) => !(item.ip === nuevaEntrada.ip && item.port === nuevaEntrada.port))
-                            .map((item) => ({ ...item, estado: 'no_conectado' }));
-                        guardarConexionesGuardadas([{ ...nuevaEntrada, estado: 'conectado' }, ...conexionesEncontradas].slice(0, 8));
-                        localStorage.setItem(LEGACY_STORAGE_KEY, nuevaEntrada.ip);
-                        window.location.href = construirUrlConexion(nuevaEntrada.ip, nuevaEntrada.port);
+                        await guardarConexionConectada(nuevaEntrada);
+                        window.location.href = construirUrlConexionConRuta(nuevaEntrada.ip, nuevaEntrada.port, nuevaEntrada.path || obtenerRutasConexion()[0]);
                         return;
                     }
                 } else {
@@ -591,7 +648,8 @@ $baseUrl = rtrim((string)base_url(), '/');
                         signal: controlador.signal
                     });
                 }
-                window.location.href = construirUrlConexion(ip, port);
+                await guardarConexionConectada(normalizarEntrada({ ip, port: puertoConectado, fecha: Date.now(), estado: 'conectado' }));
+                window.location.href = destino || construirUrlConexion(ip, puertoConectado);
             } catch (error) {
                 if (typeof Swal !== 'undefined' && Swal.fire) {
                     Swal.fire({
@@ -610,17 +668,16 @@ $baseUrl = rtrim((string)base_url(), '/');
                 }
             } finally {
                 window.clearTimeout(temporizador);
+                conexionEnCurso = false;
             }
         }
 
         function eliminarConexion(ip, port) {
-            const conexiones = obtenerConexionesGuardadas()
-                .filter((item) => !(item.ip === ip && item.port === port));
-            guardarConexionesGuardadas(conexiones);
-            if (localStorage.getItem(LEGACY_STORAGE_KEY) === ip) {
-                localStorage.removeItem(LEGACY_STORAGE_KEY);
-            }
-            renderListaConexiones();
+            fetch(`${baseUrl}/Views/conexion.php?conexion_api=eliminar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip, port })
+            }).then(cargarConexionesGuardadas).then(renderListaConexiones);
         }
 
         function guardarYConectar() {
@@ -632,7 +689,7 @@ $baseUrl = rtrim((string)base_url(), '/');
 
             const port = normalizarPuerto(portInput.value);
 
-            if (!ip) {
+            if (!ip || !port) {
                 ipInput.focus();
                 return;
             }
@@ -643,21 +700,13 @@ $baseUrl = rtrim((string)base_url(), '/');
                 return;
             }
 
-            const conexiones = obtenerConexionesGuardadas()
-                .filter((item) => !(item.ip === entrada.ip && item.port === entrada.port))
-                .map((item) => ({ ...item, estado: 'no_conectado' }));
-
-            const actualizadas = [{ ...entrada, estado: 'conectado' }, ...conexiones].slice(0, 8);
-            guardarConexionesGuardadas(actualizadas);
-            localStorage.setItem(LEGACY_STORAGE_KEY, entrada.ip);
-
             renderListaConexiones();
             conectarConComprobacion(entrada.ip, entrada.port);
         }
 
         function limpiarCampos() {
             ipInput.value = '';
-            portInput.value = '8000';
+            portInput.value = '';
             ipInput.focus();
         }
 
@@ -685,13 +734,15 @@ $baseUrl = rtrim((string)base_url(), '/');
             document.getElementById('diagnosticPanel').style.display = 'none';
         });
 
-        const conexiones = obtenerConexionesGuardadas();
-        const ultimaConexion = conexiones[0] || null;
-
-        ipInput.value = ultimaConexion ? ultimaConexion.ip : localStorage.getItem(LEGACY_STORAGE_KEY) || '';
-        portInput.value = ultimaConexion ? ultimaConexion.port : '8000';
-
-        renderListaConexiones();
+        cargarConexionesGuardadas().then(() => {
+            const ultimaConexion = conexionesGuardadas[0] || null;
+            ipInput.value = ultimaConexion ? ultimaConexion.ip : '';
+            portInput.value = ultimaConexion ? ultimaConexion.port : '';
+            renderListaConexiones();
+        }).catch((error) => {
+            console.error('No se pudieron cargar las conexiones desde la base de datos:', error);
+            renderListaConexiones();
+        });
     </script>
 </body>
 </html>

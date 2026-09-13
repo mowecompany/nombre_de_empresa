@@ -33,6 +33,7 @@ $rolSesionInicial = normalizarNombreRol($rolNombre);
 $esClienteSesionDashboard = ($rolSesionInicial === 'cliente');
 $appMenuMode = defined('APP_MENU_MODE') ? strtolower((string)APP_MENU_MODE) : 'full';
 $modoMenuPortable = $appMenuMode === 'portable';
+$dashboardApplicationPath = defined('APPLICATION_PATH') ? (string)APPLICATION_PATH : '';
 $esSuperAdminRolSesion = in_array($rolSesionInicial, ['superadministrador', 'super administrador'], true);
 $esSuperAdminGlobalSesion = $esSuperAdminRolSesion
     && PermisosHelper::esSuperAdminSesion()
@@ -13627,9 +13628,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
         function construirUrlConexion(ip, port) {
             const currentUrl = new URL(window.location.href);
-            const basePath = Number(port) === 80 || Number(port) === 443
-                ? '/nombre_de_empresa'
-                : currentUrl.pathname.split('/Views/')[0].replace(/\/$/, '');
+            const currentPath = currentUrl.pathname.split('/Views/')[0].replace(/\/$/, '');
+            const basePath = currentPath || <?= json_encode($dashboardApplicationPath, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
             return `${currentUrl.protocol}//${ip}:${port}${basePath}/Views/login.php`;
         }
 

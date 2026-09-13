@@ -104,6 +104,15 @@ if (!defined('APP_MENU_MODE')) {
     define('APP_MENU_MODE', config_env('APP_MENU_MODE', 'full'));
 }
 
+// Configuración local del vínculo cliente-servidor. Cada instalación tiene su propio archivo.
+if (!defined('CONNECTION_CONFIG_PATH')) {
+    $connectionConfigPath = config_env('CONNECTION_CONFIG_PATH', __DIR__ . DIRECTORY_SEPARATOR . 'connection-config.json');
+    if (!preg_match('/^(?:[a-zA-Z]:\\|\\|\/)/', $connectionConfigPath)) {
+        $connectionConfigPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . ltrim($connectionConfigPath, '\\/ .');
+    }
+    define('CONNECTION_CONFIG_PATH', str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $connectionConfigPath));
+}
+
 // Ruta de log para errores de PHP
 if (!defined('LOG_PATH')) {
     $logPath = config_env('LOG_PATH', dirname(__DIR__) . '/storage/logs/php.log');

@@ -751,7 +751,7 @@ ipcMain.handle('check-remote-server', async (_, rawUrl) => {
       response.resume();
       response.once('end', () => {
         const result = {
-          ok: response.statusCode >= 200 && response.statusCode < 500,
+          ok: response.statusCode >= 200 && response.statusCode < 400,
           status: response.statusCode || 0
         };
         writeLog(`Resultado: HTTP ${result.status} ${result.ok ? 'OK' : 'ERROR'}`);
@@ -759,8 +759,8 @@ ipcMain.handle('check-remote-server', async (_, rawUrl) => {
       });
     });
 
-    request.setTimeout(5000, () => {
-      writeLog('Resultado: TIMEOUT después de 5000 ms');
+    request.setTimeout(2000, () => {
+      writeLog('Resultado: TIMEOUT después de 2000 ms');
       request.destroy();
       finish({ ok: false, status: 0, error: 'Tiempo de espera agotado' });
     });
@@ -771,11 +771,11 @@ ipcMain.handle('check-remote-server', async (_, rawUrl) => {
 
     setTimeout(() => {
       if (!settled) {
-        writeLog('Resultado: TIMEOUT global después de 6000 ms');
+        writeLog('Resultado: TIMEOUT global después de 2500 ms');
         request.destroy();
         finish({ ok: false, status: 0, error: 'Tiempo de espera agotado' });
       }
-    }, 6000);
+    }, 2500);
   });
 });
 
@@ -786,24 +786,49 @@ function obtenerIpsLocales() {
     .map((item) => item.address);
 }
 
-function probarServidorLocal(ip, port, timeout = 450) {
+function probarServidorLocal(ip, port, paths = ['/']) {
   return new Promise((resolve) => {
-    const request = http.get(`http://${ip}:${port}/Views/login.php`, { headers: { Connection: 'close' } }, (response) => {
-      response.resume();
-      response.once('end', () => resolve(response.statusCode >= 200 && response.statusCode < 500));
-    });
-    request.setTimeout(timeout, () => {
-      request.destroy();
-      resolve(false);
-    });
-    request.once('error', () => resolve(false));
+    const candidates = Array.isArray(paths) && paths.length > 0 ? paths : ['/'];
+    let index = 0;
+    const check = () => {
+      if (index >= candidates.length) {
+        resolve(null);
+        return;
+      }
+      const pathName = String(candidates[index++] || '/');
+      const request = http.get(`http://${ip}:${port}${pathName.startsWith('/') ? pathName : `/${pathName}`}`, { headers: { Connection: 'close' } }, (response) => {
+        response.resume();
+        response.once('end', () => {
+          if (response.statusCode >= 200 && response.statusCode < 400) {
+            resolve(pathName);
+          } else {
+            check();
+          }
+        });
+      });
+      request.setTimeout(450, () => {
+        request.destroy();
+        check();
+      });
+      request.once('error', check);
+    };
+    check();
   });
 }
 
 ipcMain.handle('discover-remote-server', async (_, options = {}) => {
-  const excludedIps = new Set(Array.isArray(options.excludeIps) ? options.excludeIps.map(String) : []);
+  const excludedTargets = new Set(Array.isArray(options.excludeTargets) ? options.excludeTargets.map(String) : []);
+  const paths = Array.isArray(options.paths) && options.paths.length > 0 ? options.paths : ['/'];
   const localIps = obtenerIpsLocales();
   const candidates = [];
+
+  const addCandidate = (ip) => {
+    if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(ip) && !candidates.includes(ip)) candidates.push(ip);
+  };
+
+  for (const ip of Array.isArray(options.candidates) ? options.candidates : []) {
+    addCandidate(String(ip));
+  }
 
   for (const localIp of localIps) {
     const octets = localIp.split('.');
@@ -811,11 +836,11 @@ ipcMain.handle('discover-remote-server', async (_, options = {}) => {
     const prefix = octets.slice(0, 3).join('.');
     for (let host = 1; host <= 254; host += 1) {
       const ip = `${prefix}.${host}`;
-      if (!excludedIps.has(ip) && !localIps.includes(ip)) candidates.push(ip);
+      if (!localIps.includes(ip)) addCandidate(ip);
     }
   }
 
-  const ports = Array.from({ length: MAX_PORT - DEFAULT_PORT + 1 }, (_, index) => DEFAULT_PORT + index);
+  const ports = [80, ...Array.from({ length: MAX_PORT - DEFAULT_PORT + 1 }, (_, index) => DEFAULT_PORT + index)];
   const pending = candidates.flatMap((ip) => ports.map((port) => ({ ip, port })));
   const concurrency = 64;
   let cursor = 0;
@@ -826,14 +851,19 @@ ipcMain.handle('discover-remote-server', async (_, options = {}) => {
       const index = cursor++;
       if (index >= pending.length) return;
       const candidate = pending[index];
-      if (await probarServidorLocal(candidate.ip, candidate.port)) {
-        found = candidate;
+      if (excludedTargets.has(`${candidate.ip}:${candidate.port}`)) continue;
+      const pathName = await probarServidorLocal(candidate.ip, candidate.port, paths);
+      if (pathName) {
+        found = { ...candidate, path: pathName.replace(/\/Views\/login\.php$/, '') };
         return;
       }
     }
   };
 
-  await Promise.all(Array.from({ length: Math.min(concurrency, pending.length) }, worker));
+  await Promise.race([
+    Promise.all(Array.from({ length: Math.min(concurrency, pending.length) }, worker)),
+    new Promise((resolve) => setTimeout(resolve, 12000))
+  ]);
   return found ? { ok: true, ...found } : { ok: false };
 });
 

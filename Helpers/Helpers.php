@@ -43,34 +43,49 @@
         define('ROOT_PATH', dirname(__DIR__));
     }
     
-    // Definir URL base flexible
-    $appBaseUrl = getenv('APP_BASE_URL');
-    if ($appBaseUrl === false || trim($appBaseUrl) === '') {
-        $httpHost = strtolower(trim($_SERVER['HTTP_HOST'] ?? ''));
-        $basePath = '';
+    // Detecta la ruta publicada sin depender del nombre de la carpeta ni del puerto.
+    function application_base_path(): string
+    {
+        $documentRoot = str_replace('\\', '/', rtrim(trim((string)($_SERVER['DOCUMENT_ROOT'] ?? '')), '/'));
+        $rootPath = str_replace('\\', '/', rtrim((string)ROOT_PATH, '/'));
 
-        $documentRoot = trim((string)($_SERVER['DOCUMENT_ROOT'] ?? ''));
-        $rootPathNormalized = str_replace('\\', '/', rtrim((string)ROOT_PATH, '/'));
-        $documentRootNormalized = str_replace('\\', '/', rtrim($documentRoot, '/'));
-
-        if ($documentRootNormalized !== '' && $rootPathNormalized !== '' && str_starts_with($rootPathNormalized, $documentRootNormalized . '/')) {
-            $basePath = '/' . trim(substr($rootPathNormalized, strlen($documentRootNormalized)), '/');
-        } elseif ($documentRootNormalized !== '' && $rootPathNormalized !== '' && $rootPathNormalized === $documentRootNormalized) {
-            $basePath = '';
+        if ($documentRoot !== '' && $rootPath !== '' && str_starts_with($rootPath, $documentRoot . '/')) {
+            return '/' . trim(substr($rootPath, strlen($documentRoot)), '/');
+        }
+        if ($documentRoot !== '' && $rootPath === $documentRoot) {
+            return '';
         }
 
-        if ($basePath === '' && !empty($_SERVER['SCRIPT_NAME'])) {
-            $scriptName = str_replace('\\', '/', trim((string)$_SERVER['SCRIPT_NAME']));
-            if ($scriptName !== '') {
-                $scriptDir = rtrim(dirname($scriptName), '/');
-                if ($scriptDir !== '.' && $scriptDir !== '/') {
-                    $basePath = $scriptDir;
-                    if (str_ends_with($basePath, '/Views') || str_ends_with($basePath, '/Controllers')) {
-                        $basePath = substr($basePath, 0, strrpos($basePath, '/'));
-                    }
-                }
+        $scriptName = str_replace('\\', '/', trim((string)($_SERVER['SCRIPT_NAME'] ?? '')));
+        $scriptDirectory = rtrim(dirname($scriptName), '/');
+        if ($scriptDirectory === '.' || $scriptDirectory === '/') {
+            return '';
+        }
+        foreach (['/Views', '/Controllers'] as $knownDirectory) {
+            if (str_ends_with($scriptDirectory, $knownDirectory)) {
+                $scriptDirectory = substr($scriptDirectory, 0, -strlen($knownDirectory));
+                break;
             }
         }
+        return $scriptDirectory === '/' ? '' : $scriptDirectory;
+    }
+
+    function application_project_path(): string
+    {
+        $documentRoot = str_replace('\\', '/', rtrim(trim((string)($_SERVER['DOCUMENT_ROOT'] ?? '')), '/'));
+        $rootPath = str_replace('\\', '/', rtrim((string)ROOT_PATH, '/'));
+        if ($documentRoot !== '' && $rootPath !== '' && str_starts_with($rootPath, $documentRoot . '/')) {
+            return '/' . trim(substr($rootPath, strlen($documentRoot)), '/');
+        }
+        $projectName = basename($rootPath);
+        return $projectName !== '' && $projectName !== '.' ? '/' . $projectName : '';
+    }
+
+    // Definir URL base flexible
+    $appBaseUrl = getenv('APP_BASE_URL');
+    $basePath = application_base_path();
+    if ($appBaseUrl === false || trim($appBaseUrl) === '') {
+        $httpHost = strtolower(trim($_SERVER['HTTP_HOST'] ?? ''));
 
         if ($httpHost === 'nombreempresa.ct.ws' || $httpHost === 'www.nombreempresa.ct.ws') {
             $appBaseUrl = 'https://nombreempresa.ct.ws' . $basePath;
@@ -81,7 +96,7 @@
             }
             $appBaseUrl = $scheme . '://' . $httpHost . $basePath;
         } else {
-            $appBaseUrl = 'http://localhost' . ($basePath !== '' ? $basePath : '/nombre_de_empresa');
+            $appBaseUrl = 'http://localhost' . $basePath;
         }
     }
     // Cuando el servidor Portable se abre desde otra caja, no debemos devolver
@@ -92,15 +107,17 @@
     if ($requestHost !== '' && in_array($configuredHost, $hostsLocales, true)) {
         $requestHostName = preg_replace('/:\d+$/', '', $requestHost);
         if ($requestHostName !== '' && !in_array($requestHostName, $hostsLocales, true)) {
+            $requestBasePath = application_base_path();
             $scheme = 'http';
             if ((!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') || (string)($_SERVER['SERVER_PORT'] ?? '') === '443') {
                 $scheme = 'https';
             }
-            $appBaseUrl = $scheme . '://' . $requestHost;
+            $appBaseUrl = $scheme . '://' . $requestHost . $requestBasePath;
         }
     }
 
     define('BASE_URL', rtrim($appBaseUrl, '/'));
+    define('APPLICATION_PATH', application_project_path());
 
     //Comentamos temporalmente PHPMailer hasta tenerlo instalado
     /*use PHPMailer\PHPMailer\PHPMailer;
@@ -115,12 +132,74 @@
         return BASE_URL;
     }
 
+    function connection_config_path(): string
+    {
+        if (defined('CONNECTION_CONFIG_PATH')) {
+            return (string)CONNECTION_CONFIG_PATH;
+        }
+        return ROOT_PATH . DIRECTORY_SEPARATOR . 'Config' . DIRECTORY_SEPARATOR . 'connection-config.json';
+    }
+
+    function read_connection_config(): array
+    {
+        $default = [
+            'mode' => 'unconfigured',
+            'server_ip' => '',
+            'server_port' => 80,
+            'lan_ip' => ''
+        ];
+        $path = connection_config_path();
+        if (!is_file($path) || !is_readable($path)) {
+            return $default;
+        }
+
+        $contents = @file_get_contents($path);
+        $config = is_string($contents) ? json_decode($contents, true) : null;
+        if (!is_array($config)) {
+            return $default;
+        }
+
+        $mode = in_array(($config['mode'] ?? ''), ['unconfigured', 'server', 'client'], true)
+            ? $config['mode']
+            : 'unconfigured';
+        $port = filter_var($config['server_port'] ?? 80, FILTER_VALIDATE_INT);
+        return [
+            'mode' => $mode,
+            'server_ip' => trim((string)($config['server_ip'] ?? '')),
+            'server_port' => ($port && $port >= 1 && $port <= 65535) ? $port : 80,
+            'lan_ip' => trim((string)($config['lan_ip'] ?? ''))
+        ];
+    }
+
+    function write_connection_config(array $config): bool
+    {
+        $mode = in_array(($config['mode'] ?? ''), ['unconfigured', 'server', 'client'], true)
+            ? $config['mode']
+            : 'unconfigured';
+        $port = filter_var($config['server_port'] ?? 80, FILTER_VALIDATE_INT);
+        $normalized = [
+            'mode' => $mode,
+            'server_ip' => trim((string)($config['server_ip'] ?? '')),
+            'server_port' => ($port && $port >= 1 && $port <= 65535) ? $port : 80,
+            'lan_ip' => trim((string)($config['lan_ip'] ?? ''))
+        ];
+        $path = connection_config_path();
+        $directory = dirname($path);
+        if (!is_dir($directory) && !@mkdir($directory, 0755, true) && !is_dir($directory)) {
+            return false;
+        }
+        return @file_put_contents(
+            $path,
+            json_encode($normalized, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL,
+            LOCK_EX
+        ) !== false;
+    }
+
     //Retorna la url base de los assets (carpeta Assets)
     //Se espera que muchos enlaces javascript, CSS e imagenes usen media() y
     //concatenen rutas relativas como "/css/..." o "/images/...".
     //Anteriormente devolvía solo la BASE_URL y la carpeta "Assets" se omitía,
-    //lo que generaba URLs como `/nombre_de_empresa/css/main.css` y provocaba
-    //404 cuando el directorio real es `/nombre_de_empresa/Assets/css`.
+    //lo que generaba URLs sin la carpeta Assets y provocaba errores 404.
     //Al incluir "/Assets" aquí cualquier llamada existente se arregla de forma
     //centralizada sin necesidad de modificar decenas de vistas.
     function media()
