@@ -368,6 +368,37 @@ try {
                 ]);
             }
         }
+
+        public function editarFactura() {
+            try {
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    throw new Exception('Método no permitido');
+                }
+
+                $referencia = trim((string)($_POST['referencia'] ?? ''));
+                if ($referencia === '') {
+                    throw new Exception('La referencia de la factura es requerida');
+                }
+
+                $itemsEliminarRaw = $_POST['items_eliminar'] ?? '[]';
+                $itemsEliminar = json_decode((string)$itemsEliminarRaw, true);
+                if (!is_array($itemsEliminar)) {
+                    $itemsEliminar = [];
+                }
+
+                $resultado = $this->inventario->editarFacturaVenta([
+                    'referencia' => $referencia,
+                    'items_eliminar' => $itemsEliminar
+                ]);
+
+                echo json_encode($resultado);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ]);
+            }
+        }
     
         // Obtener resumen del inventario
         public function obtenerResumen() {

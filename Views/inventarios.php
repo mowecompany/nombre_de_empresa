@@ -6064,6 +6064,9 @@ if (is_file($logoPdfPath)) {
                                             <button type="button" class="btn-info btn-action" title="Ver detalle de salida" onclick="mostrarDetallesSalidaVenta('${String(grupo.claveAgrupacion || grupo.referencia).replace(/'/g, "\\'")}')">
                                                 <i class="fas fa-eye"></i>
                                             </button>
+                                            <button type="button" class="btn-info btn-action" title="EDITAR FACTURA" onclick="mostrarModalEditarFacturaVenta('${String(grupo.claveAgrupacion || grupo.referencia).replace(/'/g, "\\'")}')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
                                             <button type="button" class="btn-info btn-action" title="IMPRIMIR VENTA" onclick="imprimirVentaSalida('${String(grupo.claveAgrupacion || grupo.referencia).replace(/'/g, "\\'")}')">
                                                 <i class="fas fa-print"></i>
                                             </button>
@@ -6087,6 +6090,134 @@ if (is_file($logoPdfPath)) {
                 return;
             }
             mostrarModalDetallesSalidaVenta(referencia, grupo);
+        }
+
+        function mostrarModalEditarFacturaVenta(referencia) {
+            const grupo = salidasAgrupadasCache[referencia]
+                || Object.values(salidasAgrupadasCache).find(item => String(item.referencia || '') === String(referencia || ''));
+            if (!grupo) {
+                alert('No se encontraron detalles de la venta');
+                return;
+            }
+
+            const modal = document.getElementById('detallesMovimientosModal');
+            const content = document.getElementById('detallesMovimientosContent');
+            const titleElement = document.getElementById('detallesModalTitle');
+            titleElement.innerHTML = '<i class="fas fa-edit"></i> EDITAR FACTURA';
+
+            const filas = grupo.items.map(item => {
+                const cantidad = parseFloat(item.cantidad || 0) || 0;
+                const precio = obtenerPrecioUnitarioSalidaItem(item);
+                const subtotal = obtenerSubtotalSalidaItem(item);
+                const imagen = item.producto_imagen ? `<img src="${resolveAppUrl('/Assets/images/productos/' + item.producto_imagen)}" style="max-width: 50px; max-height: 50px; object-fit: contain;">` : '<div style="width: 50px; height: 50px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">S/img</div>';
+
+                return `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;"><input type="checkbox" name="itemEditarFactura" value="${Number(item.id || 0)}" data-producto="${escapeHtml(item.producto_nombre || '')}" data-cantidad="${cantidad}"></td>
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${imagen}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px;">${(escapeHtml(item.producto_nombre) || '').toUpperCase()}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${(item.codigo || 'N/A').toUpperCase()}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${cantidad.toLocaleString('es-CO')}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: right;">${formatoMonedaInventario(precio)}</td>
+                        <td style="border: 1px solid #ddd; padding: 10px; text-align: right; font-weight: bold;">${formatoMonedaInventario(subtotal)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            content.innerHTML = `
+                <div style="font-family: Arial, sans-serif; color: #333;">
+                    <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #3591CA; padding-bottom: 15px;">
+                        <h3 style="margin: 0; color: #3591CA;">Editar factura ${escapeHtml(referencia)}</h3>
+                        <p style="margin: 5px 0; font-size: 12px; color: #666;">Marca los productos que deseas quitar de la factura y luego guarda los cambios.</p>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+                        <thead>
+                            <tr style="background-color: #f0f0f0;">
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center; width: 50px;">Quitar</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center; width: 60px;">Imagen</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Producto</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Código</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Cantidad</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Precio Unit.</th>
+                                <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>${filas || '<tr><td colspan="7" style="padding: 14px; text-align: center;">No hay productos para editar.</td></tr>'}</tbody>
+                    </table>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="button" class="btn-action" onclick="cerrarModal('detallesMovimientosModal')" style="padding: 10px 20px; background-color: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                            <i class="fas fa-times"></i> CANCELAR
+                        </button>
+                        <button type="button" class="btn-action" onclick="guardarEdicionFacturaVenta('${String(referencia).replace(/'/g, "\\'")}')" style="padding: 10px 20px; background-color: #3591CA; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                            <i class="fas fa-save"></i> ACTUALIZAR FACTURA
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            abrirModal('detallesMovimientosModal');
+        }
+
+        async function guardarEdicionFacturaVenta(referencia) {
+            const seleccionados = Array.from(document.querySelectorAll('input[name="itemEditarFactura"]:checked'))
+                .map(input => Number(input.value))
+                .filter(id => Number.isFinite(id) && id > 0);
+
+            if (!seleccionados.length) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Selecciona productos',
+                    text: 'Debes marcar al menos un producto para quitarlo de la factura.'
+                });
+                return;
+            }
+
+            const confirmacion = await Swal.fire({
+                icon: 'question',
+                title: '¿Editar factura?',
+                text: `Se quitarán ${seleccionados.length} producto(s) de la factura ${referencia}. El stock regresará al inventario.`,
+                showCancelButton: true,
+                confirmButtonText: 'Sí, actualizar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!confirmacion.isConfirmed) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'editarFactura');
+            formData.append('referencia', referencia);
+            formData.append('items_eliminar', JSON.stringify(seleccionados));
+
+            try {
+                const response = await fetch(inventarioControllerUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message || 'No se pudo actualizar la factura');
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Factura actualizada',
+                    text: data.message || 'La factura se actualizó correctamente.'
+                });
+
+                cerrarModal('detallesMovimientosModal');
+                cargarSalidas();
+                dispararRefreshInventarioGlobal();
+                refrescarInventarioInmediato();
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.message || 'No se pudo actualizar la factura.'
+                });
+            }
         }
         
         function mostrarModalDetallesSalidaVenta(titulo, grupo) {
