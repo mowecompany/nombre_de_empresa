@@ -335,13 +335,14 @@ function isPortFree(port, host) {
   });
 }
 
-function waitForServerReady(port, timeout = 15000) {
-  const serverUrl = `http://${SERVER_HOST}:${port}`;
+function waitForServerReady(port, timeout = 15000, bindHost = SERVER_HOST) {
+  const probeHost = bindHost === LAN_BIND_HOST ? SERVER_HOST : bindHost;
+  const serverUrl = `http://${probeHost}:${port}`;
   const startTime = Date.now();
 
   return new Promise((resolve, reject) => {
     const check = () => {
-      const socket = net.createConnection(port, SERVER_HOST);
+      const socket = net.createConnection(port, probeHost);
       socket.on('connect', () => {
         socket.destroy();
         resolve(serverUrl);
@@ -479,7 +480,7 @@ function startPhpServer(port, bindHost) {
       }
     });
 
-    waitForServerReady(port)
+    waitForServerReady(port, 15000, bindHost)
       .then(resolve)
       .catch(reject);
   });

@@ -1804,6 +1804,31 @@ if (is_file($logoPdfPath)) {
             color: #fff !important;
             transform: scale(1.05);
         }
+        .factura-cantidad-editor .btn-action {
+            width: 30px !important;
+            height: 30px !important;
+            min-width: 30px !important;
+            min-height: 30px !important;
+            padding: 0 !important;
+            background: var(--primary-blue) !important;
+            color: #fff !important;
+            border: 2px solid var(--primary-blue) !important;
+            border-radius: 6px !important;
+            font-weight: 700 !important;
+            font-size: 16px !important;
+            line-height: 1 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: none !important;
+        }
+        .factura-cantidad-editor .btn-action:hover,
+        .factura-cantidad-editor .btn-action:focus {
+            background: var(--primary-blue) !important;
+            color: #fff !important;
+            transform: none !important;
+            box-shadow: none !important;
+        }
         /* los botones color específicos (info, warning) quedan para mostrar el color al presionar */
         .inventario .btn-info, .inventario .btn-warning {
             background: white !important;
@@ -6119,9 +6144,9 @@ if (is_file($logoPdfPath)) {
                         <td style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">${(item.codigo || 'N/A').toUpperCase()}</td>
                         <td style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">
                             <div class="factura-cantidad-editor" style="display: inline-flex; align-items: center; gap: 4px; justify-content: center;">
-                                <button type="button" class="btn-action" data-step="-1" onclick="cambiarCantidadFacturaControl(this, -1)" title="Quitar 1" style="width: 28px; height: 28px; padding: 0; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">−</button>
+                                <button type="button" class="btn-action" data-step="-1" onclick="cambiarCantidadFacturaControl(this, -1)" title="Quitar 1" style="width: 30px; height: 30px; padding: 0; background: var(--primary-blue); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">−</button>
                                 <input type="number" name="itemEditarFactura" value="${cantidad}" min="0" max="${cantidad}" step="1" data-id="${id}" data-original="${cantidad}" style="width: 56px; text-align: center; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; font-weight: 600; background: #fff; box-sizing: border-box;" oninput="validarCantidadFacturaControl(this)" onchange="validarCantidadFacturaControl(this)" />
-                                <button type="button" class="btn-action" data-step="1" onclick="cambiarCantidadFacturaControl(this, 1)" title="Agregar 1" style="width: 28px; height: 28px; padding: 0; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">+</button>
+                                <button type="button" class="btn-action" data-step="1" onclick="cambiarCantidadFacturaControl(this, 1)" title="Agregar 1" style="width: 30px; height: 30px; padding: 0; background: var(--primary-blue); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">+</button>
                             </div>
                         </td>
                         <td class="factura-precio-unitario" style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">${formatoMonedaInventario(precio)}</td>
