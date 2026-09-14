@@ -190,6 +190,31 @@ class Inventario {
         }
     }
 
+    /** Genera DA-01, DA-02, etc. dentro de la transacción y por empresa. */
+    private function obtenerSiguienteReferenciaDanado(int $empresaId): string {
+        $sql = "SELECT referencia FROM salidas_inventario
+                WHERE LOWER(TRIM(COALESCE(tipo_salida, ''))) = 'dañado'
+                  AND referencia LIKE 'DA-%'";
+        $params = [];
+        if ($this->tablaTieneEmpresaId('salidas_inventario')) {
+            $sql .= ' AND empresa_id = :empresa_id';
+            $params[':empresa_id'] = $empresaId;
+        }
+        if (!$this->esSqlite()) {
+            $sql .= ' FOR UPDATE';
+        }
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        $mayor = 0;
+        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $referencia) {
+            if (preg_match('/^DA-(\d+)$/i', trim((string)$referencia), $coincidencia)) {
+                $mayor = max($mayor, (int)$coincidencia[1]);
+            }
+        }
+        return 'DA-' . str_pad((string)($mayor + 1), 2, '0', STR_PAD_LEFT);
+    }
+
     private function entradasInventarioIdEsPkAutoincremental(): bool {
         if (!$this->esSqlite()) {
             return true;
@@ -1116,6 +1141,18 @@ class Inventario {
             } else {
                 $this->db->beginTransaction();
             }
+
+            if ($tipoSalida === 'dañado' && trim((string)($datos['referencia'] ?? '')) === '') {
+                if (!$this->esSqlite()) {
+                    $bloqueoReferenciaDanado = 'inventario_danado_' . $empresaId;
+                    $stmtBloqueo = $this->db->prepare('SELECT GET_LOCK(:clave, 10)');
+                    $stmtBloqueo->execute([':clave' => $bloqueoReferenciaDanado]);
+                    if ((int)$stmtBloqueo->fetchColumn() !== 1) {
+                        throw new Exception('No se pudo reservar la secuencia del producto dañado. Intenta nuevamente.');
+                    }
+                }
+                $datos['referencia'] = $this->obtenerSiguienteReferenciaDanado($empresaId);
+            }
             
             // Calcular precio de venta basado en costo y porcentaje de ganancia (por unidad base)
             $precio_compra_presentacion = floatval($datos['precio_compra']);
@@ -1264,6 +1301,7 @@ class Inventario {
     
     // Registrar salida de inventario
     public function registrarSalida($datos) {
+        $bloqueoReferenciaDanado = '';
         try {
             $empresaId = $this->getEmpresaId();
             $tipoSalida = $this->normalizarTipoSalidaInventario((string)($datos['tipo_salida'] ?? 'venta'));
@@ -1475,6 +1513,10 @@ class Inventario {
             } else {
                 $this->db->commit();
             }
+            if ($bloqueoReferenciaDanado !== '') {
+                $stmtLiberar = $this->db->prepare('SELECT RELEASE_LOCK(:clave)');
+                $stmtLiberar->execute([':clave' => $bloqueoReferenciaDanado]);
+            }
             
             return ['success' => true, 'message' => 'Salida registrada correctamente', 'id' => $salida_id];
         } catch(Exception $e) {
@@ -1483,6 +1525,12 @@ class Inventario {
                 try { $this->db->exec('ROLLBACK'); } catch (Exception $ex) {}
             } else {
                 $this->db->rollBack();
+            }
+            if ($bloqueoReferenciaDanado !== '') {
+                try {
+                    $stmtLiberar = $this->db->prepare('SELECT RELEASE_LOCK(:clave)');
+                    $stmtLiberar->execute([':clave' => $bloqueoReferenciaDanado]);
+                } catch (Exception $ex) {}
             }
             error_log("Error en registrarSalida: " . $e->getMessage());
             return ['success' => false, 'message' => $e->getMessage()];
@@ -1525,7 +1573,6 @@ class Inventario {
                 'producto_id' => $productoId,
                 'cantidad' => $cantidad,
                 'tipo_salida' => 'dañado',
-                'referencia' => 'DANADO-' . date('YmdHis'),
                 'usuario_id' => $datos['usuario_id'] ?? null,
                 'notas' => trim((string)($datos['notas'] ?? '')) ?: 'Producto dañado registrado manualmente.',
                 'precio_venta' => 0

@@ -2284,7 +2284,7 @@ if (is_file($logoPdfPath)) {
                         </button>
                         <?php endif; ?>
                         <?php if ($tienePermisoCrear): ?>
-                        <button class="btn-nuevo" type="button" onclick="abrirModalProductoDanado()" style="background:#b45309; border-color:#b45309;">
+                        <button class="btn-nuevo" type="button" onclick="abrirModalProductoDanado()">
                             <i class="fas fa-apple-whole"></i> PRODUCTOS DAÑADOS
                         </button>
                         <button class="btn-nuevo" onclick="abrirModal('salidaModal')">
@@ -3747,20 +3747,24 @@ if (is_file($logoPdfPath)) {
                 .replace(/'/g, '&#039;');
         }
 
-        function formatoTipoSalida(tipo, metodoPago = '') {
+        function esRegistroCredito(valor) {
+            return valor === true || valor === 1 || String(valor || '').trim() === '1';
+        }
+
+        function formatoTipoSalida(tipo, metodoPago = '', esCredito = false) {
             const valor = String(tipo || '').trim().toLowerCase();
             const metodo = String(metodoPago || '').trim().toLowerCase();
-            if (metodo === 'credito' || valor === 'credito' || valor === 'venta_credito_pagada' || valor === 'venta_credito' || valor === 'credito_pagado' || valor === 'pagado') return 'CRÉDITO';
+            if (esRegistroCredito(esCredito) || metodo === 'credito' || valor === 'credito' || valor === 'venta_credito_pagada' || valor === 'venta_credito' || valor === 'credito_pagado' || valor === 'pagado') return 'CRÉDITO';
             if (!valor || valor === 'venta' || valor === 'salida') return 'INVENTARIO';
             if (valor === 'dañado') return 'DAÑADO';
             if (valor === 'perdida') return 'PÉRDIDA';
             return 'INVENTARIO';
         }
 
-        function etiquetaTipoSalida(tipo, ordenTallerId = 0, metodoPago = '') {
+        function etiquetaTipoSalida(tipo, ordenTallerId = 0, metodoPago = '', esCredito = false) {
             const valor = String(tipo || '').trim().toLowerCase();
             const metodo = String(metodoPago || '').trim().toLowerCase();
-            const esCreditoLegacy = metodo === 'credito' || valor === 'credito' || valor === 'venta_credito_pagada' || valor === 'venta_credito' || valor === 'credito_pagado' || valor === 'pagado';
+            const esCreditoLegacy = esRegistroCredito(esCredito) || metodo === 'credito' || valor === 'credito' || valor === 'venta_credito_pagada' || valor === 'venta_credito' || valor === 'credito_pagado' || valor === 'pagado';
             if (esCreditoLegacy) return 'CRÉDITO';
             if (!valor || valor === 'venta' || valor === 'salida') return 'INVENTARIO';
             if (valor === 'dañado') return 'DAÑADO';
@@ -3769,7 +3773,7 @@ if (is_file($logoPdfPath)) {
         }
 
         function origenSalida(item) {
-            return 'INVENTARIO';
+            return esRegistroCredito(item?.es_credito ?? item?.esCredito) ? 'CRÉDITO' : 'INVENTARIO';
         }
 
         function etiquetaTipoMovimiento(tipo) {
@@ -3785,7 +3789,7 @@ if (is_file($logoPdfPath)) {
                 return 'ENTRADA DE INVENTARIO';
             }
             if (tipoMovimientoNormalizado === 'salida') {
-                return 'INVENTARIO';
+                return esRegistroCredito(item?.es_credito ?? item?.esCredito) ? 'CRÉDITO' : 'INVENTARIO';
             }
             return 'MOVIMIENTO';
         }
@@ -3933,16 +3937,15 @@ if (is_file($logoPdfPath)) {
                         .header .info { min-width: 0; max-width: none; overflow: visible; }
                         .header h1 { margin: 0 0 3px; font-size: 16px; text-align: left; font-weight: 800; white-space: nowrap; line-height: 1.05; }
                         .empresa { margin: 0 0 3px; font-size: 13px; color: #4b5563; font-weight: 800; }
-                        .meta { margin-bottom: 3px; font-size: 10.5px; font-weight: 800; overflow-wrap: anywhere; white-space: nowrap; }
-                        .meta-fecha, .meta-hora { position: relative; left: -4px; }
+                        .meta { position: relative; left: -6px; margin-bottom: 3px; font-size: 10.5px; font-weight: 800; overflow-wrap: anywhere; white-space: nowrap; }
                         .meta-referencia { display: flex; align-items: flex-start; font-size: 10px; white-space: normal; overflow: visible; font-weight: 800; line-height: 1.2; }
-                        .meta-referencia > strong { flex: 0 0 70px; }
+                        .meta-referencia > strong { flex: 0 0 48px; }
                         .ref-value { display: block; flex: 0 0 auto; vertical-align: top; white-space: nowrap; }
                         .ref-first-line, .ref-line { display: block; width: max-content; white-space: nowrap; }
                         .ref-prefix-spacer { visibility: hidden; }
                         .ref-line { display: block; white-space: nowrap; }
-                        .meta strong { display: inline-block; width: 70px; }
-                        .logo-empresa { position: relative; width: 125px; justify-self: end; display: flex; flex-direction: column; align-items: center; text-align: center; transform: translateX(10px); }
+                        .meta strong { display: inline-block; width: 48px; }
+                        .logo-empresa { position: relative; width: 125px; justify-self: end; display: flex; flex-direction: column; align-items: center; text-align: center; }
                         .logo-empresa img { width: 125px; height: 100px; object-fit: contain; }
                         .logo-word-print { position: absolute; top: 60px; left: 55px; color: #fff; font-family: "Brush Script MT", "Segoe Script", cursive; font-size: 19px; font-style: italic; font-weight: 700; line-height: 1; letter-spacing: -0.8px; text-transform: none; transform: rotate(-7deg); white-space: nowrap; pointer-events: none; }
                         .logo-empresa .empresa { margin: 3px 0 0; font-size: 10px; line-height: 1.1; }
@@ -6027,6 +6030,7 @@ if (is_file($logoPdfPath)) {
                                         : 'N/A',
                                     totalUnidades: 0,
                                     metodoPago: item.metodo_pago || 'efectivo',
+                                    esCredito: esRegistroCredito(item.es_credito),
                                     total: 0
                                 };
                             }
@@ -6105,7 +6109,7 @@ if (is_file($logoPdfPath)) {
                                     const row = document.createElement('tr');
                                     const tipo = grupo.tipo || 'venta';
                                     const origen = grupo.origen || origenSalida({ tipo_salida: tipo, metodo_pago: grupo.metodoPago });
-                                    const etiquetaTipo = (etiquetaTipoSalida(tipo, 0, grupo.metodoPago) || '').toUpperCase();
+                                    const etiquetaTipo = (etiquetaTipoSalida(tipo, 0, grupo.metodoPago, grupo.esCredito) || '').toUpperCase();
                                     let tipoBadge = 'badge-success';
                                     if (etiquetaTipo === 'CRÉDITO') tipoBadge = 'badge-credit';
                                     if (['DAÑADO', 'PÉRDIDA'].includes(etiquetaTipo)) tipoBadge = 'badge-danger';
@@ -6474,6 +6478,7 @@ if (is_file($logoPdfPath)) {
                                         : 'N/A',
                                     totalUnidades: 0
                                     ,metodoPago: item.metodo_pago || 'efectivo'
+                                    ,esCredito: esRegistroCredito(item.es_credito)
                                 };
                             }
 
@@ -6604,153 +6609,16 @@ if (is_file($logoPdfPath)) {
                 Swal.fire({ icon: 'error', title: 'Error', text: 'No se encontró el movimiento a imprimir.' });
                 return;
             }
-
-            const nombreArchivoLimpio = limpiarNombreArchivo(grupo.referencia);
-            const fechaHoraMovimiento = fechaHoraImpresion(grupo.fechaRaw || grupo.fecha);
-            const logoFacturaUrl = generarPdf ? logoPdfUrl : logoImpresionUrl;
-            const mostrarImagenesImpresion = generarPdf;
-
-            let totalGeneral = 0;
-            const filas = (grupo.items || []).map(item => {
-                const cantidad = parseFloat(item.cantidad || 0) || 0;
-                const precio = obtenerPrecioUnitarioSalidaItem(item);
-                const subtotal = obtenerSubtotalSalidaItem(item);
-                totalGeneral += subtotal;
-                const imagenSrc = resolverImagenProductoInventario(item.producto_imagen);
-                
-                return `
-                    <tr>
-                        ${mostrarImagenesImpresion ? `<td style="width:60px; text-align:center;">
-                            <img src="${imagenSrc}" alt="${escapeHtml(item.producto_nombre || 'N/A')}" style="display:block; max-width:100%; max-height:42px; width:42px; height:42px; margin:0 auto; box-sizing:border-box; object-fit:contain; border:1px solid #d1d5db; border-radius:3px;" />
-                        </td>` : ''}
-                        <td>${escapeHtml(item.producto_nombre || 'N/A')}</td>
-                        <td class="cell-cantidad">${cantidad.toLocaleString('es-CO')}</td>
-                        <td class="cell-precio">${formatoPrecioUnitarioInventario(precio)}</td>
-                        <td class="cell-subtotal"><strong>${formatoPrecioUnitarioInventario(subtotal)}</strong></td>
-                    </tr>
-                `;
-            }).join('');
-
-            const html = `
-                <!DOCTYPE html>
-                <html lang="es">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>${escapeHtml(grupo.referencia)}</title>
-                    <meta name="title" content="${escapeHtml(grupo.referencia)}">
-                    <meta name="application-name" content="${escapeHtml(grupo.referencia)}">
-                    <style>
-                        @page { size: auto; margin: 0; }
-                        html, body { margin: 0; padding: 0; width: 100%; background: #fff; color: #1f2937; }
-                        body { font-family: Arial, sans-serif; text-transform: uppercase; font-weight: 700; }
-                        .print-wrapper { position: relative; width: 100%; margin: 0; padding: 4mm 3mm 3mm; box-sizing: border-box; }
-                        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-                        .header .info { flex: 1 1 auto; min-width: 0; max-width: 64%; overflow: visible; }
-                        .header h1 { margin: 0 0 3px; font-size: 16px; text-align: left; font-weight: 800; white-space: nowrap; line-height: 1.05; }
-                        .empresa { margin: 0 0 3px; font-size: 13px; color: #4b5563; font-weight: 800; }
-                        .meta { margin-bottom: 3px; font-size: 10.5px; font-weight: 800; overflow-wrap: anywhere; white-space: nowrap; }
-                        .meta-referencia { display: flex; align-items: flex-start; font-size: 10px; white-space: normal; overflow: visible; font-weight: 800; line-height: 1.2; }
-                        .meta-referencia > strong { flex: 0 0 82px; }
-                        .ref-value { display: block; flex: 0 0 auto; vertical-align: top; white-space: nowrap; }
-                        .ref-first-line, .ref-line { display: block; width: max-content; white-space: nowrap; }
-                        .ref-prefix-spacer { visibility: hidden; }
-                        .meta strong { display: inline-block; width: 82px; }
-                        .logo-empresa { flex: 0 0 125px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-                        .logo-empresa img { width: 125px; height: 100px; object-fit: contain; }
-                        .logo-empresa .empresa { margin: 3px 0 0; font-size: 10px; line-height: 1.1; }
-                        table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 8px; }
-                        th, td { border: 1px solid #d1d5db; padding: 3px 2px; font-size: 10px; line-height: 1.15; font-weight: 700; overflow-wrap: anywhere; word-break: break-word; }
-                        .cell-cantidad, .cell-precio, .cell-subtotal { white-space: nowrap; overflow-wrap: normal; word-break: normal; text-align: center; }
-                        .cell-cantidad { font-size: 9px; }
-                        .cell-subtotal { font-size: 9.5px; font-weight: 800; }
-                        th:nth-child(1), td:nth-child(1) { width: 15%; text-align: center; }
-                        th:nth-child(2), td:nth-child(2) { width: 37%; text-align: center; }
-                        th:nth-child(3), td:nth-child(3) { width: 11%; text-align: center; }
-                        th:nth-child(4), td:nth-child(4) { width: 17%; text-align: center; }
-                        th:nth-child(5), td:nth-child(5) { width: 20%; text-align: center; }
-                        th { background: #f3f4f6; text-align: center; }
-                        .sin-imagenes th:nth-child(1), .sin-imagenes td:nth-child(1) { width: 37%; }
-                        .sin-imagenes th:nth-child(2), .sin-imagenes td:nth-child(2) { width: 11%; }
-                        .sin-imagenes th:nth-child(3), .sin-imagenes td:nth-child(3) { width: 17%; }
-                        .sin-imagenes th:nth-child(4), .sin-imagenes td:nth-child(4) { width: 35%; }
-                        .total { margin-top: 8px; text-align: right; font-size: 14px; font-weight: 800; }
-                        footer { width: 100%; background: #ffffff; color: #0b1f3a; padding: 6px 0 0; display: flex; justify-content: center; align-items: center; gap: 5px; flex-wrap: wrap; font-size: 10px; font-weight: 700; text-align: center; box-sizing: border-box; border-top: 1px solid #d1d5db; }
-                        footer span { display: inline-flex; align-items: center; justify-content: center; gap: 4px; line-height: 1; }
-                        footer .footer-wordmark { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
-                        footer .footer-brand-logo { width: 28px; height: 28px; object-fit: contain; display: inline-flex; vertical-align: middle; }
-                        @media print { body { margin: 0; } .header, table, .total, footer { page-break-inside: avoid; } }
-                    </style>
-                </head>
-                <body class="${mostrarImagenesImpresion ? 'con-imagenes' : 'sin-imagenes'}">
-                    <div class="print-wrapper">
-                        <div class="header">
-                            <div class="info">
-                                <h1>RESUMEN DE VENTAS</h1>
-                                <div class="meta meta-referencia"><strong>REFERENCIA:</strong> ${referenciaParaImpresion(grupo.referencia)}</div>
-                                <div class="meta meta-fecha"><strong>FECHA:</strong> <span class="valor-fecha">${escapeHtml(fechaHoraMovimiento.fecha)}</span></div>
-                                <div class="meta meta-hora"><strong>HORA:</strong> <span class="valor-hora">${escapeHtml(fechaHoraMovimiento.hora)}</span></div>
-                            </div>
-                            ${logoFacturaUrl ? `<div class="logo-empresa"><img src="${escapeHtml(logoFacturaUrl)}" alt="Logo de la empresa" onerror="this.onerror=null;this.src='${escapeHtml(generarPdf ? logoPdfFallbackUrl : logoImpresionFallbackUrl)}';"><div class="empresa">AUTOSERVICIO MI ESTRELLA</div></div>` : ''}
-                        </div>
-                        <table>
-                            <thead>
-                                <tr>
-                                    ${mostrarImagenesImpresion ? '<th>IMG</th>' : ''}
-                                    <th>Producto</th>
-                                    <th>CAN</th>
-                                    <th>PRE</th>
-                                    <th>SUBT</th>
-                                </tr>
-                            </thead>
-                            <tbody>${filas}</tbody>
-                        </table>
-                        <div class="total">TOTAL: ${formatoPrecioUnitarioInventario(totalGeneral)}</div>
-                    </div>
-                    <footer>
-                        <span>&copy; ${new Date().getFullYear()}</span>
-                        <span class="footer-wordmark">
-                            <img src="${base_url + '/favicon.ico'}" alt="Favicon" class="footer-brand-logo">
-                            <span>OWE COMPANY</span>
-                        </span>
-                        <span>TODOS LOS DERECHOS RESERVADOS</span>
-                    </footer>
-                    <script>
-                        window.__electronPdfHtml = function() {
-                            document.body.classList.add('pdf-export');
-                            return document.documentElement.outerHTML;
-                        };
-                        window.onload = function() {
-                            document.title = '${nombreArchivoLimpio}';
-                            window.print();
-                        };
-                    <\/script>
-                </body>
-                </html>
-            `;
-
-            if (generarPdf && typeof window.electronAPI?.saveHtmlPdf === 'function') {
-                const htmlPdf = html.replace('<body class="con-imagenes">', '<body class="con-imagenes pdf-export">');
-                const resultadoPdf = await window.electronAPI.saveHtmlPdf({ html: htmlPdf, title: nombreArchivoLimpio });
-                if (!resultadoPdf?.success && !resultadoPdf?.canceled) {
-                    Swal.fire({ icon: 'error', title: 'ERROR AL GUARDAR PDF', text: resultadoPdf?.error || 'No se pudo guardar el PDF.' });
-                }
-                return;
+            const claveTemporal = `__movimiento__${key}`;
+            salidasAgrupadasCache[claveTemporal] = {
+                ...grupo,
+                total: (grupo.items || []).reduce((total, item) => total + obtenerSubtotalSalidaItem(item), 0)
+            };
+            try {
+                await imprimirVentaSalida(claveTemporal, generarPdf);
+            } finally {
+                delete salidasAgrupadasCache[claveTemporal];
             }
-            if (window.electronAPI && typeof window.electronAPI.printHtml === 'function') {
-                window.electronAPI.printHtml({ html, title: nombreArchivoLimpio, preview: true });
-                return;
-            }
-
-            const win = window.open('about:blank', '_blank', 'toolbar=0,menubar=0,scrollbars=1,resizable=1,width=900,height=700');
-            if (!win) {
-                Swal.fire({ icon: 'warning', title: 'Ventana bloqueada', text: 'Permite ventanas emergentes para imprimir el movimiento.' });
-                return;
-            }
-            win.document.open();
-            win.document.write(html);
-            win.document.close();
-            win.document.title = nombreArchivoLimpio;
-            win.focus();
         }
         
         function mostrarModalDetallesMovimiento(titulo, grupo) {
