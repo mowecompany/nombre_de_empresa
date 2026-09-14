@@ -2659,6 +2659,7 @@ class Inventario {
             $tieneDescuento = $this->columnaDescuentoProductos() !== '';
             $tieneVentaPorKilo = $this->columnaExiste('productos', 'venta_por_kilo');
             $tienePrecioOriginal = $this->columnaExiste('productos', 'precio_original');
+            $tieneRequiereVencimiento = $this->columnaExiste('categorias', 'requiere_vencimiento');
             $columnaGanancia = $this->columnaPorcentajeGananciaProductos();
             $tienePorcentajeGanancia = $columnaGanancia !== '';
             $exprDescuentoBase = $this->exprDescuentoSimple('p');
@@ -2681,6 +2682,8 @@ class Inventario {
                         p.imagen,
                         p.estado,
                         c.nombre as categoria_nombre,
+
+                        " . ($tieneRequiereVencimiento ? "COALESCE(c.requiere_vencimiento, 0)" : "0") . " as requiere_vencimiento,
                         " . ($tieneVentaPorKilo ? "COALESCE(p.venta_por_kilo, 0)" : "0") . " as venta_por_kilo";
 
             $tablas_existen = true;

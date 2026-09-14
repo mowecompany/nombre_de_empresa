@@ -22,13 +22,21 @@ try {
     $guardarRequiereVencimiento = function ($categoriaId, $valor) use ($db) {
         $categoriaId = (int)$categoriaId;
         if ($categoriaId <= 0) {
-            return;
+            throw new Exception('No se pudo identificar la categoría para guardar su configuración de vencimiento.');
         }
-        try {
-            $stmt = $db->prepare('UPDATE categorias SET requiere_vencimiento = :valor WHERE id = :id');
-            $stmt->execute([':valor' => $valor ? 1 : 0, ':id' => $categoriaId]);
-        } catch (Throwable $e) {
-            error_log('No se pudo guardar requiere_vencimiento: ' . $e->getMessage());
+
+        $esSuperAdminGlobal = PermisosHelper::esSuperAdminSesion() && empty($_SESSION['superadmin_modo_empresa']);
+        $empresaId = (int)($_SESSION['empresa_id'] ?? ($_SESSION['userData']['empresa_id'] ?? 0));
+        $sql = 'UPDATE categorias SET requiere_vencimiento = :valor WHERE id = :id';
+        $params = [':valor' => $valor ? 1 : 0, ':id' => $categoriaId];
+        if (!$esSuperAdminGlobal && $empresaId > 0) {
+            $sql .= ' AND empresa_id = :empresa_id';
+            $params[':empresa_id'] = $empresaId;
+        }
+
+        $stmt = $db->prepare($sql);
+        if (!$stmt->execute($params)) {
+            throw new Exception('No se pudo guardar la configuración de vencimiento de la categoría.');
         }
     };
 

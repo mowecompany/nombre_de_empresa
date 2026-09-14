@@ -140,6 +140,7 @@ try {
     $tieneProdVentaPorKilo = tieneColumna($db, 'productos', 'venta_por_kilo');
     $tieneCatEmpresaId = tieneColumna($db, 'categorias', 'empresa_id');
     $tieneCatUsuarioId = tieneColumna($db, 'categorias', 'usuario_id');
+    $tieneCatRequiereVencimiento = tieneColumna($db, 'categorias', 'requiere_vencimiento');
 
     $productosConImg = [];
 
@@ -148,7 +149,8 @@ try {
 
     $sqlSelectDescuento = $tieneProdDescuentoPct ? ", IFNULL({$columnaDescuentoProd}, 0) as descuento_porcentaje" : ", 0 as descuento_porcentaje";
     $sqlSelectVentaPorKilo = $tieneProdVentaPorKilo ? ", COALESCE(p.venta_por_kilo, 0) AS venta_por_kilo" : ", 0 AS venta_por_kilo";
-    $sqlProductos = "SELECT p.id, p.nombre, p.imagen, p.codigo, p.codigo_barras, p.precio, p.categoria_id, (SELECT c.nombre FROM categorias c WHERE c.id = p.categoria_id LIMIT 1) AS categoria_nombre{$sqlSelectDescuento}{$sqlSelectVentaPorKilo}, IFNULL(p.stock, 0) AS stock FROM productos p WHERE p.estado = 1";
+    $sqlSelectRequiereVencimiento = $tieneCatRequiereVencimiento ? ", COALESCE((SELECT c.requiere_vencimiento FROM categorias c WHERE c.id = p.categoria_id LIMIT 1), 0) AS requiere_vencimiento" : ", 0 AS requiere_vencimiento";
+    $sqlProductos = "SELECT p.id, p.nombre, p.imagen, p.codigo, p.codigo_barras, p.precio, p.categoria_id, (SELECT c.nombre FROM categorias c WHERE c.id = p.categoria_id LIMIT 1) AS categoria_nombre{$sqlSelectRequiereVencimiento}{$sqlSelectDescuento}{$sqlSelectVentaPorKilo}, IFNULL(p.stock, 0) AS stock FROM productos p WHERE p.estado = 1";
     $paramsProductos = [];
     if ($tieneProdEmpresaId && $empresaIdSesion > 0) {
         $sqlProductos .= " AND (p.empresa_id IS NULL OR p.empresa_id = 0 OR p.empresa_id = :empresa_id)";
@@ -167,7 +169,7 @@ try {
     $productosConImg = $stmt->fetchAll(PDO::FETCH_OBJ);
 
     if (empty($productosConImg) && $tieneProdEmpresaId && $empresaIdSesion > 0) {
-        $fallbackSqlProductos = "SELECT p.id, p.nombre, p.imagen, p.codigo, p.codigo_barras, p.precio, p.categoria_id, (SELECT c.nombre FROM categorias c WHERE c.id = p.categoria_id LIMIT 1) AS categoria_nombre{$sqlSelectDescuento}{$sqlSelectVentaPorKilo}, IFNULL(p.stock, 0) AS stock FROM productos p WHERE p.estado = 1";
+        $fallbackSqlProductos = "SELECT p.id, p.nombre, p.imagen, p.codigo, p.codigo_barras, p.precio, p.categoria_id, (SELECT c.nombre FROM categorias c WHERE c.id = p.categoria_id LIMIT 1) AS categoria_nombre{$sqlSelectRequiereVencimiento}{$sqlSelectDescuento}{$sqlSelectVentaPorKilo}, IFNULL(p.stock, 0) AS stock FROM productos p WHERE p.estado = 1";
         $fallbackParamsProductos = [];
         if ($filtrarPorUsuarioInventario && $tieneProdUsuarioId && $usuarioIdSesion > 0) {
             $fallbackSqlProductos .= " AND p.usuario_id = :usuario_id";
@@ -1548,18 +1550,6 @@ if (is_file($logoPdfPath)) {
             flex: 0 1 auto;
         }
 
-        .entrada-imagen-nombre {
-            display: block;
-            max-width: 100%;
-            margin-top: 4px;
-            color: #334155;
-            font-size: 11px;
-            font-weight: 700;
-            line-height: 1.2;
-            text-align: center;
-            overflow-wrap: anywhere;
-        }
-
         .entrada-imagen-container {
             flex-direction: column;
         }
@@ -2221,7 +2211,7 @@ if (is_file($logoPdfPath)) {
                         <thead>
                             <tr>
                                 <th style="width: 80px;"><i class="fas fa-image"></i></th>
-                                <?php if ($puedeVerID): ?><th><i class="fas fa-hashtag"></i> ID</th><?php endif; ?>
+                                <?php if ($puedeVerID): ?><th style="width: 58px;"><i class="fas fa-hashtag"></i> ID</th><?php endif; ?>
                                 <th><i class="fas fa-barcode"></i> CÓDIGO</th>
                                 <th><i class="fas fa-box"></i> PRODUCTO</th>
                                 <th><i class="fas fa-tags"></i> CATEGORÍA</th>
@@ -2267,18 +2257,19 @@ if (is_file($logoPdfPath)) {
                         <thead>
                             <tr>
                                 <th style="width: 80px;"><i class="fas fa-image"></i></th>
-                                <?php if ($puedeVerID): ?><th><i class="fas fa-hashtag"></i> ID</th><?php endif; ?>
+                                <?php if ($puedeVerID): ?><th style="width: 58px;"><i class="fas fa-hashtag"></i> ID</th><?php endif; ?>
                                 <th><i class="fas fa-barcode"></i> CÓDIGO</th>
                                 <th><i class="fas fa-box"></i> PRODUCTO</th>
                                 <th><i class="fas fa-sort-amount-up"></i> CANTIDAD</th>
                                 <th><i class="fas fa-dollar-sign"></i> PRECIO COMPRA</th>
                                 <th><i class="fas fa-truck"></i> PROVEEDOR</th>
+                                <th><i class="fas fa-calendar-check"></i> FECHA VENCIMIENTO</th>
                                 <th><i class="fas fa-calendar-alt"></i> FECHA/HORA</th>
                                 <th><i class="fas fa-user"></i> USUARIO</th>
                             </tr>
                         </thead>
                         <tbody id="entradasTableBody">
-                            <tr><td colspan="<?= $puedeVerID ? 9 : 8 ?>" style="text-align: center; padding: 20px;">Cargando...</td></tr>
+                            <tr><td colspan="<?= $puedeVerID ? 10 : 9 ?>" style="text-align: center; padding: 20px;">Cargando...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -2408,7 +2399,7 @@ if (is_file($logoPdfPath)) {
                                     $imgFileEntrada = htmlspecialchars($prod->imagen ?? '');
                                     $codigoDisplay = $prod->codigo ? " [{$prod->codigo}]" : "";
                                 ?>
-                                    <button type="button" class="producto-search-option" data-select-id="productoEntrada" data-id="<?= $prod->id ?>" data-name="<?= htmlspecialchars(strtoupper($prod->nombre)) ?><?= htmlspecialchars($codigoDisplay) ?>" data-imagen="<?= $imgFileEntrada ?>" data-codigo="<?= $prod->codigo ?>" data-barcode="<?= htmlspecialchars((string)($prod->codigo_barras ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-venta-por-kilo="<?= (int)($prod->venta_por_kilo ?? 0) ?>" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9; text-transform:uppercase;">
+                                    <button type="button" class="producto-search-option" data-select-id="productoEntrada" data-id="<?= $prod->id ?>" data-name="<?= htmlspecialchars(strtoupper($prod->nombre)) ?><?= htmlspecialchars($codigoDisplay) ?>" data-imagen="<?= $imgFileEntrada ?>" data-codigo="<?= $prod->codigo ?>" data-barcode="<?= htmlspecialchars((string)($prod->codigo_barras ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-venta-por-kilo="<?= (int)($prod->venta_por_kilo ?? 0) ?>" data-requiere-vencimiento="<?= (int)($prod->requiere_vencimiento ?? 0) ?>" data-categoria-nombre="<?= htmlspecialchars((string)($prod->categoria_nombre ?? ''), ENT_QUOTES, 'UTF-8') ?>" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9; text-transform:uppercase;">
                                         <?= strtoupper($prod->nombre) ?><?= $codigoDisplay ?>
                                     </button>
                                 <?php endforeach; ?>
@@ -2419,7 +2410,7 @@ if (is_file($logoPdfPath)) {
                                     $imgFileEntrada = htmlspecialchars($prod->imagen ?? '');
                                     $codigoDisplay = $prod->codigo ? " [{$prod->codigo}]" : "";
                                 ?>
-                                <option value="<?= $prod->id ?>" data-imagen="<?= $imgFileEntrada ?>" data-codigo="<?= $prod->codigo ?>" data-barcode="<?= htmlspecialchars((string)($prod->codigo_barras ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-venta-por-kilo="<?= (int)($prod->venta_por_kilo ?? 0) ?>"><?= strtoupper($prod->nombre) ?><?= $codigoDisplay ?></option>
+                                <option value="<?= $prod->id ?>" data-imagen="<?= $imgFileEntrada ?>" data-codigo="<?= $prod->codigo ?>" data-barcode="<?= htmlspecialchars((string)($prod->codigo_barras ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-venta-por-kilo="<?= (int)($prod->venta_por_kilo ?? 0) ?>" data-requiere-vencimiento="<?= (int)($prod->requiere_vencimiento ?? 0) ?>" data-categoria-nombre="<?= htmlspecialchars((string)($prod->categoria_nombre ?? ''), ENT_QUOTES, 'UTF-8') ?>"><?= strtoupper($prod->nombre) ?><?= $codigoDisplay ?></option>
                                 <?php 
                                     endforeach;
                                 ?>
@@ -3456,7 +3447,7 @@ if (is_file($logoPdfPath)) {
         }
 
         function obtenerColspanEntradas() {
-            return puedeVerID ? 9 : 8;
+            return puedeVerID ? 10 : 9;
         }
 
         function actualizarSugerenciasResumen(items) {
@@ -5707,6 +5698,10 @@ if (is_file($logoPdfPath)) {
                                 grupoFecha.items.forEach(datos => {
                                     const item = datos.item;
                                     const imgSrc = resolverImagenProductoInventario(item.producto_imagen);
+                                    const fechaVencimiento = String(item.fecha_vencimiento || '').trim();
+                                    const fechaVencimientoTexto = fechaVencimiento
+                                        ? fechaVencimiento.split('-').reverse().join('/')
+                                        : 'NO APLICA';
                                     const row = document.createElement('tr');
                                     row.innerHTML = `
                                         <td style="text-align: center;">
@@ -5714,15 +5709,15 @@ if (is_file($logoPdfPath)) {
                                                 <img src="${imgSrc}" alt="${escapeHtmlInventario(item.producto_nombre)}" class="producto-img" 
                                                      onerror="this.onerror=null;this.src=base_url+'/favicon.ico'" 
                                                      loading="lazy">
-                                                <span class="entrada-imagen-nombre">${escapeHtmlInventario((item.producto_nombre || 'PRODUCTO').toUpperCase())}</span>
                                             </div>
                                         </td>
-                                        ${puedeVerID ? `<td>${item.id}</td>` : ''}
+                                        ${puedeVerID ? `<td style="width:58px; max-width:58px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.id}</td>` : ''}
                                         <td>${(item.codigo || 'N/A').toUpperCase()}</td>
                                         <td>${(item.producto_nombre || '').toUpperCase()}</td>
                                         <td>${datos.cantidad.toLocaleString('es-CO')}</td>
                                         <td>$${datos.precioCompra.toLocaleString('es-CO', {maximumFractionDigits: 2})}</td>
                                         <td>${(item.proveedor_nombre || 'N/A').toUpperCase()}</td>
+                                        <td>${escapeHtmlInventario(fechaVencimientoTexto)}</td>
                                         <td>${datos.fechaTexto}</td>
                                         <td>${datos.usuarioCompleto}</td>
                                     `;
@@ -6089,7 +6084,7 @@ if (is_file($logoPdfPath)) {
                                     const usuarioNombre = String(grupo.usuarioNombre || 'N/A').trim();
                                     const usuarioApellidos = String(grupo.usuarioApellidos || '').trim();
                                     const usuarioRol = String(grupo.usuarioRol || '').trim();
-                                    const usuarioHtml = `<div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;">${usuarioNombre ? `<span>${escapeHtml(usuarioNombre)}</span>` : ''}${usuarioApellidos ? `<span>${escapeHtml(usuarioApellidos)}</span>` : ''}${usuarioRol ? `<span>${escapeHtml(usuarioRol)}</span>` : ''}</div>`;
+                                    const usuarioHtml = `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">${usuarioNombre ? `<span>${escapeHtml(usuarioNombre)}</span>` : ''}${usuarioApellidos ? `<span>${escapeHtml(usuarioApellidos)}</span>` : ''}${usuarioRol ? `<span>${escapeHtml(usuarioRol)}</span>` : ''}</div>`;
 
                                     row.innerHTML = `
                                         <td>
@@ -6111,7 +6106,7 @@ if (is_file($logoPdfPath)) {
                                                 <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
                                             </div>
                                         </td>
-                                        <td>${usuarioHtml}</td>
+                                        <td style="text-align:center;">${usuarioHtml}</td>
                                         <td style="white-space: nowrap;">
                                             <button type="button" class="btn-info btn-action" title="Ver detalle de salida" onclick="mostrarDetallesSalidaVenta('${String(grupo.claveAgrupacion || grupo.referencia).replace(/'/g, "\\'")}')">
                                                 <i class="fas fa-eye"></i>
@@ -6520,12 +6515,12 @@ if (is_file($logoPdfPath)) {
                                     const usuarioNombre = String(grupo.usuarioNombre || 'N/A').trim();
                                     const usuarioApellidos = String(grupo.usuarioApellidos || '').trim();
                                     const usuarioRol = String(grupo.usuarioRol || '').trim();
-                                    const usuarioHtml = `<div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;">${usuarioNombre ? `<span>${escapeHtml(usuarioNombre)}</span>` : ''}${usuarioApellidos ? `<span>${escapeHtml(usuarioApellidos)}</span>` : ''}${usuarioRol ? `<span>${escapeHtml(usuarioRol)}</span>` : ''}</div>`;
+                                    const usuarioHtml = `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">${usuarioNombre ? `<span>${escapeHtml(usuarioNombre)}</span>` : ''}${usuarioApellidos ? `<span>${escapeHtml(usuarioApellidos)}</span>` : ''}${usuarioRol ? `<span>${escapeHtml(usuarioRol)}</span>` : ''}</div>`;
 
                                     row.innerHTML = `
                                         <td>
                                             <strong>${grupo.referencia}</strong><br>
-                                            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px; margin-top:4px;">
+                                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px; margin-top:4px; text-align:center;">
                                                 <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
                                                 <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
                                             </div>
@@ -6535,13 +6530,13 @@ if (is_file($logoPdfPath)) {
                                         <td><span class="badge ${tipoBadge}">${escapeHtml(etiquetaMovimiento)}</span></td>
                                         <td>${String(grupo.metodoPago || 'efectivo').toUpperCase()}</td>
                                         <td>${escapeHtml(origen)}</td>
-                                        <td>
-                                            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;">
+                                        <td style="text-align:center;">
+                                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">
                                                 <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
                                                 <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
                                             </div>
                                         </td>
-                                        <td>${usuarioHtml}</td>
+                                        <td style="text-align:center;">${usuarioHtml}</td>
                                         <td style="white-space: nowrap;">
                                             <button type="button" class="btn-info btn-action" title="Ver detalle de movimiento" onclick="mostrarDetallesMovimiento('${String(grupo.referencia).replace(/'/g, "\\'")}')">
                                                 <i class="fas fa-eye"></i>
@@ -6655,7 +6650,7 @@ if (is_file($logoPdfPath)) {
                     <div class="print-wrapper">
                         <div class="header">
                             <div class="info">
-                                <h1>RESUMEN DE MOVIMIENTO</h1>
+                                <h1>RESUMEN DE VENTAS</h1>
                                 <div class="meta meta-referencia"><strong>REFERENCIA:</strong> ${referenciaParaImpresion(grupo.referencia)}</div>
                                 <div class="meta meta-fecha"><strong>FECHA:</strong> <span class="valor-fecha">${escapeHtml(fechaHoraMovimiento.fecha)}</span></div>
                                 <div class="meta meta-hora"><strong>HORA:</strong> <span class="valor-hora">${escapeHtml(fechaHoraMovimiento.hora)}</span></div>
@@ -7699,7 +7694,7 @@ if (is_file($logoPdfPath)) {
                 });
 
                 results.innerHTML = coincidencias.map((option) => `
-                    <button type="button" class="inventario-search-option" data-select-id="${selectId}" data-id="${option.value}" data-name="${(option.textContent || '').trim()}" data-imagen="${option.getAttribute('data-imagen') || ''}" data-codigo="${option.getAttribute('data-codigo') || ''}" data-barcode="${option.getAttribute('data-barcode') || ''}" data-stock="${option.getAttribute('data-stock') || '0'}" data-venta-por-kilo="${option.getAttribute('data-venta-por-kilo') || '0'}" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9;">
+                    <button type="button" class="inventario-search-option" data-select-id="${selectId}" data-id="${option.value}" data-name="${(option.textContent || '').trim()}" data-imagen="${option.getAttribute('data-imagen') || ''}" data-codigo="${option.getAttribute('data-codigo') || ''}" data-barcode="${option.getAttribute('data-barcode') || ''}" data-stock="${option.getAttribute('data-stock') || '0'}" data-venta-por-kilo="${option.getAttribute('data-venta-por-kilo') || '0'}" data-requiere-vencimiento="${option.getAttribute('data-requiere-vencimiento') || '0'}" data-categoria-nombre="${option.getAttribute('data-categoria-nombre') || ''}" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9;">
                         ${option.textContent || ''}
                     </button>
                 `).join('');
@@ -8076,6 +8071,7 @@ if (is_file($logoPdfPath)) {
                         option.setAttribute('data-codigo', codigo);
                         option.setAttribute('data-barcode', String(item.codigo_barras || '').trim());
                         option.setAttribute('data-categoria-nombre', String(item.categoria_nombre || 'SIN CATEGORÍA').trim());
+                        option.setAttribute('data-requiere-vencimiento', Number(item.requiere_vencimiento) === 1 ? '1' : '0');
                         option.setAttribute('data-venta-por-kilo', Number(item.venta_por_kilo) === 1 ? '1' : '0');
                         option.setAttribute('data-precio', String(precioBase));
                         option.setAttribute('data-descuento', String(descuento));
@@ -9986,24 +9982,23 @@ if (is_file($logoPdfPath)) {
 
     /* ============ FECHAS DE VENCIMIENTO EN LA ENTRADA ============ */
     (function () {
-        const cache = new Map();
         let estadoActual = { requiere: false, categoria: '' };
 
         async function consultar(productoId) {
-            if (cache.has(productoId)) return cache.get(productoId);
             try {
                 const url = base_url + '/Controllers/InventarioController.php?action=requiereVencimiento&producto_id=' + encodeURIComponent(productoId);
-                const respuesta = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const respuesta = await fetch(url, {
+                    cache: 'no-store',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
                 const datos = await respuesta.json();
-                const resultado = {
+                return {
                     requiere: !!(datos && datos.success && datos.requiere),
                     categoria: String((datos && datos.categoria) || '')
                 };
-                cache.set(productoId, resultado);
-                return resultado;
             } catch (error) {
                 console.warn('No se pudo consultar el vencimiento del producto', error);
-                return { requiere: false, categoria: '' };
+                return null;
             }
         }
 
@@ -10026,7 +10021,7 @@ if (is_file($logoPdfPath)) {
 
             const hoy = new Date();
             hoy.setDate(hoy.getDate() + 1);
-            campo.min = hoy.toISOString().slice(0, 10);
+            campo.min = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 
             if (info.requiere) {
                 campo.required = true;
@@ -10040,12 +10035,14 @@ if (is_file($logoPdfPath)) {
                     : 'PRODUCTO PERECEDERO: SIN FECHA DE VENCIMIENTO NO SE PUEDE REGISTRAR LA ENTRADA.';
             } else {
                 campo.required = false;
+                campo.disabled = true;
+                campo.value = '';
                 campo.style.border = '';
-                campo.style.background = '';
+                campo.style.background = '#eef1f4';
                 if (etiqueta) etiqueta.innerHTML = '<i class="fas fa-calendar"></i> FECHA VENCIMIENTO';
                 aviso.style.color = '#667085';
                 aviso.style.fontWeight = '400';
-                aviso.textContent = 'ESTE PRODUCTO NO VENCE. PUEDES DEJAR LA FECHA VACÍA.';
+                aviso.textContent = 'ESTE PRODUCTO NO VENCE. LA FECHA NO APLICA.';
             }
         }
 
@@ -10056,9 +10053,15 @@ if (is_file($logoPdfPath)) {
                 pintar({ requiere: false, categoria: '' });
                 return;
             }
-            const info = await consultar(productoId);
+            const opcion = select?.options?.[select.selectedIndex];
+            const infoLocal = {
+                requiere: String(opcion?.dataset?.requiereVencimiento || '0') === '1',
+                categoria: String(opcion?.dataset?.categoriaNombre || '')
+            };
+            pintar(infoLocal);
+            const infoServidor = await consultar(productoId);
             if ((parseInt(select?.value || '0', 10) || 0) !== productoId) return;
-            pintar(info);
+            if (infoServidor) pintar(infoServidor);
         }
 
         // Validación antes de enviar la entrada.
