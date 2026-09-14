@@ -1,11 +1,13 @@
 <?php
 
 require_once __DIR__ . '/Presentacion.php';
+require_once __DIR__ . '/Vencimiento.php';
 
 class Inventario {
     private $db;
     private $columnasCache = [];
     private $presentacionesModelo = null;
+    private $vencimientosModelo = null;
 
     /** Motor de presentaciones (UNIDAD / PAQUETE / CAJA ...). */
     public function presentaciones(): Presentacion {
@@ -13,6 +15,14 @@ class Inventario {
             $this->presentacionesModelo = new Presentacion($this->db);
         }
         return $this->presentacionesModelo;
+    }
+
+    /** Control de fechas de vencimiento por lote. */
+    public function vencimientos(): Vencimiento {
+        if ($this->vencimientosModelo === null) {
+            $this->vencimientosModelo = new Vencimiento($this->db);
+        }
+        return $this->vencimientosModelo;
     }
 
     /**
@@ -1092,6 +1102,10 @@ class Inventario {
             $cantidadPresentacion = (float)($datos['cantidad'] ?? 0);
             $cantidadBase = $cantidadPresentacion * $factorEntrada;
 
+            // Vencimiento: obligatorio cuando la categoria del producto es perecedera.
+            $fechaVencimiento = $this->vencimientos()->validarFechaEntrada((int)($datos['producto_id'] ?? 0), $datos['fecha_vencimiento'] ?? null);
+
+
             $entradasTieneEmpresa = $this->tablaTieneEmpresaId('entradas_inventario');
             $productosTieneEmpresa = $this->tablaTieneEmpresaId('productos');
             $movimientosTieneEmpresa = $this->tablaTieneEmpresaId('movimientos_inventario');
@@ -1145,6 +1159,13 @@ class Inventario {
                 $columnasEntrada[] = 'fecha_entrada';
                 $placeholdersEntrada[] = ':fecha_entrada';
                 $params[':fecha_entrada'] = gmdate('Y-m-d H:i:s');
+            }
+
+            // Cada lote guarda su propia fecha de vencimiento.
+            if ($this->columnaExiste('entradas_inventario', 'fecha_vencimiento')) {
+                $columnasEntrada[] = 'fecha_vencimiento';
+                $placeholdersEntrada[] = ':fecha_vencimiento';
+                $params[':fecha_vencimiento'] = $fechaVencimiento;
             }
 
             if ($entradasTieneEmpresa) {

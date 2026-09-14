@@ -1691,6 +1691,13 @@ $categorias = [];
                     <label for="descripcion"><i class="fas fa-file-alt"></i> DESCRIPCIÓN CATEGORÍA</label>
                     <textarea id="descripcion" name="descripcion" placeholder="Ingrese la descripción" rows="4" style="border: 1px solid #e6e9ee; border-radius: 8px; padding: 14px 16px; width: 100%; font-size: 15px; text-transform: uppercase; background: #ffffff; color: #242629; outline: none; transition: all 0.3s ease; resize: none; max-height: 150px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2f4a5a #f0f0f0;"></textarea>
                 </div>
+                <div class="form-group" style="background:#f8fafc; border:1px solid #e6e9ee; border-radius:8px; padding:12px;">
+                    <label for="requiereVencimiento" style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0;">
+                        <input type="checkbox" id="requiereVencimiento" name="requiere_vencimiento" value="1" style="width:18px; height:18px;">
+                        <span><i class="fas fa-calendar-times"></i> LOS PRODUCTOS DE ESTA CATEGORÍA TIENEN FECHA DE VENCIMIENTO</span>
+                    </label>
+                    <small style="display:block; margin-top:6px; color:#667085;">Actívalo en comestibles, lácteos o bebidas. Al registrar una entrada de estos productos la fecha de vencimiento será obligatoria.</small>
+                </div>
                 <div class="form-group">
                     <label for="imagen"><i class="fas fa-image"></i> AGREGAR FOTO</label>
                     <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
@@ -1751,6 +1758,14 @@ $categorias = [];
                 <div class="form-group">
                     <label for="descripcionEdit"><i class="fas fa-file-alt"></i> DESCRIPCIÓN CATEGORÍA</label>
                     <textarea id="descripcionEdit" name="descripcionEdit" style="width: 100%; padding: 12px; border: 1px solid #e6e9ee; border-radius: 6px; text-transform: uppercase; resize: none; max-height: 150px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2f4a5a #f0f0f0; font-size: 14px;" rows="5"></textarea>
+                </div>
+
+                <div class="form-group" style="background:#f8fafc; border:1px solid #e6e9ee; border-radius:8px; padding:12px;">
+                    <label for="requiereVencimientoEdit" style="display:flex; align-items:center; gap:10px; cursor:pointer; margin:0;">
+                        <input type="checkbox" id="requiereVencimientoEdit" name="requiere_vencimiento" value="1" style="width:18px; height:18px;">
+                        <span><i class="fas fa-calendar-times"></i> LOS PRODUCTOS DE ESTA CATEGORÍA TIENEN FECHA DE VENCIMIENTO</span>
+                    </label>
+                    <small style="display:block; margin-top:6px; color:#667085;">Actívalo en comestibles, lácteos o bebidas. Al registrar una entrada de estos productos la fecha de vencimiento será obligatoria.</small>
                 </div>
                 
                 <div class="form-group">
@@ -2220,7 +2235,9 @@ $categorias = [];
             
             tr.innerHTML = `
                 <td>${cat.id}</td>
-                <td>${nombreSeguro}</td>
+                <td>${nombreSeguro}<br>${Number(cat.requiere_vencimiento || 0) === 1
+                    ? '<span style="display:inline-block; margin-top:6px; padding:3px 10px; border-radius:999px; background:#fdecea; color:#b3261e; font-size:11px; font-weight:700;">VENCE</span>'
+                    : '<span style="display:inline-block; margin-top:6px; padding:3px 10px; border-radius:999px; background:#eef2f6; color:#5b6b7a; font-size:11px; font-weight:700;">NO VENCE</span>'}</td>
                 <td class="descripcion-cell">
                     <div class="descripcion-content">${descripcionSegura}</div>
                 </td>
@@ -2571,6 +2588,10 @@ $categorias = [];
                 document.getElementById('idDisplay').value = categoria.id;
                 document.getElementById('nombreEdit').value = categoria.nombre;
                 document.getElementById('descripcionEdit').value = categoria.descripcion;
+                const requiereVencEdit = document.getElementById('requiereVencimientoEdit');
+                if (requiereVencEdit) {
+                    requiereVencEdit.checked = Number(categoria.requiere_vencimiento || 0) === 1;
+                }
                 
                 // Actualizar imagen
                 document.getElementById('imagenPreview').src = resolverImagenCategoria(categoria.imagen);
@@ -2665,6 +2686,8 @@ $categorias = [];
                         formData.append('id', document.getElementById('idDisplay').value.trim());
                         formData.append('nombre', document.getElementById('nombreEdit').value.trim());
                         formData.append('descripcion', document.getElementById('descripcionEdit').value.trim());
+                        const requiereVencEdit = document.getElementById('requiereVencimientoEdit');
+                        formData.append('requiere_vencimiento', (requiereVencEdit && requiereVencEdit.checked) ? '1' : '0');
                         
                         const imagenFile = document.getElementById('imagenEdit').files[0];
                         if (imagenFile) {

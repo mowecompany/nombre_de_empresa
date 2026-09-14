@@ -882,3 +882,34 @@ CREATE TABLE IF NOT EXISTS `producto_stock_presentacion` (
 -- ALTER TABLE `entradas_inventario` ADD COLUMN `presentacion_id` int(11) NULL, ADD COLUMN `cantidad_presentacion` decimal(14,3) NULL;
 -- ALTER TABLE `salidas_inventario` ADD COLUMN `presentacion_id` int(11) NULL, ADD COLUMN `cantidad_presentacion` decimal(14,3) NULL;
 -- ALTER TABLE `movimientos_inventario` ADD COLUMN `presentacion_id` int(11) NULL, ADD COLUMN `cantidad_presentacion` decimal(14,3) NULL;
+
+-- --------------------------------------------------------
+--
+-- Control de fechas de vencimiento (productos perecederos)
+--
+-- El sistema crea estas columnas y tabla automaticamente si faltan,
+-- pero quedan documentadas aqui para instalaciones nuevas.
+
+-- Marca que indica si los productos de la categoria vencen.
+-- ALTER TABLE `categorias` ADD COLUMN `requiere_vencimiento` tinyint(1) NOT NULL DEFAULT 0;
+
+-- Fecha de vencimiento propia de cada lote de entrada y cantidad ya archivada por vencimiento.
+-- ALTER TABLE `entradas_inventario` ADD COLUMN `fecha_vencimiento` date NULL, ADD COLUMN `cantidad_vencida` decimal(14,3) NOT NULL DEFAULT 0.000;
+
+-- Historial de lotes vencidos que fueron archivados y descontados del inventario.
+CREATE TABLE IF NOT EXISTS `lotes_vencidos` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `entrada_id` int(11) DEFAULT NULL,
+  `producto_id` int(11) NOT NULL,
+  `producto_nombre` varchar(200) NOT NULL DEFAULT '',
+  `producto_codigo` varchar(50) NOT NULL DEFAULT '',
+  `categoria_nombre` varchar(120) NOT NULL DEFAULT '',
+  `cantidad` decimal(14,3) NOT NULL DEFAULT 0.000,
+  `fecha_vencimiento` date DEFAULT NULL,
+  `fecha_archivado` datetime NOT NULL,
+  `usuario_id` int(11) DEFAULT NULL,
+  `empresa_id` int(11) DEFAULT NULL,
+  `notas` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_lotes_vencidos_producto` (`producto_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

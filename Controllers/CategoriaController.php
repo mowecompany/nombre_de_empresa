@@ -9,11 +9,28 @@ if (!defined('ROOT_PATH')) {
 }
 require_once ROOT_PATH . '/Config/database.php';
 require_once ROOT_PATH . '/Models/Categoria.php';
+require_once ROOT_PATH . '/Models/Vencimiento.php';
 
 try {
     $db = Database::connect();
     
     $categoria = new Categoria($db);
+
+    // Marca de categoría perecedera: sus productos exigen fecha de vencimiento.
+    $vencimientos = new Vencimiento($db);
+    $vencimientos->asegurarEsquema();
+    $guardarRequiereVencimiento = function ($categoriaId, $valor) use ($db) {
+        $categoriaId = (int)$categoriaId;
+        if ($categoriaId <= 0) {
+            return;
+        }
+        try {
+            $stmt = $db->prepare('UPDATE categorias SET requiere_vencimiento = :valor WHERE id = :id');
+            $stmt->execute([':valor' => $valor ? 1 : 0, ':id' => $categoriaId]);
+        } catch (Throwable $e) {
+            error_log('No se pudo guardar requiere_vencimiento: ' . $e->getMessage());
+        }
+    };
 
     // Manejar peticiones GET
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -112,6 +129,7 @@ try {
                     }
 
                     if ($categoria->update()) {
+                        $guardarRequiereVencimiento($idNuevo, (string)($_POST['requiere_vencimiento'] ?? '0') === '1');
                         $categoria->setId($idNuevo);
                         $categoriaDespues = $categoria->getOne();
                         $imagenNueva = trim((string)($categoriaDespues->imagen ?? ''));
@@ -218,6 +236,7 @@ try {
                     $idCreado = (int)$db->lastInsertId();
                     $categoriaCreada = null;
                     if ($idCreado > 0) {
+                        $guardarRequiereVencimiento($idCreado, (string)($_POST['requiere_vencimiento'] ?? '0') === '1');
                         $categoria->setId($idCreado);
                         $categoriaCreada = $categoria->getOne();
                     }

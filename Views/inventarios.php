@@ -2114,6 +2114,13 @@ if (is_file($logoPdfPath)) {
 
     <div class="container inventario-main-scroll">
 
+        <!-- Aviso de vencimientos -->
+        <a id="avisoVencimientos" href="vencimientos.php" style="display:none; align-items:center; gap:12px; text-decoration:none; margin:10px 0; padding:12px 16px; border-radius:10px; border:1px solid #f59e0b; background:#fff7ed; color:#7c2d12; font-weight:700;">
+            <i class="fas fa-triangle-exclamation" style="font-size:20px;"></i>
+            <span id="avisoVencimientosTexto" style="flex:1;"></span>
+            <span style="font-weight:800; white-space:nowrap;">VER PRODUCTOS A VENCER <i class="fas fa-arrow-right"></i></span>
+        </a>
+
         <!-- Estadísticas -->
         <div class="stats-container">
             <div class="stat-card" onclick="mostrarModalTodosProductos()" style="cursor: pointer;">
@@ -8903,6 +8910,10 @@ if (is_file($logoPdfPath)) {
                 return;
             }
 
+            if (typeof window.validarVencimientoEntrada === 'function' && !window.validarVencimientoEntrada()) {
+                return;
+            }
+
             const formData = new FormData();
             formData.append('action', 'registrarEntrada');
             formData.append('producto_id', productoSeleccionado);
@@ -9972,6 +9983,119 @@ if (is_file($logoPdfPath)) {
             sincronizar('salida');
         }
     })();
+
+    /* ============ FECHAS DE VENCIMIENTO EN LA ENTRADA ============ */
+    (function () {
+        const cache = new Map();
+        let estadoActual = { requiere: false, categoria: '' };
+
+        async function consultar(productoId) {
+            if (cache.has(productoId)) return cache.get(productoId);
+            try {
+                const url = base_url + '/Controllers/InventarioController.php?action=requiereVencimiento&producto_id=' + encodeURIComponent(productoId);
+                const respuesta = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const datos = await respuesta.json();
+                const resultado = {
+                    requiere: !!(datos && datos.success && datos.requiere),
+                    categoria: String((datos && datos.categoria) || '')
+                };
+                cache.set(productoId, resultado);
+                return resultado;
+            } catch (error) {
+                console.warn('No se pudo consultar el vencimiento del producto', error);
+                return { requiere: false, categoria: '' };
+            }
+        }
+
+        function pintar(info) {
+            estadoActual = info;
+            const campo = document.getElementById('fechaVencimiento');
+            const grupo = campo ? campo.closest('.form-group') : null;
+            if (!campo || !grupo) return;
+
+            let etiqueta = grupo.querySelector('label');
+            let aviso = document.getElementById('avisoVencimientoEntrada');
+            if (!aviso) {
+                aviso = document.createElement('small');
+                aviso.id = 'avisoVencimientoEntrada';
+                aviso.style.display = 'block';
+                aviso.style.marginTop = '6px';
+                aviso.style.fontWeight = '700';
+                grupo.appendChild(aviso);
+            }
+
+            const hoy = new Date();
+            hoy.setDate(hoy.getDate() + 1);
+            campo.min = hoy.toISOString().slice(0, 10);
+
+            if (info.requiere) {
+                campo.required = true;
+                campo.disabled = false;
+                campo.style.border = '2px solid #d93025';
+                campo.style.background = '#fff';
+                if (etiqueta) etiqueta.innerHTML = '<i class="fas fa-calendar-times"></i> FECHA VENCIMIENTO <span style="color:#d93025;">(OBLIGATORIA)</span>';
+                aviso.style.color = '#b3261e';
+                aviso.textContent = info.categoria
+                    ? `PRODUCTO PERECEDERO (${info.categoria.toUpperCase()}): SIN FECHA DE VENCIMIENTO NO SE PUEDE REGISTRAR LA ENTRADA.`
+                    : 'PRODUCTO PERECEDERO: SIN FECHA DE VENCIMIENTO NO SE PUEDE REGISTRAR LA ENTRADA.';
+            } else {
+                campo.required = false;
+                campo.style.border = '';
+                campo.style.background = '';
+                if (etiqueta) etiqueta.innerHTML = '<i class="fas fa-calendar"></i> FECHA VENCIMIENTO';
+                aviso.style.color = '#667085';
+                aviso.style.fontWeight = '400';
+                aviso.textContent = 'ESTE PRODUCTO NO VENCE. PUEDES DEJAR LA FECHA VACÍA.';
+            }
+        }
+
+        async function sincronizar() {
+            const select = document.getElementById('productoEntrada');
+            const productoId = parseInt(select?.value || '0', 10) || 0;
+            if (productoId <= 0) {
+                pintar({ requiere: false, categoria: '' });
+                return;
+            }
+            const info = await consultar(productoId);
+            if ((parseInt(select?.value || '0', 10) || 0) !== productoId) return;
+            pintar(info);
+        }
+
+        // Validación antes de enviar la entrada.
+        window.validarVencimientoEntrada = function () {
+            if (!estadoActual.requiere) return true;
+            const campo = document.getElementById('fechaVencimiento');
+            const valor = (campo?.value || '').trim();
+            if (!valor) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'FECHA DE VENCIMIENTO REQUERIDA',
+                    text: 'Este producto es perecedero. Escribe la fecha de vencimiento del lote para poder registrar la entrada.'
+                });
+                campo?.focus();
+                return false;
+            }
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            const fecha = new Date(valor + 'T00:00:00');
+            if (isNaN(fecha.getTime()) || fecha <= hoy) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'FECHA NO VÁLIDA',
+                    text: 'La fecha de vencimiento debe ser posterior al día de hoy.'
+                });
+                campo?.focus();
+                return false;
+            }
+            return true;
+        };
+
+        document.addEventListener('change', (evento) => {
+            if (evento.target?.id === 'productoEntrada') sincronizar();
+        });
+        document.addEventListener('DOMContentLoaded', sincronizar);
+        if (document.readyState !== 'loading') sincronizar();
+    })();
 </script>
 
     <!-- FOOTER -->
@@ -9985,6 +10109,60 @@ if (is_file($logoPdfPath)) {
             <span style="display: inline-flex; align-items: center; justify-content: center; line-height: 1; font-size: 14px; font-weight: 700;">TODOS LOS DERECHOS RESERVADOS</span>
         </p>
     </footer>
+
+    <!-- Aviso de productos vencidos / por vencer -->
+    <script>
+    (function () {
+        const aviso = document.getElementById('avisoVencimientos');
+        if (!aviso) { return; }
+        const texto = document.getElementById('avisoVencimientosTexto');
+
+        function pintar(resumen) {
+            const vencidos = parseInt(resumen.vencidos || 0, 10);
+            const criticos = parseInt(resumen.criticos || 0, 10);
+            const proximos = parseInt(resumen.proximos || 0, 10);
+            const porVencer = criticos + proximos;
+            if (vencidos <= 0 && porVencer <= 0) {
+                aviso.style.display = 'none';
+                return;
+            }
+            const partes = [];
+            if (vencidos > 0) {
+                partes.push(vencidos + (vencidos === 1 ? ' PRODUCTO VENCIDO' : ' PRODUCTOS VENCIDOS'));
+            }
+            if (porVencer > 0) {
+                partes.push(porVencer + (porVencer === 1 ? ' PRODUCTO POR VENCER' : ' PRODUCTOS POR VENCER'));
+            }
+            texto.textContent = partes.join(' Y ');
+            if (vencidos > 0) {
+                aviso.style.borderColor = '#dc2626';
+                aviso.style.background = '#fef2f2';
+                aviso.style.color = '#7f1d1d';
+            } else {
+                aviso.style.borderColor = '#f59e0b';
+                aviso.style.background = '#fff7ed';
+                aviso.style.color = '#7c2d12';
+            }
+            aviso.style.display = 'flex';
+        }
+
+        async function cargar() {
+            try {
+                const url = base_url + '/Controllers/InventarioController.php?action=resumenVencimientos';
+                const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const datos = await resp.json();
+                if (datos && datos.success && datos.resumen) {
+                    pintar(datos.resumen);
+                }
+            } catch (e) {
+                /* aviso opcional: no interrumpe el inventario */
+            }
+        }
+
+        cargar();
+        setInterval(cargar, 300000);
+    })();
+    </script>
 </body>
 </html>
 

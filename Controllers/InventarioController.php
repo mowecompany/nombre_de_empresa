@@ -971,6 +971,91 @@ try {
                 echo json_encode(['success' => false, 'message' => $e->getMessage()]);
             }
         }
+
+        /* ---------------- FECHAS DE VENCIMIENTO ---------------- */
+
+        // ¿Un producto exige fecha de vencimiento? (GET)
+        public function requiereVencimiento() {
+            try {
+                $productoId = (int)($_GET['producto_id'] ?? 0);
+                if ($productoId <= 0) {
+                    throw new Exception('Producto no válido');
+                }
+                $info = $this->inventario->vencimientos()->productoRequiere($productoId);
+                echo json_encode(['success' => true] + $info);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
+        // Lotes con fecha de vencimiento y existencias (GET)
+        public function lotesPorVencer() {
+            try {
+                $modelo = $this->inventario->vencimientos();
+                echo json_encode([
+                    'success' => true,
+                    'data' => $modelo->lotes(),
+                    'resumen' => $modelo->resumen()
+                ]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
+        // Contadores para avisos (GET)
+        public function resumenVencimientos() {
+            try {
+                echo json_encode(['success' => true, 'resumen' => $this->inventario->vencimientos()->resumen()]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
+        // Archivar un lote vencido: lo descuenta del inventario (POST)
+        public function archivarLoteVencido() {
+            try {
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    throw new Exception('Método no permitido');
+                }
+                $entradaId = (int)($_POST['entrada_id'] ?? 0);
+                if ($entradaId <= 0) {
+                    throw new Exception('Lote no válido');
+                }
+                echo json_encode($this->inventario->vencimientos()->archivar($entradaId, $this->inventario, [
+                    'usuario_id' => $this->getUsuarioIdSesion(),
+                    'empresa_id' => $this->getEmpresaIdSesion()
+                ]));
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
+        // Archivar de una vez todos los lotes vencidos (POST)
+        public function archivarTodosVencidos() {
+            try {
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    throw new Exception('Método no permitido');
+                }
+                echo json_encode($this->inventario->vencimientos()->archivarTodosVencidos($this->inventario, [
+                    'usuario_id' => $this->getUsuarioIdSesion(),
+                    'empresa_id' => $this->getEmpresaIdSesion()
+                ]));
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
+        // Historial de lotes vencidos archivados (GET)
+        public function lotesVencidosArchivados() {
+            try {
+                echo json_encode([
+                    'success' => true,
+                    'data' => $this->inventario->vencimientos()->archivados()
+                ]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
     }
 
 

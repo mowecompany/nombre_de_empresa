@@ -9184,6 +9184,10 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                             <i class="fas fa-barcode"></i>
                             <span class="menu-item-text">CÓDIGO</span>
                         </a>
+                        <a href="vencimientos.php" class="menu-item">
+                            <i class="fas fa-calendar-times"></i>
+                            <span class="menu-item-text">PRODUCTOS A VENCER</span>
+                        </a>
                     <?php endif; ?>
 
                     <?php if ($mostrarInventario): ?>
