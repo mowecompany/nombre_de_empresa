@@ -1266,6 +1266,7 @@ class Inventario {
     public function registrarSalida($datos) {
         try {
             $empresaId = $this->getEmpresaId();
+            $tipoSalida = $this->normalizarTipoSalidaInventario((string)($datos['tipo_salida'] ?? 'venta'));
             // Presentaciones: se recibe la cantidad en la presentacion elegida y se convierte a unidades base.
             $presentacionSalida = $this->resolverPresentacion($datos['producto_id'] ?? 0, $datos['presentacion_id'] ?? 0);
             $factorSalida = $presentacionSalida ? (float)$presentacionSalida['factor_base'] : 1.0;
@@ -1339,8 +1340,9 @@ class Inventario {
 
             $gananciaUnitaria = $precioVentaUnitario - $costoUnitario;
             $porcentajeGanancia = $costoUnitario > 0 ? (($gananciaUnitaria / $costoUnitario) * 100) : 0;
-            $totalVenta = $precioVentaUnitario * floatval($datos['cantidad']);
-            $totalGanancia = $gananciaUnitaria * floatval($datos['cantidad']);
+            $esVenta = $tipoSalida === 'venta';
+            $totalVenta = $esVenta ? $precioVentaUnitario * floatval($datos['cantidad']) : 0.0;
+            $totalGanancia = $esVenta ? $gananciaUnitaria * floatval($datos['cantidad']) : 0.0;
             
             // Verificar si la columna 'notas' existe en la tabla
             $tiene_notas = $this->columnaExiste('salidas_inventario', 'notas');
@@ -1355,7 +1357,6 @@ class Inventario {
             
             $columnasInsert = ['producto_id', 'cantidad', 'tipo_salida', 'fecha_salida', 'referencia', 'usuario_id'];
             $placeholdersInsert = [':producto_id', ':cantidad', ':tipo_salida', $this->dbNow(), ':referencia', ':usuario_id'];
-            $tipoSalida = $this->normalizarTipoSalidaInventario((string)($datos['tipo_salida'] ?? 'venta'));
             $params = [
                 ':producto_id' => $datos['producto_id'],
                 ':cantidad' => $datos['cantidad'],
@@ -1485,6 +1486,53 @@ class Inventario {
             }
             error_log("Error en registrarSalida: " . $e->getMessage());
             return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /** Registra una merma manual solo para las categorías frescas autorizadas. */
+    public function registrarProductoDanado(array $datos): array {
+        $productoId = (int)($datos['producto_id'] ?? 0);
+        $cantidad = (float)($datos['cantidad'] ?? 0);
+        if ($productoId <= 0 || $cantidad <= 0) {
+            return ['success' => false, 'message' => 'Selecciona un producto e indica una cantidad válida.'];
+        }
+
+        $empresaId = $this->getEmpresaId();
+        $filtroProducto = $this->construirFiltroTenant('productos', 'p');
+        try {
+            $stmt = $this->db->prepare("SELECT p.id, p.nombre, COALESCE(p.stock, 0) AS stock,
+                    COALESCE(c.nombre, '') AS categoria
+                FROM productos p
+                LEFT JOIN categorias c ON c.id = p.categoria_id
+                WHERE p.id = :id{$filtroProducto} LIMIT 1");
+            $stmt->execute([':id' => $productoId]);
+            $producto = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$producto) {
+                return ['success' => false, 'message' => 'El producto no existe o no pertenece a esta empresa.'];
+            }
+
+            $categoria = mb_strtolower(trim((string)$producto['categoria']), 'UTF-8');
+            $categoria = strtr($categoria, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
+            $permitida = in_array($categoria, ['frutas', 'verduras', 'carnicos y refrigerados'], true);
+            if (!$permitida) {
+                return ['success' => false, 'message' => 'Solo se pueden registrar daños en frutas, verduras y cárnicos y refrigerados.'];
+            }
+            if ($cantidad > (float)$producto['stock']) {
+                return ['success' => false, 'message' => 'La cantidad dañada supera el stock disponible.'];
+            }
+
+            return $this->registrarSalida([
+                'producto_id' => $productoId,
+                'cantidad' => $cantidad,
+                'tipo_salida' => 'dañado',
+                'referencia' => 'DANADO-' . date('YmdHis'),
+                'usuario_id' => $datos['usuario_id'] ?? null,
+                'notas' => trim((string)($datos['notas'] ?? '')) ?: 'Producto dañado registrado manualmente.',
+                'precio_venta' => 0
+            ]);
+        } catch (Throwable $e) {
+            error_log('registrarProductoDanado: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'No se pudo registrar el producto dañado.'];
         }
     }
 
@@ -1879,7 +1927,7 @@ class Inventario {
                         {$exprGananciaBasePct} as porcentaje_ganancia,
                         {$exprPrecioFinal} as precio_final,
                         IFNULL(c.nombre, 'SIN CATEGORÍA') as categoria,
-                        IFNULL((SELECT SUM(cantidad) FROM salidas_inventario WHERE producto_id = p.id " . $filtroSalidas . $filtroVentasFecha . "), 0) as ventas_30dias,
+                        IFNULL((SELECT SUM(cantidad) FROM salidas_inventario WHERE producto_id = p.id AND LOWER(COALESCE(NULLIF(TRIM(tipo_salida), ''), 'venta')) = 'venta' " . $filtroSalidas . $filtroVentasFecha . "), 0) as ventas_30dias,
                         IFNULL((SELECT SUM(cantidad) FROM entradas_inventario WHERE producto_id = p.id " . $filtroEntradas . $filtroEntradasFecha . "), 0) as entradas_30dias
                         FROM productos p
                         LEFT JOIN categorias c ON p.categoria_id = c.id

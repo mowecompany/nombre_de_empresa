@@ -100,8 +100,6 @@ $baseUrl = rtrim((string)base_url(), '/');
 
         .vacio { padding: 40px 20px; text-align: center; color: var(--muted); }
 
-        .venc-back { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px; color: var(--navy); text-decoration: none; font-weight: 700; font-size: 13px; }
-
         @media (max-width: 720px) {
             body { padding-top: 24px; }
             .venc-title { font-size: 1.6rem; }
@@ -111,8 +109,6 @@ $baseUrl = rtrim((string)base_url(), '/');
 </head>
 <body>
     <div class="venc-shell">
-        <a class="venc-back" href="dashboard.php"><i class="fas fa-arrow-left"></i> VOLVER AL PANEL</a>
-
         <h1 class="venc-title"><i class="fas fa-calendar-times"></i> PRODUCTOS A VENCER</h1>
         <p class="venc-sub">LOTES DE PRODUCTOS PERECEDEROS ORDENADOS POR LA FECHA DE VENCIMIENTO MÁS CERCANA</p>
 

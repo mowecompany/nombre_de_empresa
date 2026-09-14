@@ -2104,13 +2104,6 @@ if (is_file($logoPdfPath)) {
 
     <div class="container inventario-main-scroll">
 
-        <!-- Aviso de vencimientos -->
-        <a id="avisoVencimientos" href="vencimientos.php" style="display:none; align-items:center; gap:12px; text-decoration:none; margin:10px 0; padding:12px 16px; border-radius:10px; border:1px solid #f59e0b; background:#fff7ed; color:#7c2d12; font-weight:700;">
-            <i class="fas fa-triangle-exclamation" style="font-size:20px;"></i>
-            <span id="avisoVencimientosTexto" style="flex:1;"></span>
-            <span style="font-weight:800; white-space:nowrap;">VER PRODUCTOS A VENCER <i class="fas fa-arrow-right"></i></span>
-        </a>
-
         <!-- Estadísticas -->
         <div class="stats-container">
             <div class="stat-card" onclick="mostrarModalTodosProductos()" style="cursor: pointer;">
@@ -2291,6 +2284,9 @@ if (is_file($logoPdfPath)) {
                         </button>
                         <?php endif; ?>
                         <?php if ($tienePermisoCrear): ?>
+                        <button class="btn-nuevo" type="button" onclick="abrirModalProductoDanado()" style="background:#b45309; border-color:#b45309;">
+                            <i class="fas fa-apple-whole"></i> PRODUCTOS DAÑADOS
+                        </button>
                         <button class="btn-nuevo" onclick="abrirModal('salidaModal')">
                             <i class="fas fa-plus"></i> REGISTRAR SALIDA
                         </button>
@@ -2499,6 +2495,45 @@ if (is_file($logoPdfPath)) {
                 </div>
 
                 <button type="submit" class="btn-submit"><i class="fas fa-save"></i> GUARDAR ENTRADA</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: PRODUCTO DAÑADO -->
+    <div id="productoDanadoModal" class="modal">
+        <div class="modal-content" style="max-width:620px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-triangle-exclamation"></i> PRODUCTO DAÑADO</h2>
+                <button class="close-btn" onclick="cerrarModal('productoDanadoModal')">&times;</button>
+            </div>
+            <form id="formProductoDanado" autocomplete="off" onsubmit="registrarProductoDanado(event)">
+                <div class="form-group">
+                    <label for="productoDanado"><i class="fas fa-box"></i> PRODUCTO *</label>
+                    <select id="productoDanado" required onchange="actualizarCantidadProductoDanado()">
+                        <option value="">-- SELECCIONAR PRODUCTO --</option>
+                        <?php foreach ($productosConImg as $prod):
+                            $categoriaDanado = mb_strtolower(trim((string)($prod->categoria_nombre ?? '')), 'UTF-8');
+                            $categoriaDanado = strtr($categoriaDanado, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
+                            if (!in_array($categoriaDanado, ['frutas', 'verduras', 'carnicos y refrigerados'], true)) continue;
+                            $stockDanado = max(0, (float)($prod->stock ?? 0));
+                            if ($stockDanado <= 0) continue;
+                        ?>
+                        <option value="<?= (int)$prod->id ?>" data-stock="<?= $stockDanado ?>" data-kilo="<?= (int)($prod->venta_por_kilo ?? 0) ?>">
+                            <?= htmlspecialchars(strtoupper((string)$prod->nombre) . ' [' . strtoupper((string)($prod->categoria_nombre ?? '')) . '] — STOCK ' . $stockDanado, ENT_QUOTES, 'UTF-8') ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="cantidadProductoDanado"><i class="fas fa-scale-balanced"></i> CANTIDAD DAÑADA *</label>
+                    <input type="number" id="cantidadProductoDanado" min="1" step="1" required>
+                    <small id="stockProductoDanado" style="display:block;margin-top:6px;color:#64748b;font-weight:700;"></small>
+                </div>
+                <div class="form-group">
+                    <label for="notasProductoDanado"><i class="fas fa-sticky-note"></i> NOTA</label>
+                    <textarea id="notasProductoDanado" rows="3" placeholder="MOTIVO O DETALLE DEL DAÑO"></textarea>
+                </div>
+                <button type="submit" class="btn-submit"><i class="fas fa-box-archive"></i> DESCONTAR PRODUCTO DAÑADO</button>
             </form>
         </div>
     </div>
@@ -8749,7 +8784,7 @@ if (is_file($logoPdfPath)) {
         // Verificar y alertar sobre productos críticos y urgentes
         async function verificarYAlertarProductosCriticosYUrgentes() {
             try {
-                const response = await fetch(base_url + '/Controllers/InventarioController.php?action=obtenerProductosCriticosYUrgentes');
+                const response = await fetch(base_url + '/Controllers/InventarioController.php?action=obtenerProductosCriticosYUrgentes', { cache: 'no-store' });
                 const resultado = await response.json();
 
                 if (resultado.success && resultado.count_total > 0) {
@@ -8764,7 +8799,7 @@ if (is_file($logoPdfPath)) {
                     };
                     const mensaje = construirTabla(resultado.criticos || [], '#d33', false) + construirTabla(resultado.urgentes || [], '#ef8b00', true);
 
-                    Swal.fire({
+                    return Swal.fire({
                         title: 'PRODUCTOS CRÍTICOS SIN STOCK',
                         html: `<div style="max-height:380px;overflow-y:auto;padding:2px 4px;">${mensaje}</div>`,
                         icon: resultado.count_criticos > 0 ? 'error' : 'warning',
@@ -8776,8 +8811,83 @@ if (is_file($logoPdfPath)) {
                         width: 680
                     });
                 }
+                return Swal.fire({
+                    icon: 'success',
+                    title: 'STOCK SIN ALERTAS',
+                    text: 'No hay productos con stock cero o urgente.',
+                    confirmButtonText: 'ENTENDIDO'
+                });
             } catch (error) {
                 console.error('Error verificando stock de productos:', error);
+                return Swal.fire({
+                    icon: 'error',
+                    title: 'NO SE PUDO CONSULTAR EL STOCK',
+                    text: 'Intenta nuevamente.',
+                    confirmButtonText: 'ENTENDIDO'
+                });
+            }
+        }
+
+        function abrirModalProductoDanado() {
+            const form = document.getElementById('formProductoDanado');
+            if (form) form.reset();
+            actualizarCantidadProductoDanado();
+            abrirModal('productoDanadoModal');
+        }
+
+        function actualizarCantidadProductoDanado() {
+            const select = document.getElementById('productoDanado');
+            const cantidad = document.getElementById('cantidadProductoDanado');
+            const ayuda = document.getElementById('stockProductoDanado');
+            const opcion = select?.options?.[select.selectedIndex];
+            const stock = Number(opcion?.dataset?.stock || 0);
+            const porKilo = String(opcion?.dataset?.kilo || '0') === '1';
+            if (cantidad) {
+                cantidad.step = porKilo ? '0.001' : '1';
+                cantidad.min = porKilo ? '0.001' : '1';
+                cantidad.max = stock > 0 ? String(stock) : '';
+            }
+            if (ayuda) ayuda.textContent = stock > 0 ? `STOCK DISPONIBLE: ${stock}${porKilo ? ' KG' : ''}` : '';
+        }
+
+        async function registrarProductoDanado(evento) {
+            evento.preventDefault();
+            const form = evento.currentTarget;
+            if (!form.reportValidity()) return;
+            const select = document.getElementById('productoDanado');
+            const cantidad = Number(document.getElementById('cantidadProductoDanado')?.value || 0);
+            const opcion = select?.options?.[select.selectedIndex];
+            const stock = Number(opcion?.dataset?.stock || 0);
+            if (cantidad <= 0 || cantidad > stock) {
+                Swal.fire({ icon: 'warning', title: 'CANTIDAD NO VÁLIDA', text: `La cantidad debe estar entre 0 y ${stock}.` });
+                return;
+            }
+            const confirmacion = await Swal.fire({
+                icon: 'warning',
+                title: '¿DESCONTAR PRODUCTO DAÑADO?',
+                text: `Se descontarán ${cantidad} del inventario y quedará registrado como DAÑADO.`,
+                showCancelButton: true,
+                confirmButtonText: 'SÍ, DESCONTAR',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#b45309'
+            });
+            if (!confirmacion.isConfirmed) return;
+
+            const datos = new FormData();
+            datos.append('action', 'registrarProductoDanado');
+            datos.append('producto_id', select.value);
+            datos.append('cantidad', String(cantidad));
+            datos.append('notas', document.getElementById('notasProductoDanado')?.value || '');
+            try {
+                const respuesta = await fetch(inventarioControllerUrl, { method: 'POST', body: datos });
+                const resultado = await respuesta.json();
+                if (!resultado.success) throw new Error(resultado.message || 'No se pudo registrar el daño.');
+                cerrarModal('productoDanadoModal', false);
+                dispararRefreshInventarioGlobal();
+                refrescarInventarioInmediato();
+                await Swal.fire({ icon: 'success', title: 'PRODUCTO DESCONTADO', text: 'La merma quedó registrada como salida por daño.' });
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudo registrar el daño.' });
             }
         }
 
@@ -10028,11 +10138,9 @@ if (is_file($logoPdfPath)) {
                 campo.disabled = false;
                 campo.style.border = '2px solid #d93025';
                 campo.style.background = '#fff';
-                if (etiqueta) etiqueta.innerHTML = '<i class="fas fa-calendar-times"></i> FECHA VENCIMIENTO <span style="color:#d93025;">(OBLIGATORIA)</span>';
-                aviso.style.color = '#b3261e';
-                aviso.textContent = info.categoria
-                    ? `PRODUCTO PERECEDERO (${info.categoria.toUpperCase()}): SIN FECHA DE VENCIMIENTO NO SE PUEDE REGISTRAR LA ENTRADA.`
-                    : 'PRODUCTO PERECEDERO: SIN FECHA DE VENCIMIENTO NO SE PUEDE REGISTRAR LA ENTRADA.';
+                if (etiqueta) etiqueta.innerHTML = '<i class="fas fa-calendar-times"></i> FECHA VENCIMIENTO <span style="color:#d93025;">*</span>';
+                aviso.textContent = '';
+                aviso.style.display = 'none';
             } else {
                 campo.required = false;
                 campo.disabled = true;
@@ -10042,6 +10150,7 @@ if (is_file($logoPdfPath)) {
                 if (etiqueta) etiqueta.innerHTML = '<i class="fas fa-calendar"></i> FECHA VENCIMIENTO';
                 aviso.style.color = '#667085';
                 aviso.style.fontWeight = '400';
+                aviso.style.display = 'block';
                 aviso.textContent = 'ESTE PRODUCTO NO VENCE. LA FECHA NO APLICA.';
             }
         }
@@ -10069,15 +10178,7 @@ if (is_file($logoPdfPath)) {
             if (!estadoActual.requiere) return true;
             const campo = document.getElementById('fechaVencimiento');
             const valor = (campo?.value || '').trim();
-            if (!valor) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'FECHA DE VENCIMIENTO REQUERIDA',
-                    text: 'Este producto es perecedero. Escribe la fecha de vencimiento del lote para poder registrar la entrada.'
-                });
-                campo?.focus();
-                return false;
-            }
+            if (!valor) return false;
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
             const fecha = new Date(valor + 'T00:00:00');
@@ -10113,59 +10214,6 @@ if (is_file($logoPdfPath)) {
         </p>
     </footer>
 
-    <!-- Aviso de productos vencidos / por vencer -->
-    <script>
-    (function () {
-        const aviso = document.getElementById('avisoVencimientos');
-        if (!aviso) { return; }
-        const texto = document.getElementById('avisoVencimientosTexto');
-
-        function pintar(resumen) {
-            const vencidos = parseInt(resumen.vencidos || 0, 10);
-            const criticos = parseInt(resumen.criticos || 0, 10);
-            const proximos = parseInt(resumen.proximos || 0, 10);
-            const porVencer = criticos + proximos;
-            if (vencidos <= 0 && porVencer <= 0) {
-                aviso.style.display = 'none';
-                return;
-            }
-            const partes = [];
-            if (vencidos > 0) {
-                partes.push(vencidos + (vencidos === 1 ? ' PRODUCTO VENCIDO' : ' PRODUCTOS VENCIDOS'));
-            }
-            if (porVencer > 0) {
-                partes.push(porVencer + (porVencer === 1 ? ' PRODUCTO POR VENCER' : ' PRODUCTOS POR VENCER'));
-            }
-            texto.textContent = partes.join(' Y ');
-            if (vencidos > 0) {
-                aviso.style.borderColor = '#dc2626';
-                aviso.style.background = '#fef2f2';
-                aviso.style.color = '#7f1d1d';
-            } else {
-                aviso.style.borderColor = '#f59e0b';
-                aviso.style.background = '#fff7ed';
-                aviso.style.color = '#7c2d12';
-            }
-            aviso.style.display = 'flex';
-        }
-
-        async function cargar() {
-            try {
-                const url = base_url + '/Controllers/InventarioController.php?action=resumenVencimientos';
-                const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                const datos = await resp.json();
-                if (datos && datos.success && datos.resumen) {
-                    pintar(datos.resumen);
-                }
-            } catch (e) {
-                /* aviso opcional: no interrumpe el inventario */
-            }
-        }
-
-        cargar();
-        setInterval(cargar, 300000);
-    })();
-    </script>
 </body>
 </html>
 

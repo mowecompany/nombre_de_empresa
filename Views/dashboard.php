@@ -13571,6 +13571,41 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             }
         }
 
+        async function verificarVencimientosDiarios() {
+            const hoy = new Date().toISOString().slice(0, 10);
+            const clave = `alertaVencimientos-${hoy}-<?= (int)$usuarioId ?>`;
+            if (sessionStorage.getItem(clave) === '1') return;
+            try {
+                const response = await fetch(`${baseAlertaStock}/Controllers/InventarioController.php?action=lotesPorVencer`, { cache: 'no-store' });
+                const resultado = await response.json();
+                if (!resultado.success) return;
+                const lotes = (Array.isArray(resultado.data) ? resultado.data : [])
+                    .filter(lote => lote.estado === 'vencido' || lote.estado === 'critico');
+                if (!lotes.length) return;
+                sessionStorage.setItem(clave, '1');
+                const filas = lotes.map(lote => {
+                    const estado = lote.estado === 'vencido' ? 'VENCIDO' : `${Number(lote.dias) || 0} DÍA(S)`;
+                    const color = lote.estado === 'vencido' ? '#b91c1c' : '#b45309';
+                    const partes = String(lote.fecha_vencimiento || '').slice(0, 10).split('-');
+                    const fecha = partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : lote.fecha_vencimiento;
+                    return `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px;text-align:left;font-weight:700;">${String(lote.producto || '')}</td><td style="padding:8px;">${String(lote.codigo || '')}</td><td style="padding:8px;text-align:center;">${Number(lote.cantidad) || 0}</td><td style="padding:8px;text-align:center;">${fecha}</td><td style="padding:8px;text-align:center;color:${color};font-weight:800;">${estado}</td></tr>`;
+                }).join('');
+                const alerta = await Swal.fire({
+                    icon: (resultado.resumen?.vencidos || 0) > 0 ? 'error' : 'warning',
+                    title: 'PRODUCTOS PRÓXIMOS A VENCER',
+                    html: `<div style="max-height:380px;overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="padding:8px;text-align:left;">PRODUCTO</th><th>CÓDIGO</th><th>CANT.</th><th>VENCE</th><th>ESTADO</th></tr></thead><tbody>${filas}</tbody></table></div>`,
+                    showCancelButton: true,
+                    confirmButtonText: 'VER PRODUCTOS A VENCER',
+                    cancelButtonText: 'CERRAR',
+                    confirmButtonColor: '#b45309',
+                    width: 760
+                });
+                if (alerta.isConfirmed) window.location.href = 'vencimientos.php';
+            } catch (error) {
+                console.error('Error verificando vencimientos:', error);
+            }
+        }
+
         const baseCreditosDashboard = '<?= htmlspecialchars(rtrim((string)base_url(), '/'), ENT_QUOTES, 'UTF-8'); ?>';
         // La presencia de esta caja la envía Assets/js/presence.js en todas las pantallas.
 
@@ -13872,6 +13907,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
         // Deshabilitado para evitar recargas automáticas (igual que el fix de commit e0af774)
         // setInterval(() => verificarProductosStockCero('horario'), alertCheckInterval);
         verificarProductosStockCero('login');
+        verificarVencimientosDiarios();
         <?php if ($mostrarCreditos): ?>
         cargarCreditosDashboard();
         <?php endif; ?>

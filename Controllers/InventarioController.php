@@ -373,6 +373,22 @@ try {
             }
         }
 
+        public function registrarProductoDanado() {
+            try {
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    throw new Exception('Método no permitido');
+                }
+                echo json_encode($this->inventario->registrarProductoDanado([
+                    'producto_id' => (int)($_POST['producto_id'] ?? 0),
+                    'cantidad' => (float)str_replace(',', '.', (string)($_POST['cantidad'] ?? 0)),
+                    'notas' => $_POST['notas'] ?? '',
+                    'usuario_id' => $this->getUsuarioIdSesion() ?: null
+                ]));
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
         public function editarFactura() {
             try {
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -836,27 +852,18 @@ try {
         // Obtener productos críticos y urgentes
         public function obtenerProductosCriticosYUrgentes() {
             try {
-                $db = $this->inventario->getDb();
-                
-                // Críticos: stock = 0
-                $sqlCriticos = "SELECT id, codigo, nombre, stock, imagen, 'critico' as tipo 
-                                FROM productos 
-                                WHERE stock = 0
-                                ORDER BY nombre ASC";
-                
-                // Urgentes: stock > 0 AND stock <= 5
-                $sqlUrgentes = "SELECT id, codigo, nombre, stock, imagen, 'urgente' as tipo 
-                               FROM productos 
-                               WHERE stock > 0 AND stock <= 5
-                               ORDER BY stock ASC, nombre ASC";
-
-                $stmtCriticos = $db->prepare($sqlCriticos);
-                $stmtCriticos->execute();
-                $criticos = $stmtCriticos->fetchAll(PDO::FETCH_ASSOC);
-                
-                $stmtUrgentes = $db->prepare($sqlUrgentes);
-                $stmtUrgentes->execute();
-                $urgentes = $stmtUrgentes->fetchAll(PDO::FETCH_ASSOC);
+                $productos = $this->inventario->obtenerProductosParaReorden(5);
+                $criticos = [];
+                $urgentes = [];
+                foreach ($productos as $producto) {
+                    $fila = (array)$producto;
+                    $fila['tipo'] = (float)($fila['stock'] ?? 0) <= 0 ? 'critico' : 'urgente';
+                    if ($fila['tipo'] === 'critico') {
+                        $criticos[] = $fila;
+                    } else {
+                        $urgentes[] = $fila;
+                    }
+                }
 
                 echo json_encode([
                     'success' => true,
