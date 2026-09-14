@@ -3772,6 +3772,17 @@ if (is_file($logoPdfPath)) {
             return 'INVENTARIO';
         }
 
+        function tipoSinCobro(tipo) {
+            const valor = String(tipo || '').trim().toLowerCase();
+            return valor === 'dañado' || valor === 'danado' || valor === 'perdida' || valor === 'pérdida';
+        }
+
+        function metodoPagoVisible(tipo, metodoPago) {
+            if (tipoSinCobro(tipo)) return '-';
+            const metodo = String(metodoPago || '').trim();
+            return metodo ? metodo.toUpperCase() : '-';
+        }
+
         function origenSalida(item) {
             return esRegistroCredito(item?.es_credito ?? item?.esCredito) ? 'CRÉDITO' : 'INVENTARIO';
         }
@@ -6137,7 +6148,7 @@ if (is_file($logoPdfPath)) {
                                         <td>${grupo.totalUnidades.toLocaleString('es-CO')}</td>
                                         <td><strong>${formatoMonedaInventario(grupo.total)}</strong></td>
                                         <td><span class="badge ${tipoBadge}">${escapeHtml(etiquetaTipo)}</span></td>
-                                        <td style="white-space: normal; word-break: break-word;">${String(grupo.metodoPago || 'efectivo').toUpperCase()}</td>
+                                        <td style="white-space: normal; word-break: break-word;">${escapeHtml(metodoPagoVisible(tipo, grupo.metodoPago))}</td>
                                         <td>${(escapeHtml(origen) || 'N/A').toUpperCase()}</td>
                                         <td>
                                             <div style="display:flex;flex-direction:column;align-items:center;gap:2px; text-align:center;">
@@ -6478,6 +6489,7 @@ if (is_file($logoPdfPath)) {
                                         : 'N/A',
                                     totalUnidades: 0
                                     ,metodoPago: item.metodo_pago || 'efectivo'
+                                    ,tipoSalida: String(item.tipo_salida || '').trim()
                                     ,esCredito: esRegistroCredito(item.es_credito)
                                 };
                             }
@@ -6539,12 +6551,19 @@ if (is_file($logoPdfPath)) {
                                     const row = document.createElement('tr');
                                     const tipo = grupo.tipo || 'movimiento';
                                     const origen = grupo.origen || 'Movimiento';
+                                    const tipoSalidaMov = String(grupo.tipoSalida || '').trim();
                                     const etiquetaMovimiento = tipo === 'salida'
-                                        ? (String(origen).toUpperCase() === 'CRÉDITO' ? 'CRÉDITO' : 'INVENTARIO')
+                                        ? (tipoSinCobro(tipoSalidaMov)
+                                            ? etiquetaTipoSalida(tipoSalidaMov, 0, '', false)
+                                            : (String(origen).toUpperCase() === 'CRÉDITO' ? 'CRÉDITO' : 'INVENTARIO'))
                                         : (etiquetaTipoMovimiento(tipo) || '').toUpperCase();
                                     let tipoBadge = 'badge-info';
                                     if (tipo === 'entrada') tipoBadge = 'badge-success';
-                                    if (tipo === 'salida') tipoBadge = etiquetaMovimiento === 'CRÉDITO' ? 'badge-credit' : 'badge-success';
+                                    if (tipo === 'salida') {
+                                        tipoBadge = ['DAÑADO', 'PÉRDIDA'].includes(etiquetaMovimiento)
+                                            ? 'badge-danger'
+                                            : (etiquetaMovimiento === 'CRÉDITO' ? 'badge-credit' : 'badge-success');
+                                    }
 
                                     const productosPreview = grupo.items
                                         .slice(0, 2)
@@ -6568,7 +6587,7 @@ if (is_file($logoPdfPath)) {
                                         <td>${productosPreview}${extra}</td>
                                         <td>${grupo.totalUnidades.toLocaleString('es-CO')}</td>
                                         <td><span class="badge ${tipoBadge}">${escapeHtml(etiquetaMovimiento)}</span></td>
-                                        <td>${String(grupo.metodoPago || 'efectivo').toUpperCase()}</td>
+                                        <td>${escapeHtml(metodoPagoVisible(grupo.tipoSalida, grupo.metodoPago))}</td>
                                         <td>${escapeHtml(origen)}</td>
                                         <td style="text-align:center;">
                                             <div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">

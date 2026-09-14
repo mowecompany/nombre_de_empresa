@@ -320,6 +320,7 @@ try {
                     'referencia' => $referenciaCredito,
                     'usuario_id' => $usuarioId ?: null,
                     'notas' => 'Crédito pagado',
+                    'es_credito' => 1,
                     'precio_venta' => (float)$detalle['precio_unitario'],
                     'omitir_stock' => true
                 ]);

@@ -26,5 +26,14 @@ verificarAjuste('movimientos reutilizan impresión de salidas', strpos($vista, '
 verificarAjuste('impresión mantiene RESUMEN DE VENTAS', strpos($vista, '<h1>RESUMEN DE<br>VENTAS</h1>') !== false);
 verificarAjuste('impresión reserva menos ancho para metadatos', strpos($vista, '.meta strong { display: inline-block; width: 48px; }') !== false);
 
+$creditos = file_get_contents(__DIR__ . '/../Controllers/CreditosController.php');
+verificarAjuste('pago de crédito marca es_credito', strpos($creditos, "'es_credito' => 1,") !== false);
+verificarAjuste('salida guarda la marca es_credito', strpos($inventario, "\$params[':es_credito']") !== false);
+verificarAjuste('daños y pérdidas sin método de pago', strpos($inventario, "in_array(\$tipoSalida, ['dañado', 'perdida'], true) ? ''") !== false);
+verificarAjuste('movimientos reciben tipo_salida', strpos($inventario, 'AS tipo_salida,') !== false);
+verificarAjuste('tabla de salidas oculta tipo de pago en daños', strpos($vista, 'metodoPagoVisible(tipo, grupo.metodoPago)') !== false);
+verificarAjuste('tabla de movimientos oculta tipo de pago en daños', strpos($vista, 'metodoPagoVisible(grupo.tipoSalida, grupo.metodoPago)') !== false);
+verificarAjuste('movimientos muestran DAÑADO', strpos($vista, 'tipoSinCobro(tipoSalidaMov)') !== false);
+
 echo PHP_EOL . ($fallos === 0 ? 'TODAS LAS PRUEBAS PASARON' : "{$fallos} PRUEBA(S) FALLARON") . PHP_EOL;
 exit($fallos === 0 ? 0 : 1);

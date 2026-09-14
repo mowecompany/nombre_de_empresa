@@ -215,6 +215,45 @@ class Inventario {
         return 'DA-' . str_pad((string)($mayor + 1), 2, '0', STR_PAD_LEFT);
     }
 
+    /** Asegura la marca explícita de crédito en las salidas (no depende de la referencia). */
+    private function asegurarColumnaCreditoSalidas(): void {
+        static $verificada = false;
+        if ($verificada) {
+            return;
+        }
+        $verificada = true;
+        try {
+            if ($this->columnaExiste('salidas_inventario', 'es_credito')) {
+                return;
+            }
+            $tipo = $this->esSqlite() ? 'INTEGER NOT NULL DEFAULT 0' : 'TINYINT(1) NOT NULL DEFAULT 0';
+            $this->db->exec("ALTER TABLE salidas_inventario ADD COLUMN es_credito {$tipo}");
+            $this->columnasCache['salidas_inventario.es_credito'] = true;
+            // Compatibilidad: los pagos de crédito anteriores quedaron marcados en las notas.
+            if ($this->columnaExiste('salidas_inventario', 'notas')) {
+                $this->db->exec("UPDATE salidas_inventario SET es_credito = 1 WHERE LOWER(TRIM(COALESCE(notas, ''))) = 'crédito pagado'");
+            }
+        } catch (Throwable $e) {
+            error_log('asegurarColumnaCreditoSalidas: ' . $e->getMessage());
+        }
+    }
+
+    /** Expresión SQL que identifica las salidas generadas al pagar un crédito. */
+    private function expresionEsCredito(string $alias = 's'): string {
+        $this->asegurarColumnaCreditoSalidas();
+        $partes = [];
+        if ($this->columnaExiste('salidas_inventario', 'es_credito')) {
+            $partes[] = "COALESCE({$alias}.es_credito, 0) = 1";
+        }
+        if ($this->columnaExiste('salidas_inventario', 'notas')) {
+            $partes[] = "LOWER(TRIM(COALESCE({$alias}.notas, ''))) = 'crédito pagado'";
+        }
+        if (empty($partes)) {
+            return '0';
+        }
+        return 'CASE WHEN ' . implode(' OR ', $partes) . ' THEN 1 ELSE 0 END';
+    }
+
     private function entradasInventarioIdEsPkAutoincremental(): bool {
         if (!$this->esSqlite()) {
             return true;
@@ -807,7 +846,8 @@ class Inventario {
                     COALESCE(s.referencia, 'MOV-' || CAST(m.id AS TEXT)) AS referencia,
                     COALESCE(s.metodo_pago, 'efectivo') AS metodo_pago,
                     " . ($salidasTieneNotas ? 's.notas' : 'NULL') . " AS notas,
-                    CASE WHEN EXISTS (SELECT 1 FROM creditos cr WHERE cr.empresa_id = s.empresa_id AND TRIM(COALESCE(cr.referencia, '')) <> '' AND TRIM(cr.referencia) = TRIM(s.referencia) AND LOWER(cr.estado) = 'pagado') THEN 1 ELSE 0 END AS es_credito,
+                    " . $this->expresionEsCredito('s') . " AS es_credito,
+                    " . ($salidasTieneTipoSalida ? "s.tipo_salida" : "NULL") . " AS tipo_salida,
                     p.nombre AS producto_nombre,
                     p.codigo AS codigo,
                     p.imagen AS producto_imagen,
@@ -834,7 +874,8 @@ class Inventario {
                     s.usuario_id AS usuario_id,
                     COALESCE(s.metodo_pago, 'efectivo') AS metodo_pago,
                     " . ($salidasTieneNotas ? 's.notas' : 'NULL') . " AS notas,
-                    CASE WHEN EXISTS (SELECT 1 FROM creditos cr WHERE cr.empresa_id = s.empresa_id AND TRIM(COALESCE(cr.referencia, '')) <> '' AND TRIM(cr.referencia) = TRIM(s.referencia) AND LOWER(cr.estado) = 'pagado') THEN 1 ELSE 0 END AS es_credito,
+                    " . $this->expresionEsCredito('s') . " AS es_credito,
+                    " . ($salidasTieneTipoSalida ? "s.tipo_salida" : "NULL") . " AS tipo_salida,
                     'Salida por ' || " . ($salidasTieneTipoSalida ? "CASE WHEN TRIM(COALESCE(s.tipo_salida, '')) <> '' THEN s.tipo_salida ELSE 'venta' END" : "'venta'") . " AS descripcion,
                     " . ($salidasTieneFechaSalida ? "s.fecha_salida" : $this->dbNow()) . " AS fecha_movimiento,
                     s.empresa_id,
@@ -1039,15 +1080,9 @@ class Inventario {
                     CASE WHEN TRIM(COALESCE(s.tipo_salida, '')) <> '' THEN
                         CASE WHEN LOWER(TRIM(s.tipo_salida)) IN ('credito', 'venta_credito_pagada', 'venta_credito', 'credito_pagado', 'pagado') THEN 'venta' ELSE s.tipo_salida END
                     ELSE 'venta' END as tipo_salida,
-                    CASE WHEN EXISTS (
-                            SELECT 1 FROM creditos cr
-                            WHERE cr.empresa_id = s.empresa_id
-                              AND TRIM(COALESCE(cr.referencia, '')) <> ''
-                              AND TRIM(cr.referencia) = TRIM(s.referencia)
-                              AND LOWER(cr.estado) = 'pagado'
-                        ) THEN 'credito' ELSE 'venta' END as tipo_salida_efectiva,
+                    CASE WHEN " . $this->expresionEsCredito('s') . " = 1 THEN 'credito' ELSE 'venta' END as tipo_salida_efectiva,
                     s.*, p.codigo as codigo, p.nombre as producto_nombre, p.imagen as producto_imagen, 
-                    CASE WHEN EXISTS (SELECT 1 FROM creditos cr WHERE cr.empresa_id = s.empresa_id AND TRIM(COALESCE(cr.referencia, '')) <> '' AND TRIM(cr.referencia) = TRIM(s.referencia) AND LOWER(cr.estado) = 'pagado') THEN 1 ELSE 0 END AS es_credito,
+                    " . $this->expresionEsCredito('s') . " AS es_credito,
                     u.nombre as usuario_nombre, u.apellidos as usuario_apellidos, u.rol as usuario_rol
                     FROM salidas_inventario s
                     INNER JOIN productos p ON s.producto_id = p.id
@@ -1142,17 +1177,7 @@ class Inventario {
                 $this->db->beginTransaction();
             }
 
-            if ($tipoSalida === 'dañado' && trim((string)($datos['referencia'] ?? '')) === '') {
-                if (!$this->esSqlite()) {
-                    $bloqueoReferenciaDanado = 'inventario_danado_' . $empresaId;
-                    $stmtBloqueo = $this->db->prepare('SELECT GET_LOCK(:clave, 10)');
-                    $stmtBloqueo->execute([':clave' => $bloqueoReferenciaDanado]);
-                    if ((int)$stmtBloqueo->fetchColumn() !== 1) {
-                        throw new Exception('No se pudo reservar la secuencia del producto dañado. Intenta nuevamente.');
-                    }
-                }
-                $datos['referencia'] = $this->obtenerSiguienteReferenciaDanado($empresaId);
-            }
+            
             
             // Calcular precio de venta basado en costo y porcentaje de ganancia (por unidad base)
             $precio_compra_presentacion = floatval($datos['precio_compra']);
@@ -1333,6 +1358,19 @@ class Inventario {
             } else {
                 $this->db->beginTransaction();
             }
+
+            // Referencia secuencial DA-01, DA-02... para los productos dañados.
+            if ($tipoSalida === 'dañado' && trim((string)($datos['referencia'] ?? '')) === '') {
+                if (!$this->esSqlite()) {
+                    $bloqueoReferenciaDanado = 'inventario_danado_' . $empresaId;
+                    $stmtBloqueo = $this->db->prepare('SELECT GET_LOCK(:clave, 10)');
+                    $stmtBloqueo->execute([':clave' => $bloqueoReferenciaDanado]);
+                    if ((int)$stmtBloqueo->fetchColumn() !== 1) {
+                        throw new Exception('No se pudo reservar la secuencia del producto dañado. Intenta nuevamente.');
+                    }
+                }
+                $datos['referencia'] = $this->obtenerSiguienteReferenciaDanado($empresaId);
+            }
             
             $producto = $this->resolverProductoInventario((int)($datos['producto_id'] ?? 0), $empresaId);
             if (!$producto) {
@@ -1424,7 +1462,15 @@ class Inventario {
                 $columnasInsert[] = 'metodo_pago';
                 $placeholdersInsert[] = ':metodo_pago';
                 $metodoPago = strtolower(trim((string)($datos['metodo_pago'] ?? 'efectivo')));
-                $params[':metodo_pago'] = in_array($metodoPago, ['efectivo', 'transferencia'], true) ? $metodoPago : 'efectivo';
+                $metodoPago = in_array($metodoPago, ['efectivo', 'transferencia'], true) ? $metodoPago : 'efectivo';
+                // Los daños y pérdidas no se cobran: no llevan método de pago.
+                $params[':metodo_pago'] = in_array($tipoSalida, ['dañado', 'perdida'], true) ? '' : $metodoPago;
+            }
+            $this->asegurarColumnaCreditoSalidas();
+            if ($this->columnaExiste('salidas_inventario', 'es_credito')) {
+                $columnasInsert[] = 'es_credito';
+                $placeholdersInsert[] = ':es_credito';
+                $params[':es_credito'] = !empty($datos['es_credito']) ? 1 : 0;
             }
             if ($salidasTieneEmpresa) {
                 $columnasInsert[] = 'empresa_id';
