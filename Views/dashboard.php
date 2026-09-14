@@ -2725,6 +2725,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8'); ?>/Assets/js/main.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8'); ?>/Assets/js/presence.js" defer></script>
     <style>
         :root {
             --company-primary: <?= htmlspecialchars($coloresEmpresa['color_principal']); ?>;
@@ -11520,6 +11521,31 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
             let moduleLoadTimer = null;
 
+            // Puente de respaldo: si una vista dentro del marco no recibe el API de escritorio,
+            // puede pedirnos la operación por mensajes y nosotros la ejecutamos aquí.
+            window.addEventListener('message', async (evento) => {
+                const datos = evento.data;
+                if (!datos || datos.tipo !== 'electron-bridge-request') return;
+                if (!moduleFrame || evento.source !== moduleFrame.contentWindow) return;
+
+                let respuesta = { tipo: 'electron-bridge-response', id: datos.id, ok: false, error: 'No disponible' };
+                try {
+                    const metodo = window.electronAPI && window.electronAPI[datos.metodo];
+                    if (typeof metodo !== 'function') {
+                        respuesta.error = 'La aplicación de escritorio no expone esa función.';
+                    } else {
+                        const valor = await metodo(...(Array.isArray(datos.args) ? datos.args : []));
+                        respuesta = { tipo: 'electron-bridge-response', id: datos.id, ok: true, valor };
+                    }
+                } catch (error) {
+                    respuesta.error = error?.message || 'Error desconocido';
+                }
+
+                try {
+                    evento.source.postMessage(respuesta, window.location.origin);
+                } catch (_) { /* el marco pudo cerrarse */ }
+            });
+
             if (moduleFrame) {
                 moduleFrame.addEventListener('load', () => {
                     if (moduleLoadTimer) {
@@ -11963,9 +11989,10 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             };
 
             cargarDiagnosticoErrores();
-            if (usarDiagnosticoAjax) {
-                setInterval(cargarDiagnosticoErrores, 20000);
-            }
+            // Deshabilitado para evitar recargas automáticas (igual que el fix de commit e0af774)
+            // if (usarDiagnosticoAjax) {
+            //     setInterval(cargarDiagnosticoErrores, 20000);
+            // }
 
             const rolModal = document.getElementById('rolModal');
             const rolModalTitle = document.getElementById('rolModalTitle');
@@ -13541,33 +13568,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
         }
 
         const baseCreditosDashboard = '<?= htmlspecialchars(rtrim((string)base_url(), '/'), ENT_QUOTES, 'UTF-8'); ?>';
-        const cajaPresenciaStorageKey = 'autoservicioCajaPresenciaId';
-        const cajaPresenciaId = (() => {
-            let id = localStorage.getItem(cajaPresenciaStorageKey);
-            if (!id) {
-                id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-                localStorage.setItem(cajaPresenciaStorageKey, id);
-            }
-            return id;
-        })();
-
-        async function registrarPresenciaCaja() {
-            try {
-                await fetch(`${baseCreditosDashboard}/api/v1/index.php?action=presence`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({
-                        caja_id: cajaPresenciaId,
-                        nombre: window.electronAPI ? 'APP/PORTABLE' : 'NAVEGADOR',
-                        modo: <?= json_encode($modoMenuPortable ? 'portable' : 'principal'); ?>,
-                        puerto: Number(location.port || 80)
-                    })
-                });
-            } catch (error) {
-                console.warn('No se pudo registrar la presencia de la caja:', error);
-            }
-        }
+        // La presencia de esta caja la envía Assets/js/presence.js en todas las pantallas.
 
         async function cargarCajasActivas() {
             const lista = document.getElementById('cajasActivasLista');
@@ -13584,10 +13585,6 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             }
         }
 
-        // Deshabilitado para evitar recargas automáticas
-        // registrarPresenciaCaja();
-        // window.setInterval(registrarPresenciaCaja, 15000);
-        // window.setInterval(cargarCajasActivas, 15000);
         const conexionDashboardStorageKey = 'autoservicioServidorConexiones';
         const conexionDashboardLegacyStorageKey = 'autoservicioServidorIp';
 
@@ -13868,7 +13865,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             }
         }
 
-        setInterval(() => verificarProductosStockCero('horario'), alertCheckInterval);
+        // Deshabilitado para evitar recargas automáticas (igual que el fix de commit e0af774)
+        // setInterval(() => verificarProductosStockCero('horario'), alertCheckInterval);
         verificarProductosStockCero('login');
         <?php if ($mostrarCreditos): ?>
         cargarCreditosDashboard();

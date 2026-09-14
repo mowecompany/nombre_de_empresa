@@ -11,7 +11,9 @@ const COMPANY_NAME = 'AUTOSERVICIO MI ESTRELLA';
 const SERVER_HOST = '127.0.0.1';
 const LAN_BIND_HOST = '0.0.0.0';
 const LOCAL_CLIENT_PORT = 8000;
-const DEFAULT_SERVER_PORT = 80;
+const PORTABLE_CLIENT_PORT = 8001;
+const STOPPED_SERVER_LOCAL_PORT = 8002;
+const DEFAULT_SERVER_PORT = 8000;
 const PROJECT_ROOT = path.resolve(__dirname, '..');
 const ICON_PATH = path.join(PROJECT_ROOT, 'logo.ico');
 const FALLBACK_ICON_PATH = path.join(PROJECT_ROOT, 'electron', 'build', 'app_icon.ico');
@@ -56,8 +58,17 @@ function isPortableBuild() {
   );
 }
 
+// Identidad por versión: la instalada y la portable deben verse como apps distintas
+// para Windows (ID), para el bloqueo de instancia única y para su carpeta de datos.
+const IS_PORTABLE_BUILD = isPortableBuild();
+const APP_ID = IS_PORTABLE_BUILD
+  ? 'com.autoservicio.laestrella.desktop.portable'
+  : 'com.autoservicio.miestrella.desktop';
+const APP_DISPLAY_NAME = IS_PORTABLE_BUILD ? 'AUTOSERVICIO MI ESTRELLA PORTABLE' : APP_NAME;
+app.setName(APP_DISPLAY_NAME);
+
 function getAppStartPath() {
-  return isPortableBuild() ? '/Views/conexion.php' : '/Views/login.php';
+  return IS_PORTABLE_BUILD ? '/Views/conexion.php' : '/Views/login.php';
 }
 
 function getBundledPhpPath() {
@@ -94,7 +105,7 @@ function readConnectionConfig() {
     const parsed = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     const port = Number(parsed.server_port);
     return {
-      mode: ['unconfigured', 'server', 'client'].includes(parsed.mode) ? parsed.mode : defaults.mode,
+      mode: ['unconfigured', 'server', 'client', 'stopped'].includes(parsed.mode) ? parsed.mode : defaults.mode,
       server_ip: String(parsed.server_ip || '').trim(),
       server_port: Number.isInteger(port) && port >= 1 && port <= 65535 ? port : defaults.server_port,
       lan_ip: String(parsed.lan_ip || '').trim()
@@ -108,7 +119,7 @@ function readConnectionConfig() {
 function writeConnectionConfig(config) {
   const port = Number(config.server_port);
   const normalized = {
-    mode: ['unconfigured', 'server', 'client'].includes(config.mode) ? config.mode : 'unconfigured',
+    mode: ['unconfigured', 'server', 'client', 'stopped'].includes(config.mode) ? config.mode : 'unconfigured',
     server_ip: String(config.server_ip || '').trim(),
     server_port: Number.isInteger(port) && port >= 1 && port <= 65535 ? port : DEFAULT_SERVER_PORT,
     lan_ip: String(config.lan_ip || '').trim()
@@ -425,7 +436,9 @@ function buildPhpEnvironment(port) {
     CONNECTION_CONFIG_PATH: getConnectionConfigPath(),
     DB_CONNECTION: process.env.DB_CONNECTION || 'sqlite',
     SQLITE_PATH: sqlitePath,
-    DB_CHARSET: 'utf8mb4'
+    DB_CHARSET: 'utf8mb4',
+    // Permite que el servidor PHP integrado atienda varias cajas a la vez.
+    PHP_CLI_SERVER_WORKERS: process.env.PHP_CLI_SERVER_WORKERS || '6'
   };
 }
 
@@ -462,6 +475,7 @@ function startPhpServer(port, bindHost) {
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe']
     });
+    const launchedProcess = phpProcess;
 
     phpProcess.on('error', (error) => {
       reject(new Error(`Error al iniciar PHP: ${error.message}`));
@@ -475,6 +489,7 @@ function startPhpServer(port, bindHost) {
     });
 
     phpProcess.on('exit', (code, signal) => {
+      if (phpProcess === launchedProcess) phpProcess = null;
       if (code !== 0 && signal !== 'SIGTERM') {
         console.error(`PHP terminó con código ${code} y señal ${signal}`);
       }
@@ -493,9 +508,79 @@ function stopPhpServer() {
   }
 }
 
+function stopPhpServerAndWait(timeout = 5000) {
+  const processToStop = phpProcess;
+  phpProcess = null;
+  if (!processToStop || processToStop.killed) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    let finished = false;
+    let forceTimer = null;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      if (forceTimer) clearTimeout(forceTimer);
+      resolve();
+    };
+    processToStop.once('exit', finish);
+    processToStop.kill();
+    forceTimer = setTimeout(() => {
+      if (process.platform === 'win32' && processToStop.pid) {
+        spawnSync('taskkill', ['/PID', String(processToStop.pid), '/T', '/F'], {
+          windowsHide: true,
+          stdio: 'ignore'
+        });
+      }
+      finish();
+    }, timeout);
+  });
+}
+
+function eliminarReglaFirewall(port) {
+  if (process.platform !== 'win32') {
+    return { intentado: true, ok: true, mensaje: 'Firewall no aplica en este sistema.' };
+  }
+
+  const nombreRegla = `AUTOSERVICIO MI ESTRELLA ${port}`;
+  try {
+    const argumentosNetsh = [
+      'advfirewall', 'firewall', 'delete', 'rule',
+      `name=${nombreRegla}`,
+      'protocol=TCP',
+      `localport=${port}`
+    ];
+    const argumentosElevados = argumentosNetsh.map((argumento) => (
+      String(argumento).startsWith('name=') ? `"${argumento}"` : argumento
+    ));
+    const argumentosPowerShell = argumentosElevados
+      .map((argumento) => `'${String(argumento).replace(/'/g, "''")}'`)
+      .join(',');
+    const comandoElevado = `$proceso = Start-Process -FilePath 'netsh.exe' -ArgumentList @(${argumentosPowerShell}) -Verb RunAs -WindowStyle Hidden -Wait -PassThru; exit $proceso.ExitCode`;
+    const eliminacion = spawnSync('powershell.exe', [
+      '-NoProfile',
+      '-NonInteractive',
+      '-WindowStyle', 'Hidden',
+      '-Command', comandoElevado
+    ], { windowsHide: true, encoding: 'utf8', timeout: 120000 });
+
+    if (eliminacion.status === 0) {
+      return { intentado: true, ok: true, mensaje: `Permiso de red retirado para el puerto ${port}.` };
+    }
+    return {
+      intentado: true,
+      ok: false,
+      mensaje: eliminacion.error?.code === 'ETIMEDOUT'
+        ? 'Windows no respondió a tiempo al retirar el permiso de red.'
+        : 'El servidor se apagó, pero Windows no permitió retirar la regla de red.'
+    };
+  } catch (error) {
+    return { intentado: true, ok: false, mensaje: `No se pudo retirar el permiso de red: ${error.message}` };
+  }
+}
+
 function createMainWindow(serverUrl) {
   mainWindow = new BrowserWindow({
-    title: APP_NAME,
+    title: APP_DISPLAY_NAME,
     icon: fs.existsSync(ICON_PATH)
       ? ICON_PATH
       : (fs.existsSync(FALLBACK_ICON_PATH) ? FALLBACK_ICON_PATH : undefined),
@@ -506,6 +591,9 @@ function createMainWindow(serverUrl) {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      // El panel carga las vistas dentro de un marco interno (moduleFrame).
+      // Sin esto, el puente de escritorio no llega a la pantalla de Conexión.
+      nodeIntegrationInSubFrames: true,
       enableRemoteModule: false,
       sandbox: false
     }
@@ -525,6 +613,29 @@ function createMainWindow(serverUrl) {
   });
 
   mainWindow.setMenuBarVisibility(false);
+
+  // Diagnóstico de recargas: deja constancia de cada navegación de la ventana.
+  const registrarNavegacion = (evento, detalle = '') => {
+    try {
+      const linea = `[${new Date().toISOString()}] ${evento} ${detalle}\n`;
+      fs.appendFileSync(path.join(app.getPath('userData'), 'navegacion.log'), linea, 'utf8');
+    } catch (error) {
+      // El log es informativo: nunca debe interrumpir la aplicación.
+    }
+  };
+
+  mainWindow.webContents.on('did-start-navigation', (_e, url, _isInPlace, isMainFrame) => {
+    if (isMainFrame) registrarNavegacion('did-start-navigation', url);
+  });
+  mainWindow.webContents.on('did-navigate', (_e, url) => registrarNavegacion('did-navigate', url));
+  mainWindow.webContents.on('did-fail-load', (_e, code, description, url, isMainFrame) => {
+    if (isMainFrame) registrarNavegacion('did-fail-load', `${code} ${description} ${url}`);
+  });
+  mainWindow.webContents.on('render-process-gone', (_e, details) => {
+    registrarNavegacion('render-process-gone', JSON.stringify(details || {}));
+  });
+  mainWindow.webContents.on('unresponsive', () => registrarNavegacion('unresponsive', ''));
+
   mainWindow.loadURL(`${serverUrl}${getAppStartPath()}`);
 
   mainWindow.once('ready-to-show', () => {
@@ -572,6 +683,95 @@ function createMainWindow(serverUrl) {
   });
 }
 
+function resolveLocalClientPort() {
+  const argumento = process.argv.find((arg) => /^--puerto-local=/i.test(arg));
+  if (argumento) {
+    const valor = Number(argumento.split('=')[1]);
+    if (Number.isInteger(valor) && valor >= 1 && valor <= 65535) {
+      return valor;
+    }
+  }
+  return IS_PORTABLE_BUILD ? PORTABLE_CLIENT_PORT : LOCAL_CLIENT_PORT;
+}
+
+// En modo normal (no principal), si el puerto está ocupado se busca el siguiente
+// libre en vez de cerrarse: así la instalada y la portable conviven sin choque.
+async function encontrarPuertoLibre(puertoBase, host) {
+  for (let p = puertoBase; p < puertoBase + 20; p++) {
+    if (await isPortFree(p, host)) return p;
+  }
+  throw new Error(`No hay puertos libres entre ${puertoBase} y ${puertoBase + 19}.`);
+}
+
+function resolverPuertoLocalTrasApagado() {
+  if (IS_PORTABLE_BUILD) return PORTABLE_CLIENT_PORT;
+  return connectionConfig.mode === 'stopped' ? STOPPED_SERVER_LOCAL_PORT : resolveLocalClientPort();
+}
+
+let ultimoEstadoFirewall = { intentado: false, ok: false, mensaje: '' };
+
+async function asegurarReglaFirewall(port) {
+  if (process.platform !== 'win32') {
+    ultimoEstadoFirewall = { intentado: true, ok: true, mensaje: 'Firewall no aplica en este sistema.' };
+    return ultimoEstadoFirewall;
+  }
+
+  const nombreRegla = `AUTOSERVICIO MI ESTRELLA ${port}`;
+  try {
+    const existente = spawnSync('netsh', ['advfirewall', 'firewall', 'show', 'rule', `name=${nombreRegla}`], {
+      windowsHide: true,
+      encoding: 'utf8'
+    });
+    if (existente.status === 0 && new RegExp(`(^|\\D)${port}(\\D|$)`).test(existente.stdout || '')) {
+      ultimoEstadoFirewall = { intentado: true, ok: true, mensaje: `Regla de firewall ya existente para el puerto ${port}.` };
+      return ultimoEstadoFirewall;
+    }
+
+    const argumentosNetsh = [
+      'advfirewall', 'firewall', 'add', 'rule',
+      `name=${nombreRegla}`,
+      'dir=in',
+      'action=allow',
+      'protocol=TCP',
+      `localport=${port}`,
+      'profile=any'
+    ];
+    const argumentosElevados = argumentosNetsh.map((argumento) => (
+      String(argumento).startsWith('name=') ? `"${argumento}"` : argumento
+    ));
+    const argumentosPowerShell = argumentosElevados
+      .map((argumento) => `'${String(argumento).replace(/'/g, "''")}'`)
+      .join(',');
+    const comandoElevado = `$proceso = Start-Process -FilePath 'netsh.exe' -ArgumentList @(${argumentosPowerShell}) -Verb RunAs -WindowStyle Hidden -Wait -PassThru; exit $proceso.ExitCode`;
+    const creacion = spawnSync('powershell.exe', [
+      '-NoProfile',
+      '-NonInteractive',
+      '-WindowStyle', 'Hidden',
+      '-Command', comandoElevado
+    ], { windowsHide: true, encoding: 'utf8', timeout: 120000 });
+
+    if (creacion.status === 0) {
+      ultimoEstadoFirewall = { intentado: true, ok: true, mensaje: `Permiso de red creado para el puerto ${port}.` };
+    } else {
+      ultimoEstadoFirewall = {
+        intentado: true,
+        ok: false,
+        mensaje: creacion.error?.code === 'ETIMEDOUT'
+          ? 'Windows no respondió a tiempo al solicitar el permiso de red. Inténtalo nuevamente.'
+          : 'No se concedió el permiso de red de Windows. Pulsa Activar nuevamente y acepta el aviso de administrador.'
+      };
+    }
+  } catch (error) {
+    ultimoEstadoFirewall = {
+      intentado: true,
+      ok: false,
+      mensaje: `No se pudo comprobar el firewall: ${error.message}`
+    };
+  }
+
+  return ultimoEstadoFirewall;
+}
+
 function showFatalError(message, detail) {
   dialog.showMessageBoxSync({
     type: 'error',
@@ -582,9 +782,13 @@ function showFatalError(message, detail) {
   });
 }
 
-app.setAppUserModelId('com.autoservicio.laestrella.desktop');
+app.setAppUserModelId(APP_ID);
 
-if (!app.requestSingleInstanceLock()) {
+// Permite abrir una segunda copia en el mismo equipo para pruebas:
+// AUTOSERVICIO.exe --user-data-dir="C:\temp\caja2" --instancia=caja2
+const permitirSegundaInstancia = process.argv.some((arg) => /^--(user-data-dir|instancia|instance)\b/i.test(arg));
+
+if (!permitirSegundaInstancia && !app.requestSingleInstanceLock()) {
   app.quit();
   process.exit(0);
 }
@@ -602,10 +806,17 @@ app.whenReady().then(async () => {
   try {
     connectionConfig = readConnectionConfig();
     const serverMode = connectionConfig.mode === 'server';
-    activePort = serverMode ? connectionConfig.server_port : LOCAL_CLIENT_PORT;
     activeBindHost = serverMode ? LAN_BIND_HOST : SERVER_HOST;
-    if (!await isPortFree(activePort, activeBindHost)) {
-      throw new Error(`El puerto ${activePort} está ocupado para el modo ${serverMode ? 'servidor LAN' : 'servicio local'}.`);
+    if (serverMode) {
+      activePort = connectionConfig.server_port;
+      if (!await isPortFree(activePort, activeBindHost)) {
+        throw new Error(`El puerto ${activePort} está ocupado para el modo servidor LAN.`);
+      }
+    } else {
+      activePort = await encontrarPuertoLibre(resolverPuertoLocalTrasApagado(), SERVER_HOST);
+    }
+    if (serverMode) {
+      await asegurarReglaFirewall(activePort);
     }
     const serverUrl = `http://${SERVER_HOST}:${activePort}`;
     await startPhpServer(activePort, activeBindHost);
@@ -777,18 +988,152 @@ ipcMain.handle('get-connection-config', async () => ({
 
 ipcMain.handle('save-connection-config', async (_, config = {}) => {
   const saved = writeConnectionConfig(config);
+  let firewall = null;
+  if (saved.mode === 'server') {
+    firewall = await asegurarReglaFirewall(saved.server_port);
+  }
+  const modoActivo = activeBindHost === LAN_BIND_HOST ? 'server' : 'client';
   return {
     ok: true,
     config: saved,
-    requiresRestart: saved.mode !== (activeBindHost === LAN_BIND_HOST ? 'server' : 'client')
+    firewall,
+    requiresRestart: saved.mode !== modoActivo
       || (saved.mode === 'server' && saved.server_port !== activePort)
   };
 });
 
-ipcMain.handle('get-local-network-addresses', async () => Object.values(os.networkInterfaces())
-  .flatMap((interfaces) => interfaces || [])
-  .filter((item) => item.family === 'IPv4' && !item.internal && !item.address.startsWith('169.254.'))
-  .map((item) => item.address));
+function listarDireccionesLocales() {
+  return Object.values(os.networkInterfaces())
+    .flatMap((interfaces) => interfaces || [])
+    .filter((item) => item.family === 'IPv4' && !item.internal && !item.address.startsWith('169.254.'))
+    .map((item) => item.address);
+}
+
+ipcMain.handle('get-local-network-addresses', async () => listarDireccionesLocales());
+
+// Identidad de presencia: cada instalación (instalada o portable) tiene su propio
+// identificador estable, incluso cuando las dos corren en el mismo computador.
+function getInstallIdPath() {
+  return path.join(app.getPath('userData'), 'install-id.txt');
+}
+
+function obtenerInstallId() {
+  const rutaId = getInstallIdPath();
+  try {
+    if (fs.existsSync(rutaId)) {
+      const guardado = String(fs.readFileSync(rutaId, 'utf8') || '').trim();
+      if (guardado) return guardado;
+    }
+  } catch (error) {
+    // Si no se puede leer, se genera uno nuevo.
+  }
+
+  const nuevo = `${IS_PORTABLE_BUILD ? 'portable' : 'instalada'}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  try {
+    fs.mkdirSync(path.dirname(rutaId), { recursive: true });
+    fs.writeFileSync(rutaId, nuevo, 'utf8');
+  } catch (error) {
+    // Sin persistencia el id cambia al reiniciar, pero sigue funcionando.
+  }
+  return nuevo;
+}
+
+ipcMain.handle('get-presence-identity', async () => {
+  let equipo = '';
+  try {
+    equipo = os.hostname();
+  } catch (error) {
+    equipo = '';
+  }
+  return {
+    installId: obtenerInstallId(),
+    isPortable: IS_PORTABLE_BUILD,
+    modo: IS_PORTABLE_BUILD ? 'portable' : 'principal',
+    nombre: IS_PORTABLE_BUILD ? 'CAJA PORTABLE' : 'EQUIPO PRINCIPAL',
+    equipo,
+    sistema: `${os.platform()} ${os.release()}`,
+    version: app.getVersion(),
+    localPort: activePort || connectionConfig.server_port || DEFAULT_SERVER_PORT
+  };
+});
+
+ipcMain.handle('get-connection-runtime', async () => ({
+  mode: connectionConfig.mode,
+  configuredPort: connectionConfig.server_port,
+  activePort,
+  bindHost: activeBindHost,
+  isServing: Boolean(phpProcess && !phpProcess.killed && activeBindHost === LAN_BIND_HOST),
+  processRunning: Boolean(phpProcess && !phpProcess.killed),
+  isPortable: isPortableBuild(),
+  addresses: listarDireccionesLocales(),
+  firewall: ultimoEstadoFirewall,
+  configPath: getConnectionConfigPath()
+}));
+
+ipcMain.handle('ensure-firewall-rule', async (_, port) => {
+  const puerto = Number(port);
+  return await asegurarReglaFirewall(Number.isInteger(puerto) && puerto >= 1 && puerto <= 65535 ? puerto : DEFAULT_SERVER_PORT);
+});
+
+ipcMain.handle('stop-main-server', async () => {
+  const puertoServidor = Number(connectionConfig.server_port) || activePort || DEFAULT_SERVER_PORT;
+  if (activeBindHost !== LAN_BIND_HOST || !phpProcess || phpProcess.killed) {
+    const saved = writeConnectionConfig({ ...connectionConfig, mode: 'stopped', server_port: puertoServidor });
+    const firewall = eliminarReglaFirewall(puertoServidor);
+    return {
+      ok: true,
+      alreadyStopped: true,
+      port: puertoServidor,
+      firewall,
+      config: saved,
+      message: firewall.ok
+        ? `El servidor ya estaba apagado. El puerto ${puertoServidor} no está publicado en la red.`
+        : `El servidor ya estaba apagado. ${firewall.mensaje}`
+    };
+  }
+
+  const saved = writeConnectionConfig({ ...connectionConfig, mode: 'stopped', server_port: puertoServidor });
+  await stopPhpServerAndWait();
+  const portReleased = await isPortFree(puertoServidor, SERVER_HOST)
+    && await isPortFree(puertoServidor, LAN_BIND_HOST);
+  const firewall = eliminarReglaFirewall(puertoServidor);
+
+  if (!portReleased) {
+    return {
+      ok: false,
+      port: puertoServidor,
+      firewall,
+      config: saved,
+      error: `El proceso se cerró, pero el puerto ${puertoServidor} continúa ocupado por otro programa.`
+    };
+  }
+
+  activeBindHost = SERVER_HOST;
+  ultimoEstadoFirewall = firewall.ok
+    ? { intentado: false, ok: false, mensaje: `Servidor apagado. Puerto ${puertoServidor} liberado.` }
+    : firewall;
+
+  setTimeout(() => {
+    app.relaunch();
+    app.exit(0);
+  }, 700);
+
+  return {
+    ok: true,
+    port: puertoServidor,
+    portReleased: true,
+    firewall,
+    config: saved,
+    restarting: true,
+    message: `Servidor apagado. Puerto ${puertoServidor} liberado.`
+  };
+});
+
+ipcMain.handle('restart-app', async () => {
+  await stopPhpServerAndWait();
+  app.relaunch();
+  app.exit(0);
+});
 
 ipcMain.handle('check-remote-server', async (_, rawUrl) => {
   const targetUrl = String(rawUrl || '').trim();
@@ -817,19 +1162,30 @@ ipcMain.handle('check-remote-server', async (_, rawUrl) => {
     };
 
     const request = http.get(targetUrl, { headers: { Connection: 'close' } }, (response) => {
-      response.resume();
+      let body = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => {
+        if (body.length < 8192) body += chunk;
+      });
       response.once('end', () => {
+        let payload = null;
+        try { payload = JSON.parse(body); } catch (_) { /* respuesta no JSON */ }
+        const statusOk = response.statusCode >= 200 && response.statusCode < 400;
+        const identityOk = payload?.ok === true && payload?.app === APP_NAME;
         const result = {
-          ok: response.statusCode >= 200 && response.statusCode < 400,
-          status: response.statusCode || 0
+          ok: statusOk && identityOk,
+          status: response.statusCode || 0,
+          error: statusOk && !identityOk
+            ? 'El destino respondió, pero no corresponde a AUTOSERVICIO MI ESTRELLA.'
+            : (response.statusCode === 404 ? 'El servidor respondió 404: falta el archivo de comprobación health.php en esa instalación.' : undefined)
         };
         writeLog(`Resultado: HTTP ${result.status} ${result.ok ? 'OK' : 'ERROR'}`);
         finish(result);
       });
     });
 
-    request.setTimeout(2000, () => {
-      writeLog('Resultado: TIMEOUT después de 2000 ms');
+    request.setTimeout(5000, () => {
+      writeLog('Resultado: TIMEOUT después de 5000 ms');
       request.destroy();
       finish({ ok: false, status: 0, error: 'Tiempo de espera agotado' });
     });
@@ -840,11 +1196,11 @@ ipcMain.handle('check-remote-server', async (_, rawUrl) => {
 
     setTimeout(() => {
       if (!settled) {
-        writeLog('Resultado: TIMEOUT global después de 2500 ms');
+        writeLog('Resultado: TIMEOUT global después de 5500 ms');
         request.destroy();
         finish({ ok: false, status: 0, error: 'Tiempo de espera agotado' });
       }
-    }, 2500);
+    }, 5500);
   });
 });
 

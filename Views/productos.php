@@ -1030,23 +1030,39 @@ try {
 
         .imagen-actual-box {
             width: 220px;
-            height: 220px;
+            min-height: 220px;
             margin: 0 auto 15px;
             padding: 12px;
             background: #f8fafc;
             border: 1px solid #dfe5ec;
             border-radius: 12px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 12px;
             overflow: hidden;
         }
 
         .imagen-actual-preview {
-            width: 100%;
-            height: 100%;
+            max-width: 160px;
+            max-height: 160px;
+            width: auto;
+            height: auto;
             object-fit: contain;
             border-radius: 8px;
+        }
+
+        .imagen-actual-box > div {
+            width: 100%;
+            margin-top: 0 !important;
+            text-align: center;
+        }
+
+        #btnRecortarActual {
+            max-width: 100%;
+            white-space: normal;
+            line-height: 1.35;
         }
 
         .button-edit-delete {

@@ -1,8 +1,25 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const os = require('os');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   openExternal: async (url) => {
     return ipcRenderer.invoke('open-external', url);
+  },
+  getDeviceInfo: async () => {
+    let equipo = '';
+    try {
+      equipo = os.hostname();
+    } catch (error) {
+      equipo = '';
+    }
+    return {
+      equipo,
+      sistema: `${os.platform()} ${os.release()}`,
+      version: process.env.npm_package_version || '1.0.0'
+    };
+  },
+  getPresenceIdentity: async () => {
+    return ipcRenderer.invoke('get-presence-identity');
   },
   checkRemoteServer: async (url) => {
     return ipcRenderer.invoke('check-remote-server', url);
@@ -18,6 +35,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   getLocalNetworkAddresses: async () => {
     return ipcRenderer.invoke('get-local-network-addresses');
+  },
+  getConnectionRuntime: async () => {
+    return ipcRenderer.invoke('get-connection-runtime');
+  },
+  ensureFirewallRule: async (port) => {
+    return ipcRenderer.invoke('ensure-firewall-rule', port);
+  },
+  stopMainServer: async () => {
+    return ipcRenderer.invoke('stop-main-server');
+  },
+  restartApp: async () => {
+    return ipcRenderer.invoke('restart-app');
   },
   saveExportedDatabase: async (filename, data) => {
     return ipcRenderer.invoke('save-exported-database', filename, data);

@@ -50,6 +50,7 @@ $correoPrefillLogin = trim((string)($_GET['correo'] ?? $_GET['email'] ?? ''));
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="<?= base_url(); ?>/Assets/js/main.js"></script>
+    <script src="<?= base_url(); ?>/Assets/js/presence.js" defer></script>
     <script>
         const base_url = <?= json_encode(base_url(), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
     </script>
