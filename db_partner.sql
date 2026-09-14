@@ -842,3 +842,43 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+-- --------------------------------------------------------
+-- PRESENTACIONES MULTIPLES POR PRODUCTO (UNIDAD / PAQUETE / CAJA)
+-- Estas tablas y columnas las crea tambien la aplicacion automaticamente
+-- (Models/Presentacion.php -> asegurarEsquema), se documentan aqui para
+-- instalaciones nuevas y respaldos.
+-- --------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `producto_presentaciones` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `producto_id` int(11) NOT NULL,
+  `nombre` varchar(60) NOT NULL COMMENT 'UNIDAD, PAQUETE, CAJA, BOLSA...',
+  `factor_padre` decimal(14,3) NOT NULL DEFAULT 1.000 COMMENT 'cuantas presentaciones inferiores contiene',
+  `factor_base` decimal(14,3) NOT NULL DEFAULT 1.000 COMMENT 'equivalencia total en unidades base',
+  `precio_venta` decimal(14,2) NOT NULL DEFAULT 0.00,
+  `precio_compra` decimal(14,2) NOT NULL DEFAULT 0.00,
+  `nivel` int(11) NOT NULL DEFAULT 0,
+  `es_base` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1 = presentacion mas pequena',
+  `orden` int(11) NOT NULL DEFAULT 0,
+  `estado` tinyint(1) NOT NULL DEFAULT 1,
+  `empresa_id` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_presentaciones_producto` (`producto_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `producto_stock_presentacion` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `producto_id` int(11) NOT NULL,
+  `presentacion_id` int(11) NOT NULL,
+  `cantidad` decimal(14,3) NOT NULL DEFAULT 0.000 COMMENT 'existencias fisicas en esa presentacion',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_stock_presentacion_unico` (`producto_id`,`presentacion_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Columnas adicionales usadas por el motor de presentaciones.
+-- (Ejecutar solo si la instalacion es nueva o la columna no existe)
+-- ALTER TABLE `productos` ADD COLUMN `maneja_presentaciones` tinyint(1) NOT NULL DEFAULT 0;
+-- ALTER TABLE `entradas_inventario` ADD COLUMN `presentacion_id` int(11) NULL, ADD COLUMN `cantidad_presentacion` decimal(14,3) NULL;
+-- ALTER TABLE `salidas_inventario` ADD COLUMN `presentacion_id` int(11) NULL, ADD COLUMN `cantidad_presentacion` decimal(14,3) NULL;
+-- ALTER TABLE `movimientos_inventario` ADD COLUMN `presentacion_id` int(11) NULL, ADD COLUMN `cantidad_presentacion` decimal(14,3) NULL;

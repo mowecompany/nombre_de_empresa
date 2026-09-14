@@ -2450,6 +2450,14 @@ if (is_file($logoPdfPath)) {
                     </div>
                 </div>
 
+                <div class="form-row" id="grupoPresentacionEntrada" style="display:none;">
+                    <div class="form-group">
+                        <label for="presentacionEntrada"><i class="fas fa-boxes-stacked"></i> PRESENTACIÓN *</label>
+                        <select id="presentacionEntrada" style="width:100%;"></select>
+                        <small id="ayudaPresentacionEntrada" style="display:block; margin-top:6px; color:#475569; font-weight:700; text-transform:uppercase;"></small>
+                    </div>
+                </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="cantidadEntrada"><i class="fas fa-cubes"></i> <span id="unidadEntradaLabel">CANTIDAD</span> *</label>
@@ -2561,6 +2569,11 @@ if (is_file($logoPdfPath)) {
                     </div>
                     <div id="productoSalidaPreview" style="margin-top: 10px; text-align: center;"></div>
                     <input type="hidden" id="codigoProductoSalida">
+                    <div id="grupoPresentacionSalida" style="display:none; margin-top:10px; flex-direction:column; gap:6px; align-items:flex-start;">
+                        <label for="presentacionSalida" style="margin:0;"><i class="fas fa-boxes-stacked"></i> PRESENTACIÓN *</label>
+                        <select id="presentacionSalida" style="min-width:260px; padding:8px; border:1px solid #ccc; border-radius:4px; text-transform:uppercase;"></select>
+                        <small id="ayudaPresentacionSalida" style="color:#475569; font-weight:700; text-transform:uppercase;"></small>
+                    </div>
                     <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
                         <label for="cantidadSalida"><i class="fas fa-cubes"></i> <span id="unidadSalidaLabel">CANTIDAD</span> *</label>
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -4941,7 +4954,10 @@ if (is_file($logoPdfPath)) {
             }
 
             const existente = carritoSalida.find(item => item.producto_id === producto.producto_id);
-            if (existente) {
+            const mismaPresentacion = existente
+                ? Number(existente.presentacion_id || 0) === Number(producto.presentacion_id || 0)
+                : true;
+            if (existente && mismaPresentacion) {
                 const cantidadBase = 1;
                 const nuevaCantidad = normalizarCantidadSalida((parseFloat(existente.cantidad) || cantidadBase) + (parseFloat(producto.cantidad) || cantidadBase), existente.venta_por_kilo);
                 const validacion = validarCantidadStock(producto, nuevaCantidad);
@@ -4953,6 +4969,9 @@ if (is_file($logoPdfPath)) {
                 existente.precio = producto.precio;
                 existente.imagen = producto.imagen;
                 carritoSalida = [existente, ...carritoSalida.filter(item => item.producto_id !== producto.producto_id)];
+            } else if (existente) {
+                // Cambió la presentación elegida: se reemplaza la línea del producto en el carrito.
+                carritoSalida = [producto, ...carritoSalida.filter(item => item.producto_id !== producto.producto_id)];
             } else {
                 carritoSalida.unshift(producto);
             }
@@ -8889,6 +8908,12 @@ if (is_file($logoPdfPath)) {
             formData.append('producto_id', productoSeleccionado);
             formData.append('proveedor', proveedorFinal);
             formData.append('cantidad', document.getElementById('cantidadEntrada').value);
+            const presentacionEntradaSeleccionada = (typeof presentacionSeleccionadaEntrada === 'function')
+                ? presentacionSeleccionadaEntrada()
+                : null;
+            if (presentacionEntradaSeleccionada && presentacionEntradaSeleccionada.id > 0) {
+                formData.append('presentacion_id', String(presentacionEntradaSeleccionada.id));
+            }
             formData.append('precio_compra', document.getElementById('precioCompra').value);
             formData.append('porcentaje_ganancia', document.getElementById('porcentajeGanancia').value);
             formData.append('lote', document.getElementById('lote').value);
@@ -9089,6 +9114,9 @@ if (is_file($logoPdfPath)) {
                 formData.append('action', 'registrarSalida');
                 formData.append('producto_id', String(item.producto_id));
                 formData.append('cantidad', String(item.cantidad));
+                if (Number(item.presentacion_id || 0) > 0) {
+                    formData.append('presentacion_id', String(item.presentacion_id));
+                }
                 formData.append('precio_venta', String(item.precio_venta || 0));
                 formData.append('tipo_salida', tipoSalida);
                 formData.append('metodo_pago', metodoPagoSalida);
@@ -9733,6 +9761,216 @@ if (is_file($logoPdfPath)) {
         document.addEventListener('inventory:refreshed', () => {
             try { upperizeAllInventory(); } catch(e){}
         });
+    })();
+</script>
+
+<script>
+    /* ===================================================================
+       Presentaciones (UNIDAD / PAQUETE / CAJA) en Entradas y Salidas
+       =================================================================== */
+    (function () {
+        const cachePresentaciones = new Map();
+        const estado = {
+            entrada: { productoId: 0, datos: null },
+            salida: { productoId: 0, datos: null }
+        };
+
+        function urlControlador() {
+            if (typeof inventarioControllerUrl === 'string' && inventarioControllerUrl) return inventarioControllerUrl;
+            return (typeof base_url !== 'undefined' ? base_url : '') + '/Controllers/InventarioController.php';
+        }
+
+        function numero(valor, porDefecto = 0) {
+            const n = parseFloat(String(valor).replace(',', '.'));
+            return Number.isFinite(n) ? n : porDefecto;
+        }
+
+        function formatoCantidad(valor) {
+            const n = numero(valor, 0);
+            return Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
+        }
+
+        async function obtenerPresentaciones(productoId) {
+            const id = parseInt(productoId, 10) || 0;
+            if (id <= 0) return null;
+            if (cachePresentaciones.has(id)) return cachePresentaciones.get(id);
+            try {
+                const respuesta = await fetch(`${urlControlador()}?action=obtenerPresentaciones&producto_id=${id}`);
+                const datos = await respuesta.json();
+                const resultado = (datos && datos.success && datos.maneja_presentaciones && Array.isArray(datos.presentaciones) && datos.presentaciones.length)
+                    ? { presentaciones: datos.presentaciones }
+                    : null;
+                cachePresentaciones.set(id, resultado);
+                return resultado;
+            } catch (error) {
+                console.warn('No se pudieron cargar las presentaciones del producto', error);
+                return null;
+            }
+        }
+
+        function limpiarCachePresentaciones() {
+            cachePresentaciones.clear();
+        }
+
+        function pintarSelector(modo, datos) {
+            const grupo = document.getElementById(modo === 'entrada' ? 'grupoPresentacionEntrada' : 'grupoPresentacionSalida');
+            const select = document.getElementById(modo === 'entrada' ? 'presentacionEntrada' : 'presentacionSalida');
+            const ayuda = document.getElementById(modo === 'entrada' ? 'ayudaPresentacionEntrada' : 'ayudaPresentacionSalida');
+            if (!grupo || !select) return;
+
+            if (!datos) {
+                grupo.style.display = 'none';
+                select.innerHTML = '';
+                if (ayuda) ayuda.textContent = '';
+                return;
+            }
+
+            select.innerHTML = '';
+            datos.presentaciones.forEach((pres) => {
+                const opcion = document.createElement('option');
+                opcion.value = String(pres.id);
+                const disponible = formatoCantidad(pres.cantidad || 0);
+                opcion.textContent = `${String(pres.nombre || '').toUpperCase()} (DISPONIBLES: ${disponible})`;
+                opcion.dataset.nombre = String(pres.nombre || '').toUpperCase();
+                opcion.dataset.factor = String(numero(pres.factor_base, 1) || 1);
+                opcion.dataset.precioVenta = String(numero(pres.precio_venta, 0));
+                opcion.dataset.precioCompra = String(numero(pres.precio_compra, 0));
+                opcion.dataset.cantidad = String(numero(pres.cantidad, 0));
+                select.appendChild(opcion);
+            });
+
+            // Por defecto la presentación más pequeña (UNIDAD).
+            select.selectedIndex = 0;
+            grupo.style.display = modo === 'entrada' ? 'flex' : 'flex';
+            aplicarSeleccion(modo);
+        }
+
+        function seleccionActual(modo) {
+            const select = document.getElementById(modo === 'entrada' ? 'presentacionEntrada' : 'presentacionSalida');
+            const grupo = document.getElementById(modo === 'entrada' ? 'grupoPresentacionEntrada' : 'grupoPresentacionSalida');
+            if (!select || !grupo || grupo.style.display === 'none' || !select.value) return null;
+            const opcion = select.options[select.selectedIndex];
+            if (!opcion) return null;
+            return {
+                id: parseInt(select.value, 10) || 0,
+                nombre: opcion.dataset.nombre || '',
+                factor: numero(opcion.dataset.factor, 1) || 1,
+                precio_venta: numero(opcion.dataset.precioVenta, 0),
+                precio_compra: numero(opcion.dataset.precioCompra, 0),
+                cantidad: numero(opcion.dataset.cantidad, 0)
+            };
+        }
+
+        function aplicarSeleccion(modo) {
+            const seleccion = seleccionActual(modo);
+            if (modo === 'entrada') {
+                const etiqueta = document.getElementById('unidadEntradaLabel');
+                const ayuda = document.getElementById('ayudaPresentacionEntrada');
+                const precioCompra = document.getElementById('precioCompra');
+                if (etiqueta) etiqueta.textContent = seleccion ? `CANTIDAD DE ${seleccion.nombre}` : 'CANTIDAD';
+                if (ayuda) {
+                    ayuda.textContent = seleccion
+                        ? `1 ${seleccion.nombre} = ${formatoCantidad(seleccion.factor)} UNIDAD(ES) BASE`
+                        : '';
+                }
+                if (seleccion && precioCompra && seleccion.precio_compra > 0 && !numero(precioCompra.value, 0)) {
+                    precioCompra.value = seleccion.precio_compra;
+                    if (typeof calcularPrecioVenta === 'function') {
+                        try { calcularPrecioVenta(); } catch (e) {}
+                    }
+                }
+                return;
+            }
+
+            const etiqueta = document.getElementById('unidadSalidaLabel');
+            const ayuda = document.getElementById('ayudaPresentacionSalida');
+            if (etiqueta && seleccion) etiqueta.textContent = `CANTIDAD DE ${seleccion.nombre}`;
+            if (ayuda) {
+                ayuda.textContent = seleccion
+                    ? `1 ${seleccion.nombre} = ${formatoCantidad(seleccion.factor)} UNIDAD(ES) · DISPONIBLES: ${formatoCantidad(seleccion.cantidad)}`
+                    : '';
+            }
+        }
+
+        async function sincronizar(modo) {
+            const select = document.getElementById(modo === 'entrada' ? 'productoEntrada' : 'productoSalida');
+            const productoId = parseInt(select?.value || '0', 10) || 0;
+            if (estado[modo].productoId === productoId && estado[modo].datos !== undefined) {
+                // Puede haber cambiado el stock: se vuelve a consultar igualmente.
+            }
+            estado[modo].productoId = productoId;
+            if (productoId <= 0) {
+                estado[modo].datos = null;
+                pintarSelector(modo, null);
+                return;
+            }
+            const datos = await obtenerPresentaciones(productoId);
+            if ((parseInt(select?.value || '0', 10) || 0) !== productoId) return;
+            estado[modo].datos = datos;
+            pintarSelector(modo, datos);
+        }
+
+        // Expuesto para el envío de la entrada.
+        window.presentacionSeleccionadaEntrada = function () {
+            return seleccionActual('entrada');
+        };
+
+        // El carrito de salida viaja con la presentación elegida.
+        if (typeof window.productoSalidaSeleccionado === 'function') {
+            const original = window.productoSalidaSeleccionado;
+            window.productoSalidaSeleccionado = function () {
+                const producto = original.apply(this, arguments);
+                if (!producto || !producto.producto_id) return producto;
+                const seleccion = seleccionActual('salida');
+                if (!seleccion || seleccion.id <= 0) return producto;
+
+                const factor = seleccion.factor > 0 ? seleccion.factor : 1;
+                const stockBase = numero(producto.stock, 0);
+                const disponibles = factor > 1 ? Math.floor(stockBase / factor) : stockBase;
+                const precio = seleccion.precio_venta > 0
+                    ? seleccion.precio_venta
+                    : numero(producto.precio, 0) * factor;
+
+                producto.presentacion_id = seleccion.id;
+                producto.presentacion_nombre = seleccion.nombre;
+                producto.presentacion_factor = factor;
+                producto.stock = disponibles;
+                producto.stock_base = stockBase;
+                producto.precio = precio;
+                producto.precio_original = precio;
+                producto.precio_venta = precio;
+                producto.descuento_porcentaje = 0;
+                producto.venta_por_kilo = false;
+                if (factor > 1 || String(seleccion.nombre || '').length) {
+                    producto.nombre = `${producto.nombre} · ${seleccion.nombre}`;
+                }
+                return producto;
+            };
+        }
+
+        document.addEventListener('change', (evento) => {
+            const id = evento.target?.id;
+            if (id === 'productoEntrada') sincronizar('entrada');
+            if (id === 'productoSalida') sincronizar('salida');
+            if (id === 'presentacionEntrada') aplicarSeleccion('entrada');
+            if (id === 'presentacionSalida') aplicarSeleccion('salida');
+        });
+
+        // El stock cambia tras cada movimiento: se refresca la información.
+        document.addEventListener('inventory:refreshed', () => {
+            limpiarCachePresentaciones();
+            sincronizar('entrada');
+            sincronizar('salida');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            sincronizar('entrada');
+            sincronizar('salida');
+        });
+        if (document.readyState !== 'loading') {
+            sincronizar('entrada');
+            sincronizar('salida');
+        }
     })();
 </script>
 

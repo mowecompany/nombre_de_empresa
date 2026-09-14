@@ -1,8 +1,43 @@
 <?php
 
+require_once __DIR__ . '/Presentacion.php';
+
 class Inventario {
     private $db;
     private $columnasCache = [];
+    private $presentacionesModelo = null;
+
+    /** Motor de presentaciones (UNIDAD / PAQUETE / CAJA ...). */
+    public function presentaciones(): Presentacion {
+        if ($this->presentacionesModelo === null) {
+            $this->presentacionesModelo = new Presentacion($this->db);
+        }
+        return $this->presentacionesModelo;
+    }
+
+    /**
+     * Resuelve la presentacion enviada por el frontend y devuelve la equivalencia en unidades base.
+     * Devuelve null cuando la operacion es de un producto normal (sin presentaciones).
+     */
+    private function resolverPresentacion($productoId, $presentacionId): ?array {
+        $presentacionId = (int)$presentacionId;
+        if ($presentacionId <= 0) {
+            return null;
+        }
+        $presentacion = $this->presentaciones()->obtener($presentacionId);
+        if (!$presentacion || (int)$presentacion['producto_id'] !== (int)$productoId) {
+            throw new Exception('La presentacion seleccionada no corresponde al producto');
+        }
+        return $presentacion;
+    }
+
+    private function formatoCantidadInventario(float $valor): string {
+        if (abs($valor - round($valor)) < 0.001) {
+            return (string)(int)round($valor);
+        }
+        return rtrim(rtrim(number_format($valor, 3, '.', ''), '0'), '.');
+    }
+
 
     private function getDriver(): string {
         try {
@@ -1050,6 +1085,13 @@ class Inventario {
     public function registrarEntrada($datos) {
         try {
             $empresaId = $this->getEmpresaId();
+            // Presentaciones: la cantidad y el precio de compra llegan en la presentacion elegida.
+            $presentacionEntrada = $this->resolverPresentacion($datos['producto_id'] ?? 0, $datos['presentacion_id'] ?? 0);
+            $factorEntrada = $presentacionEntrada ? (float)$presentacionEntrada['factor_base'] : 1.0;
+            if ($factorEntrada <= 0) { $factorEntrada = 1.0; }
+            $cantidadPresentacion = (float)($datos['cantidad'] ?? 0);
+            $cantidadBase = $cantidadPresentacion * $factorEntrada;
+
             $entradasTieneEmpresa = $this->tablaTieneEmpresaId('entradas_inventario');
             $productosTieneEmpresa = $this->tablaTieneEmpresaId('productos');
             $movimientosTieneEmpresa = $this->tablaTieneEmpresaId('movimientos_inventario');
@@ -1061,8 +1103,9 @@ class Inventario {
                 $this->db->beginTransaction();
             }
             
-            // Calcular precio de venta basado en costo y porcentaje de ganancia
-            $precio_compra = floatval($datos['precio_compra']);
+            // Calcular precio de venta basado en costo y porcentaje de ganancia (por unidad base)
+            $precio_compra_presentacion = floatval($datos['precio_compra']);
+            $precio_compra = $precio_compra_presentacion / $factorEntrada;
             $porcentaje_ganancia = floatval($datos['porcentaje_ganancia'] ?? 0);
             $precio_venta = $precio_compra + ($precio_compra * ($porcentaje_ganancia / 100));
             
@@ -1075,16 +1118,28 @@ class Inventario {
             $params = [
                 ':producto_id' => $datos['producto_id'],
                 ':proveedor_id' => $datos['proveedor_id'] ?? null,
-                ':cantidad' => $datos['cantidad'],
+                ':cantidad' => $cantidadBase,
                 ':precio_compra' => $precio_compra,
                 ':usuario_id' => $datos['usuario_id'] ?? null
             ];
+
+            if ($presentacionEntrada && $this->columnaExiste('entradas_inventario', 'presentacion_id')) {
+                $columnasEntrada[] = 'presentacion_id';
+                $placeholdersEntrada[] = ':presentacion_id';
+                $params[':presentacion_id'] = $presentacionEntrada['id'];
+            }
+            if ($presentacionEntrada && $this->columnaExiste('entradas_inventario', 'cantidad_presentacion')) {
+                $columnasEntrada[] = 'cantidad_presentacion';
+                $placeholdersEntrada[] = ':cantidad_presentacion';
+                $params[':cantidad_presentacion'] = $cantidadPresentacion;
+            }
 
             if ($tiene_notas) {
                 $columnasEntrada[] = 'notas';
                 $placeholdersEntrada[] = ':notas';
                 $params[':notas'] = $datos['notas'] ?? null;
             }
+
 
             if ($tiene_fecha_entrada) {
                 $columnasEntrada[] = 'fecha_entrada';
@@ -1120,7 +1175,14 @@ class Inventario {
             }
             
             $stock_anterior = (float)($producto->stock ?? 0);
-            $stock_nuevo = $stock_anterior + $datos['cantidad'];
+            if ($presentacionEntrada) {
+                // Guardar la cantidad fisica en su presentacion y recalcular el total en unidades base.
+                $this->presentaciones()->ingresar((int)$datos['producto_id'], (int)$presentacionEntrada['id'], $cantidadPresentacion);
+                $stock_nuevo = $this->presentaciones()->sincronizarStock((int)$datos['producto_id']);
+            } else {
+                $stock_nuevo = $stock_anterior + $cantidadBase;
+            }
+
             
             // Actualizar stock, precio y porcentaje de ganancia del producto
             $sqlUpdate = "UPDATE productos SET stock = :stock, precio = :precio";
@@ -1142,13 +1204,16 @@ class Inventario {
             $movimientoRegistrado = $this->registrarMovimiento([
                 'producto_id' => $datos['producto_id'],
                 'tipo_movimiento' => 'entrada',
-                'cantidad' => $datos['cantidad'],
+                'cantidad' => $cantidadBase,
                 'stock_anterior' => $stock_anterior,
                 'stock_nuevo' => $stock_nuevo,
-                'precio_unitario' => $datos['precio_compra'],
+                'precio_unitario' => $precio_compra,
                 'referencia_id' => $entrada_id,
                 'usuario_id' => $datos['usuario_id'] ?? null,
-                'descripcion' => 'Entrada de inventario',
+                'descripcion' => $presentacionEntrada
+                    ? ('Entrada de inventario: ' . $this->formatoCantidadInventario($cantidadPresentacion) . ' ' . strtoupper($presentacionEntrada['nombre']))
+                    : 'Entrada de inventario',
+
                 'empresa_id' => $movimientosTieneEmpresa ? $empresaId : null
             ]);
             if (!$movimientoRegistrado) {
@@ -1163,7 +1228,8 @@ class Inventario {
             }
             
             return ['success' => true, 'message' => 'Entrada registrada correctamente', 'id' => $entrada_id];
-        } catch(PDOException $e) {
+        } catch(Exception $e) {
+
             // Revertir transacción
             if ($this->esSqlite()) {
                 try { $this->db->exec('ROLLBACK'); } catch (Exception $ex) {}
@@ -1179,6 +1245,21 @@ class Inventario {
     public function registrarSalida($datos) {
         try {
             $empresaId = $this->getEmpresaId();
+            // Presentaciones: se recibe la cantidad en la presentacion elegida y se convierte a unidades base.
+            $presentacionSalida = $this->resolverPresentacion($datos['producto_id'] ?? 0, $datos['presentacion_id'] ?? 0);
+            $factorSalida = $presentacionSalida ? (float)$presentacionSalida['factor_base'] : 1.0;
+            if ($factorSalida <= 0) { $factorSalida = 1.0; }
+            $cantidadPresentacionSalida = (float)($datos['cantidad'] ?? 0);
+            if ($presentacionSalida) {
+                $datos['cantidad'] = $cantidadPresentacionSalida * $factorSalida;
+                $precioPresentacion = isset($datos['precio_venta']) && (float)$datos['precio_venta'] > 0
+                    ? (float)$datos['precio_venta']
+                    : (float)$presentacionSalida['precio_venta'];
+                if ($precioPresentacion > 0) {
+                    $datos['precio_venta'] = $precioPresentacion / $factorSalida;
+                }
+            }
+
             $usuarioId = isset($datos['usuario_id']) ? (int)$datos['usuario_id'] : 0;
             $omitirStock = !empty($datos['omitir_stock']);
             $salidasTieneEmpresa = $this->tablaTieneEmpresaId('salidas_inventario');
@@ -1205,6 +1286,18 @@ class Inventario {
             if (!$omitirStock && $stock_disponible_real < $datos['cantidad']) {
                 throw new Exception('Stock insuficiente. Disponible: ' . $stock_disponible_real);
             }
+
+            // Descuento fisico por presentacion: si no hay sueltas, abre automaticamente la presentacion mayor.
+            if ($presentacionSalida && !$omitirStock) {
+                $this->presentaciones()->descontar(
+                    (int)$datos['producto_id'],
+                    (int)$presentacionSalida['id'],
+                    $cantidadPresentacionSalida,
+                    ['usuario_id' => $usuarioId, 'empresa_id' => $empresaId]
+                );
+            }
+
+
 
             // Snapshot de venta para no recalcular historicos con precios/porcentajes actuales.
             // Si el frontend pasa precio_venta (e.g. precio con descuento aplicado), usarlo; sino usar precio del producto.
@@ -1249,6 +1342,18 @@ class Inventario {
                 ':referencia' => $datos['referencia'] ?? null,
                 ':usuario_id' => $datos['usuario_id'] ?? null
             ];
+
+            if ($presentacionSalida && $this->columnaExiste('salidas_inventario', 'presentacion_id')) {
+                $columnasInsert[] = 'presentacion_id';
+                $placeholdersInsert[] = ':presentacion_id';
+                $params[':presentacion_id'] = $presentacionSalida['id'];
+            }
+            if ($presentacionSalida && $this->columnaExiste('salidas_inventario', 'cantidad_presentacion')) {
+                $columnasInsert[] = 'cantidad_presentacion';
+                $placeholdersInsert[] = ':cantidad_presentacion';
+                $params[':cantidad_presentacion'] = $cantidadPresentacionSalida;
+            }
+
 
             if ($tiene_notas) {
                 $columnasInsert[] = 'notas';
@@ -1312,10 +1417,16 @@ class Inventario {
             // Un crédito ya entregó el producto al cliente; al pagarlo no se debe descontar stock otra vez.
             $stock_nuevo = $omitirStock ? $stock_actual : $stock_actual - $datos['cantidad'];
             if (!$omitirStock) {
-                $sqlUpdate = "UPDATE productos SET stock = :stock WHERE id = :id";
-                $queryUpdate = $this->db->prepare($sqlUpdate);
-                $queryUpdate->execute([':stock' => $stock_nuevo, ':id' => $datos['producto_id']]);
+                if ($presentacionSalida) {
+                    // El total en unidades base se recalcula desde el stock fisico por presentacion.
+                    $stock_nuevo = $this->presentaciones()->sincronizarStock((int)$datos['producto_id']);
+                } else {
+                    $sqlUpdate = "UPDATE productos SET stock = :stock WHERE id = :id";
+                    $queryUpdate = $this->db->prepare($sqlUpdate);
+                    $queryUpdate->execute([':stock' => $stock_nuevo, ':id' => $datos['producto_id']]);
+                }
             }
+
             
             // Registrar movimiento
             $movimientoRegistrado = $omitirStock || $this->registrarMovimiento([
@@ -1327,7 +1438,9 @@ class Inventario {
                 'precio_unitario' => $precioVentaUnitario,
                 'referencia_id' => $salida_id,
                 'usuario_id' => $datos['usuario_id'] ?? null,
-                'descripcion' => 'Salida por ' . ($datos['tipo_salida'] ?? 'venta'),
+                'descripcion' => 'Salida por ' . ($datos['tipo_salida'] ?? 'venta')
+                    . ($presentacionSalida ? (': ' . $this->formatoCantidadInventario($cantidadPresentacionSalida) . ' ' . strtoupper($presentacionSalida['nombre'])) : ''),
+
                 'empresa_id' => $movimientosTieneEmpresa ? $empresaId : null
             ]);
             if (!$movimientoRegistrado) {

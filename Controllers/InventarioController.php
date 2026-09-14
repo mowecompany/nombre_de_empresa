@@ -312,8 +312,10 @@ try {
                     'lote' => $_POST['lote'] ?? null,
                     'fecha_vencimiento' => $_POST['fecha_vencimiento'] ?? null,
                     'usuario_id' => $usuarioId > 0 ? $usuarioId : null,
-                    'notas' => $_POST['notas'] ?? null
+                    'notas' => $_POST['notas'] ?? null,
+                    'presentacion_id' => isset($_POST['presentacion_id']) ? (int)$_POST['presentacion_id'] : 0
                 ];
+
                 
                 // Validar datos requeridos
                 if (empty($datos['producto_id']) || empty($datos['cantidad']) || empty($datos['precio_compra'])) {
@@ -350,8 +352,10 @@ try {
                     'referencia' => $_POST['referencia'] ?? null,
                     'usuario_id' => $this->getUsuarioIdSesion() ?: null,
                     'notas' => $_POST['notas'] ?? null,
-                    'precio_venta' => isset($_POST['precio_venta']) ? floatval($_POST['precio_venta']) : null
+                    'precio_venta' => isset($_POST['precio_venta']) ? floatval($_POST['precio_venta']) : null,
+                    'presentacion_id' => isset($_POST['presentacion_id']) ? (int)$_POST['presentacion_id'] : 0
                 ];
+
                 
                 // Validar datos requeridos
                 if (empty($datos['producto_id']) || empty($datos['cantidad'])) {
@@ -896,7 +900,79 @@ try {
                 ]);
             }
         }
+
+        /* ---------------- PRESENTACIONES (UNIDAD / PAQUETE / CAJA) ---------------- */
+
+        // Listado + stock fisico por presentacion de un producto (GET)
+        public function obtenerPresentaciones() {
+            try {
+                $productoId = (int)($_GET['producto_id'] ?? 0);
+                if ($productoId <= 0) {
+                    throw new Exception('Producto no valido');
+                }
+                $modelo = $this->inventario->presentaciones();
+                $resumen = $modelo->resumenStock($productoId);
+                echo json_encode([
+                    'success' => true,
+                    'maneja_presentaciones' => $modelo->manejaPresentaciones($productoId),
+                    'presentaciones' => $resumen['presentaciones'],
+                    'total_base' => $resumen['total_base'],
+                    'texto' => $resumen['texto'],
+                    'base_nombre' => $resumen['base_nombre']
+                ]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
+        // Guardar la configuracion de presentaciones de un producto (POST)
+        public function guardarPresentaciones() {
+            try {
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    throw new Exception('Método no permitido');
+                }
+                $productoId = (int)($_POST['producto_id'] ?? 0);
+                if ($productoId <= 0) {
+                    throw new Exception('Producto no valido');
+                }
+                $maneja = (string)($_POST['maneja_presentaciones'] ?? '0') === '1';
+                $filas = json_decode((string)($_POST['presentaciones'] ?? '[]'), true);
+                if (!is_array($filas)) {
+                    $filas = [];
+                }
+                echo json_encode($this->inventario->presentaciones()->guardarConfiguracion(
+                    $productoId,
+                    $filas,
+                    $maneja,
+                    $this->getEmpresaIdSesion()
+                ));
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
+        // Apertura manual: 1 PAQUETE -> N UNIDADES (conversion interna, no es una compra) (POST)
+        public function abrirPresentacion() {
+            try {
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    throw new Exception('Método no permitido');
+                }
+                $productoId = (int)($_POST['producto_id'] ?? 0);
+                $presentacionId = (int)($_POST['presentacion_id'] ?? 0);
+                $cantidad = (float)str_replace(',', '.', (string)($_POST['cantidad'] ?? 1));
+                if ($productoId <= 0 || $presentacionId <= 0) {
+                    throw new Exception('Selecciona el producto y la presentacion que quieres abrir');
+                }
+                echo json_encode($this->inventario->presentaciones()->abrir($productoId, $presentacionId, $cantidad, [
+                    'usuario_id' => $this->getUsuarioIdSesion(),
+                    'empresa_id' => $this->getEmpresaIdSesion()
+                ]));
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
     }
+
 
 // HANDLING AJAX REQUESTS
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && !empty($_GET['action'])) {

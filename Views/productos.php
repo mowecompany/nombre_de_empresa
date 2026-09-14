@@ -2053,6 +2053,25 @@ try {
                     </div>
                 </div>
 
+                <!-- PRESENTACIONES DEL PRODUCTO (UNIDAD / PAQUETE / CAJA / BOLSA) -->
+                <div class="form-group" id="bloquePresentaciones" style="margin-top:18px; border:1px solid #e6e9ee; border-radius:8px; padding:14px; background:#fafcff;">
+                    <label style="display:flex; align-items:center; gap:10px; margin:0 0 6px 0; cursor:pointer; color:#2f4a5a; font-weight:700;">
+                        <input type="checkbox" id="manejaPresentaciones" style="width:18px;height:18px;margin:0;cursor:pointer;" onchange="alternarPresentaciones()">
+                        <span><i class="fas fa-boxes"></i> ESTE PRODUCTO SE VENDE EN VARIAS PRESENTACIONES</span>
+                    </label>
+                    <small style="display:block; color:#667085; margin-bottom:10px;">Por ejemplo: UNIDAD, PAQUETE (30 UNIDADES) y CAJA (12 PAQUETES). La primera fila es la presentación más pequeña.</small>
+
+                    <div id="presentacionesContenido" style="display:none;">
+                        <div id="presentacionesResumen" style="display:none; margin-bottom:10px; padding:10px; border-radius:6px; background:#ecfdf3; color:#027a48; font-size:13px; font-weight:600;"></div>
+                        <div id="presentacionesFilas" style="display:flex; flex-direction:column; gap:10px;"></div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                            <button type="button" onclick="agregarFilaPresentacion()" style="padding:9px 14px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-plus"></i> AGREGAR PRESENTACIÓN</button>
+                            <button type="button" onclick="guardarPresentacionesProducto()" style="padding:9px 14px; border:none; background:#1d4ed8; color:#ffffff; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-save"></i> GUARDAR PRESENTACIONES</button>
+                        </div>
+                    </div>
+                </div>
+
+
                 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                     <button type="submit" class="btn-save" id="btnSaveEdit"><i class="fas fa-save"></i> ACTUALIZAR PRODUCTO</button>
                     <button type="button" id="btnEditarRecorteEditar" onclick="if (window.productoCropperEditar) window.productoCropperEditar.reopen();" style="display:none; padding:12px 16px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-crop-alt"></i> EDITAR RECORTE</button>
@@ -3575,6 +3594,8 @@ try {
                 
                 // Mostrar modal
                 document.getElementById('editModal').style.display = 'flex';
+                cargarPresentacionesProducto(producto.id);
+
                 document.body.classList.add('modal-open');
             })
             .catch(error => {
@@ -3820,6 +3841,145 @@ try {
             });
         });
     </script>
+    <script>
+        /* ============ PRESENTACIONES DEL PRODUCTO ============ */
+        const urlInventarioPres = `${base_url}/Controllers/InventarioController.php`;
+        let presentacionesActuales = [];
+
+        function alternarPresentaciones() {
+            const activo = document.getElementById('manejaPresentaciones').checked;
+            document.getElementById('presentacionesContenido').style.display = activo ? 'block' : 'none';
+            if (activo && document.querySelectorAll('#presentacionesFilas .fila-presentacion').length === 0) {
+                agregarFilaPresentacion({ nombre: 'UNIDAD', factor_padre: 1 });
+                agregarFilaPresentacion({ nombre: 'PAQUETE', factor_padre: 12 });
+            }
+        }
+
+        function agregarFilaPresentacion(datos) {
+            const cont = document.getElementById('presentacionesFilas');
+            const esBase = cont.querySelectorAll('.fila-presentacion').length === 0;
+            const d = datos || {};
+            const fila = document.createElement('div');
+            fila.className = 'fila-presentacion';
+            fila.setAttribute('style', 'display:grid; grid-template-columns:1.3fr 1fr 1fr 1fr auto; gap:8px; align-items:end; background:#ffffff; border:1px solid #e6e9ee; border-radius:6px; padding:10px;');
+            fila.innerHTML = `
+                <input type="hidden" class="pres-id" value="${d.id || ''}">
+                <input type="hidden" class="pres-base" value="${esBase ? '1' : '0'}">
+                <div>
+                    <small style="display:block;color:#667085;font-weight:600;">${esBase ? 'PRESENTACIÓN BASE' : 'NOMBRE'}</small>
+                    <input type="text" class="pres-nombre" value="${(d.nombre || '').toString().toUpperCase()}" placeholder="PAQUETE" style="width:100%;padding:9px;border:1px solid #e6e9ee;border-radius:6px;text-transform:uppercase;">
+                </div>
+                <div>
+                    <small style="display:block;color:#667085;font-weight:600;">${esBase ? 'EQUIVALE A' : 'CONTIENE (DE LA ANTERIOR)'}</small>
+                    <input type="number" class="pres-factor" min="1" step="1" value="${esBase ? 1 : (d.factor_padre || 1)}" ${esBase ? 'readonly' : ''} style="width:100%;padding:9px;border:1px solid #e6e9ee;border-radius:6px;${esBase ? 'background:#f5f5f5;' : ''}">
+                </div>
+                <div>
+                    <small style="display:block;color:#667085;font-weight:600;">PRECIO COMPRA</small>
+                    <input type="number" class="pres-compra" min="0" step="0.01" value="${d.precio_compra || 0}" style="width:100%;padding:9px;border:1px solid #e6e9ee;border-radius:6px;">
+                </div>
+                <div>
+                    <small style="display:block;color:#667085;font-weight:600;">PRECIO VENTA</small>
+                    <input type="number" class="pres-venta" min="0" step="0.01" value="${d.precio_venta || 0}" style="width:100%;padding:9px;border:1px solid #e6e9ee;border-radius:6px;">
+                </div>
+                <div style="display:flex; gap:6px;">
+                    ${esBase ? '' : `<button type="button" title="Abrir una unidad de esta presentación" onclick="abrirPresentacionManual(this)" style="padding:9px 10px;border:1px solid #027a48;background:#ffffff;color:#027a48;border-radius:6px;cursor:pointer;"><i class="fas fa-box-open"></i></button>
+                    <button type="button" title="Quitar presentación" onclick="this.closest('.fila-presentacion').remove()" style="padding:9px 10px;border:1px solid #d92d20;background:#ffffff;color:#d92d20;border-radius:6px;cursor:pointer;"><i class="fas fa-trash"></i></button>`}
+                </div>`;
+            cont.appendChild(fila);
+        }
+
+        function cargarPresentacionesProducto(productoId) {
+            const check = document.getElementById('manejaPresentaciones');
+            const cont = document.getElementById('presentacionesFilas');
+            const resumen = document.getElementById('presentacionesResumen');
+            if (!check || !cont) return;
+            cont.innerHTML = '';
+            check.checked = false;
+            document.getElementById('presentacionesContenido').style.display = 'none';
+            if (resumen) resumen.style.display = 'none';
+
+            fetch(`${urlInventarioPres}?action=obtenerPresentaciones&producto_id=${productoId}`, { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success) return;
+                    presentacionesActuales = res.presentaciones || [];
+                    if (res.maneja_presentaciones && presentacionesActuales.length) {
+                        check.checked = true;
+                        document.getElementById('presentacionesContenido').style.display = 'block';
+                        presentacionesActuales.forEach(p => agregarFilaPresentacion(p));
+                        if (resumen && res.texto) {
+                            resumen.style.display = 'block';
+                            resumen.innerHTML = '<i class="fas fa-warehouse"></i> STOCK FÍSICO: ' + res.texto;
+                        }
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function recolectarPresentaciones() {
+            return Array.from(document.querySelectorAll('#presentacionesFilas .fila-presentacion')).map((fila, idx) => ({
+                id: fila.querySelector('.pres-id').value || null,
+                nombre: fila.querySelector('.pres-nombre').value.trim().toUpperCase(),
+                factor_padre: idx === 0 ? 1 : parseFloat(fila.querySelector('.pres-factor').value || '1'),
+                precio_compra: parseFloat(fila.querySelector('.pres-compra').value || '0'),
+                precio_venta: parseFloat(fila.querySelector('.pres-venta').value || '0'),
+                es_base: idx === 0 ? 1 : 0
+            }));
+        }
+
+        function guardarPresentacionesProducto() {
+            const productoId = document.getElementById('productoId').value;
+            const maneja = document.getElementById('manejaPresentaciones').checked ? '1' : '0';
+            const filas = recolectarPresentaciones();
+            if (maneja === '1') {
+                if (filas.length < 2) {
+                    alert('Agrega al menos dos presentaciones (por ejemplo UNIDAD y PAQUETE).');
+                    return;
+                }
+                if (filas.some(f => !f.nombre)) {
+                    alert('Todas las presentaciones necesitan un nombre.');
+                    return;
+                }
+            }
+            const body = new FormData();
+            body.append('producto_id', productoId);
+            body.append('maneja_presentaciones', maneja);
+            body.append('presentaciones', JSON.stringify(filas));
+
+            fetch(`${urlInventarioPres}?action=guardarPresentaciones`, { method: 'POST', body })
+                .then(r => r.json())
+                .then(res => {
+                    alert(res.message || (res.success ? 'Presentaciones guardadas' : 'No se pudo guardar'));
+                    if (res.success) cargarPresentacionesProducto(productoId);
+                })
+                .catch(() => alert('No se pudo guardar las presentaciones.'));
+        }
+
+        function abrirPresentacionManual(boton) {
+            const fila = boton.closest('.fila-presentacion');
+            const presentacionId = fila.querySelector('.pres-id').value;
+            const productoId = document.getElementById('productoId').value;
+            const nombre = fila.querySelector('.pres-nombre').value || 'PRESENTACIÓN';
+            if (!presentacionId) {
+                alert('Guarda primero las presentaciones para poder abrirlas.');
+                return;
+            }
+            if (!confirm(`¿Abrir 1 ${nombre}? Se convertirá en su equivalente de la presentación menor.`)) return;
+
+            const body = new FormData();
+            body.append('producto_id', productoId);
+            body.append('presentacion_id', presentacionId);
+            body.append('cantidad', '1');
+            fetch(`${urlInventarioPres}?action=abrirPresentacion`, { method: 'POST', body })
+                .then(r => r.json())
+                .then(res => {
+                    alert(res.message || (res.success ? 'Presentación abierta' : 'No se pudo abrir'));
+                    if (res.success) cargarPresentacionesProducto(productoId);
+                })
+                .catch(() => alert('No se pudo abrir la presentación.'));
+        }
+    </script>
+
 <script>
     (function() {
         const empresaId = <?= (int)($_SESSION['empresa_id'] ?? 0); ?>;
