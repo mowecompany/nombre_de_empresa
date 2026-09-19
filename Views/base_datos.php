@@ -106,17 +106,48 @@ _${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
             if (!confirmation.isConfirmed) return;
             const formData = new FormData(event.target);
             formData.append('action', 'importar');
-            window.EstrellaSkeleton?.show(document.querySelector('.actions'), 'cards', { cards: 2 });
+            
+            // Mostrar SweetAlert con barra de carga en tiempo real
+            Swal.fire({
+                title: 'Importando base de datos...',
+                html: '<div style="margin-top:20px;"><div style="width:100%;height:20px;background:#e9ecef;border-radius:10px;overflow:hidden;"><div id="progressBar" style="width:0%;height:100%;background:#2f4a5a;transition:width 0.3s ease;"></div></div><div id="progressText" style="text-align:center;margin-top:8px;font-size:12px;color:#667085;">0%</div></div>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false
+            });
+            
             try {
-                const response = await fetch(`${baseUrl}/Controllers/BaseDatosController.php?action=importar`, { method: 'POST', body: formData });
-                const responseText = await response.text();
-                let result;
-                try { result = JSON.parse(responseText); } catch (parseError) { throw new Error(responseText || 'No se pudo importar la base de datos.'); }
-                if (!response.ok || !result.success) throw new Error(result.message || 'No se pudo importar.');
-                await Swal.fire('Importación completada', result.message, 'success');
-                window.top.location.href = `${baseUrl}/Views/dashboard.php`;
+                // Usar XMLHttpRequest para monitorear progreso
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `${baseUrl}/Controllers/BaseDatosController.php?action=importar`, true);
+                
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percentComplete = Math.round((event.loaded / event.total) * 100);
+                        const progressBar = document.getElementById('progressBar');
+                        const progressText = document.getElementById('progressText');
+                        if (progressBar) progressBar.style.width = percentComplete + '%';
+                        if (progressText) progressText.textContent = percentComplete + '%';
+                    }
+                };
+                
+                xhr.onload = async () => {
+                    try {
+                        const responseText = xhr.responseText;
+                        let result;
+                        try { result = JSON.parse(responseText); } catch (parseError) { throw new Error(responseText || 'No se pudo importar la base de datos.'); }
+                        if (xhr.status !== 200 || !result.success) throw new Error(result.message || 'No se pudo importar.');
+                        await Swal.fire('Importación completada', result.message, 'success');
+                        window.top.location.href = `${baseUrl}/Views/dashboard.php`;
+                    } catch (error) { Swal.fire('Error', error.message, 'error'); }
+                };
+                
+                xhr.onerror = () => {
+                    Swal.fire('Error', 'Error de conexión al importar la base de datos.', 'error');
+                };
+                
+                xhr.send(formData);
             } catch (error) { Swal.fire('Error', error.message, 'error'); }
-            finally { window.EstrellaSkeleton?.hide(document.querySelector('.actions'), true); }
         });
     </script>
 </body>
