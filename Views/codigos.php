@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 
 if (!defined('ROOT_PATH')) {
@@ -249,6 +249,8 @@ $baseUrl = rtrim((string)base_url(), '/');
         }
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body class="page-codigos">
     <main class="codes-shell">
@@ -278,7 +280,7 @@ $baseUrl = rtrim((string)base_url(), '/');
                         </tr>
                     </thead>
                     <tbody id="codes-body">
-                        <tr><td colspan="5" class="empty-state"><i class="fas fa-spinner fa-spin"></i>Cargando...</td></tr>
+                        <tr><td colspan="5" class="empty-state">CARGANDO PRODUCTOS...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -480,6 +482,7 @@ $baseUrl = rtrim((string)base_url(), '/');
         }
 
         async function loadProducts() {
+            window.EstrellaSkeleton?.show(codesBody, 'table', { rows: 8 });
             try {
                 const [productsResponse, categoriesResponse] = await Promise.all([
                     fetch(preservarSesionEnUrl(`${baseUrl}/Controllers/ProductoController.php?action=getAll`)),
@@ -500,6 +503,8 @@ $baseUrl = rtrim((string)base_url(), '/');
                 restoreCatalogScrollPosition();
             } catch (error) {
                 codesBody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-triangle-exclamation"></i>No fue posible cargar los productos.</td></tr>';
+            } finally {
+                window.EstrellaSkeleton?.hide(codesBody, true);
             }
         }
 

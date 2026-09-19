@@ -98,6 +98,33 @@ $baseUrl = rtrim((string)base_url(), '/');
         .pagination { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:16px; }
         .pagination button { border:1px solid #2f4a5a; background:#2f4a5a; color:#fff; border-radius:8px; padding:5px 7px; min-height:28px; min-width:28px; font-size:11px; cursor:pointer; }
         .pagination button:disabled { opacity:.45; cursor:not-allowed; }
+
+        .btn-save {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-save:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
+        }
         .empty { padding:28px; text-align:center; color:var(--muted); }
         .swal2-container { z-index:20000 !important; }
         .credito-editar-cantidad::-webkit-outer-spin-button,
@@ -109,6 +136,8 @@ $baseUrl = rtrim((string)base_url(), '/');
         @media (max-width:1100px) { #creditosLista { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
         @media (max-width:600px) { #creditosLista { grid-template-columns:1fr; } .page { padding:14px; } .page-header { align-items:flex-start; flex-direction:column; } }
     </style>
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body>
     <main class="page">
@@ -279,7 +308,7 @@ $baseUrl = rtrim((string)base_url(), '/');
 
     async function cargarCreditos() {
         const lista = document.getElementById('creditosLista');
-        lista.textContent = 'Cargando créditos...';
+        window.EstrellaSkeleton?.show(lista, 'cards', { cards: 8 });
         try {
             const respuesta = await fetch(`${creditosUrl}?action=listar`);
             const resultado = await respuesta.json();
@@ -300,6 +329,8 @@ $baseUrl = rtrim((string)base_url(), '/');
             renderizarCreditos();
         } catch (error) {
             lista.innerHTML = `<div class="empty">${escapar(error.message)}</div>`;
+        } finally {
+            window.EstrellaSkeleton?.hide(lista, true);
         }
     }
 
@@ -330,7 +361,7 @@ $baseUrl = rtrim((string)base_url(), '/');
                 : '<span class="credit-state-chip paid"><span class="status-dot"></span>PAGADO</span>';
             return `<button type="button" class="credit-row ${claseEstado}" data-credito-id="${creditoId}" onclick="mostrarPerfilCredito(${creditoId}, this)"><div class="row-top"><div class="client-name-wrap"><div class="client-name">${escapar(nombreSplit.nombre || 'CLIENTE')}</div><div class="client-lastname">${escapar(nombreSplit.apellido || '')}</div><div class="client-meta">DOC: ${escapar(credito.documento || 'N/D')}</div></div><div class="credit-side"><div class="credit-code">${escapar(String(credito.codigo || 'N/D').toUpperCase())}</div></div></div><div class="row-footer"><div class="credit-total-box"><strong>${totalCompacto}</strong><span>TOTAL</span></div><div class="credit-status-wrap">${badgeEstado}</div></div></button>`;
         }).join('') : '<div class="empty">No hay créditos para mostrar.</div>';
-        document.getElementById('creditosPaginacion').innerHTML = filtrados.length > porPagina ? `<button type="button" class="btn-save" onclick="cambiarPagina(-1)" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${paginaActual} / ${totalPaginas}</span><button type="button" class="btn-save" onclick="cambiarPagina(1)" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>` : '';
+        document.getElementById('creditosPaginacion').innerHTML = filtrados.length > porPagina ? `<button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${paginaActual} / ${totalPaginas}</span><button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>` : '';
     }
 
     function cambiarPagina(direccion) {

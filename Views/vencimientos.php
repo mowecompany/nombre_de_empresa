@@ -108,7 +108,36 @@ $baseUrl = rtrim((string)base_url(), '/');
             .venc-title { font-size: 1.6rem; }
             thead th, tbody td { padding: 8px 6px; }
         }
+
+        .btn-save {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #2f4a5a;
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-save:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
+        }
     </style>
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body>
     <div class="venc-shell">
@@ -352,7 +381,7 @@ $baseUrl = rtrim((string)base_url(), '/');
             const totalPaginas = Math.max(1, Math.ceil(visibles.length / vencimientosPorPagina));
             vencimientosPagina = Math.min(vencimientosPagina, totalPaginas - 1);
             const paginaVisible = visibles.slice(vencimientosPagina * vencimientosPorPagina, (vencimientosPagina + 1) * vencimientosPorPagina);
-            document.getElementById('vencimientosPaginacion').innerHTML = `<button type="button" class="btn-save venc-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${vencimientosPagina + 1} / ${totalPaginas}</span><button type="button" class="btn-save venc-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+            document.getElementById('vencimientosPaginacion').innerHTML = `<button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${vencimientosPagina + 1} / ${totalPaginas}</span><button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
             cuerpo.innerHTML = paginaVisible.map((lote) => `
                 <tr>
                     <td><img class="prod-img" loading="lazy" src="${imagenUrl(lote.imagen)}" alt="${escapar(lote.producto)}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
@@ -374,6 +403,8 @@ $baseUrl = rtrim((string)base_url(), '/');
         async function cargar() {
             const boton = document.getElementById('btnRefrescar');
             boton.disabled = true;
+            window.EstrellaSkeleton?.show(document.getElementById('tarjetas'), 'cards', { cards: 4 });
+            window.EstrellaSkeleton?.show(document.getElementById('cuerpo'), 'table', { rows: 7 });
             try {
                 const [respuestaLotes, respuestaDanados, respuestaArchivados] = await Promise.all([
                     fetch(CONTROLADOR + '?action=lotesPorVencer', { headers: { 'X-Requested-With': 'XMLHttpRequest' } }),
@@ -395,6 +426,8 @@ $baseUrl = rtrim((string)base_url(), '/');
                 document.getElementById('cuerpo').innerHTML = `<tr><td colspan="10" class="vacio">${escapar(error.message)}</td></tr>`;
             } finally {
                 boton.disabled = false;
+                window.EstrellaSkeleton?.hide(document.getElementById('tarjetas'), true);
+                window.EstrellaSkeleton?.hide(document.getElementById('cuerpo'), true);
             }
         }
 
@@ -463,8 +496,8 @@ $baseUrl = rtrim((string)base_url(), '/');
             pintarTabla();
         });
         document.getElementById('vencimientosPaginacion').addEventListener('click', (event) => {
-            if (event.target.closest('.venc-page-prev')) vencimientosPagina = Math.max(0, vencimientosPagina - 1);
-            if (event.target.closest('.venc-page-next')) vencimientosPagina += 1;
+            if (event.target.closest('.inventory-page-prev')) vencimientosPagina = Math.max(0, vencimientosPagina - 1);
+            if (event.target.closest('.inventory-page-next')) vencimientosPagina += 1;
             pintarTabla();
         });
         document.getElementById('btnRefrescar').addEventListener('click', cargar);

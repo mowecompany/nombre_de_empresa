@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Si se recibió PHPSESSID como parámetro (desde iframe), usarlo para la sesión
 if (isset($_GET['PHPSESSID']) && !empty($_GET['PHPSESSID'])) {
     session_id($_GET['PHPSESSID']);
@@ -1641,6 +1641,8 @@ $categorias = [];
         }
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body class="page-categorias">
     <!-- Reemplazar la sección hero-section actual por esto -->
@@ -2170,6 +2172,7 @@ $categorias = [];
 
         // Cargar todas las categorías desde el Controller
         function cargarCategorias(callback = null) {
+            window.EstrellaSkeleton?.show(document.getElementById('categorias-tbody'), 'table', { rows: 7 });
             obtenerJson(`${CATEGORIA_CONTROLLER_URL}?action=getAll`)
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
@@ -2190,7 +2193,8 @@ $categorias = [];
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                });
+                })
+                .finally(() => window.EstrellaSkeleton?.hide(document.getElementById('categorias-tbody'), true));
         }
 
         function renderResultadosTablaCategorias() {
