@@ -2055,7 +2055,7 @@ try {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="editProdStock"><i class="fas fa-cubes"></i> STOCK</label>
-                        <input type="number" id="editProdStock" name="stock" min="0" step="0.001" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdStock" name="stock" min="0" step="1" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
                     </div>
                     <div class="form-group">
                         <label for="editProdPorcentaje"><i class="fas fa-percent"></i> PORCENTAJE DE GANANCIA</label>
@@ -2440,6 +2440,60 @@ try {
             }).format(cantidad);
         }
 
+        function esCategoriaGramosProducto(nombre) {
+            const normalizado = String(nombre || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim()
+                .replace(/\s+/g, ' ');
+            return ['frutas', 'verduras', 'carnicos y refrigerados'].includes(normalizado);
+        }
+
+        function esProductoPorKiloVista(producto) {
+            const ventaPorKilo = producto?.venta_por_kilo ?? producto?.ventaPorKilo ?? 0;
+            const flag = ventaPorKilo === true || Number(ventaPorKilo) === 1;
+            return flag || esCategoriaGramosProducto(producto?.categoria_nombre || producto?.categoria || '');
+        }
+
+        function formatoStockProductoVisible(producto) {
+            const n = Number(producto?.stock ?? 0) || 0;
+            if (esProductoPorKiloVista(producto)) {
+                const kg = Math.round(n * 1000) / 1000;
+                return kg.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            }
+            return String(Math.round(n));
+        }
+
+        function formatoStockProductoInput(producto) {
+            const n = Number(producto?.stock ?? 0) || 0;
+            if (esProductoPorKiloVista(producto)) {
+                return (Math.round(n * 1000) / 1000).toFixed(3);
+            }
+            return String(Math.round(n));
+        }
+
+        function configurarStockEdicionProducto() {
+            const stockEdit = document.getElementById('editProdStock');
+            const categoriaEdit = document.getElementById('categoriaEdit');
+            const ventaPorKiloEdit = document.getElementById('ventaPorKiloEdit');
+            if (!stockEdit) return;
+            const producto = {
+                venta_por_kilo: ventaPorKiloEdit?.checked ? 1 : 0,
+                categoria_nombre: categoriaEdit?.options[categoriaEdit.selectedIndex]?.textContent || ''
+            };
+            const esPorKilo = esProductoPorKiloVista(producto);
+            stockEdit.min = esPorKilo ? '0.001' : '0';
+            stockEdit.step = esPorKilo ? '0.001' : '1';
+            if (stockEdit.value !== '') {
+                stockEdit.value = formatoStockProductoInput({
+                    ...producto,
+                    stock: stockEdit.value
+                });
+            }
+        }
+
         const base_url = <?= json_encode(base_url()) ?>;
 
         const resolveAppUrl = (path) => {
@@ -2789,10 +2843,7 @@ try {
             const colorTexto = String(prod.color || '').trim();
             const swatchColor = colorTexto || '#D0D7DE';
             const precioCompra = Number(prod.ultimo_precio_compra ?? prod.precio_compra ?? 0) || 0;
-            const stockNumero = Number(prod.stock ?? 0) || 0;
-            const stockVisible = Number.isInteger(stockNumero)
-                ? String(stockNumero)
-                : stockNumero.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            const stockVisible = formatoStockProductoVisible(prod);
             const colorCell = `
                 <td>
                     <div class="producto-color-cell">
@@ -3631,7 +3682,7 @@ try {
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                         <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #0B6623; border-radius: 4px;">
                             <label style="font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; display: block; margin-bottom: 4px;"><i class="fas fa-cubes"></i> STOCK</label>
-                            <p style="color: #0B6623; margin: 0; font-size: 15px; font-weight: 700;">${prod.stock} UND</p>
+                            <p style="color: #0B6623; margin: 0; font-size: 15px; font-weight: 700;">${formatoStockProductoVisible(prod)}</p>
                         </div>
                         <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #3591CA; border-radius: 4px;">
                             <label style="font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; display: block; margin-bottom: 4px;"><i class="fas fa-tag"></i> VENTA</label>
@@ -3707,7 +3758,16 @@ try {
                 }
                 const stockEdit = document.getElementById('editProdStock');
                 if (stockEdit) {
-                    stockEdit.value = Number(producto.stock ?? 0).toFixed(3);
+                    stockEdit.value = formatoStockProductoInput(producto);
+                    configurarStockEdicionProducto();
+                }
+                if (categoriaEdit && categoriaEdit.dataset.stockListener !== '1') {
+                    categoriaEdit.dataset.stockListener = '1';
+                    categoriaEdit.addEventListener('change', configurarStockEdicionProducto);
+                }
+                if (ventaPorKiloEdit && ventaPorKiloEdit.dataset.stockListener !== '1') {
+                    ventaPorKiloEdit.dataset.stockListener = '1';
+                    ventaPorKiloEdit.addEventListener('change', configurarStockEdicionProducto);
                 }
                 const porcentajeEdit = document.getElementById('editProdPorcentaje');
                 if (porcentajeEdit) {

@@ -1923,3 +1923,4 @@ Stack trace:
 #1 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(91): medir()
 #2 {main}
   thrown in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php on line 91
+[19-Sep-2026 18:20:34 America/Bogota] No hay rol definido en la sesión

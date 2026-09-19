@@ -699,10 +699,11 @@ if (is_file($logoPdfPath)) {
         /* Estadísticas */
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+            gap: 16px;
             margin-bottom: 30px;
             flex-wrap: wrap;
+            min-width: 0;
         }
 
         #ventasDiaModal .stats-container {
@@ -842,12 +843,14 @@ if (is_file($logoPdfPath)) {
         .stat-card {
             background: white;
             border-radius: 12px;
-            padding: 25px;
+            padding: 16px 18px;
             box-shadow: 0 4px 12px rgba(47, 74, 90, 0.08);
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 14px;
             transition: all 0.3s ease;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .stat-card:hover {
@@ -856,13 +859,14 @@ if (is_file($logoPdfPath)) {
         }
 
         .stat-icon {
-            width: 70px;
-            height: 70px;
+            width: 48px;
+            height: 48px;
+            flex: 0 0 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 20px;
             color: var(--primary-blue); /* icon blue */
             background: white; /* circle white */
             border: 2px solid var(--primary-blue);
@@ -879,12 +883,29 @@ if (is_file($logoPdfPath)) {
         .stat-content {
             min-width: 0;
             flex: 1;
+            overflow: hidden;
         }
 
         .stat-content p {
-            font-size: clamp(20px, 1.9vw, 32px);
+            font-size: clamp(13px, 1.35vw, 22px);
             font-weight: 700;
             color: var(--primary-blue);
+            max-width: 100%;
+            width: 100%;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.15;
+        }
+
+        #stockTotal,
+        #valorTotal,
+        #totalProductos,
+        #bajoStock {
+            font-size: clamp(13px, 1.3vw, 20px) !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
         }
 
         #stockTotalModal .stats-container,
@@ -922,11 +943,11 @@ if (is_file($logoPdfPath)) {
         #stockTotalModal .stat-content p,
         #valorInventarioModal .stat-content p,
         #reordenModal .stat-content p {
-            font-size: 28px;
+            font-size: clamp(14px, 1.6vw, 22px);
             line-height: 1.15;
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: clip;
+            text-overflow: ellipsis;
         }
 
         #stockTotalModal th,
@@ -4743,7 +4764,9 @@ if (is_file($logoPdfPath)) {
 
         function validarCantidadStock(item, cantidad) {
             const stock = parseFloat(item.stock || 0) || 0;
-            const esPorKilo = item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1;
+            const esPorKilo = typeof window.esProductoPorKiloInventario === 'function'
+                ? window.esProductoPorKiloInventario(item.venta_por_kilo, item.categoria_nombre || item.categoria)
+                : (item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1);
             const qty = normalizarCantidadSalida(cantidad, esPorKilo);
             if (stock <= 0) {
                 return { valido: false, cantidad: qty, stock, mensaje: 'El producto no tiene stock disponible.' };
@@ -5083,7 +5106,9 @@ if (is_file($logoPdfPath)) {
                 const precio = stock <= 0 ? 0 : parseFloat(item.precio) || 0;
                 const precioOriginal = stock <= 0 ? 0 : parseFloat(item.precio_original) || 0;
                 const descuentoPct = stock <= 0 ? 0 : parseFloat(item.descuento_porcentaje) || 0;
-                const esPorKilo = item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1;
+                const esPorKilo = typeof window.esProductoPorKiloInventario === 'function'
+                    ? window.esProductoPorKiloInventario(item.venta_por_kilo, item.categoria_nombre || item.categoria)
+                    : (item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1);
                 const cantidad = normalizarCantidadSalida(item.cantidad, esPorKilo);
                 const pesoEnGramos = esPorKilo ? cantidad * 1000 : cantidad;
                 const subtotal = esPorKilo ? (pesoEnGramos / 1000) * precio : precio * cantidad;
@@ -5118,7 +5143,7 @@ if (is_file($logoPdfPath)) {
                     <td style="min-width: 130px;">
                         <div style="display: flex; align-items: center; gap: 4px;">
                             <button type="button" onclick="decrementarItemCarritoSalida(${item.producto_id})" style="padding: 4px 8px; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">−</button>
-                            <input type="number" min="${esPorKilo ? '0.001' : '1'}" step="${esPorKilo ? '0.001' : '1'}" max="${stock}" value="${cantidad}"
+                            <input type="number" min="${esPorKilo ? '0.001' : '1'}" step="${esPorKilo ? '0.001' : '1'}" max="${stock}" value="${esPorKilo ? cantidad : Math.round(cantidad)}"
                                    style="width: 60px; text-align: center; padding: 4px; border: 1px solid #ccc; border-radius: 4px;"
                                    onchange="actualizarCantidadSalidaItem(${item.producto_id}, this.value)"
                                    oninput="actualizarCantidadSalidaItem(${item.producto_id}, this.value)"
@@ -5181,37 +5206,21 @@ if (is_file($logoPdfPath)) {
             const valorEl = document.getElementById(elementoId);
             if (!valorEl) return;
 
-            const texto = (valorEl.textContent || '').replace(/\s/g, '');
-            const longitud = texto.length;
             const esResumenVentas = /^(efectivo|transferencia|ganancia|valorVentas)(Dia|Mes)$/.test(elementoId)
                 || elementoId === 'totalDiaCard'
                 || elementoId === 'gananciaDiaCard';
-            const esValorInventario = elementoId === 'valorTotal';
+            const esTarjetaPrincipal = ['valorTotal', 'stockTotal', 'totalProductos', 'bajoStock'].includes(elementoId);
 
-            let tamano = esResumenVentas ? 22 : 38;
-            let tamanoMinimo = esValorInventario ? 19 : 12;
-            let tamanoMaximo = esValorInventario ? 56 : 34;
-
-            if (!esResumenVentas) {
-                if (longitud >= 14) {
-                    tamano = esValorInventario ? 40 : 22;
-                } else if (longitud >= 12) {
-                    tamano = esValorInventario ? 44 : 24;
-                } else if (longitud >= 10) {
-                    tamano = esValorInventario ? 48 : 28;
-                } else if (longitud >= 8) {
-                    tamano = esValorInventario ? 52 : 30;
-                }
+            if (esTarjetaPrincipal) {
+                valorEl.style.fontSize = '';
+                return;
             }
 
+            let tamano = esResumenVentas ? 20 : 22;
+            const tamanoMinimo = 12;
             valorEl.style.fontSize = tamano + 'px';
 
             if (!esResumenVentas) {
-                while (valorEl.scrollWidth < valorEl.clientWidth && tamano < tamanoMaximo) {
-                    tamano += 1;
-                    valorEl.style.fontSize = tamano + 'px';
-                }
-
                 while (valorEl.scrollWidth > valorEl.clientWidth && tamano > tamanoMinimo) {
                     tamano -= 1;
                     valorEl.style.fontSize = tamano + 'px';
@@ -5227,6 +5236,9 @@ if (is_file($logoPdfPath)) {
 
         function ajustarTamanoValorInventario() {
             ajustarTamanoTextoStat('valorTotal');
+            ajustarTamanoTextoStat('stockTotal');
+            ajustarTamanoTextoStat('totalProductos');
+            ajustarTamanoTextoStat('bajoStock');
         }
 
         function ajustarTamanoGananciaTotal() {
@@ -7291,7 +7303,7 @@ if (is_file($logoPdfPath)) {
                                 <td><strong>${prod.codigo}</strong></td>
                                 <td>${prod.nombre}</td>
                                 <td>${prod.categoria || 'Sin categoría'}</td>
-                                <td><span class="badge badge-info">${prod.stock}</span></td>
+                                <td><span class="badge badge-info">${formatoStockVisible(prod.stock, prod.categoria, prod.venta_por_kilo)}</span></td>
                                 <td>$${precioUnit}</td>
                                 <td><strong style="color: #2c3e50;">$${valorTotalProd}</strong></td>
                                 <td><span class="badge badge-primary">${porcentaje}%</span></td>
@@ -7423,7 +7435,7 @@ if (is_file($logoPdfPath)) {
                                 <td><strong>${item.codigo || 'N/A'}</strong></td>
                                 <td>${item.nombre || 'N/A'}</td>
                                 <td>${item.categoria || 'SIN CATEGORIA'}</td>
-                                <td><span class="badge ${badgeStock}" style="font-size: 16px; padding: 8px 12px;">${stockNormalizado}</span></td>
+                                <td><span class="badge ${badgeStock}" style="font-size: 16px; padding: 8px 12px;">${formatoStockVisible(stockNormalizado, item.categoria, item.venta_por_kilo)}</span></td>
                                 <td><span class="badge ${badgeNivel}">${iconoNivel} ${nivel}</span></td>
                             `;
                             tbody.appendChild(row);
@@ -7552,7 +7564,7 @@ if (is_file($logoPdfPath)) {
                             <td style="padding:8px 6px;vertical-align:middle;text-align:right;">
                                 <span style="display:inline-flex;align-items:center;gap:6px;font-weight:700;color:${prod.nivel === 'CRÍTICO' ? '#b91c1c' : '#b45309'};}">
                                     <span>${prod.nivel}</span>
-                                    <span style="background:${prod.nivel === 'CRÍTICO' ? '#fee2e2' : '#fef3c7'};color:${prod.nivel === 'CRÍTICO' ? '#991b1b' : '#92400e'};padding:4px 8px;border-radius:9999px;font-size:12px;">Stock ${prod.stock}</span>
+                                    <span style="background:${prod.nivel === 'CRÍTICO' ? '#fee2e2' : '#fef3c7'};color:${prod.nivel === 'CRÍTICO' ? '#991b1b' : '#92400e'};padding:4px 8px;border-radius:9999px;font-size:12px;">Stock ${formatoStockVisible(prod.stock, prod.categoria, prod.venta_por_kilo)}</span>
                                 </span>
                             </td>
                         </tr>`).join('');
@@ -8454,7 +8466,7 @@ if (is_file($logoPdfPath)) {
                             <td><strong>${escapeHtmlInventario(prod.codigo_producto || prod.id || 'N/A')}</strong></td>
                             <td>${escapeHtmlInventario(prod.nombre || 'PRODUCTO')}</td>
                             <td>${escapeHtmlInventario(prod.categoria_nombre || 'Sin categoría')}</td>
-                            <td><span class="badge badge-info">${prod.stock}</span></td>
+                            <td><span class="badge badge-info">${formatoStockVisible(prod.stock, prod.categoria_nombre || prod.categoria, prod.venta_por_kilo)}</span></td>
                             <td>$${(prod.precioCompra || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 })}</td>
                             <td><strong style="color: #b42318;">$${(prod.valorTotalCompra || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 })}</strong></td>
                             <td><span class="badge badge-primary">${porcentaje}%</span></td>
@@ -8473,19 +8485,28 @@ if (is_file($logoPdfPath)) {
         }
 
         // Cargar formulario de edición para producto
-        function configurarStockEdicionPorCategoria() {
+        function productoEdicionEsPorKilo() {
+            const stock = document.getElementById('editProdStock');
             const categoria = document.getElementById('editProdCategoria');
+            const ventaPorKilo = stock?.dataset?.ventaPorKilo || '0';
+            const nombreCategoria = categoria?.options[categoria.selectedIndex]?.textContent || '';
+            if (typeof window.esProductoPorKiloInventario === 'function') {
+                return window.esProductoPorKiloInventario(ventaPorKilo, nombreCategoria);
+            }
+            return Number(ventaPorKilo) === 1;
+        }
+
+        function configurarStockEdicionPorCategoria() {
             const stock = document.getElementById('editProdStock');
             if (!stock) return;
 
-            stock.min = '0';
-            stock.step = '0.001';
-
-            if (categoria) {
-                const nombreCategoria = normalizarTextoBusquedaInventario(categoria.options[categoria.selectedIndex]?.textContent || '');
-                const esPorGramos = ['frutas', 'verduras', 'carnicos y refrigerados'].includes(nombreCategoria);
-                stock.min = esPorGramos ? '0.001' : '0';
-                stock.step = esPorGramos ? '0.001' : '1';
+            const esPorKilo = productoEdicionEsPorKilo();
+            stock.min = esPorKilo ? '0.001' : '0';
+            stock.step = esPorKilo ? '0.001' : '1';
+            if (stock.value !== '') {
+                stock.value = typeof window.formatoStockInput === 'function'
+                    ? window.formatoStockInput(stock.value, document.getElementById('editProdCategoria')?.options[document.getElementById('editProdCategoria').selectedIndex]?.textContent || '', stock.dataset.ventaPorKilo)
+                    : (esPorKilo ? String(Number(stock.value) || 0) : String(Math.round(Number(stock.value) || 0)));
             }
         }
 
@@ -8502,13 +8523,20 @@ if (is_file($logoPdfPath)) {
 
                         const precioCompraValue = p.ultimo_precio_compra != null ? parseFloat(p.ultimo_precio_compra).toFixed(2) : '';
                         const precioVentaValue = p.precio != null ? parseFloat(p.precio).toFixed(2) : '';
-                        const stockValue = p.stock != null ? Number(p.stock).toFixed(3) : '';
                         const porcentajeValue = p.porcentaje_ganancia != null ? parseFloat(p.porcentaje_ganancia).toFixed(1) : '';
+                        const stockInput = document.getElementById('editProdStock');
+                        if (stockInput) {
+                            stockInput.dataset.ventaPorKilo = Number(p.venta_por_kilo) === 1 ? '1' : '0';
+                        }
 
                         document.getElementById('editProdPrecioCompra').value = precioCompraValue;
                         document.getElementById('editProdPrecio').value = precioVentaValue;
-                        document.getElementById('editProdStock').value = stockValue;
                         configurarStockEdicionPorCategoria();
+                        if (stockInput) {
+                            stockInput.value = typeof window.formatoStockInput === 'function'
+                                ? window.formatoStockInput(p.stock, p.categoria_nombre || '', p.venta_por_kilo)
+                                : (Number(p.venta_por_kilo) === 1 ? String(Number(p.stock) || 0) : String(Math.round(Number(p.stock) || 0)));
+                        }
                         const categoriaEdicion = document.getElementById('editProdCategoria');
                         if (categoriaEdicion && categoriaEdicion.dataset.stockGramosListener !== '1') {
                             categoriaEdicion.dataset.stockGramosListener = '1';
@@ -10089,11 +10117,6 @@ if (is_file($logoPdfPath)) {
         return Number.isFinite(n) ? n : porDefecto;
     }
 
-    function formatoCantidad(valor) {
-        const n = Math.round(numero(valor, 0) * 1000) / 1000;
-        return n.toFixed(3);
-    }
-
     function esCategoriaGramosInventario(nombre) {
         const normalizado = String(nombre || '')
             .toLowerCase()
@@ -10105,24 +10128,53 @@ if (is_file($logoPdfPath)) {
         return ['frutas', 'verduras', 'carnicos y refrigerados'].includes(normalizado);
     }
 
-    function formatoStockVisible(valor, categoria = '', ventaPorKilo = false) {
+    function esFlagVentaPorKiloInventario(ventaPorKilo) {
+        if (ventaPorKilo === true || ventaPorKilo === 1) return true;
+        const texto = String(ventaPorKilo ?? '').trim().toLowerCase();
+        return ['1', 'true', 'si', 'sí', 'kg', 'kilo', 'kilogramo', 'kilogramos'].includes(texto);
+    }
+
+    function esProductoPorKiloInventario(ventaPorKilo = false, categoria = '') {
+        return esFlagVentaPorKiloInventario(ventaPorKilo) || esCategoriaGramosInventario(categoria);
+    }
+
+    function formatoCantidad(valor, esPorKilo = false) {
         const n = Math.round(numero(valor, 0) * 1000) / 1000;
-        const esPorGramos = ventaPorKilo || esCategoriaGramosInventario(categoria);
-        if (esPorGramos) {
+        if (esPorKilo) {
             return n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
         }
-        return String(n);
+        return String(Math.round(n));
+    }
+
+    function formatoStockVisible(valor, categoria = '', ventaPorKilo = false) {
+        const n = Math.max(0, numero(valor, 0));
+        if (esProductoPorKiloInventario(ventaPorKilo, categoria)) {
+            const kg = Math.round(n * 1000) / 1000;
+            return kg.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        }
+        return String(Math.round(n));
+    }
+
+    function formatoStockInput(valor, categoria = '', ventaPorKilo = false) {
+        const n = Math.max(0, numero(valor, 0));
+        if (esProductoPorKiloInventario(ventaPorKilo, categoria)) {
+            return (Math.round(n * 1000) / 1000).toFixed(3);
+        }
+        return String(Math.round(n));
     }
 
     function formatoStockTotalVisible(valor) {
         const n = Math.round(numero(valor, 0) * 1000) / 1000;
-        return Number.isInteger(n)
-            ? String(n)
-            : n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        if (Number.isInteger(n)) return String(n);
+        return n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
     }
 
+    window.numero = numero;
+    window.esCategoriaGramosInventario = esCategoriaGramosInventario;
+    window.esProductoPorKiloInventario = esProductoPorKiloInventario;
     window.formatoCantidad = formatoCantidad;
     window.formatoStockVisible = formatoStockVisible;
+    window.formatoStockInput = formatoStockInput;
     window.formatoStockTotalVisible = formatoStockTotalVisible;
 </script>
 
@@ -10264,7 +10316,10 @@ if (is_file($logoPdfPath)) {
 
             select.innerHTML = '';
             const productoSelect = document.getElementById(modo === 'entrada' ? 'productoEntrada' : 'productoSalida');
-            const productoEsKilo = Number(productoSelect?.selectedOptions?.[0]?.dataset?.ventaPorKilo || 0) === 1;
+            const opcionProducto = productoSelect?.selectedOptions?.[0];
+            const productoEsKilo = typeof window.esProductoPorKiloInventario === 'function'
+                ? window.esProductoPorKiloInventario(opcionProducto?.dataset?.ventaPorKilo, opcionProducto?.dataset?.categoriaNombre)
+                : Number(opcionProducto?.dataset?.ventaPorKilo || 0) === 1;
             const stockBase = numero(datos.total_base, 0);
             datos.presentaciones.forEach((pres) => {
                 const opcion = document.createElement('option');
