@@ -146,181 +146,62 @@ let connectionConfig = {
   server_port: DEFAULT_SERVER_PORT,
   lan_ip: ''
 };
-let basculaSerial = null;
-let basculaBridgeServer = null;
-const basculaBridgeClients = new Set();
-let ultimaTramaBalanza = null;
-let temporizadorReconectarBalanza = null;
-let intentosConexionBalanza = 0;
-let reconexionBalanzaEnCurso = false;
-let operacionBalanzaEnCurso = Promise.resolve();
-let ultimoListadoPuertosBalanza = '';
-let puertosDetectadosBalanza = [];
+// ---------------------------------------------------------------------------
+// Báscula ACS-30 (RS-232 -> CH340 -> COM): un único servicio en el proceso
+// principal. Ni las vistas ni ningún puente HTTP abren el puerto.
+// ---------------------------------------------------------------------------
+const { BasculaService } = require('./bascula/BasculaService');
 
-async function actualizarPuertosDetectadosBalanza() {
-  const puertos = await SerialPort.list().catch(() => []);
-  puertosDetectadosBalanza = puertos.map(item => ({
-    path: item.path,
-    manufacturer: item.manufacturer || '',
-    vendorId: item.vendorId || '',
-    productId: item.productId || ''
-  }));
-  const listadoActual = JSON.stringify(puertosDetectadosBalanza);
-  if (listadoActual !== ultimoListadoPuertosBalanza) {
-    ultimoListadoPuertosBalanza = listadoActual;
-    console.info('[BASCULA][ELECTRON] puertos USB detectados:', puertosDetectadosBalanza);
-    publicarEstadoBalanza();
-  }
-  return puertos;
-}
+const puertoBasculaForzado = (() => {
+  const argumento = process.argv.find((arg) => /^--bascula-puerto=/i.test(arg));
+  if (argumento) return argumento.split('=')[1];
+  return process.env.BASCULA_PUERTO || null;
+})();
 
-function encolarOperacionBalanza(operacion) {
-  const turno = operacionBalanzaEnCurso.then(operacion, operacion);
-  operacionBalanzaEnCurso = turno.catch(() => {});
-  return turno;
-}
+const basculaService = new BasculaService({ puertoForzado: puertoBasculaForzado });
+let ventanaDiagnosticoBascula = null;
 
-function obtenerConfiguracionesSerialBalanza(configuracionBase = {}) {
-  const baudRates = Array.from(new Set([
-    Number(configuracionBase.baudRate) || 9600,
-    9600,
-    4800,
-    2400,
-    19200,
-    115200
-  ]));
-  const dataBits = Array.from(new Set([Number(configuracionBase.dataBits) || 8, 8]));
-  const parities = Array.from(new Set([String(configuracionBase.parity || 'none').toLowerCase(), 'none', 'even', 'odd']));
-  const stopBits = Array.from(new Set([Number(configuracionBase.stopBits) || 1, 1, 2]));
-
-  const configuraciones = [];
-  for (const baudRate of baudRates) {
-    for (const dataBit of dataBits) {
-      for (const parity of parities) {
-        for (const stopBit of stopBits) {
-          configuraciones.push({ baudRate, dataBits: dataBit, parity, stopBits: stopBit });
-        }
-      }
-    }
-  }
-
-  return configuraciones.filter((config, index, arr) => arr.findIndex(item => (
-    item.baudRate === config.baudRate &&
-    item.dataBits === config.dataBits &&
-    item.parity === config.parity &&
-    item.stopBits === config.stopBits
-  )) === index);
-}
-
-async function abrirPuertoBalanzaConFallback(pathName, configuracionInicial = {}) {
-  const intentos = obtenerConfiguracionesSerialBalanza(configuracionInicial);
-  let ultimoError = null;
-
-  for (const configuracion of intentos) {
-    const puertoIntento = new SerialPort({
-      path: pathName,
-      baudRate: Number(configuracion.baudRate),
-      dataBits: Number(configuracion.dataBits),
-      stopBits: Number(configuracion.stopBits),
-      parity: String(configuracion.parity || 'none'),
-      autoOpen: false
-    });
-
+function enviarABascula(canal, payload) {
+  const ventanas = [mainWindow, ventanaDiagnosticoBascula].filter((v) => v && !v.isDestroyed());
+  for (const ventana of ventanas) {
     try {
-      await new Promise((resolve, reject) => {
-        const manejarError = (error) => {
-          puertoIntento.removeListener('error', manejarError);
-          reject(error);
-        };
-        puertoIntento.once('error', manejarError);
-        puertoIntento.open((error) => {
-          puertoIntento.removeListener('error', manejarError);
-          if (error) reject(error); else resolve();
-        });
-      });
-      return puertoIntento;
-    } catch (error) {
-      ultimoError = error;
-      try { if (puertoIntento.isOpen) puertoIntento.close(); } catch (closeError) {}
-      try { puertoIntento.removeAllListeners(); } catch (listenerError) {}
-    }
-  }
-
-  throw ultimoError || new Error(`No se pudo abrir el puerto ${pathName} con ninguna configuración serial válida.`);
-}
-
-function publicarTramaBalanza(data) {
-  const bytes = Buffer.from(data);
-  ultimaTramaBalanza = {
-    data: bytes.toString('base64'),
-    timestamp: Date.now()
-  };
-  for (const client of basculaBridgeClients) {
-    client.write(`event: raw\ndata: ${ultimaTramaBalanza.data}\n\n`);
-  }
-  if (!mainWindow?.isDestroyed()) {
-    const payload = { data: ultimaTramaBalanza.data };
-    mainWindow.webContents.send('bascula-datos-raw', payload);
-    for (const frame of mainWindow.webContents.mainFrame.framesInSubtree()) {
-      if (frame === mainWindow.webContents.mainFrame) continue;
-      try {
-        mainWindow.webContents.sendToFrame(frame.frameId, 'bascula-datos-raw', payload);
-      } catch (error) {
-        console.warn('[BASCULA][ELECTRON] no se pudo enviar RAW al frame:', error?.message || error);
+      ventana.webContents.send(canal, payload);
+      for (const frame of ventana.webContents.mainFrame.framesInSubtree()) {
+        if (frame === ventana.webContents.mainFrame) continue;
+        ventana.webContents.sendToFrame(frame.frameId, canal, payload);
       }
+    } catch (error) {
+      // Una ventana cerrándose no debe interrumpir la lectura de la báscula.
     }
   }
 }
 
-function publicarEstadoBalanza() {
-  const estado = JSON.stringify({ conectado: Boolean(basculaSerial?.isOpen), path: basculaSerial?.path || null });
-  for (const client of basculaBridgeClients) client.write(`event: estado\ndata: ${estado}\n\n`);
-}
+basculaService.on('peso', (peso) => enviarABascula('bascula:peso', peso));
+basculaService.on('estado', (estado) => enviarABascula('bascula:estado-cambio', estado));
+basculaService.on('trama', (trama) => enviarABascula('bascula:trama', trama));
 
-async function cerrarPuertoBalanzaSiExiste() {
-  if (!basculaSerial) return;
-  try {
-    if (basculaSerial.isOpen) {
-      await new Promise((resolve, reject) => {
-        basculaSerial.close((error) => {
-          if (error) reject(error); else resolve();
-        });
-      });
-    }
-  } catch (error) {
-    console.warn('[BASCULA][ELECTRON] cierre forzado del puerto fallido:', error?.message || error);
-  } finally {
-    basculaSerial = null;
+function abrirVentanaDiagnosticoBascula() {
+  if (ventanaDiagnosticoBascula && !ventanaDiagnosticoBascula.isDestroyed()) {
+    ventanaDiagnosticoBascula.focus();
+    return ventanaDiagnosticoBascula;
   }
-}
-
-function iniciarPuenteLocalBalanza() {
-  basculaBridgeServer = http.createServer((request, response) => {
-    response.setHeader('Access-Control-Allow-Origin', '*');
-    response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    if (request.method === 'OPTIONS') {
-      response.writeHead(204);
-      response.end();
-      return;
+  ventanaDiagnosticoBascula = new BrowserWindow({
+    width: 900,
+    height: 760,
+    title: 'Diagnóstico de báscula ACS-30',
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false
     }
-    if (request.url === '/bascula/status') {
-      response.setHeader('Content-Type', 'application/json');
-      response.end(JSON.stringify({ conectado: Boolean(basculaSerial?.isOpen), path: basculaSerial?.path || null, puertos: puertosDetectadosBalanza, ultimaTrama: ultimaTramaBalanza }));
-      return;
-    }
-    if (request.url === '/bascula/stream') {
-      response.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
-      response.write(`event: estado\ndata: ${JSON.stringify({ conectado: Boolean(basculaSerial?.isOpen), path: basculaSerial?.path || null, puertos: puertosDetectadosBalanza })}\n\n`);
-      if (ultimaTramaBalanza) response.write(`event: raw\ndata: ${ultimaTramaBalanza.data}\n\n`);
-      basculaBridgeClients.add(response);
-      request.on('close', () => basculaBridgeClients.delete(response));
-      return;
-    }
-    response.writeHead(404);
-    response.end();
   });
-  basculaBridgeServer.on('error', error => console.error('Puente local de báscula:', error.message));
-  basculaBridgeServer.listen(8765, '127.0.0.1');
+  ventanaDiagnosticoBascula.loadFile(path.join(__dirname, 'bascula', 'diagnostico.html'));
+  ventanaDiagnosticoBascula.on('closed', () => {
+    ventanaDiagnosticoBascula = null;
+  });
+  return ventanaDiagnosticoBascula;
 }
 
 function locatePhpExecutable() {
@@ -606,17 +487,18 @@ function createMainWindow(serverUrl) {
     }
   });
 
-  // Permitir que la vista autenticada solicite y use una báscula serial USB.
-  mainWindow.webContents.session.setPermissionCheckHandler((_webContents, permission) => {
-    return permission === 'serial';
-  });
+  // La báscula la administra exclusivamente el proceso principal (BasculaService).
+  // El frontend no abre puertos seriales: Web Serial queda deshabilitado a propósito.
+  mainWindow.webContents.session.setPermissionCheckHandler((_webContents, permission) => permission !== 'serial');
   mainWindow.webContents.session.setPermissionRequestHandler((_webContents, permission, callback) => {
-    callback(permission === 'serial');
+    callback(permission !== 'serial');
   });
-  mainWindow.webContents.session.on('select-serial-port', (event, portList, _webContents, callback) => {
-    event.preventDefault();
-    const primerPuerto = Array.isArray(portList) ? portList[0] : null;
-    callback(primerPuerto ? primerPuerto.portId : '');
+
+  // Atajo para abrir el diagnóstico de báscula sin ensuciar la interfaz de ventas.
+  mainWindow.webContents.on('before-input-event', (_event, input) => {
+    if (input.type === 'keyDown' && input.key === 'F9') {
+      abrirVentanaDiagnosticoBascula();
+    }
   });
 
   mainWindow.setMenuBarVisibility(false);
@@ -828,6 +710,8 @@ app.whenReady().then(async () => {
     const serverUrl = `http://${SERVER_HOST}:${activePort}`;
     await startPhpServer(activePort, activeBindHost);
     createMainWindow(serverUrl);
+    // La báscula se conecta sola al arrancar y se mantiene abierta toda la sesión.
+    basculaService.iniciar();
   } catch (error) {
     showFatalError('No se pudo iniciar la aplicación.', error.message);
     app.quit();
@@ -835,6 +719,7 @@ app.whenReady().then(async () => {
 });
 
 app.on('before-quit', () => {
+  basculaService.detener().catch(() => {});
   stopPhpServer();
 });
 
@@ -852,137 +737,31 @@ app.on('activate', () => {
   }
 });
 
-ipcMain.handle('bascula-listar-puertos', async () => {
-  const puertos = await SerialPort.list();
-  console.info('[BASCULA][ELECTRON] puertos detectados:', puertos.map((puerto) => ({ path: puerto.path, manufacturer: puerto.manufacturer || '' })));
-  return puertos.map((puerto) => ({
-    path: puerto.path,
-    manufacturer: puerto.manufacturer || '',
-    serialNumber: puerto.serialNumber || '',
-    vendorId: puerto.vendorId || '',
-    productId: puerto.productId || ''
-  }));
+// ---------------------------------------------------------------------------
+// Báscula ACS-30: canales IPC (única vía de comunicación con el frontend)
+// ---------------------------------------------------------------------------
+ipcMain.handle('bascula:estado', async () => basculaService.estado());
+
+ipcMain.handle('bascula:diagnostico', async () => {
+  await basculaService.listarPuertos();
+  return basculaService.diagnostico();
 });
 
-ipcMain.handle('bascula-conectar', async (event, options = {}) => {
-  return encolarOperacionBalanza(async () => {
-    console.info('[BASCULA][ELECTRON] solicitud de conexión:', options);
-    await cerrarPuertoBalanzaSiExiste();
-
-    const pathName = String(options.path || '').trim();
-    const baudRate = Number(options.baudRate);
-    const dataBits = Number(options.dataBits);
-    const stopBits = Number(options.stopBits);
-    const parity = String(options.parity || 'none');
-    if (!pathName) throw new Error('Puerto no disponible');
-    const puertos = await SerialPort.list();
-    puertosDetectadosBalanza = puertos.map(item => ({ path: item.path, manufacturer: item.manufacturer || '', vendorId: item.vendorId || '', productId: item.productId || '' }));
-    const puertoSeleccionado = puertos.find((puerto) => puerto.path === pathName);
-    if (!puertoSeleccionado || !/CH340|USB-SERIAL|wch\.cn/i.test(`${puertoSeleccionado.path} ${puertoSeleccionado.manufacturer}`)) {
-      throw new Error('Seleccione el puerto USB-SERIAL CH340 de la ACS-30, no COM1.');
-    }
-    if (!Number.isInteger(baudRate) || baudRate <= 0) throw new Error('Debe indicar el baud rate real de la ACS-30.');
-    if (![5, 6, 7, 8].includes(dataBits) || ![1, 2].includes(stopBits) || !['none', 'even', 'odd', 'mark', 'space'].includes(parity)) {
-      throw new Error('Parámetros seriales no válidos.');
-    }
-
-    try {
-      basculaSerial = await abrirPuertoBalanzaConFallback(pathName, { baudRate, dataBits, parity, stopBits });
-      basculaSerial.on('data', (data) => {
-        publicarTramaBalanza(data);
-      });
-      const puertoAbierto = basculaSerial;
-      puertoAbierto.on('close', () => {
-        if (basculaSerial !== puertoAbierto) return;
-        basculaSerial = null;
-        intentosConexionBalanza = 0;
-        publicarEstadoBalanza();
-        if (!mainWindow?.isDestroyed()) mainWindow.webContents.send('bascula-estado', { estado: 'desconectada' });
-      });
-      puertoAbierto.on('error', (error) => {
-        if (!mainWindow?.isDestroyed()) mainWindow.webContents.send('bascula-error', { mensaje: error.message });
-        if (puertoAbierto.isOpen) {
-          puertoAbierto.close(() => {
-            if (basculaSerial !== puertoAbierto) return;
-            basculaSerial = null;
-            intentosConexionBalanza = 0;
-            publicarEstadoBalanza();
-          });
-        }
-      });
-
-      console.info('[BASCULA][ELECTRON] puerto abierto correctamente:', pathName);
-      return { path: pathName };
-    } catch (error) {
-      console.error('[BASCULA][ELECTRON] error al abrir puerto:', { path: pathName, message: error.message, stack: error.stack });
-      basculaSerial = null;
-      const mensaje = String(error?.message || '');
-      if (/Unknown error code 31|Access is denied|The port is already open|COM3/i.test(mensaje)) {
-        throw new Error(`El puerto ${pathName} está ocupado por otra aplicación, por otro programa del sistema o la báscula no responde. Revisa si COM3 está abierto en otra app y ciérrala antes de intentar de nuevo.`);
-      }
-      throw error;
-    }
-  });
-});
-
-async function conectarBasculaAutomatica() {
-  if (basculaSerial?.isOpen) return;
-  if (basculaSerial && !basculaSerial.isOpen) basculaSerial = null;
-  if (reconexionBalanzaEnCurso) return;
-  reconexionBalanzaEnCurso = true;
-  intentosConexionBalanza += 1;
-  try {
-    const puertos = await actualizarPuertosDetectadosBalanza();
-    const puerto = puertos.find(item => String(item.vendorId).toLowerCase() === '1a86' && String(item.productId).toLowerCase() === '7523')
-      || puertos.find(item => /USB-SERIAL|CH340|wch\.cn/i.test(`${item.path} ${item.manufacturer}`))
-      || puertos.find(item => /COM3/i.test(item.path));
-    if (!puerto) {
-      intentosConexionBalanza = 0;
-      return;
-    }
-
-    basculaSerial = await abrirPuertoBalanzaConFallback(puerto.path, { baudRate: 9600, dataBits: 8, parity: 'none', stopBits: 1 });
-    basculaSerial.on('data', publicarTramaBalanza);
-    const puertoAbierto = basculaSerial;
-    basculaSerial.on('close', () => {
-      if (basculaSerial !== puertoAbierto) return;
-      basculaSerial = null;
-      intentosConexionBalanza = 0;
-      publicarEstadoBalanza();
-    });
-    basculaSerial.on('error', error => {
-      console.error('Báscula automática:', error.message);
-      if (puertoAbierto.isOpen) {
-        puertoAbierto.close(() => {
-          if (basculaSerial !== puertoAbierto) return;
-          basculaSerial = null;
-          intentosConexionBalanza = 0;
-          publicarEstadoBalanza();
-        });
-      }
-    });
-    publicarEstadoBalanza();
-    intentosConexionBalanza = 0;
-    console.log(`Báscula conectada automáticamente en ${puerto.path}`);
-  } catch (error) {
-    basculaSerial = null;
-    console.error('No se pudo conectar automáticamente la báscula:', error.message);
-  } finally {
-    reconexionBalanzaEnCurso = false;
+ipcMain.handle('bascula:comando', async (_event, comando) => {
+  switch (String(comando || '')) {
+    case 'reconectar':
+      return basculaService.reconectar();
+    case 'tarar':
+      return basculaService.tarar();
+    case 'quitar-tara':
+      return basculaService.quitarTara();
+    case 'abrir-diagnostico':
+      abrirVentanaDiagnosticoBascula();
+      return { abierto: true };
+    default:
+      throw new Error(`Comando de báscula no reconocido: ${comando}`);
   }
-}
-
-ipcMain.handle('bascula-desconectar', async () => {
-  return encolarOperacionBalanza(async () => {
-    await cerrarPuertoBalanzaSiExiste();
-    publicarEstadoBalanza();
-  });
 });
-
-ipcMain.handle('bascula-probar', async () => ({
-  conectado: Boolean(basculaSerial?.isOpen),
-  path: basculaSerial?.path || null
-}));
 
 ipcMain.handle('open-external', async (_, url) => {
   await shell.openExternal(url);

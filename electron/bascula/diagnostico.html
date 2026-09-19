@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Diagnóstico de báscula ACS-30</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; padding: 16px; background: #f4f6f8; color: #1f2933; }
+  h1 { font-size: 18px; margin: 0 0 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .card { background: #fff; border: 1px solid #dfe3e8; border-radius: 8px; padding: 10px 12px; }
+  .card b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: #6b7684; margin-bottom: 4px; }
+  .card span { font-size: 15px; word-break: break-all; }
+  .peso { font-size: 34px; font-weight: 700; }
+  .ok { color: #137333; } .mal { color: #c5221f; } .aviso { color: #a06000; }
+  button { font: inherit; padding: 7px 14px; margin-right: 8px; border: 1px solid #c3c9d1; background: #fff; border-radius: 6px; cursor: pointer; }
+  button:hover { background: #eef1f5; }
+  pre { background: #10151c; color: #d7e2ee; padding: 10px; border-radius: 8px; height: 230px; overflow: auto; font-size: 12px; margin: 8px 0 0; }
+  table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; }
+  th, td { border: 1px solid #e2e6ea; padding: 5px 8px; text-align: left; }
+  th { background: #eef1f5; }
+</style>
+</head>
+<body>
+<h1>Diagnóstico de báscula ACS-30</h1>
+
+<div class="grid">
+  <div class="card"><b>Estado</b><span id="estado">—</span></div>
+  <div class="card"><b>Puerto</b><span id="puerto">—</span></div>
+  <div class="card"><b>Adaptador</b><span id="adaptador">—</span></div>
+  <div class="card"><b>Peso interpretado</b><span class="peso" id="peso">—</span></div>
+  <div class="card"><b>Última trama recibida</b><span id="trama">—</span></div>
+  <div class="card"><b>Trama en hexadecimal</b><span id="hex">—</span></div>
+</div>
+
+<div>
+  <button id="btn-reconectar">Reconectar</button>
+  <button id="btn-tarar">Tarar</button>
+  <button id="btn-quitar-tara">Quitar tara</button>
+  <button id="btn-copiar">Copiar diagnóstico</button>
+</div>
+
+<h1 style="margin-top:16px">Puertos detectados</h1>
+<table><thead><tr><th>Puerto</th><th>Fabricante</th><th>VID</th><th>PID</th></tr></thead><tbody id="puertos"></tbody></table>
+
+<h1 style="margin-top:16px">Registro</h1>
+<pre id="log"></pre>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let ultimoDiagnostico = {};
+
+  function pintarEstado(estado) {
+    if (!estado) return;
+    const conectado = estado.conectado;
+    $('estado').textContent = estado.disponible
+      ? (conectado ? 'Conectada' : 'Sin conexión')
+      : 'Librería serial no instalada';
+    $('estado').className = estado.disponible ? (conectado ? 'ok' : 'mal') : 'mal';
+    $('puerto').textContent = estado.puerto || '—';
+    $('adaptador').textContent = estado.adaptador
+      ? `${estado.adaptador.manufacturer || 'desconocido'} (${estado.adaptador.motivo || ''})`
+      : 'no detectado';
+    if (estado.ultimaTrama) {
+      $('trama').textContent = JSON.stringify(estado.ultimaTrama.texto);
+      $('hex').textContent = estado.ultimaTrama.hex;
+    }
+    if (estado.ultimoPeso) pintarPeso(estado.ultimoPeso);
+  }
+
+  function pintarPeso(p) {
+    $('peso').textContent = `${p.peso.toFixed(3)} kg`;
+    $('peso').className = 'peso ' + (p.estable === false ? 'aviso' : 'ok');
+  }
+
+  function pintarDiagnostico(d) {
+    ultimoDiagnostico = d || {};
+    pintarEstado(d);
+    $('puertos').innerHTML = (d.puertos || []).map((p) =>
+      `<tr><td>${p.path}</td><td>${p.manufacturer || ''}</td><td>${p.vendorId || ''}</td><td>${p.productId || ''}</td></tr>`
+    ).join('') || '<tr><td colspan="4">Sin puertos</td></tr>';
+    $('log').textContent = (d.registros || []).map((r) =>
+      `${r.ts} [${r.nivel}] ${r.mensaje}${r.extra ? ' :: ' + (typeof r.extra === 'string' ? r.extra : JSON.stringify(r.extra)) : ''}`
+    ).join('\n');
+    $('log').scrollTop = $('log').scrollHeight;
+  }
+
+  async function refrescar() {
+    if (!window.basculaAPI) return;
+    pintarDiagnostico(await window.basculaAPI.diagnostico());
+  }
+
+  if (window.basculaAPI) {
+    window.basculaAPI.onPeso(pintarPeso);
+    window.basculaAPI.onEstado(pintarEstado);
+    window.basculaAPI.onTrama((t) => {
+      $('trama').textContent = JSON.stringify(t.texto);
+      $('hex').textContent = t.hex;
+    });
+    $('btn-reconectar').onclick = () => window.basculaAPI.reconectar().then(refrescar);
+    $('btn-tarar').onclick = () => window.basculaAPI.tarar();
+    $('btn-quitar-tara').onclick = () => window.basculaAPI.quitarTara();
+    $('btn-copiar').onclick = () => navigator.clipboard.writeText(JSON.stringify(ultimoDiagnostico, null, 2));
+    refrescar();
+    setInterval(refrescar, 2000);
+  } else {
+    $('estado').textContent = 'Puente de escritorio no disponible';
+  }
+</script>
+</body>
+</html>

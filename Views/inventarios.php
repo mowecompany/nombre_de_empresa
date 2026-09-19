@@ -3592,49 +3592,6 @@ if (is_file($logoPdfPath)) {
             }, 150);
         }
 
-        async function cerrarConexionWebSerialSalida(cerrarPuerto = false) {
-            const lector = lectorBalanzaSalida;
-            const puerto = puertoBalanzaSalida;
-            lectorBalanzaSalida = null;
-            puertoBalanzaSalida = null;
-            basculaNativaConectada = false;
-
-            if (lector) {
-                try {
-                    await lector.cancel();
-                    console.info('[BASCULA][WEB] reader cancelado');
-                } catch (error) {
-                    console.error('[BASCULA][WEB] error al cancelar reader', error);
-                }
-                try {
-                    lector.releaseLock();
-                    console.info('[BASCULA][WEB] reader releaseLock() completado');
-                } catch (error) {
-                    console.error('[BASCULA][WEB] error en reader.releaseLock()', error);
-                }
-            }
-
-            console.info('[BASCULA][WEB] pagehide completado; el navegador libera el puerto al destruir el documento');
-            if (cerrarPuerto && puerto?.close) {
-                try {
-                    await puerto.close();
-                    console.info('[BASCULA][WEB] port.close() completado');
-                } catch (error) {
-                    console.error('[BASCULA][WEB] error en port.close()', error);
-                    throw error;
-                }
-            }
-        }
-
-        window.addEventListener('message', async evento => {
-            if (evento.data?.tipo !== 'liberar-bascula-antes-de-navegar') return;
-            try {
-                await cerrarConexionWebSerialSalida(true);
-                evento.source?.postMessage({ tipo: 'bascula-liberada-para-navegar' }, evento.origin);
-            } catch (error) {
-                evento.source?.postMessage({ tipo: 'bascula-liberacion-error', mensaje: error?.message || String(error) }, evento.origin);
-            }
-        });
 
         document.addEventListener('DOMContentLoaded', abrirAccionInventarioDesdeUrl);
 
@@ -3837,139 +3794,11 @@ if (is_file($logoPdfPath)) {
         let clientesCreditoSalida = [];
         let ventaPorPesoCategoriaActiva = false;
         let puertoBalanzaSalida = null;
-        let lectorBalanzaSalida = null;
         let bufferBalanzaSalida = '';
         let basculaNativaConectada = false;
         let basculaNativaListenerRegistrado = false;
         let ultimoDatoBalanzaSalida = 0;
         let ultimoPesoBalanzaSalida = null;
-        let temporizadorSinDatosBalanzaSalida = null;
-        let conexionWebSerialEnCurso = null;
-        let conexionBalanzaSalidaEnCurso = null;
-        let reintentosWebSerialAutomaticos = 0;
-        let puenteLocalBalanza = null;
-        let temporizadorSincronizarPesoPuente = null;
-        let ultimaTramaPuenteProcesada = '';
-        let respaldoWebSerialIniciado = false;
-        let verificacionPuenteLocalEnCurso = false;
-        let limpiezaBalanzaEnCurso = Promise.resolve();
-        const canalBalanza = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('acs30-balanza') : null;
-        let secuenciaSolicitudBasculaPadre = 0;
-        const solicitudesBasculaPadre = new Map();
-
-        function solicitarBasculaAlPadre(tipo, datos = {}) {
-            const solicitud = `bascula-${Date.now()}-${++secuenciaSolicitudBasculaPadre}`;
-            return new Promise((resolve, reject) => {
-                solicitudesBasculaPadre.set(solicitud, { resolve, reject });
-                window.parent.postMessage({ tipo, solicitud, ...datos }, window.location.origin);
-            });
-        }
-
-        window.addEventListener('message', evento => {
-            if (evento.source !== window.parent) return;
-            const data = evento.data || {};
-            if (data.tipo === 'bascula-raw-electron') {
-                console.info('[BASCULA][DEBUG] RAW recibido desde dashboard Electron');
-                recibirDatosBalanzaSalidaElectron(data.data);
-                return;
-            }
-            if (data.tipo === 'bascula-estado-electron') {
-                const estado = data.payload || {};
-                const conectado = Boolean(estado.conectado);
-                basculaNativaConectada = conectado;
-                if (estado.path) puertoBalanzaSalida = estado.path;
-                actualizarEstadoBalanzaSalida(conectado ? 'conectada' : 'desconectada');
-                console.info('[BASCULA][DEBUG] estado Electron recibido', estado);
-                return;
-            }
-            const solicitud = solicitudesBasculaPadre.get(data.solicitud);
-            if (!solicitud) return;
-            solicitudesBasculaPadre.delete(data.solicitud);
-            if (data.error) solicitud.reject(new Error(data.error));
-            else solicitud.resolve(data.resultado);
-        });
-
-        function recibirDatosBalanzaSalidaElectron(data) {
-            const bytes = Uint8Array.from(atob(data), caracter => caracter.charCodeAt(0));
-            const recibido = new TextDecoder().decode(bytes);
-            console.info('[BASCULA][DEBUG] RAW Electron decodificado', { bytes: bytes.length, texto: JSON.stringify(recibido) });
-            ultimoDatoBalanzaSalida = Date.now();
-            procesarDatosBalanzaSalida(recibido);
-        }
-
-        async function conectarBalanzaSalidaDesdePadre(forzarSeleccion = false) {
-            console.info('[BASCULA][DEBUG] conectar desde padre', { forzarSeleccion, listenerRegistrado: basculaNativaListenerRegistrado });
-            if (basculaNativaListenerRegistrado) {
-                const estadoActual = await solicitarBasculaAlPadre('bascula-probar-electron');
-                console.info('[BASCULA][DEBUG] estado recibido del padre', estadoActual);
-                if (estadoActual?.conectado) {
-                    basculaNativaConectada = true;
-                    puertoBalanzaSalida = estadoActual.path || puertoBalanzaSalida;
-                    actualizarEstadoBalanzaSalida('conectada');
-                    return;
-                }
-            } else {
-                basculaNativaListenerRegistrado = true;
-            }
-            if (!forzarSeleccion) {
-                actualizarEstadoBalanzaSalida('desconectada');
-                return;
-            }
-            const puertos = await solicitarBasculaAlPadre('bascula-listar-electron');
-            const configuracion = obtenerConfiguracionBalanzaSalida();
-            const puerto = (configuracion.path && puertos.find(item => item.path === configuracion.path))
-                || puertos.find(item => /USB-SERIAL|CH340|wch\.cn/i.test(`${item.path} ${item.manufacturer}`))
-                || puertos[0];
-            if (!puerto) throw new Error('No se encontró la ACS-30 autorizada.');
-            const estadoActual = await solicitarBasculaAlPadre('bascula-probar-electron');
-            if (!estadoActual?.conectado) {
-                await solicitarBasculaAlPadre('bascula-conectar-electron', { options: { ...configuracion, path: puerto.path } });
-            }
-            basculaNativaConectada = true;
-            puertoBalanzaSalida = puerto.path;
-            actualizarEstadoBalanzaSalida('conectada');
-        }
-
-        canalBalanza?.addEventListener('message', async evento => {
-            if (evento.data?.tipo !== 'solicitar-liberacion' || evento.data?.origen === 'inventario') return;
-            const lector = lectorBalanzaSalida;
-            const puerto = puertoBalanzaSalida;
-            basculaNativaConectada = false;
-            lectorBalanzaSalida = null;
-            puertoBalanzaSalida = null;
-            if (lector) {
-                try { await lector.cancel(); } catch (error) {}
-                try { lector.releaseLock(); } catch (error) {}
-            }
-            if (puerto?.readable && !puerto.readable.locked) {
-                try { await puerto.close(); } catch (error) {}
-            }
-            actualizarEstadoBalanzaSalida('desconectada');
-        });
-
-        function obtenerConfiguracionBalanzaSalida() {
-            try {
-                const configuracion = JSON.parse(localStorage.getItem('acs30.serialConfig') || 'null');
-                if (configuracion && configuracion.path && Number.isInteger(Number(configuracion.baudRate)) && [5, 6, 7, 8].includes(Number(configuracion.dataBits)) && [1, 2].includes(Number(configuracion.stopBits)) && ['none', 'even', 'odd', 'mark', 'space'].includes(configuracion.parity)) {
-                    return {
-                        path: String(configuracion.path),
-                        baudRate: Number(configuracion.baudRate),
-                        dataBits: Number(configuracion.dataBits),
-                        parity: configuracion.parity,
-                        stopBits: Number(configuracion.stopBits)
-                    };
-                }
-                return {
-                    path: '',
-                    baudRate: 9600,
-                    dataBits: 8,
-                    parity: 'none',
-                    stopBits: 1
-                };
-            } catch (error) {
-                return { path: '', baudRate: 9600, dataBits: 8, parity: 'none', stopBits: 1 };
-            }
-        }
 
         function escapeHtml(str) {
             return String(str ?? '')
@@ -4516,49 +4345,16 @@ if (is_file($logoPdfPath)) {
                     : '<i class="fas fa-circle-xmark"></i> BÁSCULA NO CONECTADA');
         }
 
-        async function validarEstadoRealBalanzaSalida(motivo = 'estado') {
-            const apiBascula = window.electronAPI?.bascula;
-            if (!apiBascula?.probar) return false;
-            try {
-                const resultado = await apiBascula.probar();
-                const conectado = Boolean(resultado?.conectado);
-                if (conectado) {
-                    basculaNativaConectada = true;
-                    puertoBalanzaSalida = resultado.path || puertoBalanzaSalida;
-                    actualizarEstadoBalanzaSalida('conectada');
-                    return true;
-                }
-            } catch (error) {
-                console.info('[BASCULA][WEB] validación de estado rechazada:', motivo, error?.message || error);
-            }
-            basculaNativaConectada = false;
-            puertoBalanzaSalida = null;
-            actualizarEstadoBalanzaSalida('desconectada');
-            return false;
-        }
-
-        async function sincronizarEstadoBalanzaSalida() {
-            const apiBascula = window.electronAPI?.bascula;
-            if (apiBascula?.probar) {
-                try {
-                    const resultado = await apiBascula.probar();
-                    if (resultado?.conectado) {
-                        basculaNativaConectada = true;
-                        puertoBalanzaSalida = resultado.path || puertoBalanzaSalida;
-                        actualizarEstadoBalanzaSalida('conectada');
-                        mostrarDiagnosticoBalanzaSalida(`PUERTO ABIERTO: ${puertoBalanzaSalida || 'COM'}\nLEYENDO PESO REAL...`);
-                        return;
-                    }
-                } catch (error) {}
-            } else if (puertoBalanzaSalida?.readable) {
-                basculaNativaConectada = true;
-                actualizarEstadoBalanzaSalida('conectada');
-                return;
-            } else if (typeof EventSource !== 'undefined') {
-                iniciarConexionBalanzaSalidaNavegador();
-                return;
-            }
-            actualizarEstadoBalanzaSalida('desconectada');
+        // -------------------------------------------------------------------
+        // Báscula ACS-30: la vista SOLO escucha el peso ya procesado que envía
+        // el proceso principal de Electron (BasculaService). Aquí no se abre
+        // ningún puerto COM, por lo que recargar o cambiar de página nunca
+        // corta la comunicación serial.
+        // -------------------------------------------------------------------
+        function mostrarDiagnosticoBalanzaSalida(mensaje) {
+            const destino = document.getElementById('diagnosticoBalanzaSalida');
+            if (destino) destino.textContent = mensaje;
+            console.info('[BASCULA]', mensaje);
         }
 
         function extraerPesoBalanza(texto) {
@@ -4571,30 +4367,8 @@ if (is_file($logoPdfPath)) {
             return /^(g|gr)$/i.test(coincidencia[2] || '') ? valor / 1000 : valor;
         }
 
-        function registrarListenerBalanzaNativa(apiBascula) {
-            if (basculaNativaListenerRegistrado || !apiBascula?.onRaw) return;
-            apiBascula.onRaw(({ data }) => {
-                const bytes = Uint8Array.from(atob(data), caracter => caracter.charCodeAt(0));
-                const recibido = new TextDecoder().decode(bytes);
-                ultimoDatoBalanzaSalida = Date.now();
-                mostrarDiagnosticoBalanzaSalida(`PUERTO: ${puertoBalanzaSalida || 'COM'}\nRAW: ${JSON.stringify(recibido)}`);
-                procesarDatosBalanzaSalida(recibido);
-            });
-            apiBascula.onEstado?.(() => {
-                if (!basculaNativaConectada) return;
-                validarEstadoRealBalanzaSalida('evento de estado');
-            });
-            apiBascula.onError?.(({ mensaje }) => {
-                basculaNativaConectada = false;
-                actualizarEstadoBalanzaSalida('desconectada');
-                mostrarDiagnosticoBalanzaSalida(`ERROR SERIAL: ${mensaje}`);
-            });
-            basculaNativaListenerRegistrado = true;
-        }
-
         function aplicarPesoBalanzaSalida(pesoKg) {
             if (pesoKg === null || !Number.isFinite(pesoKg) || pesoKg <= 0) {
-                console.info('[BASCULA][DEBUG] peso no aplicado', { pesoKg, modoPeso: ventaPorPesoCategoriaActiva });
                 return;
             }
             ultimoPesoBalanzaSalida = pesoKg;
@@ -4605,7 +4379,6 @@ if (is_file($logoPdfPath)) {
             const valorMaximoAceptable = stockDisponible > 0 ? Math.max(1, stockDisponible * 1.15) : 200;
 
             if (ventaPorPesoCategoriaActiva && pesoKg > valorMaximoAceptable) {
-                console.warn('[BASCULA][DEBUG] peso descartado por stock', { pesoKg, stockDisponible, valorMaximoAceptable });
                 mostrarDiagnosticoBalanzaSalida(`PESO DESCARTADO: ${pesoKg.toFixed(3)} kg\nSupera el stock disponible actual (${stockDisponible > 0 ? stockDisponible.toFixed(3) : 'sin stock'} kg).`);
                 return;
             }
@@ -4620,18 +4393,15 @@ if (is_file($logoPdfPath)) {
             if (etiqueta) etiqueta.textContent = `${pesoKg.toFixed(3)} kg`;
             const resumen = document.getElementById('pesoSalidaResumen');
             if (resumen) resumen.textContent = `PESO: ${pesoKg.toFixed(3)} KG`;
-            console.info('[BASCULA][DEBUG] peso aplicado a la interfaz', { pesoKg, ventaPorPesoCategoriaActiva });
         }
 
         function procesarDatosBalanzaSalida(recibido) {
-            console.info('[BASCULA][DEBUG] procesando RAW', { recibido: JSON.stringify(recibido), bufferAntes: JSON.stringify(bufferBalanzaSalida) });
-            bufferBalanzaSalida += recibido;
+            bufferBalanzaSalida += String(recibido || '');
             const partes = bufferBalanzaSalida.split(/[\r\n]+/);
             bufferBalanzaSalida = partes.pop() || '';
             partes.forEach(parte => aplicarPesoBalanzaSalida(extraerPesoBalanza(parte)));
             if (partes.length === 0) {
                 const pesoDirecto = extraerPesoBalanza(bufferBalanzaSalida);
-                console.info('[BASCULA][DEBUG] resultado parser directo', { buffer: JSON.stringify(bufferBalanzaSalida), pesoDirecto });
                 if (pesoDirecto !== null) {
                     aplicarPesoBalanzaSalida(pesoDirecto);
                     bufferBalanzaSalida = '';
@@ -4645,372 +4415,71 @@ if (is_file($logoPdfPath)) {
             }
         }
 
-        function conectarBalanzaSalidaPuenteLocal(ultimaTrama = null) {
-            if (puenteLocalBalanza) return;
-            if (typeof EventSource === 'undefined') return;
-            puenteLocalBalanza = new EventSource('http://127.0.0.1:8765/bascula/stream');
-            puenteLocalBalanza.onopen = () => {
-                mostrarDiagnosticoBalanzaSalida('PUENTE LOCAL: CANAL ABIERTO\nESPERANDO ESTADO REAL DE COM3...');
-            };
-            puenteLocalBalanza.addEventListener('estado', evento => {
-                const estado = JSON.parse(evento.data || '{}');
-                const conectado = Boolean(estado.conectado);
-                const hayActividadReciente = Date.now() - ultimoDatoBalanzaSalida < 4000;
-                if (conectado || hayActividadReciente) {
-                    basculaNativaConectada = true;
-                    puertoBalanzaSalida = estado.path || puertoBalanzaSalida;
-                    actualizarEstadoBalanzaSalida('conectada');
-                    return;
-                }
-                basculaNativaConectada = false;
-                puertoBalanzaSalida = estado.path || puertoBalanzaSalida;
+        function aplicarEstadoBasculaEscritorio(estado) {
+            const conectada = Boolean(estado?.conectado);
+            basculaNativaConectada = conectada;
+            puertoBalanzaSalida = estado?.puerto || null;
+            actualizarEstadoBalanzaSalida(conectada ? 'conectada' : 'desconectada');
+            if (conectada) {
+                mostrarDiagnosticoBalanzaSalida(`PUERTO ABIERTO: ${puertoBalanzaSalida || 'COM'}\nLEYENDO PESO REAL...`);
+            } else if (estado && estado.disponible === false) {
+                mostrarDiagnosticoBalanzaSalida('La librería serial no está instalada. Ejecute npm install en la carpeta del programa.');
+            } else if (estado && estado.ultimoError && estado.ultimoError.mensaje) {
+                mostrarDiagnosticoBalanzaSalida(`${estado.ultimoError.mensaje}\n\nPulse "Reintentar báscula" cuando lo haya cerrado.`);
+            } else {
+                mostrarDiagnosticoBalanzaSalida('BÁSCULA NO DETECTADA. Revise el cable USB del adaptador CH340.');
+            }
+        }
+
+        function iniciarPuenteBasculaEscritorio() {
+            if (basculaNativaListenerRegistrado) return true;
+            const api = window.basculaAPI;
+            if (!api) {
                 actualizarEstadoBalanzaSalida('desconectada');
-            });
-            puenteLocalBalanza.addEventListener('raw', evento => {
-                const bytes = Uint8Array.from(atob(evento.data), caracter => caracter.charCodeAt(0));
-                const recibido = new TextDecoder().decode(bytes);
-                basculaNativaConectada = true;
+                mostrarDiagnosticoBalanzaSalida('La báscula solo está disponible dentro de la aplicación de escritorio.');
+                return false;
+            }
+            basculaNativaListenerRegistrado = true;
+            api.onPeso(peso => {
+                if (!peso || !Number.isFinite(peso.peso)) return;
                 ultimoDatoBalanzaSalida = Date.now();
-                mostrarDiagnosticoBalanzaSalida(`PUENTE LOCAL: RAW: ${JSON.stringify(recibido)}`);
-                procesarDatosBalanzaSalida(recibido);
+                aplicarPesoBalanzaSalida(peso.peso);
             });
-            if (ultimaTrama?.data) {
-                const bytes = Uint8Array.from(atob(ultimaTrama.data), caracter => caracter.charCodeAt(0));
-                ultimaTramaPuenteProcesada = String(ultimaTrama.timestamp || '');
-                procesarDatosBalanzaSalida(new TextDecoder().decode(bytes));
-            }
-            if (!temporizadorSincronizarPesoPuente) {
-                temporizadorSincronizarPesoPuente = setInterval(async () => {
-                    try {
-                        const respuesta = await fetch('http://127.0.0.1:8765/bascula/status', { cache: 'no-store' });
-                        if (!respuesta.ok) return;
-                        const estado = await respuesta.json();
-                        if (!estado.conectado || !estado.ultimaTrama?.data) return;
-                        const timestamp = String(estado.ultimaTrama.timestamp || '');
-                        if (timestamp && timestamp === ultimaTramaPuenteProcesada) return;
-                        ultimaTramaPuenteProcesada = timestamp;
-                        const bytes = Uint8Array.from(atob(estado.ultimaTrama.data), caracter => caracter.charCodeAt(0));
-                        basculaNativaConectada = true;
-                        ultimoDatoBalanzaSalida = Date.now();
-                        procesarDatosBalanzaSalida(new TextDecoder().decode(bytes));
-                    } catch (error) {}
-                }, 500);
-            }
-            puenteLocalBalanza.onerror = () => {
-                const puenteFallido = puenteLocalBalanza;
-                puenteLocalBalanza = null;
-                puenteFallido.close();
-                basculaNativaConectada = false;
-                actualizarEstadoBalanzaSalida('conectando');
-                mostrarDiagnosticoBalanzaSalida('PUENTE LOCAL DESCONECTADO. INICIE LA APLICACIÓN ELECTRON.');
-            };
-        }
-        async function iniciarConexionBalanzaSalidaNavegador(forzarSeleccion = false) {
-            if (puenteLocalBalanza || verificacionPuenteLocalEnCurso) return;
-            verificacionPuenteLocalEnCurso = true;
-            try {
-                try {
-                    const controlador = new AbortController();
-                    const temporizador = setTimeout(() => controlador.abort(), 700);
-                    const respuesta = await fetch('http://127.0.0.1:8765/bascula/status', { cache: 'no-store', signal: controlador.signal });
-                    clearTimeout(temporizador);
-                    if (!respuesta.ok) throw new Error('Puente local no disponible');
-                    const estadoPuente = await respuesta.json();
-                    if (estadoPuente.conectado) {
-                        conectarBalanzaSalidaPuenteLocal(estadoPuente.ultimaTrama || null);
-                        return;
-                    }
-                    console.info('[BASCULA][DEBUG] puente local activo sin báscula; se intentará Web Serial');
-                } catch (error) {
-                    console.info('[BASCULA][DEBUG] puente local no disponible; se intentará Web Serial', error?.message || error);
-                }
-                if (!respaldoWebSerialIniciado && 'serial' in navigator) {
-                    respaldoWebSerialIniciado = true;
-                    const puertos = await navigator.serial.getPorts().catch(() => []);
-                    if (puertos.length || forzarSeleccion) {
-                        await conectarBalanzaSalidaWebSerial(forzarSeleccion);
-                        return;
-                    }
-                }
-                actualizarEstadoBalanzaSalida('desconectada');
-                mostrarDiagnosticoBalanzaSalida('CONEXIÓN AUTOMÁTICA: no se encontró Electron activo ni un puerto COM autorizado.');
-            } finally {
-                verificacionPuenteLocalEnCurso = false;
-            }
+            api.onEstado(aplicarEstadoBasculaEscritorio);
+            api.estado().then(aplicarEstadoBasculaEscritorio).catch(() => {});
+            return true;
         }
 
-        function mostrarDiagnosticoBalanzaSalida(mensaje) {
-            const diagnostico = document.getElementById('diagnosticoBalanzaSalida');
-            if (!diagnostico) return;
-            diagnostico.style.display = 'block';
-            diagnostico.textContent = mensaje;
-        }
-
-        async function leerDatosBalanzaSalidaWebSerial() {
-            if (!lectorBalanzaSalida) return;
-            console.info('[BASCULA][WEB] esperando datos');
+        async function sincronizarEstadoBalanzaSalida() {
+            if (!iniciarPuenteBasculaEscritorio()) return;
             try {
-                const decoder = new TextDecoder();
-                while (lectorBalanzaSalida) {
-                    const resultado = await lectorBalanzaSalida.read();
-                    if (resultado.done) {
-                        console.warn('[BASCULA][DEBUG] reader.read() terminó con done=true');
-                        break;
-                    }
-                    const recibido = decoder.decode(resultado.value, { stream: true });
-                    ultimoDatoBalanzaSalida = Date.now();
-                    console.info('[BASCULA][WEB] datos RAW recibidos', JSON.stringify(recibido));
-                    procesarDatosBalanzaSalida(recibido);
-                }
+                aplicarEstadoBasculaEscritorio(await window.basculaAPI.estado());
             } catch (error) {
-                console.error('[BASCULA][DEBUG] error en reader Web Serial', error);
-                basculaNativaConectada = false;
                 actualizarEstadoBalanzaSalida('desconectada');
-                mostrarDiagnosticoBalanzaSalida(`NAVEGADOR: LECTURA INTERRUMPIDA\n${error?.message || error}`);
-            } finally {
-                console.info('[BASCULA][DEBUG] finalizó lector Web Serial', { tieneReader: Boolean(lectorBalanzaSalida) });
-                if (lectorBalanzaSalida) {
-                    try { lectorBalanzaSalida.releaseLock(); } catch (error) {}
-                    lectorBalanzaSalida = null;
-                }
             }
         }
 
-        async function conectarBalanzaSalidaWebSerial(forzarSeleccion = false) {
-            console.info('[BASCULA][WEB] iniciar conexión', { forzarSeleccion, url: window.location.href });
-            if (conexionWebSerialEnCurso) return conexionWebSerialEnCurso;
-            if (basculaNativaConectada && lectorBalanzaSalida) {
-                console.info('[BASCULA][WEB] conexión existente reutilizada');
-                actualizarEstadoBalanzaSalida('conectada');
-                mostrarDiagnosticoBalanzaSalida('NAVEGADOR: PUERTO ABIERTO\nLEYENDO PESO REAL...');
-                return;
-            }
-            if (!('serial' in navigator)) {
-                actualizarEstadoBalanzaSalida('desconectada');
-                mostrarDiagnosticoBalanzaSalida('ERROR: ESTE NAVEGADOR NO SOPORTA WEB SERIAL. USE CHROME O EDGE EN HTTPS O EN LOCALHOST.');
-                return;
-            }
-            if (lectorBalanzaSalida) {
-                try { await lectorBalanzaSalida.cancel(); } catch (error) {}
-                try { lectorBalanzaSalida.releaseLock(); } catch (error) {}
-                lectorBalanzaSalida = null;
-            }
-            if (puertoBalanzaSalida?.readable && !puertoBalanzaSalida.readable.locked) {
-                basculaNativaConectada = true;
-                actualizarEstadoBalanzaSalida('conectada');
-                mostrarDiagnosticoBalanzaSalida('NAVEGADOR: PUERTO COM YA ABIERTO\nLEYENDO PESO REAL...');
-                lectorBalanzaSalida = puertoBalanzaSalida.readable.getReader();
-                leerDatosBalanzaSalidaWebSerial();
-                return;
-            }
-            if (puertoBalanzaSalida?.readable?.locked) {
-                throw new Error('El puerto Web Serial sigue bloqueado por un reader anterior.');
-            }
-            puertoBalanzaSalida = null;
-            const configuracion = obtenerConfiguracionBalanzaSalida();
-            console.info('[BASCULA][WEB] configuración serial', configuracion);
-                        conexionWebSerialEnCurso = (async () => {
-                            try {
-                const puertosAutorizados = await navigator.serial.getPorts();
-                console.info('[BASCULA][WEB] puertos autorizados', puertosAutorizados.map(puerto => puerto.getInfo?.() || {}));
-                if (!puertosAutorizados.length && !forzarSeleccion) {
-                    mostrarDiagnosticoBalanzaSalida('NAVEGADOR: esperando el puente local automático de Electron.');
-                    return;
-                }
-                puertoBalanzaSalida = puertosAutorizados.find(puerto => {
-                    const info = puerto.getInfo?.() || {};
-                    return Number(info.usbVendorId) === 6790 && Number(info.usbProductId) === 29987;
-                }) || (puertosAutorizados.length ? puertosAutorizados[0] : await navigator.serial.requestPort());
-                if (!puertoBalanzaSalida) return;
-                console.info('[BASCULA][WEB] puerto seleccionado', puertoBalanzaSalida.getInfo?.() || {});
-                mostrarDiagnosticoBalanzaSalida(`PUERTO SELECCIONADO: ${puertoBalanzaSalida.getInfo?.().usbProductId ? 'USB' : 'SERIAL'}\nABRIENDO CON ${configuracion.baudRate}, ${configuracion.dataBits}${configuracion.parity === 'none' ? 'N' : configuracion.parity.toUpperCase()}${configuracion.stopBits}...`);
-                if (puertoBalanzaSalida.readable && !puertoBalanzaSalida.readable.locked) {
-                    console.info('[BASCULA][WEB] puerto ya abierto, se reutiliza');
-                } else if (!puertoBalanzaSalida.readable) {
-                    console.info('[BASCULA][WEB] antes de port.open()');
-                    console.info('[BASCULA][WEB] port.open() iniciado');
-                    await puertoBalanzaSalida.open({
-                        baudRate: configuracion.baudRate,
-                        dataBits: configuracion.dataBits,
-                        parity: configuracion.parity,
-                        stopBits: configuracion.stopBits
-                    });
-                    console.info('[BASCULA][WEB] port.open() completado');
-                } else {
-                    throw new Error('El puerto Web Serial sigue bloqueado por un reader anterior. No se ejecutará port.open() para evitar una segunda conexión.');
-                }
-                if (typeof puertoBalanzaSalida.setSignals === 'function') {
-                    await puertoBalanzaSalida.setSignals({ dataTerminalReady: true, requestToSend: true }).catch(error => {
-                        console.info('[BASCULA][WEB] el dispositivo no permite activar DTR/RTS', error?.message || error);
-                    });
-                }
-                if (!puertoBalanzaSalida.readable) {
-                    throw new Error('port.open() terminó, pero readable no está disponible.');
-                }
-                console.info('[BASCULA][WEB] readable disponible');
-                mostrarDiagnosticoBalanzaSalida('NAVEGADOR: PUERTO ABIERTO\nESPERANDO DATOS RAW REALES...');
-                lectorBalanzaSalida = puertoBalanzaSalida.readable.getReader();
-                console.info('[BASCULA][WEB] iniciando reader');
-                if (!lectorBalanzaSalida) throw new Error('No se pudo crear el reader del puerto serial.');
-                console.info('[BASCULA][WEB] reader iniciado');
-                basculaNativaConectada = true;
-                actualizarEstadoBalanzaSalida('conectada');
-                document.getElementById('pesoCategoriaSalidaValor').textContent = '--.--- kg';
-                const decoder = new TextDecoder();
-                while (true) {
-                    const resultado = await lectorBalanzaSalida.read();
-                    if (resultado.done) break;
-                    const recibido = decoder.decode(resultado.value, { stream: true });
-                    console.info('[BASCULA][WEB] datos RAW recibidos', JSON.stringify(recibido));
-                    mostrarDiagnosticoBalanzaSalida(`NAVEGADOR: RAW: ${JSON.stringify(recibido)}`);
-                    procesarDatosBalanzaSalida(recibido);
-                }
-                            } catch (error) {
-                basculaNativaConectada = false;
-                reintentosWebSerialAutomaticos = 0;
-                actualizarEstadoBalanzaSalida('desconectada');
-                mostrarDiagnosticoBalanzaSalida(`NAVEGADOR: NO SE PUDO ABRIR EL PUERTO COM\nERROR REAL: ${error?.name || 'Error'}: ${error?.message || error}`);
-                            } finally {
-                if (lectorBalanzaSalida) {
-                    try { await lectorBalanzaSalida.cancel(); } catch (error) {}
-                    try { lectorBalanzaSalida.releaseLock(); } catch (error) {}
-                    lectorBalanzaSalida = null;
-                }
-                if (!puertoBalanzaSalida?.readable) {
-                    puertoBalanzaSalida = null;
-                    basculaNativaConectada = false;
-                    actualizarEstadoBalanzaSalida('desconectada');
-                }
-              }
-            })();
-            try {
-                await conexionWebSerialEnCurso;
-            } finally {
-                conexionWebSerialEnCurso = null;
-            }
+        async function conectarBalanzaSalida() {
+            if (!iniciarPuenteBasculaEscritorio()) return null;
+            return sincronizarEstadoBalanzaSalida();
+        }
+
+        async function tararBalanzaSalida() {
+            if (!window.basculaAPI) return;
+            await window.basculaAPI.tarar().catch(() => {});
         }
 
         async function diagnosticarBalanzaSalida() {
-            mostrarDiagnosticoBalanzaSalida('DIAGNÓSTICO: buscando puertos COM...');
-            const apiBascula = window.electronAPI?.bascula;
-            if (!apiBascula?.listarPuertos || !apiBascula?.conectar) {
-                mostrarDiagnosticoBalanzaSalida('MODO NAVEGADOR: usando el puente local persistente...');
-                iniciarConexionBalanzaSalidaNavegador();
+            if (!window.basculaAPI) {
+                mostrarDiagnosticoBalanzaSalida('La báscula solo está disponible dentro de la aplicación de escritorio.');
                 return;
             }
-            try {
-                const puertos = await apiBascula.listarPuertos();
-                if (!puertos.length) {
-                    mostrarDiagnosticoBalanzaSalida('ERROR: PUERTO NO DISPONIBLE');
-                    actualizarEstadoBalanzaSalida('desconectada');
-                    return;
-                }
-                const puerto = puertos.find(item => /USB-SERIAL|CH340/i.test(`${item.path} ${item.manufacturer}`)) || puertos[0];
-                const estadoActual = await apiBascula.probar();
-                const configuracion = obtenerConfiguracionBalanzaSalida();
-                mostrarDiagnosticoBalanzaSalida(`PUERTO DETECTADO: ${puerto.path}\nABRIENDO CON ${configuracion.baudRate}, ${configuracion.dataBits}${configuracion.parity === 'none' ? 'N' : configuracion.parity.toUpperCase()}${configuracion.stopBits}...`);
-                await conectarBalanzaSalida();
-                const resultado = await apiBascula.probar();
-                mostrarDiagnosticoBalanzaSalida(resultado.conectado
-                    ? `PUERTO ABIERTO: ${resultado.path || puerto.path}\nCONFIGURACIÓN: ${configuracion.baudRate}, ${configuracion.dataBits}${configuracion.parity === 'none' ? 'N' : configuracion.parity.toUpperCase()}${configuracion.stopBits}\nESPERANDO DATOS RAW...`
-                    : 'ERROR: NO SE PUDO CONECTAR CON LA BÁSCULA');
-            } catch (error) {
-                console.error('[BASCULA][WEB] error completo al conectar', {
-                    name: error?.name,
-                    message: error?.message,
-                    stack: error?.stack,
-                    puerto: puertoBalanzaSalida?.getInfo?.() || null,
-                    configuracion
-                });
-                mostrarDiagnosticoBalanzaSalida(`ERROR REAL: ${error?.message || error}`);
-            }
+            await window.basculaAPI.reconectar().catch(() => {});
+            await window.basculaAPI.abrirDiagnostico().catch(() => {});
+            await sincronizarEstadoBalanzaSalida();
         }
 
-        async function conectarBalanzaSalidaInterna(forzarSeleccion = false) {
-            const modoElectronDashboard = new URLSearchParams(window.location.search).get('electron') === '1'
-                || (window.parent !== window);
-            console.info('[BASCULA][DEBUG] decisión de transporte', {
-                forzarSeleccion,
-                enIframe: window.parent !== window,
-                modoElectronDashboard,
-                electronAPI: Boolean(window.electronAPI?.bascula)
-            });
-            if (modoElectronDashboard && window.parent !== window) {
-                return conectarBalanzaSalidaDesdePadre(forzarSeleccion);
-            }
-            const apiBascula = window.electronAPI?.bascula;
-            if (apiBascula?.listarPuertos && apiBascula?.conectar) {
-                registrarListenerBalanzaNativa(apiBascula);
-                if (basculaNativaConectada) {
-                    actualizarEstadoBalanzaSalida('conectada');
-                    mostrarDiagnosticoBalanzaSalida(`PUERTO: ${puertoBalanzaSalida}\nLEYENDO PESO REAL...`);
-                    return;
-                }
-                try {
-                    const puertos = await apiBascula.listarPuertos();
-                    const configuracion = obtenerConfiguracionBalanzaSalida();
-                    const estadoActual = await apiBascula.probar();
-                    const puerto = (configuracion && puertos.find(item => item.path === configuracion.path)) || puertos.find(item => /USB-SERIAL|CH340/i.test(`${item.path} ${item.manufacturer}`)) || puertos[0];
-                    if (!puerto) {
-                        actualizarEstadoBalanzaSalida('desconectada');
-                        const etiqueta = document.getElementById('pesoCategoriaSalidaValor');
-                        if (etiqueta) etiqueta.textContent = 'PUERTO NO DISPONIBLE';
-                        return;
-                    }
-                    if (estadoActual?.conectado) {
-                        puertoBalanzaSalida = estadoActual.path || puerto.path;
-                    } else {
-                        await apiBascula.conectar({ ...configuracion, path: puerto.path });
-                        puertoBalanzaSalida = puerto.path;
-                    }
-                    conectarBalanzaSalidaPuenteLocal();
-                    basculaNativaConectada = true;
-                    actualizarEstadoBalanzaSalida('conectada');
-                    const etiqueta = document.getElementById('pesoCategoriaSalidaValor');
-                    if (etiqueta) etiqueta.textContent = '--.--- kg';
-                    reaplicarUltimoPesoBalanzaSalida();
-                    mostrarDiagnosticoBalanzaSalida(`PUERTO ABIERTO: ${puertoBalanzaSalida}\nLEYENDO PESO REAL...\nESPERANDO DATOS RAW...`);
-                    ultimoDatoBalanzaSalida = 0;
-                    if (temporizadorSinDatosBalanzaSalida) clearTimeout(temporizadorSinDatosBalanzaSalida);
-                    temporizadorSinDatosBalanzaSalida = setTimeout(() => {
-                        if (basculaNativaConectada && !ultimoDatoBalanzaSalida) {
-                            mostrarDiagnosticoBalanzaSalida(`PUERTO ABIERTO: ${puerto.path}\nCONECTADA, PERO SIN DATOS`);
-                        }
-                    }, 3000);
-                } catch (error) {
-                    basculaNativaConectada = false;
-                    actualizarEstadoBalanzaSalida('desconectada');
-                    const etiqueta = document.getElementById('pesoCategoriaSalidaValor');
-                    if (etiqueta) etiqueta.textContent = 'NO SE PUDO LEER EL PESO';
-                    const mensajeError = String(error?.message || error || '');
-                    const detalleHumano = /Unknown error code 31|Access is denied|The port is already open|COM3/i.test(mensajeError)
-                        ? 'PUERTO OCUPADO O BASCULA NO DISPONIBLE.\nCierre cualquier programa que use la escala y vuelva a intentarlo.'
-                        : `PUERTO INTENTADO: ${puertoBalanzaSalida?.path || puertoBalanzaSalida || 'desconocido'}\nERROR REAL: ${mensajeError}`;
-                    mostrarDiagnosticoBalanzaSalida(detalleHumano);
-                }
-                return;
-            }
-            if (basculaNativaConectada && lectorBalanzaSalida) {
-                actualizarEstadoBalanzaSalida('conectada');
-                mostrarDiagnosticoBalanzaSalida('NAVEGADOR: PUERTO ABIERTO\nLEYENDO PESO REAL...');
-                return;
-            }
-            actualizarEstadoBalanzaSalida('desconectada');
-            await iniciarConexionBalanzaSalidaNavegador(forzarSeleccion);
-        }
-
-        async function conectarBalanzaSalida(forzarSeleccion = false) {
-            if (conexionBalanzaSalidaEnCurso) {
-                console.info('[BASCULA][WEB] conexión ya en curso; se reutiliza la operación existente');
-                return conexionBalanzaSalidaEnCurso;
-            }
-            conexionBalanzaSalidaEnCurso = conectarBalanzaSalidaInterna(forzarSeleccion);
-            try {
-                return await conexionBalanzaSalidaEnCurso;
-            } finally {
-                conexionBalanzaSalidaEnCurso = null;
-            }
-        }
+        document.addEventListener('DOMContentLoaded', () => { iniciarPuenteBasculaEscritorio(); });
 
         function filtrarProductosSalidaPorCategoria(categoriaId) {
             const select = document.getElementById('productoSalida');

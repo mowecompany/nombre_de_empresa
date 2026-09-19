@@ -1,0 +1,336 @@
+'use strict';
+
+const { EventEmitter } = require('events');
+const { parsearTramaAcs30 } = require('./parserAcs30');
+
+let SerialPort = null;
+let ReadlineParser = null;
+let errorCargaSerial = null;
+
+try {
+  ({ SerialPort } = require('serialport'));
+  ({ ReadlineParser } = require('@serialport/parser-readline'));
+} catch (error) {
+  errorCargaSerial = error;
+}
+
+const CONFIG_POR_DEFECTO = {
+  baudRate: 9600,
+  dataBits: 8,
+  parity: 'none',
+  stopBits: 1
+};
+
+const PUERTO_RESPALDO = 'COM3';
+const INTERVALO_BUSQUEDA_MS = 3000;
+const MAX_REGISTROS = 200;
+
+/**
+ * Único responsable de la comunicación serial con la báscula ACS-30.
+ * Vive en el proceso principal de Electron: recargar o cambiar de página en
+ * el frontend no afecta al puerto.
+ */
+class BasculaService extends EventEmitter {
+  constructor(opciones = {}) {
+    super();
+    this.config = { ...CONFIG_POR_DEFECTO, ...(opciones.config || {}) };
+    this.puertoForzado = opciones.puertoForzado || null;
+    this.port = null;
+    this.parser = null;
+    this.abriendo = false;
+    this.detenido = true;
+    this.temporizador = null;
+    this.puertosDetectados = [];
+    this.adaptadorDetectado = null;
+    this.ultimaTrama = null;
+    this.ultimoPeso = null;
+    this.registros = [];
+    this.ultimoError = null;
+    this.tara = 0;
+    this.disponible = Boolean(SerialPort);
+    this.errorLibreria = errorCargaSerial ? (errorCargaSerial.message || String(errorCargaSerial)) : null;
+  }
+
+  registrar(nivel, mensaje, extra = null) {
+    const entrada = {
+      ts: new Date().toISOString(),
+      nivel,
+      mensaje,
+      extra: extra || undefined
+    };
+    this.registros.push(entrada);
+    if (this.registros.length > MAX_REGISTROS) this.registros.shift();
+    const etiqueta = `[BASCULA][${nivel.toUpperCase()}]`;
+    if (nivel === 'error') console.error(etiqueta, mensaje, extra || '');
+    else console.info(etiqueta, mensaje, extra || '');
+    this.emit('registro', entrada);
+  }
+
+  iniciar() {
+    if (!this.disponible) {
+      this.registrar('error', 'La librería serialport no está disponible. Ejecute npm install dentro de ESTRELLA.', this.errorLibreria);
+      this.emitirEstado();
+      return;
+    }
+    if (!this.detenido) return;
+    this.detenido = false;
+    this.registrar('info', 'Servicio de báscula iniciado');
+    this.bucle();
+    this.temporizador = setInterval(() => this.bucle(), INTERVALO_BUSQUEDA_MS);
+  }
+
+  async detener() {
+    this.detenido = true;
+    if (this.temporizador) {
+      clearInterval(this.temporizador);
+      this.temporizador = null;
+    }
+    await this.cerrarPuerto('servicio detenido');
+  }
+
+  async bucle() {
+    if (this.detenido || this.abriendo || this.estaConectada()) return;
+    try {
+      await this.conectar();
+    } catch (error) {
+      // conectar() ya registra el error; el intervalo reintenta.
+    }
+  }
+
+  estaConectada() {
+    return Boolean(this.port && this.port.isOpen);
+  }
+
+  async listarPuertos() {
+    if (!this.disponible) return [];
+    const puertos = await SerialPort.list().catch((error) => {
+      this.registrar('error', 'No se pudieron listar los puertos', error.message);
+      return [];
+    });
+    this.puertosDetectados = puertos.map((item) => ({
+      path: item.path,
+      manufacturer: item.manufacturer || '',
+      vendorId: (item.vendorId || '').toLowerCase(),
+      productId: (item.productId || '').toLowerCase(),
+      serialNumber: item.serialNumber || ''
+    }));
+    return this.puertosDetectados;
+  }
+
+  /** Selecciona el adaptador CH340. COM1 nunca se usa. */
+  elegirPuerto(puertos) {
+    const candidatos = puertos.filter((p) => !/^COM1$/i.test(p.path));
+
+    if (this.puertoForzado) {
+      const forzado = candidatos.find((p) => p.path.toUpperCase() === String(this.puertoForzado).toUpperCase());
+      if (forzado) return { ...forzado, motivo: 'puerto forzado por el usuario' };
+    }
+
+    const porVid = candidatos.find((p) => p.vendorId === '1a86');
+    if (porVid) return { ...porVid, motivo: 'VID 1a86 (CH340)' };
+
+    const porNombre = candidatos.find((p) => /CH340|USB-SERIAL|wch\.cn|USB2\.0-Ser/i.test(`${p.path} ${p.manufacturer}`));
+    if (porNombre) return { ...porNombre, motivo: 'descripción del adaptador' };
+
+    const respaldo = candidatos.find((p) => p.path.toUpperCase() === PUERTO_RESPALDO);
+    if (respaldo) return { ...respaldo, motivo: 'respaldo COM3' };
+
+    return null;
+  }
+
+  async conectar() {
+    if (!this.disponible) throw new Error('serialport no disponible');
+    if (this.abriendo) return;
+    if (this.estaConectada()) return;
+
+    this.abriendo = true;
+    try {
+      const puertos = await this.listarPuertos();
+      const elegido = this.elegirPuerto(puertos);
+      if (!elegido) {
+        if (this.adaptadorDetectado) {
+          this.adaptadorDetectado = null;
+          this.registrar('warn', 'Adaptador CH340 no detectado');
+          this.emitirEstado();
+        }
+        return;
+      }
+
+      this.adaptadorDetectado = elegido;
+      this.registrar('info', `Abriendo ${elegido.path} (${elegido.motivo})`, this.config);
+
+      const port = new SerialPort({
+        path: elegido.path,
+        baudRate: Number(this.config.baudRate),
+        dataBits: Number(this.config.dataBits),
+        stopBits: Number(this.config.stopBits),
+        parity: String(this.config.parity || 'none'),
+        autoOpen: false
+      });
+
+      await new Promise((resolve, reject) => {
+        const alFallar = (error) => {
+          port.removeListener('error', alFallar);
+          reject(error);
+        };
+        port.once('error', alFallar);
+        port.open((error) => {
+          port.removeListener('error', alFallar);
+          if (error) reject(error);
+          else resolve();
+        });
+      });
+
+      this.port = port;
+      this.parser = port.pipe(new ReadlineParser({ delimiter: '\n', includeDelimiter: false }));
+      this.parser.on('data', (linea) => this.procesarTrama(linea));
+      // Algunas balanzas envían sin salto de línea: el buffer crudo es el respaldo.
+      port.on('data', (buffer) => {
+        this.ultimaTrama = {
+          texto: buffer.toString('latin1'),
+          hex: buffer.toString('hex'),
+          ts: Date.now()
+        };
+      });
+
+      port.on('close', () => {
+        if (this.port !== port) return;
+        this.port = null;
+        this.parser = null;
+        this.registrar('warn', 'Puerto cerrado / báscula desconectada');
+        this.emitirEstado();
+      });
+
+      port.on('error', (error) => {
+        this.registrar('error', 'Error en el puerto serial', error.message);
+        if (port.isOpen) {
+          port.close(() => {});
+        } else if (this.port === port) {
+          this.port = null;
+          this.parser = null;
+          this.emitirEstado();
+        }
+      });
+
+      this.ultimoError = null;
+      this.registrar('info', `Puerto abierto correctamente en ${elegido.path}`);
+      this.emitirEstado();
+    } catch (error) {
+      this.port = null;
+      this.parser = null;
+      const mensaje = String(error?.message || error);
+      if (/Access denied|Unknown error code 31|already open|Resource busy/i.test(mensaje)) {
+        this.ultimoError = {
+          codigo: 'puerto-ocupado',
+          mensaje: 'El puerto de la báscula está ocupado por otro programa (otra copia de ESTRELLA, el software de la balanza o un monitor serial). Ciérrelo y pulse Reintentar.',
+          detalle: mensaje
+        };
+        this.registrar('error', this.ultimoError.mensaje, mensaje);
+      } else {
+        this.ultimoError = {
+          codigo: 'apertura-fallida',
+          mensaje: 'No se pudo abrir el puerto de la báscula. Revise el cable USB del adaptador CH340 y pulse Reintentar.',
+          detalle: mensaje
+        };
+        this.registrar('error', this.ultimoError.mensaje, mensaje);
+      }
+      this.emitirEstado();
+      throw error;
+    } finally {
+      this.abriendo = false;
+    }
+  }
+
+  async cerrarPuerto(motivo = '') {
+    const port = this.port;
+    this.port = null;
+    this.parser = null;
+    if (!port) return;
+    try {
+      if (port.isOpen) {
+        await new Promise((resolve) => port.close(() => resolve()));
+      }
+    } catch (error) {
+      this.registrar('warn', 'Cierre de puerto con incidencia', error.message);
+    }
+    this.registrar('info', `Puerto liberado ${motivo ? `(${motivo})` : ''}`.trim());
+    this.emitirEstado();
+  }
+
+  async reconectar() {
+    await this.cerrarPuerto('reconexión solicitada');
+    this.adaptadorDetectado = null;
+    await this.conectar().catch(() => {});
+    return this.estado();
+  }
+
+  procesarTrama(tramaCruda) {
+    const texto = String(tramaCruda).replace(/\r/g, '');
+    this.ultimaTrama = { texto, hex: Buffer.from(texto, 'latin1').toString('hex'), ts: Date.now() };
+    const resultado = parsearTramaAcs30(texto);
+    this.emit('trama', { ...this.ultimaTrama, resultado });
+
+    if (!resultado.reconocido) {
+      this.registrar('warn', 'Trama no reconocida', texto);
+      return;
+    }
+
+    const pesoNeto = Math.round((resultado.peso - this.tara) * 1000) / 1000;
+    this.ultimoPeso = {
+      peso: pesoNeto,
+      pesoBruto: resultado.peso,
+      tara: this.tara,
+      unidad: 'kg',
+      estable: resultado.estable,
+      inferido: resultado.inferido,
+      ts: Date.now()
+    };
+    this.emit('peso', this.ultimoPeso);
+  }
+
+  tarar() {
+    const bruto = this.ultimoPeso ? this.ultimoPeso.pesoBruto : 0;
+    this.tara = bruto;
+    this.registrar('info', `Tara aplicada: ${this.tara} kg`);
+    if (this.ultimoPeso) {
+      this.ultimoPeso = { ...this.ultimoPeso, peso: 0, tara: this.tara, ts: Date.now() };
+      this.emit('peso', this.ultimoPeso);
+    }
+    return { tara: this.tara };
+  }
+
+  quitarTara() {
+    this.tara = 0;
+    this.registrar('info', 'Tara eliminada');
+    return { tara: 0 };
+  }
+
+  estado() {
+    return {
+      disponible: this.disponible,
+      errorLibreria: this.errorLibreria,
+      conectado: this.estaConectada(),
+      puerto: this.port ? this.port.path : null,
+      adaptador: this.adaptadorDetectado,
+      config: this.config,
+      tara: this.tara,
+      ultimoError: this.estaConectada() ? null : this.ultimoError,
+      ultimoPeso: this.ultimoPeso,
+      ultimaTrama: this.ultimaTrama
+    };
+  }
+
+  diagnostico() {
+    return {
+      ...this.estado(),
+      puertos: this.puertosDetectados,
+      registros: this.registros.slice(-80)
+    };
+  }
+
+  emitirEstado() {
+    this.emit('estado', this.estado());
+  }
+}
+
+module.exports = { BasculaService, CONFIG_POR_DEFECTO };

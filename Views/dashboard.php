@@ -11577,38 +11577,14 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 });
             }
 
-            const liberarBasculaAntesDeNavegar = () => new Promise((resolve, reject) => {
-                const vistaActual = moduleFrame?.getAttribute('src') || '';
-                if (!/\/Views\/(inventarios|bascula)\.php/i.test(vistaActual) || !moduleFrame.contentWindow) {
-                    resolve();
-                    return;
-                }
-                const manejarRespuesta = (evento) => {
-                    if (evento.source !== moduleFrame.contentWindow) return;
-                    if (evento.data?.tipo === 'bascula-liberada-para-navegar') {
-                        window.removeEventListener('message', manejarRespuesta);
-                        resolve();
-                    } else if (evento.data?.tipo === 'bascula-liberacion-error') {
-                        window.removeEventListener('message', manejarRespuesta);
-                        reject(new Error(evento.data.mensaje || 'No se pudo liberar la báscula.'));
-                    }
-                };
-                window.addEventListener('message', manejarRespuesta);
-                moduleFrame.contentWindow.postMessage({ tipo: 'liberar-bascula-antes-de-navegar' }, window.location.origin);
-            });
+            // La báscula la administra el proceso principal de Electron, por lo que
+            // navegar entre módulos ya no requiere liberar el puerto COM.
 
             const openModule = async (link) => {
                 if (!link || !moduleFrame || !modulePanel || !homePanel) return;
                 const href = link.getAttribute('href');
                 if (!href) return;
 
-                try {
-                    await liberarBasculaAntesDeNavegar();
-                } catch (error) {
-                    if (typeof window.hideLoading === 'function') window.hideLoading();
-                    console.error('[BASCULA] no se pudo liberar antes de navegar', error);
-                    return;
-                }
 
                 if (typeof window.showLoading === 'function') {
                     window.showLoading();
