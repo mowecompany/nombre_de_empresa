@@ -135,6 +135,29 @@
         return BASE_URL;
     }
 
+    /**
+     * Aproxima el precio de venta a 00 / 50 / siguiente 100.
+     * - resto 0-24  => baja a 00
+     * - resto 25-50 => queda en 50
+     * - resto 51-99 => sube al siguiente 100
+     */
+    function redondearPrecioVenta($precio): float
+    {
+        $n = (float)$precio;
+        if ($n <= 0) {
+            return 0.0;
+        }
+        $base = floor($n / 100) * 100;
+        $resto = $n - $base;
+        if ($resto < 25) {
+            return (float)$base;
+        }
+        if ($resto <= 50) {
+            return (float)($base + 50);
+        }
+        return (float)($base + 100);
+    }
+
     function connection_config_path(): string
     {
         if (defined('CONNECTION_CONFIG_PATH')) {

@@ -252,6 +252,7 @@ $baseUrl = rtrim((string)base_url(), '/');
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/redondeo-precio-venta.js"></script>
 </head>
 <body class="page-codigos">
     <main class="codes-shell">
@@ -429,8 +430,9 @@ $baseUrl = rtrim((string)base_url(), '/');
         }
 
         function formatPrice(value) {
-            const price = Number(value);
-            if (!Number.isFinite(price)) return 'COP $0';
+            const raw = Number(value);
+            if (!Number.isFinite(raw)) return 'COP $0';
+            const price = typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(raw) : raw;
             return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(price);
         }
 
