@@ -5875,7 +5875,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+            grid-template-columns: var(--sidebar-width) 1fr;
             gap: 12px;
             align-items: stretch;
             min-height: 0;
@@ -6010,12 +6010,22 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
         }
 
         body.sidebar-collapsed .dashboard-grid {
-            grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr);
+            grid-template-columns: var(--sidebar-collapsed-width) 1fr !important;
+        }
+
+        body.sidebar-collapsed .workspace-module {
+            width: 100% !important;
+            max-width: none !important;
+            flex: 1 !important;
         }
 
         body.sidebar-collapsed .menu-column {
             padding: 12px 8px 10px 8px;
             padding-top: 52px;
+            width: var(--sidebar-collapsed-width) !important;
+            max-width: var(--sidebar-collapsed-width) !important;
+            min-width: var(--sidebar-collapsed-width) !important;
+            flex: 0 0 var(--sidebar-collapsed-width) !important;
         }
 
         body.sidebar-collapsed .sidebar-toggle-nav {
@@ -8440,6 +8450,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
         body.sidebar-collapsed .menu {
             padding: 4px 2px !important;
+            width: 100% !important;
         }
 
         body.sidebar-collapsed .menu-title {
@@ -8448,6 +8459,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             justify-content: center !important;
             font-size: 11px !important;
             margin-bottom: 3px;
+            width: 100% !important;
+            max-width: 48px !important;
         }
 
         body.sidebar-collapsed .menu-title-text {
@@ -8465,6 +8478,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             min-height: 32px !important;
             padding: 5px !important;
             gap: 0 !important;
+            width: 100% !important;
+            max-width: 48px !important;
         }
 
         body.sidebar-collapsed .menu-item i,
