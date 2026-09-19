@@ -344,7 +344,7 @@ $baseUrl = rtrim((string)base_url(), '/');
         const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
         paginaActual = Math.min(paginaActual, totalPaginas);
         const inicio = (paginaActual - 1) * porPagina;
-        const pagina = filtrados.slice(inicio, inicio + porPagina);
+        const pagina = filtrados.slice(inicio, inicio + porPagina).slice().reverse();
         lista.innerHTML = pagina.length ? pagina.map(credito => {
             const estadoTexto = formatoEstadoCredito(credito);
             const estado = String(credito?.estado || '').trim().toLowerCase();

@@ -929,9 +929,11 @@ body {
 
 <script>
 $(document).ready(function() {
+    console.log('Documento listo');
     
     // Inicializar el carrusel principal
     var mainCarousel = $('#mainCarousel');
+    console.log('Carrusel principal encontrado:', mainCarousel.length > 0);
     
     if(mainCarousel.length > 0) {
         mainCarousel.carousel({

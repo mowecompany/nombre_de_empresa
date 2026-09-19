@@ -1009,7 +1009,7 @@ class Inventario {
                 $sql .= ' AND m.tipo_movimiento = :tipo';
                 $params[':tipo'] = (string)$filtros['tipo'];
             }
-            $sql .= " ORDER BY m.fecha_movimiento ASC, m.id ASC LIMIT {$limite} OFFSET {$offset}";
+            $sql .= " ORDER BY m.fecha_movimiento DESC, m.id DESC LIMIT {$limite} OFFSET {$offset}";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
@@ -1041,7 +1041,7 @@ class Inventario {
                 $sql .= ' AND e.producto_id = :producto_id';
                 $params[':producto_id'] = (int)$filtros['producto_id'];
             }
-            $sql .= " ORDER BY e.fecha_entrada ASC, e.id ASC LIMIT {$limite} OFFSET {$offset}";
+            $sql .= " ORDER BY e.fecha_entrada DESC, e.id DESC LIMIT {$limite} OFFSET {$offset}";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
@@ -1072,7 +1072,7 @@ class Inventario {
                 $sql .= ' AND s.producto_id = :producto_id';
                 $params[':producto_id'] = (int)$filtros['producto_id'];
             }
-            $sql .= " ORDER BY s.fecha_salida ASC, s.id ASC LIMIT {$limite} OFFSET {$offset}";
+            $sql .= " ORDER BY s.fecha_salida DESC, s.id DESC LIMIT {$limite} OFFSET {$offset}";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
@@ -1127,7 +1127,7 @@ class Inventario {
                 $params[':fecha_fin'] = $filtro['fecha_fin'];
             }
             
-            $sql .= " ORDER BY e.fecha_entrada ASC, e.id ASC";
+            $sql .= " ORDER BY e.fecha_entrada DESC, e.id DESC";
             
             $query = $this->db->prepare($sql);
             $query->execute($params);
@@ -1207,7 +1207,7 @@ class Inventario {
                 $params[':fecha_fin'] = $filtro['fecha_fin'];
             }
             
-            $sql .= " ORDER BY s.fecha_salida ASC, s.id ASC";
+            $sql .= " ORDER BY s.fecha_salida DESC, s.id DESC";
             
             $query = $this->db->prepare($sql);
             
@@ -1755,6 +1755,10 @@ class Inventario {
     public function editarFacturaVenta(array $datos): array {
         try {
             $referencia = trim((string)($datos['referencia'] ?? ''));
+            $metodoPagoNuevo = strtolower(trim((string)($datos['metodo_pago'] ?? '')));
+            if (!in_array($metodoPagoNuevo, ['efectivo', 'transferencia'], true)) {
+                $metodoPagoNuevo = '';
+            }
             $itemsActualizarRaw = $datos['items_actualizar'] ?? $datos['items_eliminar'] ?? [];
             $itemsActualizar = [];
 
@@ -1935,22 +1939,44 @@ class Inventario {
                 $itemsActualizados++;
             }
 
+            $metodoPagoActualizado = false;
+            if ($metodoPagoNuevo !== '' && $this->columnaExiste('salidas_inventario', 'metodo_pago')) {
+                $sqlMetodo = "UPDATE salidas_inventario SET metodo_pago = :metodo_pago WHERE referencia = :referencia";
+                $paramsMetodo = [
+                    ':metodo_pago' => $metodoPagoNuevo,
+                    ':referencia' => $referencia
+                ];
+                if ($salidasTieneEmpresa && $empresaId > 0) {
+                    $sqlMetodo .= " AND empresa_id = :empresa_id";
+                    $paramsMetodo[':empresa_id'] = $empresaId;
+                }
+                $stmtMetodo = $this->db->prepare($sqlMetodo);
+                $stmtMetodo->execute($paramsMetodo);
+                $metodoPagoActualizado = $stmtMetodo->rowCount() > 0;
+            }
+
             if ($this->esSqlite()) {
                 $this->db->exec('COMMIT');
             } else {
                 $this->db->commit();
             }
 
-            $mensaje = $itemsActualizados > 0
-                ? 'Factura actualizada correctamente. Se devolvieron ' . $unidadesDevueltas . ' unidad(es) al inventario.'
-                : 'No se encontraron cambios para aplicar';
+            $huboCambios = $itemsActualizados > 0 || $metodoPagoActualizado;
+            if ($itemsActualizados > 0) {
+                $mensaje = 'Factura actualizada correctamente. Se devolvieron ' . $unidadesDevueltas . ' unidad(es) al inventario.';
+            } elseif ($metodoPagoActualizado) {
+                $mensaje = 'Método de pago actualizado a ' . $metodoPagoNuevo . '.';
+            } else {
+                $mensaje = 'No se encontraron cambios para aplicar';
+            }
 
             return [
-                'success' => $itemsActualizados > 0,
+                'success' => $huboCambios,
                 'message' => $mensaje,
                 'items_actualizados' => $itemsActualizados,
                 'unidades_devueltas' => $unidadesDevueltas,
-                'productos_eliminados' => $productosAjustados
+                'productos_eliminados' => $productosAjustados,
+                'metodo_pago_actualizado' => $metodoPagoActualizado
             ];
         } catch (Exception $e) {
             if ($this->esSqlite()) {

@@ -705,6 +705,28 @@ if (is_file($logoPdfPath)) {
             flex-wrap: wrap;
         }
 
+        #ventasDiaModal .stats-container {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        @media (max-width: 1200px) {
+            #ventasDiaModal .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            #ventasDiaModal .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            #ventasDiaModal .stats-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .stats-container .stat-content p[id^="valorVentas"],
         .stats-container .stat-content p[id^="ganancia"],
         .stats-container .stat-content p[id^="efectivo"],
@@ -2353,14 +2375,14 @@ if (is_file($logoPdfPath)) {
                     <input type="search" class="inventory-list-search" placeholder="BUSCAR PRODUCTO..." style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
                     <select class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
                     <div class="inventory-pagination" style="display:flex;gap:6px;"></div>
-                </div>
-                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                    <h2><i class="fas fa-list"></i> RESUMEN DE INVENTARIO</h2>
                     <?php if ($esSuperAdminGlobalInventario || $esAdministradorContexto): ?>
                         <button type="button" onclick="verificarYAlertarProductosCriticosYUrgentes()" title="Mostrar alerta de stock cero" aria-label="Mostrar alerta de stock cero" style="width:34px;height:34px;flex:0 0 34px;border:0;border-radius:50%;background:#d33;color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(211,51,51,.25);">
                             <i class="fas fa-triangle-exclamation"></i>
                         </button>
                     <?php endif; ?>
+                </div>
+                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                    <h2><i class="fas fa-list"></i> RESUMEN DE INVENTARIO</h2>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
                     <table id="salidasTable" class="resumen-inventario-table <?= $puedeVerID ? 'con-id' : 'sin-id' ?>" style="min-width: 900px;">
@@ -2917,7 +2939,7 @@ if (is_file($logoPdfPath)) {
 
     <!-- MODAL: RESUMEN VENTAS DEL DÍA -->
     <div id="ventasDiaModal" class="modal">
-        <div class="modal-content" style="max-width: 1000px;">
+        <div class="modal-content" style="max-width: 1400px;">
             <div class="modal-header">
                 <h2><i class="fas fa-chart-line"></i> RESUMEN DE VENTAS</h2>
                 <button class="close-btn" onclick="cerrarModal('ventasDiaModal')">&times;</button>
@@ -3549,6 +3571,8 @@ if (is_file($logoPdfPath)) {
 
         const inventarioPaginas = new Map();
         const inventarioTamanosPagina = new Map();
+        const inventarioFilasOriginales = new Map();
+        const inventarioActualizandoDom = new Set();
         const inventarioTablaPorClave = {
             resumen: 'resumenTableBody',
             entradas: 'entradasTableBody',
@@ -3561,8 +3585,8 @@ if (is_file($logoPdfPath)) {
             const tbody = document.getElementById(inventarioTablaPorClave[clave]);
             if (!toolbar || !tbody) return;
             const textoBusqueda = String(toolbar.querySelector('.inventory-list-search')?.value || '').trim().toLowerCase();
-            const todasLasFilas = Array.from(tbody.children).filter(fila => fila.tagName === 'TR');
-            // Los separadores de fecha no son registros: no se cuentan ni se paginan
+            const estadoFilas = inventarioFilasOriginales.get(clave) || { filas: [], encabezados: new Map() };
+            const todasLasFilas = estadoFilas.filas;
             const esSeparador = (fila) => fila.classList.contains('group-date');
             const filasDatos = todasLasFilas.filter(fila => !esSeparador(fila));
             const filas = filasDatos.filter(fila => !textoBusqueda || String(fila.textContent || '').toLowerCase().includes(textoBusqueda));
@@ -3571,21 +3595,22 @@ if (is_file($logoPdfPath)) {
             const totalPaginas = Math.max(1, Math.ceil(filas.length / porPagina));
             const pagina = Math.min(inventarioPaginas.get(clave) || 0, totalPaginas - 1);
             inventarioPaginas.set(clave, pagina);
-            todasLasFilas.forEach(fila => { fila.style.display = 'none'; });
-            filas.forEach((fila, indice) => {
-                fila.style.display = indice >= pagina * porPagina && indice < (pagina + 1) * porPagina ? '' : 'none';
-            });
-            // Mostrar cada separador de fecha solo si su grupo tiene filas visibles debajo
-            todasLasFilas.forEach((fila, indice) => {
-                if (!esSeparador(fila)) return;
-                let visible = false;
-                for (let i = indice + 1; i < todasLasFilas.length; i++) {
-                    const siguiente = todasLasFilas[i];
-                    if (esSeparador(siguiente)) break;
-                    if (siguiente.style.display !== 'none') { visible = true; break; }
+            const inicio = pagina * porPagina;
+            // Igual que Productos: se conserva el bloque de la página y se pinta de mayor a menor.
+            const filasPagina = filas.slice(inicio, inicio + porPagina).reverse();
+            const fragmento = document.createDocumentFragment();
+            let ultimoEncabezado = null;
+            filasPagina.forEach((fila) => {
+                const encabezado = estadoFilas.encabezados.get(fila) || null;
+                if (encabezado && encabezado !== ultimoEncabezado) {
+                    fragmento.appendChild(encabezado.cloneNode(true));
+                    ultimoEncabezado = encabezado;
                 }
-                fila.style.display = visible ? '' : 'none';
+                fila.style.display = '';
+                fragmento.appendChild(fila);
             });
+            inventarioActualizandoDom.add(clave);
+            tbody.replaceChildren(fragmento);
             toolbar.querySelector('.inventory-pagination').innerHTML = `
                 <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${pagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
                 <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${pagina + 1} / ${totalPaginas}</span>
@@ -3615,7 +3640,26 @@ if (is_file($logoPdfPath)) {
                     if (event.target.closest('.inventory-page-next')) inventarioPaginas.set(clave, paginaActual + 1);
                     actualizarPaginacionInventario(clave);
                 });
-                new MutationObserver(() => actualizarPaginacionInventario(clave)).observe(tbody, { childList: true });
+                new MutationObserver(() => {
+                    if (inventarioActualizandoDom.has(clave)) {
+                        inventarioActualizandoDom.delete(clave);
+                        return;
+                    }
+                    const filas = Array.from(tbody.children).filter(fila => fila.tagName === 'TR');
+                    const encabezados = new Map();
+                    let encabezadoActual = null;
+                    filas.forEach((fila) => {
+                        if (fila.classList.contains('group-date')) {
+                            encabezadoActual = fila;
+                        } else {
+                            encabezados.set(fila, encabezadoActual);
+                        }
+                    });
+                    inventarioFilasOriginales.set(clave, { filas, encabezados });
+                    actualizarPaginacionInventario(clave);
+                }).observe(tbody, { childList: true });
+                const filasIniciales = Array.from(tbody.children).filter(fila => fila.tagName === 'TR');
+                inventarioFilasOriginales.set(clave, { filas: filasIniciales, encabezados: new Map() });
                 inventarioTamanosPagina.set(clave, Number(toolbar.querySelector('.inventory-page-size')?.value || 50));
                 actualizarPaginacionInventario(clave);
             });
@@ -4847,6 +4891,7 @@ if (is_file($logoPdfPath)) {
 
         function agregarProductoSalida() {
             const producto = productoSalidaSeleccionado();
+            try { console.log('agregarProductoSalida - producto:', producto); } catch(e) {}
             if (!producto || !producto.producto_id) {
                 if (document.getElementById('buscarProductoSalida')?.dataset.agregandoAutomatico === '1') return;
                 aseguraryMostrarSwalEstilizado('Selecciona un producto para agregar al carrito de salida.');
@@ -5389,12 +5434,14 @@ if (is_file($logoPdfPath)) {
         }
 
         function cargarEstadisticas() {
+            console.log('Iniciando carga de estadísticas...');
             fetch(inventarioControllerUrl + '?action=obtenerEstadisticas')
                 .then(r => {
                     if (!r.ok) throw new Error('Error en respuesta del servidor');
                     return r.json();
                 })
                 .then(data => {
+                    console.log('Datos de estadísticas:', data);
                     if (data.success && data.data) {
                         const totalProductos = parseInt(data.data.total_productos) || 0;
                         const stockTotal = parseFloat(data.data.stock_total) || 0;
@@ -5430,6 +5477,7 @@ if (is_file($logoPdfPath)) {
                     return r.json();
                 })
                 .then(data => {
+                    console.log('Datos de ventas del día:', data);
                     if (data.success && data.data) {
                         const totalVendidoDia = parseFloat(data.data.valor_total_ventas ?? 0) || 0;
                         const gananciaTotalDia = parseFloat(data.data.ganancia_total_dia ?? data.data.ganancia_dia ?? 0) || 0;
@@ -5451,7 +5499,9 @@ if (is_file($logoPdfPath)) {
 
         // Cargar resumen
         function cargarResumen() {
+            console.log('=== INICIANDO CARGA DE RESUMEN ===');
             const tbody = document.getElementById('resumenTableBody');
+            console.log('Elemento tbody encontrado:', tbody);
             
             if (!tbody) {
                 console.error('ERROR: No se encontró el elemento resumenTableBody');
@@ -5460,6 +5510,7 @@ if (is_file($logoPdfPath)) {
             
             fetch(inventarioControllerUrl + '?action=obtenerResumen')
                 .then(r => {
+                    console.log('Respuesta recibida. Status:', r.status);
                     if (!r.ok) {
                         throw new Error('HTTP error! status: ' + r.status);
                     }
@@ -6156,13 +6207,22 @@ if (is_file($logoPdfPath)) {
                         </thead>
                         <tbody>${filas || '<tr><td colspan="6" style="padding: 14px; text-align: center;">No hay productos para editar.</td></tr>'}</tbody>
                     </table>
-                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
-                        <button type="button" class="btn-nuevo" onclick="cerrarModal('detallesMovimientosModal')" style="padding: 8px 14px; background: #64748b; border-color: #64748b; font-size: 12px; line-height: 1.1;">
-                            <i class="fas fa-times"></i> CANCELAR
-                        </button>
-                        <button type="button" class="btn-nuevo" onclick="guardarEdicionFacturaVenta('${String(referencia).replace(/'/g, "\\'")}')" style="padding: 8px 14px; font-size: 12px; line-height: 1.1;">
-                            <i class="fas fa-save"></i> ACTUALIZAR
-                        </button>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label for="editarFacturaMetodoPago" style="font-size: 12px; font-weight: 700; color: #334155; text-transform: uppercase;">Método de pago:</label>
+                            <select id="editarFacturaMetodoPago" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 600; background: #fff; min-width: 150px;">
+                                <option value="efectivo" ${String(grupo.metodoPago || '').toLowerCase() === 'efectivo' ? 'selected' : ''}>Efectivo</option>
+                                <option value="transferencia" ${String(grupo.metodoPago || '').toLowerCase() === 'transferencia' ? 'selected' : ''}>Transferencia</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="button" class="btn-nuevo" onclick="cerrarModal('detallesMovimientosModal')" style="padding: 8px 14px; background: #64748b; border-color: #64748b; font-size: 12px; line-height: 1.1;">
+                                <i class="fas fa-times"></i> CANCELAR
+                            </button>
+                            <button type="button" class="btn-nuevo" onclick="guardarEdicionFacturaVenta('${String(referencia).replace(/'/g, "\\'")}')" style="padding: 8px 14px; font-size: 12px; line-height: 1.1;">
+                                <i class="fas fa-save"></i> ACTUALIZAR
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -6212,6 +6272,8 @@ if (is_file($logoPdfPath)) {
                 })
                 .filter(item => Number.isFinite(item.id) && item.id > 0);
 
+            const metodoPago = String(document.getElementById('editarFacturaMetodoPago')?.value || '').toLowerCase();
+
             if (!items.length) {
                 Swal.fire({
                     icon: 'warning',
@@ -6224,7 +6286,7 @@ if (is_file($logoPdfPath)) {
             const confirmacion = await Swal.fire({
                 icon: 'question',
                 title: '¿Actualizar factura?',
-                text: `Se ajustarán las cantidades de la factura ${referencia}. Si alguna queda en 0, ese producto regresará al inventario.`,
+                text: `Se ajustarán las cantidades y el método de pago de la factura ${referencia}. Si alguna cantidad queda en 0, ese producto regresará al inventario.`,
                 showCancelButton: true,
                 confirmButtonText: 'Sí, actualizar',
                 cancelButtonText: 'Cancelar'
@@ -6238,6 +6300,9 @@ if (is_file($logoPdfPath)) {
             formData.append('action', 'editarFactura');
             formData.append('referencia', referencia);
             formData.append('items_actualizar', JSON.stringify(items));
+            if (metodoPago) {
+                formData.append('metodo_pago', metodoPago);
+            }
 
             try {
                 const response = await fetch(inventarioControllerUrl, {
@@ -6802,6 +6867,7 @@ if (is_file($logoPdfPath)) {
                     return data;
                 })
                 .then(data => {
+                    console.log('Respuesta obtenerVentasMes:', data);
                     if (!data.success) {
                         const acumuladoMesValorError = document.getElementById('acumuladoMesValor');
                         const acumuladoMesGananciaError = document.getElementById('acumuladoMesGanancia');
@@ -7187,6 +7253,8 @@ if (is_file($logoPdfPath)) {
             fetch(inventarioControllerUrl + '?action=obtenerResumen')
                 .then(r => r.json())
                 .then(data => {
+                    console.log('=== DATOS REORDEN RECIBIDOS ===');
+                    console.log('Data:', data);
                     
                     if (data.success && data.data) {
                         const productos = Array.isArray(data.data) ? data.data : [];
@@ -7195,6 +7263,8 @@ if (is_file($logoPdfPath)) {
                             const stockNormalizado = Number.isFinite(stock) ? stock : 0;
                             return stockNormalizado <= 5;
                         });
+                        console.log('Productos recibidos:', productos.length);
+                        console.log('Productos bajo stock (<=5):', productosBajoStock.length);
                         
                         // Contar por urgencia
                         let criticos = 0;
@@ -7229,6 +7299,7 @@ if (is_file($logoPdfPath)) {
                         tbody.innerHTML = '';
                         
                         if (productosBajoStock.length === 0) {
+                            console.log('No hay productos para mostrar');
                             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">- No hay productos con bajo stock</td></tr>';
                             return;
                         }
@@ -7266,6 +7337,7 @@ if (is_file($logoPdfPath)) {
                         };
 
                         const renderProducto = (item, nivel) => {
+                            console.log('Procesando producto:', item);
                             const row = document.createElement('tr');
                             const stock = Number(item?.stock);
                             const stockNormalizado = Number.isFinite(stock) ? stock : 0;
@@ -8436,6 +8508,7 @@ if (is_file($logoPdfPath)) {
                     const s = document.createElement('style'); s.id = 'swal-stock-style'; s.appendChild(document.createTextNode(css)); document.head.appendChild(s);
                 }
             } catch (e) {}
+            try { console.log('[ALERTA STOCK] ', texto); } catch (e) {}
             if (window.Swal) {
                 return Swal.fire({ icon: 'warning', title: 'STOCK INSUFICIENTE', text: texto, confirmButtonText: 'ENTENDIDO', allowOutsideClick: false, allowEscapeKey: false, target: document.body });
             } else {
@@ -8972,6 +9045,7 @@ if (is_file($logoPdfPath)) {
                 }
                 window.dispatchEvent(new Event('refreshDashboard'));
             } catch (e) {
+                console.log('Dashboard no disponible para refrescar');
             }
 
             const reorden = document.getElementById('reordenModal');
@@ -9400,6 +9474,7 @@ if (is_file($logoPdfPath)) {
 
         // Iniciar carga de datos
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Inicializando inventario...');
 
             inicializarBusquedaSelect('productoEntrada', 'buscarProductoEntrada', 'productoEntradaSearchResults');
             inicializarBusquedaSelect('productoSalida', 'buscarProductoSalida', 'productoSalidaSearchResults');

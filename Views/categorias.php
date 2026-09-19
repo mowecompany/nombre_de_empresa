@@ -2225,7 +2225,7 @@ $categorias = [];
             if (filtradas.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">No hay categorías para mostrar.</td></tr>';
             } else {
-                filtradas.slice(inicio, inicio + categoriasTamanoPagina).forEach(categoria => tbody.appendChild(generarFilaCategoria(categoria)));
+                filtradas.slice(inicio, inicio + categoriasTamanoPagina).slice().reverse().forEach(categoria => tbody.appendChild(generarFilaCategoria(categoria)));
             }
             
             const totalPaginas = Math.max(1, Math.ceil(filtradas.length / categoriasTamanoPagina));

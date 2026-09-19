@@ -440,9 +440,15 @@ try {
                     $itemsActualizar = [];
                 }
 
+                $metodoPago = strtolower(trim((string)($_POST['metodo_pago'] ?? '')));
+                if (!in_array($metodoPago, ['efectivo', 'transferencia'], true)) {
+                    $metodoPago = '';
+                }
+
                 $resultado = $this->inventario->editarFacturaVenta([
                     'referencia' => $referencia,
-                    'items_actualizar' => $itemsActualizar
+                    'items_actualizar' => $itemsActualizar,
+                    'metodo_pago' => $metodoPago
                 ]);
 
                 echo json_encode($resultado);
