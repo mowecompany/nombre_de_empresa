@@ -2235,7 +2235,7 @@ $categorias = [];
             if (paginationDiv) {
                 paginationDiv.innerHTML = `
                     <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${categoriasPaginaActual === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
-                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${categoriasPaginaActual + 1} / ${totalPaginas}</span>
+                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - categoriasPaginaActual} / ${totalPaginas}</span>
                     <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${categoriasPaginaActual >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
                 `;
             }

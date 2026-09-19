@@ -156,11 +156,11 @@ $baseUrl = rtrim((string)base_url(), '/');
         <div class="venc-cards" id="tarjetas"></div>
 
         <div class="venc-toolbar">
+            <button class="btn ghost" id="btnRefrescar"><i class="fas fa-sync"></i> ACTUALIZAR</button>
+            <button class="btn ghost" id="btnVerArchivados" type="button" onclick="cambiarVista(vistaActiva === 'archivados' ? 'vencidos' : 'archivados')"><i class="fas fa-box-archive"></i> PRODUCTOS ARCHIVADOS</button>
             <input type="text" id="buscador" placeholder="BUSCAR POR PRODUCTO, CÓDIGO O CATEGORÍA" autocomplete="off" style="border-color:#2f4a5a;border-radius:8px;">
             <select id="vencimientosPorPagina" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
             <div id="vencimientosPaginacion" style="display:inline-flex;align-items:center;gap:6px;"></div>
-            <button class="btn ghost" id="btnRefrescar"><i class="fas fa-sync"></i> ACTUALIZAR</button>
-            <button class="btn ghost" id="btnVerArchivados" type="button" onclick="cambiarVista(vistaActiva === 'archivados' ? 'vencidos' : 'archivados')"><i class="fas fa-box-archive"></i> PRODUCTOS ARCHIVADOS</button>
         </div>
 
         <div class="venc-table-wrap">
@@ -381,7 +381,7 @@ $baseUrl = rtrim((string)base_url(), '/');
             const totalPaginas = Math.max(1, Math.ceil(visibles.length / vencimientosPorPagina));
             vencimientosPagina = Math.min(vencimientosPagina, totalPaginas - 1);
             const paginaVisible = visibles.slice(vencimientosPagina * vencimientosPorPagina, (vencimientosPagina + 1) * vencimientosPorPagina).slice().reverse();
-            document.getElementById('vencimientosPaginacion').innerHTML = `<button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${vencimientosPagina + 1} / ${totalPaginas}</span><button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+            document.getElementById('vencimientosPaginacion').innerHTML = `<button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - vencimientosPagina} / ${totalPaginas}</span><button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
             cuerpo.innerHTML = paginaVisible.map((lote) => `
                 <tr>
                     <td><img class="prod-img" loading="lazy" src="${imagenUrl(lote.imagen)}" alt="${escapar(lote.producto)}" onerror="this.src='${baseUrl}/favicon.ico'"></td>

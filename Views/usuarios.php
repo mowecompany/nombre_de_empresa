@@ -2194,7 +2194,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </select>
                 <div style="display:flex;gap:6px;">
                     <button type="button" onclick="window.location.href='?pagina=<?php echo max(1, $usuariosPagina - 1); ?>&por_pagina=<?php echo $usuariosTamanoPagina; ?>'" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" <?php echo $usuariosPagina <= 1 ? 'disabled' : ''; ?>><i class="fas fa-chevron-left"></i></button>
-                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA <?php echo $usuariosPagina; ?> / <?php echo $usuariosTotalPaginas; ?></span>
+                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA <?php echo $usuariosTotalPaginas - ($usuariosPagina - 1); ?> / <?php echo $usuariosTotalPaginas; ?></span>
                     <button type="button" onclick="window.location.href='?pagina=<?php echo min($usuariosTotalPaginas, $usuariosPagina + 1); ?>&por_pagina=<?php echo $usuariosTamanoPagina; ?>'" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" <?php echo $usuariosPagina >= $usuariosTotalPaginas ? 'disabled' : ''; ?>><i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>

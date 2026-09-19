@@ -2530,35 +2530,35 @@ try {
             window.EstrellaSkeleton?.show(document.getElementById('productos-tbody'), 'table', { rows: 7 });
             const busqueda = normalizarBusquedaTablaProductos(inputBusqueda?.value || '');
             const parametros = new URLSearchParams({
-                action: 'getPaginado',
-                limit: String(productosTamanoPagina),
-                offset: String(productosPaginaActual * productosTamanoPagina),
-                search: busqueda
+                action: 'getAll'
             });
 
             fetch(base_url + '/Controllers/ProductoController.php?' + parametros.toString())
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
-                        if (data.data.length === 0 && productosPaginaActual > 0) {
-                            productosPaginaActual -= 1;
-                            cargarProductos(callback);
-                            return;
-                        }
                         productosTablaCache = data.data;
-                        productosHayPaginaSiguiente = Boolean(data.has_more);
+                        productosHayPaginaSiguiente = false;
                         renderResultadosTablaProductos();
                         const tbody = document.getElementById('productos-tbody');
                         tbody.innerHTML = '';
-                        // Mostrar la página en orden descendente: el id más alto del chunk arriba.
-                        data.data.slice().reverse().forEach(producto => {
-                            try {
-                                const fila = generarFilaProducto(producto);
-                                tbody.appendChild(fila);
-                            } catch (error) {
-                                console.warn('No se pudo renderizar un producto:', producto, error);
-                            }
-                        });
+                        // Filtrar y paginar client-side
+                        const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
+                        const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
+                        const inicio = productosPaginaActual * productosTamanoPagina;
+                        
+                        if (filtradas.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">No hay productos para mostrar.</td></tr>';
+                        } else {
+                            filtradas.slice(inicio, inicio + productosTamanoPagina).slice().reverse().forEach(producto => {
+                                try {
+                                    const fila = generarFilaProducto(producto);
+                                    tbody.appendChild(fila);
+                                } catch (error) {
+                                    console.warn('No se pudo renderizar un producto:', producto, error);
+                                }
+                            });
+                        }
                         actualizarPaginacionProductos();
                         if (typeof callback === 'function') {
                             callback();
@@ -2573,14 +2573,42 @@ try {
                 });
         }
 
+        function renderTablaProductosPaginada() {
+            const inputBusqueda = document.getElementById('buscarTablaProductos');
+            const tbody = document.getElementById('productos-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
+            const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
+            const inicio = productosPaginaActual * productosTamanoPagina;
+            
+            if (filtradas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">No hay productos para mostrar.</td></tr>';
+            } else {
+                filtradas.slice(inicio, inicio + productosTamanoPagina).slice().reverse().forEach(producto => {
+                    try {
+                        const fila = generarFilaProducto(producto);
+                        tbody.appendChild(fila);
+                    } catch (error) {
+                        console.warn('No se pudo renderizar un producto:', producto, error);
+                    }
+                });
+            }
+            actualizarPaginacionProductos();
+        }
+
             function actualizarPaginacionProductos() {
                 const paginationDiv = document.getElementById('productosPagination');
                 if (!paginationDiv) return;
-                const totalPaginas = productosHayPaginaSiguiente ? productosPaginaActual + 2 : productosPaginaActual + 1;
+                const inputBusqueda = document.getElementById('buscarTablaProductos');
+                const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
+                const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
+                const totalPaginas = Math.max(1, Math.ceil(filtradas.length / productosTamanoPagina));
                 paginationDiv.innerHTML = `
                     <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${productosPaginaActual === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
-                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${productosPaginaActual + 1} / ${totalPaginas}</span>
-                    <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${!productosHayPaginaSiguiente ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
+                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - productosPaginaActual} / ${totalPaginas}</span>
+                    <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${productosPaginaActual >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
                 `;
             }
 
@@ -2630,7 +2658,7 @@ try {
             window.clearTimeout(productosBusquedaTimer);
             productosBusquedaTimer = window.setTimeout(() => {
                 productosPaginaActual = 0;
-                cargarProductos();
+                renderTablaProductosPaginada();
             }, 250);
         }
 
@@ -3849,12 +3877,16 @@ try {
                 if (e.target.closest('.inventory-page-prev')) {
                     if (productosPaginaActual === 0) return;
                     productosPaginaActual -= 1;
-                    cargarProductos();
+                    renderTablaProductosPaginada();
                 }
                 if (e.target.closest('.inventory-page-next')) {
-                    if (!productosHayPaginaSiguiente) return;
+                    const inputBusqueda = document.getElementById('buscarTablaProductos');
+                    const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
+                    const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
+                    const totalPaginas = Math.max(1, Math.ceil(filtradas.length / productosTamanoPagina));
+                    if (productosPaginaActual >= totalPaginas - 1) return;
                     productosPaginaActual += 1;
-                    cargarProductos();
+                    renderTablaProductosPaginada();
                 }
             });
             const buscarCategoria = document.getElementById('buscarCategoriaProducto');
