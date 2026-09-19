@@ -25,11 +25,12 @@ if (empty($_SESSION['login_token'])) {
     $_SESSION['login_token'] = bin2hex(random_bytes(32));
 }
 
-$loginLogoPath = '/Assets/images/Empresas/empresa_1_20260901_185734_fe042179.png';
+// Bloqueo específico del logo del autoservicio: usar la imagen correcta de la empresa solo en esta pantalla.
+$loginLogoPath = '/Assets/images/Empresas/mi_estrella_solo_imprimir.png';
 $loginDefaultLogo = rtrim((string)base_url(), '/') . $loginLogoPath;
 $loginLoadingLogo = $loginDefaultLogo;
 if (!is_file(ROOT_PATH . $loginLogoPath)) {
-    $loginLoadingLogo = rtrim((string)base_url(), '/') . $loginLogoPath;
+    $loginLoadingLogo = rtrim((string)base_url(), '/') . '/Assets/images/Empresas/mi_estrella_solo_imprimir.png';
 }
 $loginFavicon = $loginLoadingLogo;
 $loginCompanyName = isset($_SESSION['empresa_nombre']) && trim((string)$_SESSION['empresa_nombre']) !== ''

@@ -536,6 +536,28 @@ class Presentacion
 
         $indiceTarget = $this->indice($presentaciones, $presentacionId);
         $guardas = 0;
+
+        // Si no hay paquetes físicos, usar unidades base sueltas para completar
+        // la venta de la presentación elegida.
+        $cantidadTarget = (float)$presentaciones[$indiceTarget]['cantidad'];
+        if ($indiceTarget > 0 && $cantidadTarget + 0.0001 < $cantidad) {
+            $faltantePresentacion = $cantidad - $cantidadTarget;
+            $cantidadBaseNecesaria = $faltantePresentacion * (float)$target['factor_base'];
+            $indiceBase = 0;
+            if ($presentaciones[$indiceBase]['cantidad'] + 0.0001 >= $cantidadBaseNecesaria) {
+                if ($cantidadTarget > 0) {
+                    $this->fijarStock($productoId, $presentacionId, 0);
+                }
+                $this->fijarStock(
+                    $productoId,
+                    (int)$presentaciones[$indiceBase]['id'],
+                    $presentaciones[$indiceBase]['cantidad'] - $cantidadBaseNecesaria
+                );
+                $this->sincronizarStock($productoId);
+                return $necesarioBase;
+            }
+        }
+
         while ($presentaciones[$indiceTarget]['cantidad'] + 0.0001 < $cantidad) {
             if (++$guardas > 5000) {
                 throw new Exception('No se pudo completar la conversion de presentaciones');

@@ -834,9 +834,34 @@ if (is_file($logoPdfPath)) {
         }
 
         .stat-content p {
-            font-size: 32px;
+            font-size: clamp(20px, 1.9vw, 32px);
             font-weight: 700;
             color: var(--primary-blue);
+        }
+
+        #valorInventarioModal .stat-card {
+            padding: 18px 16px;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        #valorInventarioModal .stat-content {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        #valorInventarioModal .stat-content h3 {
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+
+        #valorInventarioModal .stat-content p {
+            font-size: clamp(30px, 2vw + 16px, 56px);
+            line-height: 1.15;
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: unset;
+            word-break: normal;
         }
 
         .ganancia-item {
@@ -1131,6 +1156,31 @@ if (is_file($logoPdfPath)) {
             max-width: min(94vw, 900px);
         }
 
+        #entradaModal {
+            padding: 0 !important;
+            align-items: stretch;
+            justify-content: stretch;
+        }
+
+        #entradaModal .modal-content {
+            width: 100% !important;
+            max-width: none !important;
+            height: 100% !important;
+            max-height: 100% !important;
+            overflow-y: auto !important;
+            border-radius: 0;
+        }
+
+        #entradaModal .fila-presentacion-entrada {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        }
+
+        @media (max-width: 700px) {
+            #entradaModal .fila-presentacion-entrada {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+
         /* Modales de métricas: tamaño tipo pantalla + scroll interno */
         #ventasDiaModal .modal-content,
         #todosProductosModal .modal-content,
@@ -1174,15 +1224,95 @@ if (is_file($logoPdfPath)) {
         }
 
         #salidaModal form {
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
             overflow-x: hidden;
             padding-right: 4px;
         }
 
         #salidaModal .table-wrapper {
-            max-height: 260px !important;
+            max-height: none !important;
             overflow-y: auto;
             overflow-x: auto;
+        }
+
+        #salidaModal .salida-carrito-group {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            flex: 1 1 auto;
+        }
+
+        #salidaModal .salida-carrito-group .table-wrapper {
+            flex: 1 1 auto;
+            min-height: 120px;
+        }
+
+        #salidaModal .salida-pago-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            align-items: stretch;
+            flex: 0 0 auto;
+        }
+
+        #salidaModal .salida-pago-grid .form-group {
+            min-width: 0;
+            margin: 0;
+        }
+
+        #salidaModal .salida-pago-grid select,
+        #salidaModal .salida-pago-grid input {
+            width: 100%;
+            min-height: 42px;
+            box-sizing: border-box;
+        }
+
+        #salidaModal .salida-submit {
+            flex: 0 0 auto;
+            margin-top: 22px;
+            margin-bottom: 10px;
+        }
+
+        #salidaModal form > .form-row,
+        #salidaModal form > #notasSalida {
+            flex: 0 0 auto;
+        }
+
+        #salidaModal {
+            padding: 0 !important;
+            align-items: stretch;
+            justify-content: stretch;
+        }
+
+        #salidaModal .modal-content {
+            width: 100% !important;
+            max-width: none !important;
+            height: 100% !important;
+            max-height: none !important;
+            border-radius: 0;
+        }
+
+        #todosProductosModal .modal-content {
+            width: 100vw;
+            max-width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            border-radius: 0;
+        }
+
+        #todosProductosModal .modal-content > div {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto !important;
+        }
+
+        #todosProductosModal .table-wrapper {
+            max-height: none !important;
+            height: calc(100vh - 310px) !important;
         }
 
         .salida-total-box {
@@ -1266,6 +1396,29 @@ if (is_file($logoPdfPath)) {
             max-height: none !important;
             overflow-y: visible !important;
             overflow-x: auto;
+        }
+
+        #todosProductosModal .modal-content {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            border-radius: 0;
+        }
+
+        #todosProductosModal .table-wrapper {
+            height: calc(100vh - 310px) !important;
+            max-height: none !important;
+            overflow-y: auto !important;
+        }
+
+        #entradaModal .modal-content {
+            width: 100% !important;
+            max-width: none !important;
+            height: 100% !important;
+            max-height: 100% !important;
+            overflow-y: auto !important;
+            border-radius: 0;
         }
 
         @keyframes slideIn {
@@ -2168,24 +2321,26 @@ if (is_file($logoPdfPath)) {
         <div style="margin: 10px 0; display: flex; justify-content: flex-end; gap: 8px; align-items: center; flex-wrap: wrap;">
             <div style="position: relative;">
                 <i class="fas fa-search" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--primary-blue); pointer-events: none; font-size: 14px;"></i>
-                <input type="text" id="filtroResumen" list="filtroResumenSuggestions" placeholder="Buscar producto..." autocomplete="off" style="width:250px; padding:6px 35px 6px 8px; font-size:12px; border-radius: 4px; border: 1px solid #ccc;">
-                <datalist id="filtroResumenSuggestions"></datalist>
+                <input type="text" id="filtroResumen" placeholder="BUSCAR PRODUCTO..." autocomplete="off" style="width:250px; padding:6px 35px 6px 8px; font-size:12px; border-radius: 4px; border: 1px solid #ccc; text-transform:uppercase;">
+                <div id="resultadosFiltroInventario" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); max-height:220px; overflow-y:auto; border:1px solid #d0d7de; border-radius:6px; background:#fff; box-shadow:0 8px 20px rgba(31,41,55,.12); z-index:100;"></div>
             </div>
         </div>
         <!-- Tabs -->
-        <div class="tabs-container">
-            <button class="tab-btn active" onclick="cambiarTab(this, 'resumen')">
-                <i class="fas fa-chart-bar"></i> RESUMEN
-            </button>
-            <button class="tab-btn" onclick="cambiarTab(this, 'entradas')">
-                <i class="fas fa-arrow-down"></i> ENTRADAS
-            </button>
-            <button class="tab-btn" onclick="cambiarTab(this, 'salidas')">
-                <i class="fas fa-arrow-up"></i> SALIDAS
-            </button>
-            <button class="tab-btn" onclick="cambiarTab(this, 'movimientos')">
-                <i class="fas fa-exchange-alt"></i> MOVIMIENTOS
-            </button>
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:6px;">
+            <div class="tabs-container" style="margin:0; flex:1 1 auto; min-width:0;">
+                <button class="tab-btn active" onclick="cambiarTab(this, 'resumen')">
+                    <i class="fas fa-chart-bar"></i> RESUMEN
+                </button>
+                <button class="tab-btn" onclick="cambiarTab(this, 'entradas')">
+                    <i class="fas fa-arrow-down"></i> ENTRADAS
+                </button>
+                <button class="tab-btn" onclick="cambiarTab(this, 'salidas')">
+                    <i class="fas fa-arrow-up"></i> SALIDAS
+                </button>
+                <button class="tab-btn" onclick="cambiarTab(this, 'movimientos')">
+                    <i class="fas fa-exchange-alt"></i> MOVIMIENTOS
+                </button>
+            </div>
         </div>
 
         <!-- TAB: RESUMEN -->
@@ -2286,6 +2441,9 @@ if (is_file($logoPdfPath)) {
                         <?php if ($tienePermisoCrear): ?>
                         <button class="btn-nuevo" type="button" onclick="abrirModalProductoDanado()">
                             <i class="fas fa-apple-whole"></i> PRODUCTOS DAÑADOS
+                        </button>
+                        <button class="btn-nuevo" type="button" style="font-size:12px; padding:12px 14px; min-height:40px;" onclick="abrirModalProductoDanado('no_perecederos')">
+                            <i class="fas fa-lightbulb"></i> PRODUCTOS DAÑADOS NO PERECEDEROS
                         </button>
                         <button class="btn-nuevo" onclick="abrirModal('salidaModal')">
                             <i class="fas fa-plus"></i> REGISTRAR SALIDA
@@ -2423,32 +2581,18 @@ if (is_file($logoPdfPath)) {
                                 <span style="display:flex; align-items:center; justify-content:center; width:42px; min-width:42px; height:100%; color:#667085; background:#f8fafc; border-left:1px solid #e6e9ee; font-size:15px;"><i class="fas fa-search"></i></span>
                             </div>
                             <div id="proveedorEntradaSearchResults" style="display:none; position:absolute; left:0; top:calc(100% + 6px); width:100%; max-height:220px; overflow-y:auto; border:1px solid #d0d7de; border-radius:8px; background:#fff; box-shadow:0 10px 24px rgba(31,41,55,0.08); z-index:60;">
-                                <?php foreach ($proveedores as $prov): ?>
-                                    <button type="button" class="proveedor-search-option" data-select-id="proveedorEntrada" data-id="<?= htmlspecialchars($prov->nombre) ?>" data-name="<?= htmlspecialchars(strtoupper($prov->nombre)) ?>" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9; text-transform:uppercase;">
-                                        <?= strtoupper($prov->nombre) ?>
-                                    </button>
-                                <?php endforeach; ?>
+                                                                <button type="button" class="proveedor-search-option" data-select-id="proveedorEntrada" data-id="GENERAL" data-name="GENERAL" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9; text-transform:uppercase;">GENERAL</button>
                                 <button type="button" class="proveedor-search-option" data-select-id="proveedorEntrada" data-id="__OTRO__" data-name="NUEVO PROVEEDOR" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9; text-transform:uppercase;">
                                     + NUEVO PROVEEDOR
                                 </button>
                             </div>
                             <select id="proveedorEntrada" style="display:none; width:100%; min-width:290px;" aria-hidden="true" tabindex="-1">
                               <option value="">-- SELECCIONAR PROVEEDOR --</option>
-                              <?php foreach ($proveedores as $prov): ?>
-                              <option value="<?= htmlspecialchars($prov->nombre) ?>"><?= strtoupper($prov->nombre) ?></option>
-                              <?php endforeach; ?>
+                                                            <option value="GENERAL">GENERAL</option>
                               <option value="__OTRO__">+ NUEVO PROVEEDOR</option>
                             </select>
                         </div>
                         <input type="text" id="proveedorEntradaOtro" placeholder="Escribe el nuevo proveedor" autocomplete="off" style="display:none; margin-top:10px;">
-                    </div>
-                </div>
-
-                <div class="form-row" id="grupoPresentacionEntrada" style="display:none;">
-                    <div class="form-group">
-                        <label for="presentacionEntrada"><i class="fas fa-boxes-stacked"></i> PRESENTACIÓN *</label>
-                        <select id="presentacionEntrada" style="width:100%;"></select>
-                        <small id="ayudaPresentacionEntrada" style="display:block; margin-top:6px; color:#475569; font-weight:700; text-transform:uppercase;"></small>
                     </div>
                 </div>
 
@@ -2470,7 +2614,7 @@ if (is_file($logoPdfPath)) {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="porcentajeGanancia"><i class="fas fa-percent"></i> % GANANCIA *</label>
-                        <input type="number" id="porcentajeGanancia" step="0.01" min="0" value="30" autocomplete="off" required onchange="calcularPrecioVenta()" oninput="calcularPrecioVenta()">
+                        <input type="number" id="porcentajeGanancia" step="0.01" min="0" value="25" autocomplete="off" required onchange="calcularPrecioVenta()" oninput="calcularPrecioVenta()">
                     </div>
                     <div class="form-group">
                         <label for="precioVentaMostrado"><i class="fas fa-dollar-sign"></i> PRECIO VENTA (CALCULADO)</label>
@@ -2489,10 +2633,21 @@ if (is_file($logoPdfPath)) {
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="notasEntrada"><i class="fas fa-sticky-note"></i> NOTAS</label>
-                    <textarea id="notasEntrada" rows="3"></textarea>
+                <div class="form-row" id="grupoPresentacionEntrada" style="display:none;">
+                    <div class="form-group">
+                        <label for="presentacionEntrada"><i class="fas fa-boxes-stacked"></i> PRESENTACIÓN *</label>
+                        <select id="presentacionEntrada" style="width:100%;"></select>
+                        <small id="ayudaPresentacionEntrada" style="display:block; margin-top:6px; color:#475569; font-weight:700; text-transform:uppercase;"></small>
+                    </div>
                 </div>
+
+                <div id="editorPresentacionesEntrada" style="display:none; margin:10px 0; padding:12px; border:1px solid #dbe4ec; border-radius:8px; background:#fafcff; overflow:hidden;">
+                    <strong style="display:block; margin-bottom:8px; color:#2f4a5a;"><i class="fas fa-boxes-stacked"></i> PRESENTACIONES DEL PRODUCTO</strong>
+                    <div id="filasPresentacionesEntrada" style="display:flex; flex-direction:column; gap:8px; min-width:0;"></div>
+                    <button type="button" onclick="guardarPresentacionesEntrada()" style="margin-top:10px; padding:8px 12px; border:0; background:#1d4ed8; color:#fff; border-radius:6px; font-weight:700; cursor:pointer;"><i class="fas fa-save"></i> GUARDAR PRESENTACIONES</button>
+                </div>
+
+                <textarea id="notasEntrada" hidden></textarea>
 
                 <button type="submit" class="btn-submit"><i class="fas fa-save"></i> GUARDAR ENTRADA</button>
             </form>
@@ -2503,22 +2658,31 @@ if (is_file($logoPdfPath)) {
     <div id="productoDanadoModal" class="modal">
         <div class="modal-content" style="max-width:620px;">
             <div class="modal-header">
-                <h2><i class="fas fa-triangle-exclamation"></i> PRODUCTO DAÑADO</h2>
+                <h2 id="productoDanadoTitulo"><i class="fas fa-triangle-exclamation"></i> PRODUCTO DAÑADO</h2>
                 <button class="close-btn" onclick="cerrarModal('productoDanadoModal')">&times;</button>
             </div>
             <form id="formProductoDanado" autocomplete="off" onsubmit="registrarProductoDanado(event)">
                 <div class="form-group">
                     <label for="productoDanado"><i class="fas fa-box"></i> PRODUCTO *</label>
-                    <select id="productoDanado" required onchange="actualizarCantidadProductoDanado()">
+                    <div style="position:relative; z-index:30;">
+                        <div style="display:flex; align-items:center; height:42px; border:1px solid #d0d7de; border-radius:8px; background:#fff; overflow:hidden;">
+                            <input type="text" id="buscarProductoDanado" placeholder="BUSCAR O ESCANEAR CÓDIGO DE BARRAS..." autocomplete="off" style="flex:1; border:none; outline:none; background:transparent; padding:11px 12px; font-size:14px; color:#1f2937; text-transform:uppercase;">
+                            <span style="display:flex; align-items:center; justify-content:center; width:42px; height:100%; color:#667085; background:#f8fafc; border-left:1px solid #e6e9ee;"><i class="fas fa-barcode"></i></span>
+                        </div>
+                        <div id="productoDanadoSearchResults" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 6px); max-height:220px; overflow-y:auto; border:1px solid #d0d7de; border-radius:8px; background:#fff; box-shadow:0 10px 24px rgba(31,41,55,0.08); z-index:60;"></div>
+                    </div>
+                    <select id="productoDanado" required onchange="actualizarCantidadProductoDanado()" style="display:none;">
                         <option value="">-- SELECCIONAR PRODUCTO --</option>
                         <?php foreach ($productosConImg as $prod):
                             $categoriaDanado = mb_strtolower(trim((string)($prod->categoria_nombre ?? '')), 'UTF-8');
                             $categoriaDanado = strtr($categoriaDanado, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
-                            if (!in_array($categoriaDanado, ['frutas', 'verduras', 'carnicos y refrigerados'], true)) continue;
+                            $grupoDanado = in_array($categoriaDanado, ['frutas', 'verduras', 'carnicos y refrigerados'], true)
+                                ? 'perecederos'
+                                : 'no_perecederos';
                             $stockDanado = max(0, (float)($prod->stock ?? 0));
                             if ($stockDanado <= 0) continue;
                         ?>
-                        <option value="<?= (int)$prod->id ?>" data-stock="<?= $stockDanado ?>" data-kilo="<?= (int)($prod->venta_por_kilo ?? 0) ?>">
+                        <option value="<?= (int)$prod->id ?>" data-grupo="<?= $grupoDanado ?>" data-stock="<?= $stockDanado ?>" data-kilo="<?= (int)($prod->venta_por_kilo ?? 0) ?>" data-barcode="<?= htmlspecialchars((string)($prod->codigo_barras ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-codigo="<?= htmlspecialchars((string)($prod->codigo ?? ''), ENT_QUOTES, 'UTF-8') ?>" data-categoria-nombre="<?= htmlspecialchars((string)($prod->categoria_nombre ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                             <?= htmlspecialchars(strtoupper((string)$prod->nombre) . ' [' . strtoupper((string)($prod->categoria_nombre ?? '')) . '] — STOCK ' . $stockDanado, ENT_QUOTES, 'UTF-8') ?>
                         </option>
                         <?php endforeach; ?>
@@ -2564,7 +2728,7 @@ if (is_file($logoPdfPath)) {
                                 $descPct = (float)($prod->descuento_porcentaje ?? 0);
                                 $precioBas = (float)($prod->precio ?? 0);
                                 $precioFinalCalc = $precioBas;
-                                $stockActual = (int)($prod->stock ?? 0);
+                                $stockActual = (float)($prod->stock ?? 0);
                                 $stockReservado = (int)($prod->reservado ?? 0);
                                 $stockDisponible = max(0, $stockActual - $stockReservado);
                                 if ($stockDisponible <= 0) continue;
@@ -2582,7 +2746,7 @@ if (is_file($logoPdfPath)) {
                                 $descPct = (float)($prod->descuento_porcentaje ?? 0);
                                 $precioBas = (float)($prod->precio ?? 0);
                                 $precioFinalCalc = $precioBas;
-                                $stockActual = (int)($prod->stock ?? 0);
+                                $stockActual = (float)($prod->stock ?? 0);
                                 $stockReservado = (int)($prod->reservado ?? 0);
                                 $stockDisponible = max(0, $stockActual - $stockReservado);
                             ?>
@@ -2600,27 +2764,25 @@ if (is_file($logoPdfPath)) {
                         <button type="button" class="categoria-salida-option" data-categoria-id="carnicos-refrigerados" onclick="abrirProductosCategoriaSalida('carnicos-refrigerados', 'CÁRNICOS Y REFRIGERADOS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-drumstick-bite"></i> CÁRNICOS Y REFRIGERADOS</button>
                     </div>
                     </div>
-                    <div id="productoSalidaPreview" style="margin-top: 10px; text-align: center;"></div>
                     <input type="hidden" id="codigoProductoSalida">
-                    <div id="grupoPresentacionSalida" style="display:none; margin-top:10px; flex-direction:column; gap:6px; align-items:flex-start;">
-                        <label for="presentacionSalida" style="margin:0;"><i class="fas fa-boxes-stacked"></i> PRESENTACIÓN *</label>
-                        <select id="presentacionSalida" style="min-width:260px; padding:8px; border:1px solid #ccc; border-radius:4px; text-transform:uppercase;"></select>
-                        <small id="ayudaPresentacionSalida" style="color:#475569; font-weight:700; text-transform:uppercase;"></small>
-                    </div>
-                    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
-                        <label for="cantidadSalida"><i class="fas fa-cubes"></i> <span id="unidadSalidaLabel">CANTIDAD</span> *</label>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <button type="button" onclick="decrementarCantidad('cantidadSalida')" style="padding: 6px 12px; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">−</button>
-                            <input type="number" id="cantidadSalida" min="1" step="1" value="1" autocomplete="off" required style="width: 80px; text-align: center; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                            <button type="button" onclick="incrementarCantidad('cantidadSalida')" style="padding: 6px 12px; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">+</button>
+                    <div id="productoSalidaDetalle" style="display:none; align-items:flex-start; gap:12px; margin-top:12px; padding:10px 0; border-top:1px solid #e2e8f0;">
+                        <div style="display:flex; flex-direction:column; align-items:flex-start; gap:8px;">
+                            <div class="form-group" style="margin:0; min-width:190px;">
+                                <label for="cantidadSalida" style="margin-bottom:5px;"><i class="fas fa-scale-balanced"></i> <span id="unidadSalidaLabel">CANTIDAD</span> *</label>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <button type="button" onclick="decrementarCantidad('cantidadSalida')" style="width:32px; height:28px; padding:0; background:#26384d; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">−</button>
+                                    <input type="number" id="cantidadSalida" min="1" step="1" value="1" autocomplete="off" required style="width:80px; height:28px; text-align:center; padding:4px; border:1px solid #cbd5e1; border-radius:4px;">
+                                    <button type="button" onclick="incrementarCantidad('cantidadSalida')" style="width:32px; height:28px; padding:0; background:#26384d; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">+</button>
+                                </div>
+                                <small id="pesoSalidaResumen" style="display:none;"> </small>
+                            </div>
+                            <button type="button" id="agregarProductoSalidaBtn" class="btn-submit" onclick="agregarProductoSalida()" style="width:160px; height:28px; margin:0; padding:0 4px; white-space:nowrap; font-size:11px;"><i class="fas fa-cart-plus"></i> AGREGAR PRODUCTO</button>
                         </div>
-                        <button type="button" class="btn-submit" style="width:auto; min-width:0; padding:7px 12px; font-size:12px; line-height:1.2; border-radius:6px;" onclick="agregarProductoSalida()">
-                            <i class="fas fa-cart-plus"></i> AGREGAR PRODUCTO
-                        </button>
+                        <div id="productoSalidaPreview" style="width:76px; min-width:76px; height:76px; display:flex; align-items:center; justify-content:center; border:1px solid #dbe4ec; border-radius:8px; background:#f8fafc; overflow:hidden;"></div>
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group salida-carrito-group">
                     <label><i class="fas fa-shopping-cart"></i> CARRITO DE SALIDA</label>
                     <div class="table-wrapper scrollbar-custom" style="max-height: 180px;">
                         <table style="min-width: 920px;">
@@ -2644,7 +2806,7 @@ if (is_file($logoPdfPath)) {
                     <div class="salida-total-box">TOTAL SALIDA: <span id="totalCarritoSalida">$0</span></div>
                 </div>
 
-                <div class="form-row">
+                <div class="salida-pago-grid">
                     <div class="form-group">
                         <label for="metodoPagoSalida"><i class="fas fa-cash-register"></i> MÉTODO DE PAGO *</label>
                         <select id="metodoPagoSalida" onchange="toggleCamposCreditoSalida()" required>
@@ -2655,10 +2817,17 @@ if (is_file($logoPdfPath)) {
                     </div>
                     <div class="form-group">
                         <label for="tipoSalida"><i class="fas fa-list"></i> TIPO DE SALIDA *</label>
-                        <select id="tipoSalida" name="tipo_salida" required style="max-width: 220px; width: 100%;">
+                        <select id="tipoSalida" name="tipo_salida" required>
                             <option value="venta">VENTA</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="referenciaSalida"><i class="fas fa-code"></i> REFERENCIA VENTA</label>
+                        <input type="text" id="referenciaSalida" autocomplete="off" readonly>
+                    </div>
+                </div>
+
+                <div class="form-row">
                     <div class="form-group" id="grupoClienteCreditoSalida" style="display:none;">
                         <label for="clienteCreditoSalida"><i class="fas fa-user-check"></i> CLIENTE *</label>
                         <div style="display:flex; gap:8px; align-items:center;">
@@ -2671,17 +2840,9 @@ if (is_file($logoPdfPath)) {
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="referenciaSalida"><i class="fas fa-code"></i> REFERENCIA VENTA</label>
-                    <input type="text" id="referenciaSalida" autocomplete="off" readonly>
-                </div>
+                <textarea id="notasSalida" hidden></textarea>
 
-                <div class="form-group">
-                    <label for="notasSalida"><i class="fas fa-sticky-note"></i> NOTAS</label>
-                    <textarea id="notasSalida" rows="3"></textarea>
-                </div>
-
-                <button type="submit" class="btn-submit"><i class="fas fa-save"></i> GUARDAR SALIDA</button>
+                <button type="submit" class="btn-submit salida-submit"><i class="fas fa-save"></i> GUARDAR SALIDA</button>
             </form>
         </div>
     </div>
@@ -2987,8 +3148,12 @@ if (is_file($logoPdfPath)) {
                 <!-- Tabla de productos con imágenes -->
                 <div class="card" style="padding: 10px 20px;">
                     <!-- filtro rápido -->
-                                        <div class="card-header">
-                        <h3><i class="fas fa-list"></i> LISTADO DE PRODUCTOS</h3>
+                                        <div class="card-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                                            <h3><i class="fas fa-list"></i> LISTADO DE PRODUCTOS</h3>
+                                            <div style="position:relative; width:min(100%, 280px);">
+                                                <input type="text" id="buscarTodosProductosModal" placeholder="BUSCAR PRODUCTO..." autocomplete="off" style="width:100%; padding:8px 12px; border:1px solid #d0d7de; border-radius:6px; background:#fff; text-transform:uppercase;">
+                                                <div id="resultadosTodosProductosModal" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); max-height:220px; overflow-y:auto; border:1px solid #d0d7de; border-radius:6px; background:#fff; box-shadow:0 8px 20px rgba(31,41,55,.12); z-index:100;"></div>
+                                            </div>
                     </div>
                     <div class="table-wrapper scrollbar-custom" style="max-height: 500px;">
                         <table>
@@ -3075,7 +3240,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                     <div class="form-group">
                         <label for="editProdStock"><i class="fas fa-cubes"></i> STOCK *</label>
-                        <input type="number" id="editProdStock" name="stock" autocomplete="off" required>
+                        <input type="number" id="editProdStock" name="stock" min="0" step="1" autocomplete="off" required>
                     </div>
                 </div>
                 <div class="form-row">
@@ -3197,6 +3362,26 @@ if (is_file($logoPdfPath)) {
                         <div class="stat-content">
                             <h3 style="font-size: 14px;">VALOR TOTAL</h3>
                             <p id="valorTotalDetalle" style="font-size: 28px;">$0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" style="flex: 1;">
+                        <div class="stat-icon red">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 style="font-size: 14px;">VALOR DE COMPRA</h3>
+                            <p id="valorCompraDetalle" style="font-size: 28px;">$0</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card" style="flex: 1;">
+                        <div class="stat-icon green">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 style="font-size: 14px;">VALOR DE GANANCIA</h3>
+                            <p id="valorGananciaDetalle" style="font-size: 28px;">$0</p>
                         </div>
                     </div>
                     
@@ -3486,20 +3671,62 @@ if (is_file($logoPdfPath)) {
         }
 
         function actualizarSugerenciasResumen(items) {
-            const datalist = document.getElementById('filtroResumenSuggestions');
-            if (!datalist) return;
-
-            const valores = new Set();
+            const valores = new Map();
             (items || []).forEach(item => {
-                if (item && item.nombre) valores.add(String(item.nombre).trim());
-                if (item && item.codigo) valores.add(String(item.codigo).trim());
+                if (item && item.nombre) valores.set(String(item.nombre).trim(), String(item.nombre).trim());
+                if (item && item.codigo) valores.set(String(item.codigo).trim(), String(item.codigo).trim());
             });
+            window.opcionesFiltroInventario = Array.from(valores.values()).filter(Boolean);
+            renderResultadosFiltroInventario();
+        }
 
-            datalist.innerHTML = Array.from(valores)
-                .filter(Boolean)
-                .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }))
-                .map(valor => `<option value="${escapeHtmlInventario(valor)}"></option>`)
-                .join('');
+        function normalizarFiltroInventario(valor) {
+            return String(valor || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        }
+
+        function renderResultadosFiltroInventario() {
+            const input = document.getElementById('filtroResumen');
+            const resultados = document.getElementById('resultadosFiltroInventario');
+            if (!input || !resultados) return;
+            const texto = normalizarFiltroInventario(input.value);
+            const opciones = Array.isArray(window.opcionesFiltroInventario) ? window.opcionesFiltroInventario : [];
+            const coincidencias = opciones.filter(opcion => normalizarFiltroInventario(opcion).includes(texto));
+            resultados.innerHTML = coincidencias.map(opcion => `<button type="button" data-valor="${escapeHtmlInventario(opcion)}" style="display:block;width:100%;padding:9px 12px;border:0;border-bottom:1px solid #f1f5f9;background:#fff;text-align:left;cursor:pointer;text-transform:uppercase;">${escapeHtmlInventario(opcion)}</button>`).join('');
+            resultados.style.display = coincidencias.length && texto ? 'block' : 'none';
+        }
+
+        function filtrarTablasInventario() {
+            const texto = normalizarFiltroInventario(document.getElementById('filtroResumen')?.value);
+            ['resumenTableBody', 'entradasTableBody', 'salidasTableBody', 'movimientosTableBody'].forEach(id => {
+                const tbody = document.getElementById(id);
+                if (!tbody) return;
+                const filas = Array.from(tbody.querySelectorAll('tr'));
+                filas.forEach(fila => {
+                    if (fila.classList.contains('group-date')) return;
+                    fila.style.display = !texto || normalizarFiltroInventario(fila.textContent).includes(texto) ? '' : 'none';
+                });
+                filas.filter(fila => fila.classList.contains('group-date')).forEach(encabezado => {
+                    let siguiente = encabezado.nextElementSibling;
+                    let visible = false;
+                    while (siguiente && !siguiente.classList.contains('group-date')) {
+                        if (siguiente.style.display !== 'none') visible = true;
+                        siguiente = siguiente.nextElementSibling;
+                    }
+                    encabezado.style.display = visible ? '' : 'none';
+                });
+            });
+        }
+
+        let filtroInventarioFrame = null;
+        function programarFiltradoTablasInventario() {
+            if (filtroInventarioFrame !== null) return;
+            const ejecutar = () => {
+                filtroInventarioFrame = null;
+                filtrarTablasInventario();
+            };
+            filtroInventarioFrame = typeof requestAnimationFrame === 'function'
+                ? requestAnimationFrame(ejecutar)
+                : setTimeout(ejecutar, 16);
         }
         
         // Cambiar tab
@@ -3941,14 +4168,15 @@ if (is_file($logoPdfPath)) {
                     <meta name="application-name" content="${escapeHtml(grupo.referencia)}">
                     <style>
                         @page { size: auto; margin: 0; }
-                        html, body { margin: 0; padding: 0; width: 100%; background: #fff; color: #1f2937; }
-                        body { font-family: Arial, sans-serif; text-transform: uppercase; font-weight: 700; }
+                        html, body { margin: 0; padding: 0; width: 100%; background: #fff; color: #000; }
+                        body { font-family: Arial, sans-serif; text-transform: uppercase; font-weight: 700; color: #000; text-shadow: none; -webkit-text-stroke: 0; -webkit-font-smoothing: none; text-rendering: geometricPrecision; }
+                        img { image-rendering: auto; -webkit-transform: translateZ(0); transform: translateZ(0); }
                         .print-wrapper { position: relative; width: 100%; margin: 0; padding: 4mm 3mm 3mm; box-sizing: border-box; }
                         .header { display: grid; grid-template-columns: minmax(0, 1fr) 125px; column-gap: 8px; align-items: flex-start; margin-bottom: 20px; }
                         .header .info { min-width: 0; max-width: none; overflow: visible; }
-                        .header h1 { margin: 0 0 3px; font-size: 16px; text-align: left; font-weight: 800; white-space: nowrap; line-height: 1.05; }
-                        .empresa { margin: 0 0 3px; font-size: 13px; color: #4b5563; font-weight: 800; }
-                        .meta { position: relative; left: -6px; margin-bottom: 3px; font-size: 10.5px; font-weight: 800; overflow-wrap: anywhere; white-space: nowrap; }
+                        .header h1 { margin: 0 0 3px; font-size: 16px; text-align: left; font-weight: 800; white-space: nowrap; line-height: 1.05; color: #000; }
+                        .empresa { margin: 0 0 3px; font-size: 13px; color: #000; font-weight: 800; }
+                        .meta { position: relative; left: -6px; margin-bottom: 3px; font-size: 10.5px; font-weight: 800; overflow-wrap: anywhere; white-space: nowrap; color: #000; }
                         .meta-referencia { display: flex; align-items: flex-start; font-size: 10px; white-space: normal; overflow: visible; font-weight: 800; line-height: 1.2; }
                         .meta-referencia > strong { flex: 0 0 48px; }
                         .ref-value { display: block; flex: 0 0 auto; vertical-align: top; white-space: nowrap; }
@@ -3957,11 +4185,12 @@ if (is_file($logoPdfPath)) {
                         .ref-line { display: block; white-space: nowrap; }
                         .meta strong { display: inline-block; width: 48px; }
                         .logo-empresa { position: relative; width: 125px; justify-self: end; display: flex; flex-direction: column; align-items: center; text-align: center; }
-                        .logo-empresa img { width: 125px; height: 100px; object-fit: contain; }
-                        .logo-word-print { position: absolute; top: 60px; left: 55px; color: #fff; font-family: "Brush Script MT", "Segoe Script", cursive; font-size: 19px; font-style: italic; font-weight: 700; line-height: 1; letter-spacing: -0.8px; text-transform: none; transform: rotate(-7deg); white-space: nowrap; pointer-events: none; }
-                        .logo-empresa .empresa { margin: 3px 0 0; font-size: 10px; line-height: 1.1; }
+                        .logo-empresa img { width: 125px; height: 96px; object-fit: contain; filter: grayscale(100%) brightness(0.8) contrast(1.18); }
+                        .logo-word-print { position: absolute; top: 58px; left: 55px; color: #000; font-family: "Brush Script MT", "Segoe Script", cursive; font-size: 19px; font-style: italic; font-weight: 900; line-height: 1; letter-spacing: -0.8px; text-transform: none; transform: rotate(-7deg); white-space: nowrap; pointer-events: none; }
+                        .logo-empresa .empresa { margin: 3px 0 0; font-size: 10px; line-height: 1.1; color: #000; font-weight: 900; }
                         table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: 8px; }
-                        th, td { border: 1px solid #d1d5db; padding: 3px 2px; font-size: 10px; line-height: 1.15; font-weight: 700; overflow-wrap: anywhere; word-break: break-word; }
+                        th, td { border: 1px solid rgba(0, 0, 0, 0.18); padding: 3px 2px; font-size: 10.5px; line-height: 1.15; font-weight: 700; overflow-wrap: anywhere; word-break: break-word; color: #000; background: #fff; }
+                        th { background: #fff; text-align: center; color: #000; font-size: 11px; }
                         .cell-cantidad, .cell-precio, .cell-subtotal { white-space: nowrap; overflow-wrap: normal; word-break: normal; text-align: center; }
                         .cell-subtotal { font-size: 9.5px; font-weight: 800; }
                         th:nth-child(1), td:nth-child(1) { width: 15%; text-align: center; }
@@ -3969,16 +4198,17 @@ if (is_file($logoPdfPath)) {
                         th:nth-child(3), td:nth-child(3) { width: 11%; text-align: center; }
                         th:nth-child(4), td:nth-child(4) { width: 17%; text-align: center; }
                         th:nth-child(5), td:nth-child(5) { width: 20%; text-align: center; }
-                        th { background: #f3f4f6; text-align: center; }
+                        th { background: #fff; text-align: center; color: #000; }
                         .sin-imagenes th:nth-child(1), .sin-imagenes td:nth-child(1) { width: 37%; }
                         .sin-imagenes th:nth-child(2), .sin-imagenes td:nth-child(2) { width: 11%; }
                         .sin-imagenes th:nth-child(3), .sin-imagenes td:nth-child(3) { width: 17%; }
                         .sin-imagenes th:nth-child(4), .sin-imagenes td:nth-child(4) { width: 35%; }
                         .total { margin-top: 8px; text-align: right; font-size: 14px; font-weight: 800; }
-                        footer { width: 100%; background: #ffffff; color: #0b1f3a; padding: 6px 0 0; display: flex; justify-content: center; align-items: center; gap: 5px; flex-wrap: wrap; font-size: 10px; font-weight: 700; text-align: center; box-sizing: border-box; border-top: 1px solid #d1d5db; }
-                        footer span { display: inline-flex; align-items: center; justify-content: center; gap: 4px; line-height: 1; }
-                        footer .footer-wordmark { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
-                        footer .footer-brand-logo { width: 28px; height: 28px; object-fit: contain; display: inline-flex; vertical-align: middle; }
+                        footer { width: 100%; background: #ffffff; color: #000; padding: 6px 0 0; display: flex; justify-content: center; align-items: center; gap: 5px; flex-wrap: wrap; font-size: 10px; font-weight: 800; text-align: center; box-sizing: border-box; border-top: 1px solid rgba(0, 0, 0, 0.3); }
+                        .footer-thanks { display: block; width: 100%; line-height: 1.25; }
+                        footer span { display: inline-flex; align-items: center; justify-content: center; gap: 4px; line-height: 1; color: #000; font-weight: 800; }
+                        footer .footer-wordmark { display: inline-flex; align-items: center; justify-content: center; gap: 4px; color: #000; font-weight: 900; }
+                        footer .footer-brand-logo { width: 28px; height: 28px; object-fit: contain; display: inline-flex; vertical-align: middle; filter: brightness(0) contrast(1.5); }
                         @media print { body { margin: 0; } .header, table, .total, footer { page-break-inside: avoid; } }
                     </style>
                 </head>
@@ -4008,6 +4238,9 @@ if (is_file($logoPdfPath)) {
                         <div class="total">TOTAL: ${formatoPrecioUnitarioInventario(grupo.total)}</div>
                     </div>
                     <footer>
+                        <span class="footer-thanks">¡ GRACIAS POR TU COMPRA !</span>
+                        <span class="footer-thanks">¡ GRACIAS POR PREFERIRNOS !</span>
+                        <span class="footer-thanks">¡ VUELVE PRONTO !</span>
                         <span>&copy; ${new Date().getFullYear()}</span>
                         <span class="footer-wordmark">
                             <img src="${base_url + '/favicon.ico'}" alt="Favicon" class="footer-brand-logo">
@@ -4062,8 +4295,7 @@ if (is_file($logoPdfPath)) {
             const precioBase = parseFloat(option?.getAttribute('data-precio') || 0) || 0;
             const descuentoPct = parseFloat(option?.getAttribute('data-descuento') || 0) || 0;
             const stockActual = parseFloat(option?.getAttribute('data-stock') || 0) || 0;
-            const categoriaPeso = String(select.dataset.categoriaPeso || '').toLowerCase();
-            const esPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option?.dataset.ventaPorKilo || '').toLowerCase()) || categoriaPeso === 'frutas' || categoriaPeso === 'verduras';
+            const esPorKilo = esProductoPorKilosSalida(option);
             const cantidadSeleccionada = normalizarCantidadSalida(document.getElementById('cantidadSalida')?.value || '1', esPorKilo);
             const precioFinalAtributo = parseFloat(option?.getAttribute('data-precio-final') || 0) || 0;
             const precioFinal = (precioFinalAtributo > 0 && precioBase > 0 && precioFinalAtributo <= precioBase)
@@ -4093,6 +4325,16 @@ if (is_file($logoPdfPath)) {
             return Math.max(1, Math.floor(numero));
         }
 
+        function esProductoPorKilosSalida(option) {
+            const valor = option?.dataset?.ventaPorKilo ?? option?.getAttribute?.('data-venta-por-kilo') ?? '0';
+            return ['1', 'true', 'si', 'sí'].includes(String(valor).trim().toLowerCase());
+        }
+
+        function esCategoriaEspecialSalida(option) {
+            const categoria = normalizarTextoBusquedaInventario(option?.dataset?.categoriaNombre || '');
+            return ['frutas', 'verduras', 'carnicos y refrigerados'].includes(categoria);
+        }
+
         function iconoCategoriaSalida(nombre) {
             const categoria = normalizarTextoBusquedaInventario(nombre);
             if (categoria.includes('frut')) return 'fa-apple-whole';
@@ -4105,23 +4347,30 @@ if (is_file($logoPdfPath)) {
 
         function perteneceGrupoCategoriaSalida(nombre, grupo) {
             const categoria = normalizarTextoBusquedaInventario(nombre);
-            if (grupo === 'frutas') return categoria.startsWith('frut');
-            if (grupo === 'verduras') return categoria.startsWith('verdur');
-            if (grupo === 'carnicos' || grupo === 'carnicos-refrigerados') return categoria.includes('carn') || categoria.includes('refrig') || categoria.includes('ques') || categoria.includes('pesc');
+            if (grupo === 'frutas') return categoria === 'frutas';
+            if (grupo === 'verduras') return categoria === 'verduras';
+            if (grupo === 'carnicos' || grupo === 'carnicos-refrigerados') return categoria === 'carnicos y refrigerados';
             return false;
         }
 
         function actualizarModoBalanzaPorProducto() {
             const select = document.getElementById('productoSalida');
             const opcion = select?.options[select.selectedIndex];
-            const categoriaPeso = String(select?.dataset.categoriaPeso || '').toLowerCase();
-            const esPorKiloProducto = ['1', 'true', 'si', 'sí'].includes(String(opcion?.dataset.ventaPorKilo || '').toLowerCase());
-            const esPorKilo = esPorKiloProducto || categoriaPeso === 'frutas' || categoriaPeso === 'verduras';
+            const esPorKilo = esProductoPorKilosSalida(opcion);
             const pesoBarra = document.getElementById('pesoCategoriaSalidaBarra');
             const cantidad = document.getElementById('cantidadSalida');
             const etiqueta = document.getElementById('unidadSalidaLabel');
+            const detalle = document.getElementById('productoSalidaDetalle');
+            const botonAgregar = document.getElementById('agregarProductoSalidaBtn');
+            const esCategoriaEspecial = esCategoriaEspecialSalida(opcion);
+            const categoriaSeleccionada = normalizarTextoBusquedaInventario(opcion?.dataset?.categoriaNombre || '');
+            const textoAgregar = categoriaSeleccionada === 'frutas'
+                ? 'AGREGAR FRUTA'
+                : (categoriaSeleccionada === 'verduras' ? 'AGREGAR VERDURA' : 'AGREGAR CÁRNICOS Y REFRIGERADOS');
             ventaPorPesoCategoriaActiva = esPorKilo;
-            if (etiqueta) etiqueta.textContent = esPorKilo ? 'KILOS' : 'CANTIDAD';
+            if (detalle) detalle.style.display = esCategoriaEspecial ? 'flex' : 'none';
+            if (etiqueta) etiqueta.textContent = esPorKilo ? 'X KILOS' : 'CANTIDAD';
+            if (botonAgregar) botonAgregar.innerHTML = `<i class="fas fa-cart-plus"></i> ${esCategoriaEspecial ? textoAgregar : 'AGREGAR PRODUCTO'}`;
             actualizarEstadoBalanzaSalida(esPorKilo ? 'conectando' : 'oculta');
             if (pesoBarra) pesoBarra.style.display = 'block';
             if (cantidad) {
@@ -4185,8 +4434,8 @@ if (is_file($logoPdfPath)) {
                     const imagen = resolverImagenProductoInventario(option.dataset.imagen || '');
                     const nombre = (option.dataset.nombre || option.textContent || '').trim();
                     const codigo = String(option.dataset.codigo || '').replace(/[/*()]/g, '').trim();
-                    tarjeta.dataset.searchText = `${nombre} ${codigo}`.toUpperCase();
-                    const esPorKiloTarjeta = ['1', 'true', 'si', 'sí'].includes(String(option.dataset.ventaPorKilo || '').toLowerCase()) || categoria === 'frutas' || categoria === 'verduras';
+                    tarjeta.dataset.searchText = normalizarTextoBusquedaInventario(`${nombre} ${codigo} ${option.dataset.barcode || ''}`);
+                    const esPorKiloTarjeta = esProductoPorKilosSalida(option);
                     const precio = parseFloat(option.dataset.precio || 0) || 0;
                     const stock = parseFloat(option.dataset.stock || 0) || 0;
                     tarjeta.disabled = stock <= 0;
@@ -4223,9 +4472,9 @@ if (is_file($logoPdfPath)) {
             }
             if (buscador) {
                 buscador.oninput = () => {
-                    const termino = buscador.value.trim().toUpperCase();
+                    const termino = normalizarTextoBusquedaInventario(buscador.value);
                     grid.querySelectorAll('button[data-search-text]').forEach((tarjeta) => {
-                        tarjeta.style.display = !termino || tarjeta.dataset.searchText.includes(termino) ? 'flex' : 'none';
+                        tarjeta.style.display = coincideBusquedaInventario(tarjeta.dataset.searchText, termino) ? 'flex' : 'none';
                     });
                 };
                 buscador.onkeydown = (event) => {
@@ -4797,6 +5046,12 @@ if (is_file($logoPdfPath)) {
             const referencia = document.getElementById('referenciaSalida');
             const cantidad = document.getElementById('cantidadSalida');
 
+            if (temporizadorAgregarSalidaAutomatico) {
+                clearTimeout(temporizadorAgregarSalidaAutomatico);
+                temporizadorAgregarSalidaAutomatico = null;
+            }
+            if (buscar) buscar.dataset.agregandoAutomatico = '0';
+
             if (select) {
                 select.value = '';
                 productoSalidaSeleccionadoPorCategoria = null;
@@ -4825,6 +5080,8 @@ if (is_file($logoPdfPath)) {
             }
             const resumenPeso = document.getElementById('pesoSalidaResumen');
             if (resumenPeso) resumenPeso.textContent = 'PESO: --.--- KG';
+            const detalle = document.getElementById('productoSalidaDetalle');
+            if (detalle) detalle.style.display = 'none';
 
             if (!preservarReferencia) {
                 inicializarReferenciaSalida();
@@ -4984,6 +5241,7 @@ if (is_file($logoPdfPath)) {
             const producto = productoSalidaSeleccionado();
             try { console.log('agregarProductoSalida - producto:', producto); } catch(e) {}
             if (!producto || !producto.producto_id) {
+                if (document.getElementById('buscarProductoSalida')?.dataset.agregandoAutomatico === '1') return;
                 aseguraryMostrarSwalEstilizado('Selecciona un producto para agregar al carrito de salida.');
                 return;
             }
@@ -5075,6 +5333,18 @@ if (is_file($logoPdfPath)) {
             renderCarritoSalida();
         }
 
+        function redondearTotalSalida(valor) {
+            const total = Math.max(0, Number(valor) || 0);
+            const baseRedondeo = Math.floor(total / 100) * 100;
+            return baseRedondeo + (total % 100 > 20 ? 100 : 0);
+        }
+
+        function calcularTotalItemsSalida(items) {
+            return items.reduce((total, item) => {
+                return total + ((Number(item.precio_venta) || 0) * (Number(item.cantidad) || 0));
+            }, 0);
+        }
+
         function renderCarritoSalida() {
             const tbody = document.getElementById('carritoSalidaBody');
             const totalEl = document.getElementById('totalCarritoSalida');
@@ -5103,6 +5373,18 @@ if (is_file($logoPdfPath)) {
                 const subtotal = esPorKilo ? (pesoEnGramos / 1000) * precio : precio * cantidad;
                 const imgSrc = resolverImagenProductoInventario(item.imagen);
                 totalGeneral += subtotal;
+                const presentaciones = Array.isArray(item.presentaciones) ? item.presentaciones : [];
+                const presentacionesHtml = presentaciones.length > 1
+                    ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;" role="group" aria-label="Presentación de ${escapeHtmlInventario(item.nombre || 'producto')}">
+                        ${presentaciones.map(pres => {
+                            const activa = Number(pres.id) === Number(item.presentacion_id || 0);
+                            const estilo = activa
+                                ? 'min-width:78px;min-height:32px;padding:6px 10px;border:2px solid #1e3a8a;border-radius:6px;background:#2563eb;color:#fff;cursor:pointer;font-size:12px;font-weight:800;text-transform:uppercase;box-shadow:0 0 0 3px rgba(37,99,235,.22);'
+                                : 'min-width:78px;min-height:32px;padding:6px 10px;border:2px solid #bfdbfe;border-radius:6px;background:#eff6ff;color:#1d4ed8;cursor:pointer;font-size:12px;font-weight:800;text-transform:uppercase;';
+                            return `<button type="button" aria-pressed="${activa ? 'true' : 'false'}" onclick="seleccionarPresentacionCarrito(${item.producto_id}, ${Number(pres.id)})" style="${estilo}">${escapeHtmlInventario(String(pres.nombre || '').toUpperCase())}${activa ? ' <i class="fas fa-check"></i>' : ''}</button>`;
+                        }).join('')}
+                    </div>`
+                    : '';
 
                 const precioCell = descuentoPct > 0 && precioOriginal > precio
                     ? `<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start;">
@@ -5114,7 +5396,7 @@ if (is_file($logoPdfPath)) {
 
                 row.innerHTML = `
                     <td style="text-align:center;"><img src="${imgSrc}" alt="${escapeHtmlInventario(item.nombre || 'Producto')}" style="width:44px;height:44px;object-fit:contain;border-radius:8px;background:#fff;border:1px solid #e2e8f0;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"></td>
-                    <td>${item.nombre || 'Producto'}</td>
+                    <td><div>${item.nombre || 'Producto'}</div>${presentacionesHtml}</td>
                     <td>${codigo}</td>
                     <td>${precioCell}</td>
                     <td style="min-width: 130px;">
@@ -5139,10 +5421,31 @@ if (is_file($logoPdfPath)) {
                 `;
                 tbody.appendChild(row);
             });
-
+                    totalEl.textContent = formatoMonedaInventario(redondearTotalSalida(totalGeneral));
             if (totalEl) {
                 totalEl.textContent = formatoMonedaInventario(totalGeneral);
             }
+        }
+
+        function seleccionarPresentacionCarrito(productoId, presentacionId) {
+            const item = carritoSalida.find(producto => Number(producto.producto_id) === Number(productoId));
+            const presentaciones = Array.isArray(item?.presentaciones) ? item.presentaciones : [];
+            const seleccion = presentaciones.find(pres => Number(pres.id) === Number(presentacionId));
+            if (!item || !seleccion) return;
+
+            const factor = Number(seleccion.factor_base || 1) > 0 ? Number(seleccion.factor_base) : 1;
+            const stockBase = Number(item.stock_base ?? item.stock ?? 0) || 0;
+            item.presentacion_id = Number(seleccion.id);
+            item.presentacion_nombre = String(seleccion.nombre || '').toUpperCase();
+            item.presentacion_factor = factor;
+            item.stock = factor > 1 ? Math.floor(stockBase / factor) : stockBase;
+            item.precio = Number(seleccion.precio_venta || 0) || Number(item.precio_producto || item.precio || 0);
+            item.precio_original = item.precio;
+            item.precio_venta = item.precio;
+            item.cantidad = 1;
+            item.nombre_base = item.nombre_base || String(item.nombre || '').replace(/\s·\s[^·]+$/, '');
+            item.nombre = `${item.nombre_base} · ${item.presentacion_nombre}`;
+            renderCarritoSalida();
         }
 
         // Cerrar modal al hacer clic fuera: bloqueado para entrada/salida para no perder productos cargados
@@ -5167,25 +5470,32 @@ if (is_file($logoPdfPath)) {
             const esResumenVentas = /^(efectivo|transferencia|ganancia|valorVentas)(Dia|Mes)$/.test(elementoId)
                 || elementoId === 'totalDiaCard'
                 || elementoId === 'gananciaDiaCard';
-            const esValorInventario = elementoId === 'valorTotal';
+            const esValorInventario = elementoId === 'valorTotal' || ['valorTotalDetalle', 'valorCompraDetalle', 'valorGananciaDetalle'].includes(elementoId);
 
-            let tamano = esResumenVentas ? 22 : 32;
-            if (esValorInventario) tamano = 32;
+            let tamano = esResumenVentas ? 22 : 38;
+            let tamanoMinimo = esValorInventario ? 19 : 12;
+            let tamanoMaximo = esValorInventario ? 56 : 34;
+
             if (!esResumenVentas) {
                 if (longitud >= 14) {
-                    tamano = esValorInventario ? 22 : 18;
+                    tamano = esValorInventario ? 40 : 22;
                 } else if (longitud >= 12) {
-                    tamano = esValorInventario ? 24 : 20;
+                    tamano = esValorInventario ? 44 : 24;
                 } else if (longitud >= 10) {
-                    tamano = esValorInventario ? 26 : 24;
+                    tamano = esValorInventario ? 48 : 28;
                 } else if (longitud >= 8) {
-                    tamano = esValorInventario ? 28 : 28;
+                    tamano = esValorInventario ? 52 : 30;
                 }
             }
 
             valorEl.style.fontSize = tamano + 'px';
+
             if (!esResumenVentas) {
-                const tamanoMinimo = esValorInventario ? 20 : 12;
+                while (valorEl.scrollWidth < valorEl.clientWidth && tamano < tamanoMaximo) {
+                    tamano += 1;
+                    valorEl.style.fontSize = tamano + 'px';
+                }
+
                 while (valorEl.scrollWidth > valorEl.clientWidth && tamano > tamanoMinimo) {
                     tamano -= 1;
                     valorEl.style.fontSize = tamano + 'px';
@@ -5422,7 +5732,7 @@ if (is_file($logoPdfPath)) {
         function calcularPrecioFinalConDescuento(precioBase, descuentoPorcentaje, stock) {
             const original = parseFloat(precioBase) || 0;
             const descuento = parseFloat(descuentoPorcentaje) || 0;
-            const stockActual = parseInt(stock, 10) || 0;
+            const stockActual = parseFloat(stock) || 0;
 
             if (stockActual <= 0 || original <= 0 || descuento <= 0) {
                 return original;
@@ -5482,19 +5792,23 @@ if (is_file($logoPdfPath)) {
                     console.log('Datos de estadísticas:', data);
                     if (data.success && data.data) {
                         const totalProductos = parseInt(data.data.total_productos) || 0;
-                        const stockTotal = parseInt(data.data.stock_total) || 0;
+                        const stockTotal = parseFloat(data.data.stock_total) || 0;
                         const valorTotal = parseFloat(data.data.valor_total) || 0;
+                        const valorCompraTotal = parseFloat(data.data.valor_compra_total) || 0;
                         const bajoStock = parseInt(data.data.bajo_stock) || 0;
 
                         if (document.getElementById('totalProductos')) {
                             document.getElementById('totalProductos').textContent = totalProductos;
                         }
                         if (document.getElementById('stockTotal')) {
-                            document.getElementById('stockTotal').textContent = stockTotal;
+                            document.getElementById('stockTotal').textContent = formatoStockTotalVisible(stockTotal);
                         }
                         if (document.getElementById('valorTotal')) {
                             document.getElementById('valorTotal').textContent = formatoMonedaCompleta(valorTotal);
                             ajustarTamanoValorInventario();
+                        }
+                        if (document.getElementById('valorCompraTotal')) {
+                            document.getElementById('valorCompraTotal').textContent = formatoMonedaCompleta(valorCompraTotal);
                         }
                         if (document.getElementById('bajoStock')) {
                             document.getElementById('bajoStock').textContent = bajoStock;
@@ -5551,11 +5865,6 @@ if (is_file($logoPdfPath)) {
                     return r.json();
                 })
                 .then(data => {
-                    console.log('=== DATOS COMPLETOS RECIBIDOS ===');
-                    console.log(data);
-                    console.log('Success:', data.success);
-                    console.log('Data length:', data.data ? data.data.length : 'undefined');
-                    
                     if (data.success) {
                         tbody.innerHTML = '';
                         
@@ -5565,14 +5874,12 @@ if (is_file($logoPdfPath)) {
                             return;
                         }
                         
-                        console.log('Procesando', data.data.length, 'productos...');
                         actualizarSugerenciasResumen(data.data);
                         
                         const productosOrdenados = [...data.data].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+                        const filas = document.createDocumentFragment();
 
-                        productosOrdenados.forEach((item, index) => {
-                            // after adding rows we will reapply filtro if any
-                            console.log('Producto ' + (index + 1) + ':', item);
+                        productosOrdenados.forEach((item) => {
                             const row = document.createElement('tr');
                             
                             // Preparar imagen del producto
@@ -5612,18 +5919,16 @@ if (is_file($logoPdfPath)) {
                                     </div>
                                 </td>
                                 <td>${(item.categoria || 'N/A').toUpperCase()}</td>
-                                <td><span class="badge ${item.stock < 5 ? 'badge-danger' : 'badge-success'}">${item.stock || 0}</span></td>
+                                <td><span class="badge ${item.stock < 5 ? 'badge-danger' : 'badge-success'}">${formatoStockVisible(item.stock, item.categoria, item.venta_por_kilo)}</span></td>
                                 <td>${formatoMonedaInventario(precioBase)}</td>
                                 <td><span class="badge ${gananciaBadge}">${porcentajeGanancia.toFixed(1)}%</span></td>
                                 <td>${ventas30Dias}</td>
                                 <td>${entradas30Dias}</td>
                                 <td style="text-align:center;"><button class="btn-info btn-action" title="Salida" onclick="prepararSalida(${item.id})"><i class="fas fa-shopping-cart"></i></button></td>
                             `;
-                            tbody.appendChild(row);
-                            console.log('Fila agregada para:', item.nombre);
+                            filas.appendChild(row);
                         });
-                                                
-                        console.log('=== PRODUCTOS CARGADOS EN TABLA ===');
+                        tbody.appendChild(filas);
                     } else {
                         console.error('Error en la respuesta del servidor:', data.message);
                         tbody.innerHTML = '<tr><td colspan="' + obtenerColspanResumen() + '" style="text-align: center; padding: 20px; color: #ff6b6b;">ERROR: ' + (data.message || 'Error desconocido') + '</td></tr>';
@@ -5923,7 +6228,7 @@ if (is_file($logoPdfPath)) {
             }).join('');
             const periodoTexto = periodoSeleccionado === 'TODOS' ? 'TODOS LOS MESES Y AÑOS' : periodoSeleccionado.startsWith('ANIO-') ? `AÑO ${periodoSeleccionado.replace('ANIO-', '')}` : (() => { const [anio, mes] = periodoSeleccionado.split('-'); return `${mesesNombre[Number(mes) - 1]} ${anio}`; })();
             const logoReporteUrl = window.electronAPI ? logoImpresionUrl : logoEmpresaUrl;
-            const html = `<!doctype html><html><head><meta charset="UTF-8"><title>REPORTE DE VENTAS</title><style>body{font-family:Arial,sans-serif;text-transform:uppercase;margin:24px;color:#17212b}.encabezado{display:flex;align-items:center;gap:18px;border-bottom:2px solid #17212b;padding-bottom:14px;margin-bottom:16px}.encabezado img{width:100px;height:80px;object-fit:contain}.empresa{font-size:18px;font-weight:800}.subtitulo{font-size:14px;margin-top:5px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #b8c2cc;padding:6px;text-align:left;vertical-align:middle}th:nth-child(3),td:nth-child(3),th:nth-child(4),td:nth-child(4),th:nth-child(6),td:nth-child(6),th:nth-child(7),td:nth-child(7),th:nth-child(8),td:nth-child(8){text-align:center;vertical-align:middle}td img{display:block;margin:auto}.mes th{background:#dbeafe;color:#0f172a;text-align:center;font-size:13px}@media print{.mes{page-break-after:avoid}}</style></head><body><header class="encabezado">${logoReporteUrl ? `<img src="${escapeHtml(logoReporteUrl)}" alt="LOGO DE LA EMPRESA">` : ''}<div><div class="empresa">${escapeHtml(nombreEmpresa)}</div><div class="subtitulo">REPORTE DE VENTAS</div><div class="subtitulo">PERIODO: ${periodoTexto}</div></div></header><table><tbody>${filas}</tbody></table></body></html>`;
+            const html = `<!doctype html><html><head><meta charset="UTF-8"><title>REPORTE DE VENTAS</title><style>body{font-family:Arial,sans-serif;text-transform:uppercase;margin:24px;color:#000;text-shadow:none;-webkit-text-stroke:0}.encabezado{display:flex;align-items:center;gap:18px;border-bottom:2px solid #000;padding-bottom:14px;margin-bottom:16px}.encabezado img{width:100px;height:80px;object-fit:contain}.empresa{font-size:18px;font-weight:800;color:#000}.subtitulo{font-size:14px;margin-top:5px;color:#000}table{width:100%;border-collapse:collapse;font-size:11px;color:#000}th,td{border:1px solid #000;padding:6px;text-align:left;vertical-align:middle;color:#000;background:#fff}th:nth-child(3),td:nth-child(3),th:nth-child(4),td:nth-child(4),th:nth-child(6),td:nth-child(6),th:nth-child(7),td:nth-child(7),th:nth-child(8),td:nth-child(8){text-align:center;vertical-align:middle}td img{display:block;margin:auto}.mes th{background:#fff;color:#000;text-align:center;font-size:13px}@media print{.mes{page-break-after:avoid}}</style></head><body><header class="encabezado">${logoReporteUrl ? `<img src="${escapeHtml(logoReporteUrl)}" alt="LOGO DE LA EMPRESA">` : ''}<div><div class="empresa">${escapeHtml(nombreEmpresa)}</div><div class="subtitulo">REPORTE DE VENTAS</div><div class="subtitulo">PERIODO: ${periodoTexto}</div></div></header><table><tbody>${filas}</tbody></table></body></html>`;
             if (typeof window.electronAPI?.printHtml === 'function') {
                 const resultado = await window.electronAPI.printHtml({ html, title: 'REPORTE DE VENTAS', silent: false, preview: true, pageSize: 'A4' });
                 if (resultado?.success) return;
@@ -7183,7 +7488,7 @@ if (is_file($logoPdfPath)) {
             abrirModal('valorInventarioModal');
             cargarDetalleValor();
         }
-        
+
         // Cargar desglose de valor del inventario
         function cargarDetalleValor() {
             fetch(inventarioControllerUrl + '?action=obtenerValorInventario')
@@ -7193,21 +7498,29 @@ if (is_file($logoPdfPath)) {
                         const inventario = data.data;
                         const totalProductosDetalleEl = document.getElementById('totalProductosDetalle');
                         const valorTotalDetalleEl = document.getElementById('valorTotalDetalle');
+                        const valorCompraDetalleEl = document.getElementById('valorCompraDetalle');
+                        const valorGananciaDetalleEl = document.getElementById('valorGananciaDetalle');
                         const unidadesTotalesDetalleEl = document.getElementById('unidadesTotalesDetalle');
                         const tbody = document.getElementById('detalleValorBody');
 
-                        if (!totalProductosDetalleEl || !valorTotalDetalleEl || !unidadesTotalesDetalleEl || !tbody) {
+                        if (!totalProductosDetalleEl || !valorTotalDetalleEl || !valorCompraDetalleEl || !valorGananciaDetalleEl || !unidadesTotalesDetalleEl || !tbody) {
                             return;
                         }
                         
                         // Actualizar encabezados
                         totalProductosDetalleEl.textContent = inventario.cantidad_productos || 0;
                         valorTotalDetalleEl.textContent = '$' + parseFloat(inventario.valor_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
+                        valorCompraDetalleEl.textContent = '$' + parseFloat(inventario.valor_compra_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
+                        valorGananciaDetalleEl.textContent = '$' + parseFloat(inventario.valor_ganancia_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
+
+                        ajustarTamanoTextoStat('valorTotalDetalle');
+                        ajustarTamanoTextoStat('valorCompraDetalle');
+                        ajustarTamanoTextoStat('valorGananciaDetalle');
                         
                         // Calcular unidades totales
                         let totalUnidades = 0;
                         inventario.productos.forEach(p => {
-                            totalUnidades += parseInt(p.stock) || 0;
+                            totalUnidades += parseFloat(p.stock) || 0;
                         });
                         unidadesTotalesDetalleEl.textContent = totalUnidades;
                         
@@ -7581,6 +7894,18 @@ if (is_file($logoPdfPath)) {
                 .trim();
         }
 
+        function coincideBusquedaInventario(valor, consulta) {
+            const texto = normalizarTextoBusquedaInventario(valor);
+            const busqueda = normalizarTextoBusquedaInventario(consulta);
+            if (!busqueda) return true;
+            const tokens = busqueda.split(' ').filter(Boolean);
+            return tokens.every(token => texto.includes(token)) || texto.replace(/\s/g, '').includes(tokens.join(''));
+        }
+
+            function esCategoriaGramosInventario(nombre) {
+                return ['frutas', 'verduras', 'carnicos y refrigerados'].includes(normalizarTextoBusquedaInventario(nombre));
+            }
+
             function normalizarCodigoBarrasInventario(valor) {
                 return String(valor || '').replace(/\D/g, '');
             }
@@ -7603,16 +7928,23 @@ if (is_file($logoPdfPath)) {
                 const opciones = Array.from(select.options).filter((opt) => {
                     if (opt.value === '') return false;
                     if (selectId === 'productoSalida' && (parseFloat(opt.getAttribute('data-stock') || '0') || 0) <= 0) return false;
+                    if (selectId === 'productoDanado' && opt.dataset.grupo !== (select.dataset.grupo || 'perecederos')) return false;
                     return true;
                 });
                 const categoriaFiltro = select.dataset.categoriaFiltro || '';
 
                 const coincidencias = opciones.filter((option) => {
-                    const nombre = normalizarTextoBusquedaInventario(option.textContent || '');
+                    const nombre = [
+                        option.textContent || '',
+                        option.dataset.codigo || '',
+                        option.dataset.barcode || '',
+                        option.dataset.categoriaNombre || ''
+                    ].join(' ');
                     const categoriaNombre = normalizarTextoBusquedaInventario(option.dataset.categoriaNombre || '');
                     const perteneceCategoria = !categoriaFiltro
                         || perteneceGrupoCategoriaSalida(categoriaNombre, categoriaFiltro);
-                    return perteneceCategoria && (!texto || nombre.includes(texto));
+                    const coincideBusqueda = coincideBusquedaInventario(nombre, texto);
+                    return perteneceCategoria && coincideBusqueda;
                 });
 
                 results.innerHTML = coincidencias.map((option) => `
@@ -7636,6 +7968,7 @@ if (is_file($logoPdfPath)) {
                 const codigo = normalizarCodigoBarrasInventario(input.value);
                 if (!/^\d{8,14}$/.test(codigo)) return;
                 const opcionCodigo = Array.from(select.options).find((option) =>
+                    (selectId !== 'productoDanado' || option.dataset.grupo === (select.dataset.grupo || 'perecederos')) &&
                     normalizarCodigoBarrasInventario(option.getAttribute('data-barcode')) === codigo
                 );
                 if (opcionCodigo && input.dataset.lectorPreparado !== '1') {
@@ -7670,6 +8003,7 @@ if (is_file($logoPdfPath)) {
                     return;
                 }
                 const coincidenciaCodigo = Array.from(select.options).find((option) =>
+                    (selectId !== 'productoDanado' || option.dataset.grupo === (select.dataset.grupo || 'perecederos')) &&
                     normalizarCodigoBarrasInventario(option.getAttribute('data-barcode')) === codigoEscaneado
                 );
                 const primeraVisible = results.querySelector('.inventario-search-option');
@@ -7689,7 +8023,7 @@ if (is_file($logoPdfPath)) {
                             )
                             : null;
                         const stockProducto = productoEnInventario
-                            ? parseInt(productoEnInventario.getAttribute('data-stock') || '0', 10) || 0
+                            ? parseFloat(productoEnInventario.getAttribute('data-stock') || '0') || 0
                             : null;
                         Swal.fire({
                             icon: 'warning',
@@ -7766,12 +8100,15 @@ if (is_file($logoPdfPath)) {
             if (select.id === 'productoSalida') {
                 const cantidad = document.getElementById('cantidadSalida');
                 if (cantidad) {
-                    const esPorKilo = option.dataset.ventaPorKilo === '1';
+                    const esPorKilo = esProductoPorKilosSalida(option);
+                    cantidad.min = esPorKilo ? '0.001' : '1';
+                    cantidad.step = esPorKilo ? '0.001' : '1';
                     cantidad.value = esPorKilo ? '0.001' : '1';
                 }
+                programarAgregarSalidaSeleccionada(select, input);
                 input.focus();
             } else {
-                const esPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option.dataset.ventaPorKilo || '').toLowerCase());
+                const esPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option.dataset.ventaPorKilo || '0').trim().toLowerCase());
                 const cantidad = document.getElementById('cantidadEntrada');
                 const etiqueta = document.getElementById('unidadEntradaLabel');
                 if (etiqueta) etiqueta.textContent = esPorKilo ? 'KILOS' : 'CANTIDAD';
@@ -7784,12 +8121,40 @@ if (is_file($logoPdfPath)) {
             }
         }
 
+        let temporizadorAgregarSalidaAutomatico = null;
+
+        function programarAgregarSalidaSeleccionada(select, input) {
+            if (!select || select.id !== 'productoSalida' || !input) return;
+            if (temporizadorAgregarSalidaAutomatico) {
+                clearTimeout(temporizadorAgregarSalidaAutomatico);
+                temporizadorAgregarSalidaAutomatico = null;
+            }
+            const productoIdSeleccionado = String(select.value || '');
+            if (!productoIdSeleccionado) return;
+            input.dataset.agregandoAutomatico = '1';
+            const inicio = Date.now();
+            const esperarPresentacion = () => {
+                if (String(select.value || '') !== productoIdSeleccionado) {
+                    input.dataset.agregandoAutomatico = '0';
+                    temporizadorAgregarSalidaAutomatico = null;
+                    return;
+                }
+                try {
+                    if (String(select.value || '') === productoIdSeleccionado) agregarProductoSalida();
+                } finally {
+                    input.dataset.agregandoAutomatico = '0';
+                    temporizadorAgregarSalidaAutomatico = null;
+                }
+            };
+            temporizadorAgregarSalidaAutomatico = setTimeout(esperarPresentacion, 120);
+        }
+
         function actualizarUnidadEntrada() {
             const select = document.getElementById('productoEntrada');
             const option = select?.options[select.selectedIndex];
             const cantidad = document.getElementById('cantidadEntrada');
             const etiqueta = document.getElementById('unidadEntradaLabel');
-            const esPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option?.dataset.ventaPorKilo || '').toLowerCase());
+            const esPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option?.dataset.ventaPorKilo || '0').trim().toLowerCase());
             if (etiqueta) etiqueta.textContent = esPorKilo ? 'KILOS' : 'CANTIDAD';
             if (cantidad) {
                 cantidad.min = esPorKilo ? '0.001' : '1';
@@ -7865,6 +8230,11 @@ if (is_file($logoPdfPath)) {
             document.addEventListener('keydown', (event) => {
                 const pestañaSalidas = document.getElementById('salidas');
                 if (!pestañaSalidas || !pestañaSalidas.classList.contains('active')) return;
+                if (document.getElementById('productoDanadoModal')?.classList.contains('active')) {
+                    codigoEnLectura = '';
+                    ultimaTecla = 0;
+                    return;
+                }
                 const modalSalidaActivo = document.getElementById('salidaModal')?.classList.contains('active');
 
                 const ahora = Date.now();
@@ -8057,6 +8427,8 @@ if (is_file($logoPdfPath)) {
                 .then(data => {
                     if (data.success && data.data) {
                         const productos = data.data;
+                        window.todosProductosModalCache = productos;
+                        renderResultadosTodosProductosModal();
                         
                         // Calcular estadísticas
                         let stockTotal = 0;
@@ -8086,7 +8458,7 @@ if (is_file($logoPdfPath)) {
                         }
 
                         modalTotalProductosEl.textContent = productos.length;
-                        modalStockTotalEl.textContent = stockTotal;
+                        modalStockTotalEl.textContent = formatoStockTotalVisible(stockTotal);
                         modalValorTotalEl.textContent = '$' + valorTotal.toLocaleString('es-CO', {maximumFractionDigits: 2});
                         modalTotalCategoriasEl.textContent = categorias.size;
                         
@@ -8101,7 +8473,7 @@ if (is_file($logoPdfPath)) {
                         productos.forEach(item => {
                             const row = document.createElement('tr');
                             const imgSrc = resolverImagenProductoInventario(item.imagen);
-                            const stock = parseInt(item.stock || 0, 10) || 0;
+                            const stock = parseFloat(item.stock || 0) || 0;
                             const precioCompra = stock <= 0 ? 0 : (parseFloat(item.ultimo_precio_compra || item.precio_compra_promedio || 0) || 0);
                             const descuentoPct = stock <= 0 ? 0 : (parseFloat(item.descuento_porcentaje || 0) || 0);
                             const precioOriginal = stock <= 0 ? 0 : (parseFloat(item.precio_original || item.precio || item.precio_venta || 0) || 0);
@@ -8113,7 +8485,7 @@ if (is_file($logoPdfPath)) {
                             let stockBadge = 'badge-success';
                             if (item.stock === 0 || item.stock === '0') {
                                 stockBadge = 'badge-danger';
-                            } else if (parseInt(item.stock) < 5) {
+                            } else if (parseFloat(item.stock) < 5) {
                                 stockBadge = 'badge-warning';
                             }
 
@@ -8152,7 +8524,7 @@ if (is_file($logoPdfPath)) {
                                 <td><strong>${item.codigo_producto || item.id}</strong></td>
                                 <td><strong>${nombreSeguro}</strong></td>
                                 <td>${escapeHtmlInventario(item.categoria_nombre || 'SIN CATEGORÍA')}</td>
-                                <td><span class="badge ${stockBadge}">${item.stock || 0}</span></td>
+                                <td><span class="badge ${stockBadge}">${formatoStockVisible(item.stock, item.categoria_nombre, item.venta_por_kilo)}</span></td>
                                 <td style="color: #e74c3c;">${formatoMonedaInventario(precioCompra)}</td>
                                 <td>${renderResumenPrecioDescuento(precioOriginal, precioVenta, descuentoPct)}</td>
                                 <td style="color: #f39c12; font-weight: bold;">${formatoMonedaInventario(gananciaUnitaria)}</td>
@@ -8168,6 +8540,7 @@ if (is_file($logoPdfPath)) {
                             `;
                             tbody.appendChild(row);
                         });
+                        filtrarTodosProductosModal();
                     }
                 })
                 .catch(e => {
@@ -8178,9 +8551,53 @@ if (is_file($logoPdfPath)) {
                 });
         }
 
+        function normalizarBusquedaTodosProductosModal(valor) {
+            return String(valor || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        }
+
+        function renderResultadosTodosProductosModal() {
+            const input = document.getElementById('buscarTodosProductosModal');
+            const resultados = document.getElementById('resultadosTodosProductosModal');
+            if (!input || !resultados) return;
+            const texto = normalizarBusquedaTodosProductosModal(input.value);
+            const productos = Array.isArray(window.todosProductosModalCache) ? window.todosProductosModalCache : [];
+            const coincidencias = productos.filter(item => normalizarBusquedaTodosProductosModal(`${item.id || ''} ${item.nombre || ''} ${item.codigo_producto || ''}`).includes(texto));
+            resultados.innerHTML = coincidencias.map(item => `<button type="button" data-valor="${escapeHtmlInventario(String(item.nombre || ''))}" style="display:block;width:100%;padding:9px 12px;border:0;border-bottom:1px solid #f1f5f9;background:#fff;text-align:left;cursor:pointer;text-transform:uppercase;">${escapeHtmlInventario(String(item.nombre || ''))}</button>`).join('');
+            resultados.style.display = coincidencias.length && texto ? 'block' : 'none';
+        }
+
+        function filtrarTodosProductosModal() {
+            const input = document.getElementById('buscarTodosProductosModal');
+            const tbody = document.getElementById('todosProductosBody');
+            if (!input || !tbody) return;
+            const texto = normalizarBusquedaTodosProductosModal(input.value);
+            Array.from(tbody.querySelectorAll('tr')).forEach(row => {
+                row.style.display = !texto || normalizarBusquedaTodosProductosModal(row.textContent).includes(texto) ? '' : 'none';
+            });
+            renderResultadosTodosProductosModal();
+        }
+
+        function inicializarBuscadorTodosProductosModal() {
+            const input = document.getElementById('buscarTodosProductosModal');
+            const resultados = document.getElementById('resultadosTodosProductosModal');
+            if (!input || input.dataset.inicializado === '1') return;
+            input.dataset.inicializado = '1';
+            input.addEventListener('input', filtrarTodosProductosModal);
+            input.addEventListener('focus', renderResultadosTodosProductosModal);
+            input.addEventListener('blur', () => setTimeout(() => { if (resultados) resultados.style.display = 'none'; }, 200));
+            if (resultados) resultados.addEventListener('mousedown', event => {
+                const opcion = event.target.closest('button[data-valor]');
+                if (!opcion) return;
+                input.value = opcion.dataset.valor || '';
+                filtrarTodosProductosModal();
+                resultados.style.display = 'none';
+            });
+        }
+
         // Mostrar modal de todos los productos
         function mostrarModalTodosProductos() {
             abrirModal('todosProductosModal');
+            inicializarBuscadorTodosProductosModal();
             cargarTodosProductos();
         }
 
@@ -8192,7 +8609,7 @@ if (is_file($logoPdfPath)) {
                     if (resp && resp.success && resp.data) {
                         const p = resp.data;
                         const body = document.getElementById('verProductoBody');
-                        const stock = parseInt(p.stock ?? 0, 10) || 0;
+                        const stock = parseFloat(p.stock ?? 0) || 0;
                         const precioCompra = stock <= 0 ? 0 : (parseFloat(p.ultimo_precio_compra ?? 0) || 0);
                         const precioOriginal = stock <= 0 ? 0 : (parseFloat(p.precio_original ?? p.precio ?? 0) || parseFloat(p.precio ?? 0) || 0);
                         const descuentoPct = stock <= 0 ? 0 : (parseFloat(p.descuento_porcentaje ?? 0) || 0);
@@ -8235,7 +8652,92 @@ if (is_file($logoPdfPath)) {
                 });
         }
 
+        function cargarDetalleValorCompra() {
+            fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success || !Array.isArray(data.data)) {
+                        throw new Error(data.message || 'No se pudo cargar el valor de compra');
+                    }
+
+                    const productos = data.data.filter(item => Number(item.estado) === 1 && (parseFloat(item.stock) || 0) > 0);
+                    const totalProductosDetalleEl = document.getElementById('totalProductosCompraDetalle');
+                    const valorTotalDetalleEl = document.getElementById('valorCompraTotalDetalle');
+                    const unidadesTotalesDetalleEl = document.getElementById('unidadesTotalesCompraDetalle');
+                    const tbody = document.getElementById('detalleValorCompraBody');
+
+                    if (!totalProductosDetalleEl || !valorTotalDetalleEl || !unidadesTotalesDetalleEl || !tbody) {
+                        return;
+                    }
+
+                    let totalUnidades = 0;
+                    let valorCompraTotal = 0;
+
+                    const productosConValores = productos.map(item => {
+                        const stock = parseFloat(item.stock) || 0;
+                        const precioCompra = parseFloat(item.ultimo_precio_compra ?? item.precio_compra_promedio ?? item.precio_compra ?? 0) || 0;
+                        const valorTotalCompra = stock * precioCompra;
+                        totalUnidades += stock;
+                        valorCompraTotal += valorTotalCompra;
+                        return {
+                            ...item,
+                            stock,
+                            precioCompra,
+                            valorTotalCompra
+                        };
+                    }).sort((a, b) => (b.valorTotalCompra || 0) - (a.valorTotalCompra || 0));
+
+                    totalProductosDetalleEl.textContent = productosConValores.length;
+                    valorTotalDetalleEl.textContent = '$' + valorCompraTotal.toLocaleString('es-CO', { maximumFractionDigits: 2 });
+                    unidadesTotalesDetalleEl.textContent = totalUnidades;
+                    tbody.innerHTML = '';
+
+                    if (productosConValores.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No hay productos con stock</td></tr>';
+                        return;
+                    }
+
+                    productosConValores.forEach(prod => {
+                        const row = document.createElement('tr');
+                        const imgSrc = resolverImagenProductoInventario(prod.imagen);
+                        const porcentaje = valorCompraTotal > 0 ? ((prod.valorTotalCompra / valorCompraTotal) * 100).toFixed(1) : '0.0';
+                        row.innerHTML = `
+                            <td style="text-align: center;">
+                                <div class="img-container">
+                                    <img src="${imgSrc}" alt="${escapeHtmlInventario(prod.nombre || 'Producto')}" class="producto-img"
+                                         onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"
+                                         loading="lazy">
+                                </div>
+                            </td>
+                            <td><strong>${escapeHtmlInventario(prod.codigo_producto || prod.id || 'N/A')}</strong></td>
+                            <td>${escapeHtmlInventario(prod.nombre || 'PRODUCTO')}</td>
+                            <td>${escapeHtmlInventario(prod.categoria_nombre || 'Sin categoría')}</td>
+                            <td><span class="badge badge-info">${prod.stock}</span></td>
+                            <td>$${(prod.precioCompra || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 })}</td>
+                            <td><strong style="color: #b42318;">$${(prod.valorTotalCompra || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 })}</strong></td>
+                            <td><span class="badge badge-primary">${porcentaje}%</span></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(e => {
+                    console.error('Error:', e);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ERROR',
+                        text: 'No se pudo cargar el desglose del valor de compra'
+                    });
+                });
+        }
+
         // Cargar formulario de edición para producto
+        function configurarStockEdicionPorCategoria() {
+            const stock = document.getElementById('editProdStock');
+            if (!stock) return;
+            stock.min = '0';
+            stock.step = '0.001';
+        }
+
         function editarProducto(id) {
             fetch(productoControllerUrl + '?action=getOne&id=' + encodeURIComponent(id), { credentials: 'same-origin' })
                 .then(r => r.json())
@@ -8249,12 +8751,18 @@ if (is_file($logoPdfPath)) {
 
                         const precioCompraValue = p.ultimo_precio_compra != null ? parseFloat(p.ultimo_precio_compra).toFixed(2) : '';
                         const precioVentaValue = p.precio != null ? parseFloat(p.precio).toFixed(2) : '';
-                        const stockValue = p.stock != null ? p.stock : '';
+                        const stockValue = p.stock != null ? Number(p.stock).toFixed(3) : '';
                         const porcentajeValue = p.porcentaje_ganancia != null ? parseFloat(p.porcentaje_ganancia).toFixed(1) : '';
 
                         document.getElementById('editProdPrecioCompra').value = precioCompraValue;
                         document.getElementById('editProdPrecio').value = precioVentaValue;
                         document.getElementById('editProdStock').value = stockValue;
+                        configurarStockEdicionPorCategoria();
+                        const categoriaEdicion = document.getElementById('editProdCategoria');
+                        if (categoriaEdicion && categoriaEdicion.dataset.stockGramosListener !== '1') {
+                            categoriaEdicion.dataset.stockGramosListener = '1';
+                            categoriaEdicion.addEventListener('change', configurarStockEdicionPorCategoria);
+                        }
                         document.getElementById('editProdPorcentaje').value = porcentajeValue;
                         document.getElementById('editProdCodigo').value = p.codigo ?? '';
                         document.getElementById('editProdCodigoBarras').value = p.codigo_barras ?? '';
@@ -8325,16 +8833,22 @@ if (is_file($logoPdfPath)) {
         // filtrar tabla de todosProductos en tiempo real
         const iniciarVerificacionStock = () => {
             const filtroRes = document.getElementById('filtroResumen');
+            const resultados = document.getElementById('resultadosFiltroInventario');
             if (filtroRes) {
                 filtroRes.addEventListener('input', () => {
-                    const term = filtroRes.value.trim().toLowerCase();
-                    const indiceCodigo = puedeVerID ? 2 : 1;
-                    const indiceNombre = puedeVerID ? 3 : 2;
-                    document.querySelectorAll('#resumenTableBody tr').forEach(r => {
-                        const code = r.cells[indiceCodigo]?.innerText.toLowerCase() || '';
-                        const name = r.cells[indiceNombre]?.innerText.toLowerCase() || '';
-                        r.style.display = (code.includes(term) || name.includes(term)) ? '' : 'none';
-                    });
+                    renderResultadosFiltroInventario();
+                    programarFiltradoTablasInventario();
+                });
+                filtroRes.addEventListener('focus', renderResultadosFiltroInventario);
+                filtroRes.addEventListener('blur', () => setTimeout(() => { if (resultados) resultados.style.display = 'none'; }, 200));
+            }
+            if (resultados) {
+                resultados.addEventListener('mousedown', event => {
+                    const opcion = event.target.closest('button[data-valor]');
+                    if (!opcion || !filtroRes) return;
+                    filtroRes.value = opcion.dataset.valor || '';
+                    filtrarTablasInventario();
+                    resultados.style.display = 'none';
                 });
             }
         };
@@ -8403,11 +8917,11 @@ if (is_file($logoPdfPath)) {
                         const categorias = new Set();
                         
                         productos.forEach(item => {
-                            const stockValue = parseInt(item.stock, 10) || 0;
-                            const precioVenta = stockValue <= 0 ? 0 : parseFloat(item.precio_venta) || 0;
+                            const stockValue = parseFloat(item.stock) || 0;
+                            const precioCompra = stockValue <= 0 ? 0 : (parseFloat(item.ultimo_precio_compra ?? item.precio_compra_promedio ?? item.precio_compra ?? 0) || 0);
                             if (item.estado == 1 && stockValue > 0) {
                                 stockTotal += stockValue;
-                                valorTotal += stockValue * precioVenta;
+                                valorTotal += stockValue * precioCompra;
                                 if (item.categoria_nombre) {
                                     categorias.add(item.categoria_nombre);
                                 }
@@ -8415,8 +8929,8 @@ if (is_file($logoPdfPath)) {
                         });
                         
                         // Actualizar contadores del modal
-                        document.getElementById('modalStockTotalUnidades').textContent = stockTotal;
-                        document.getElementById('modalStockProductos').textContent = productos.filter(p => p.estado == 1 && (parseInt(p.stock, 10) || 0) > 0).length;
+                        document.getElementById('modalStockTotalUnidades').textContent = formatoStockTotalVisible(stockTotal);
+                        document.getElementById('modalStockProductos').textContent = productos.filter(p => p.estado == 1 && (parseFloat(p.stock) || 0) > 0).length;
                         document.getElementById('modalStockCategorias').textContent = categorias.size;
                         document.getElementById('modalStockValor').textContent = '$' + valorTotal.toLocaleString('es-CO', {maximumFractionDigits: 2});
                         
@@ -8424,7 +8938,7 @@ if (is_file($logoPdfPath)) {
                         const tbody = document.getElementById('stockTotalBody');
                         tbody.innerHTML = '';
                         
-                        const productosActivos = productos.filter(p => p.estado == 1 && (parseInt(p.stock, 10) || 0) > 0).sort((a, b) => (parseInt(b.stock) || 0) - (parseInt(a.stock) || 0));
+                        const productosActivos = productos.filter(p => p.estado == 1 && (parseFloat(p.stock) || 0) > 0).sort((a, b) => (parseFloat(b.stock) || 0) - (parseFloat(a.stock) || 0));
                         
                         if (productosActivos.length === 0) {
                             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No hay productos con stock disponible</td></tr>';
@@ -8438,14 +8952,14 @@ if (is_file($logoPdfPath)) {
                             const imgSrc = resolverImagenProductoInventario(item.imagen);
                             
                             // Calcular valores
-                            const stockValue = parseInt(item.stock || 0, 10) || 0;
+                            const stockValue = parseFloat(item.stock || 0) || 0;
                             const precioVenta = stockValue <= 0 ? 0 : parseFloat(item.precio_venta) || 0;
                             
                             // Determinar estado del stock
                             let stockBadge = 'badge-success';
                             if (item.stock === 0 || item.stock === '0') {
                                 stockBadge = 'badge-danger';
-                            } else if (parseInt(item.stock) < 5) {
+                            } else if (parseFloat(item.stock) < 5) {
                                 stockBadge = 'badge-warning';
                             }
                             
@@ -8472,7 +8986,7 @@ if (is_file($logoPdfPath)) {
                                 <td><strong>${item.codigo_producto || item.id}</strong></td>
                                 <td><strong>${item.nombre}</strong></td>
                                 <td>${item.categoria_nombre || 'SIN CATEGORÍA'}</td>
-                                <td><span class="badge ${stockBadge}" style="font-size: 16px; padding: 8px 12px;">${item.stock || 0}</span></td>
+                                <td><span class="badge ${stockBadge}" style="font-size: 16px; padding: 8px 12px;">${formatoStockVisible(item.stock, item.categoria_nombre, item.venta_por_kilo)}</span></td>
                                 <td style="color: #27ae60; font-weight: bold;">$${precioVenta.toLocaleString('es-CO', {maximumFractionDigits: 2})}</td>
                             `;
                             tbody.appendChild(row);
@@ -8491,12 +9005,27 @@ if (is_file($logoPdfPath)) {
             const precioCompra = parseFloat(document.getElementById('precioCompra').value) || 0;
             const porcentaje = parseFloat(document.getElementById('porcentajeGanancia').value) || 0;
             
-            const precioVenta = precioCompra + (precioCompra * (porcentaje / 100));
+            const precioCalculado = precioCompra + (precioCompra * (porcentaje / 100));
+            const baseRedondeo = Math.floor(precioCalculado / 50) * 50;
+            const precioVenta = baseRedondeo + (precioCalculado % 50 > 25 ? 50 : 0);
             
             document.getElementById('precioVentaMostrado').value = precioVenta.toFixed(2);
+            sincronizarPrecioPresentacionUnidad(precioCompra, precioVenta);
+        }
+
+        function sincronizarPrecioPresentacionUnidad(precioCompra, precioVenta) {
+            const editor = document.getElementById('editorPresentacionesEntrada');
+            const filas = editor?.querySelectorAll('.fila-presentacion-entrada') || [];
+            const filaUnidad = filas[0];
+            if (!filaUnidad) return;
+            const compra = filaUnidad.querySelector('.entrada-pres-compra');
+            const venta = filaUnidad.querySelector('.entrada-pres-venta');
+            if (compra) compra.value = precioCompra > 0 ? precioCompra.toFixed(2) : '';
+            if (venta) venta.value = precioVenta > 0 ? precioVenta.toFixed(2) : '';
         }
 
         function resetEntradaModalFields() {
+            conservarPreciosPresentacionEntrada = false;
             const entradaForm = document.querySelector('#entradaModal form');
             if (entradaForm) {
                 entradaForm.reset();
@@ -8540,7 +9069,7 @@ if (is_file($logoPdfPath)) {
 
             const porcentajeGanancia = document.getElementById('porcentajeGanancia');
             if (porcentajeGanancia) {
-                porcentajeGanancia.value = '30';
+                porcentajeGanancia.value = '25';
             }
 
             const precioVentaMostrado = document.getElementById('precioVentaMostrado');
@@ -8562,6 +9091,11 @@ if (is_file($logoPdfPath)) {
             if (notasEntrada) {
                 notasEntrada.value = '';
             }
+
+            const editorPresentaciones = document.getElementById('editorPresentacionesEntrada');
+            const filasPresentaciones = document.getElementById('filasPresentacionesEntrada');
+            if (editorPresentaciones) editorPresentaciones.style.display = 'none';
+            if (filasPresentaciones) filasPresentaciones.innerHTML = '';
 
             const previewEntrada = document.getElementById('productoEntradaPreview');
             if (previewEntrada) {
@@ -8614,37 +9148,14 @@ if (is_file($logoPdfPath)) {
         function cargarProveedoresEntrada(proveedorSeleccionado = '') {
             const selectProveedor = document.getElementById('proveedorEntrada');
             if (!selectProveedor) return;
-
-            fetch(inventarioControllerUrl + '?action=obtenerProveedores')
-                .then(r => r.json())
-                .then(data => {
-                    const proveedores = Array.isArray(data?.data) ? data.data : [];
-                    selectProveedor.innerHTML = '<option value="">-- SELECCIONAR PROVEEDOR --</option>';
-
-                    proveedores.forEach(prov => {
-                        const option = document.createElement('option');
-                        option.value = prov.id;
-                        option.textContent = (prov.nombre || '').toUpperCase();
-                        selectProveedor.appendChild(option);
-                    });
-
-                    const optionNuevo = document.createElement('option');
-                    optionNuevo.value = '__OTRO__';
-                    optionNuevo.textContent = '+ NUEVO PROVEEDOR';
-                    selectProveedor.appendChild(optionNuevo);
-
-                    if (proveedorSeleccionado) {
-                        const valor = String(proveedorSeleccionado);
-                        if ([...selectProveedor.options].some(opt => opt.value === valor)) {
-                            selectProveedor.value = valor;
-                        }
-                    }
-
-                    toggleProveedorEntradaOtro();
-                })
-                .catch(error => {
-                    console.error('Error cargando proveedores:', error);
-                });
+            selectProveedor.innerHTML = '<option value="">-- SELECCIONAR PROVEEDOR --</option><option value="GENERAL">GENERAL</option><option value="__OTRO__">+ NUEVO PROVEEDOR</option>';
+            if (proveedorSeleccionado) {
+                const valor = String(proveedorSeleccionado);
+                if ([...selectProveedor.options].some(opt => opt.value === valor)) {
+                    selectProveedor.value = valor;
+                }
+            }
+            toggleProveedorEntradaOtro();
         }
 
         function dispararRefreshInventarioGlobal() {
@@ -8715,9 +9226,24 @@ if (is_file($logoPdfPath)) {
             }
         }
 
-        function abrirModalProductoDanado() {
+        function abrirModalProductoDanado(grupo = 'perecederos') {
             const form = document.getElementById('formProductoDanado');
             if (form) form.reset();
+            const select = document.getElementById('productoDanado');
+            const titulo = document.getElementById('productoDanadoTitulo');
+            const esNoPerecedero = grupo === 'no_perecederos';
+            if (select) {
+                Array.from(select.options).forEach(opcion => {
+                    opcion.hidden = !opcion.value || opcion.dataset.grupo !== grupo;
+                });
+                select.dataset.grupo = grupo;
+            }
+            inicializarBusquedaSelect('productoDanado', 'buscarProductoDanado', 'productoDanadoSearchResults');
+            if (titulo) {
+                titulo.innerHTML = esNoPerecedero
+                    ? '<i class="fas fa-lightbulb"></i> PRODUCTO DAÑADO NO PERECEDERO'
+                    : '<i class="fas fa-triangle-exclamation"></i> PRODUCTO DAÑADO';
+            }
             actualizarCantidadProductoDanado();
             abrirModal('productoDanadoModal');
         }
@@ -8764,6 +9290,7 @@ if (is_file($logoPdfPath)) {
             datos.append('action', 'registrarProductoDanado');
             datos.append('producto_id', select.value);
             datos.append('cantidad', String(cantidad));
+            datos.append('grupo', select.dataset.grupo || 'perecederos');
             datos.append('notas', document.getElementById('notasProductoDanado')?.value || '');
             try {
                 const respuesta = await fetch(inventarioControllerUrl, { method: 'POST', body: datos });
@@ -9007,6 +9534,7 @@ if (is_file($logoPdfPath)) {
                 ? carritoSalida.map(item => ({
                     producto_id: item.producto_id,
                     nombre: item.nombre,
+                    presentacion_id: Number(item.presentacion_id || 0),
                     cantidad: normalizarCantidadSalida(item.cantidad, item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1),
                     stock: parseFloat(item.stock || 0) || 0,
                     precio_venta: parseFloat(item.precio) || 0
@@ -9014,6 +9542,7 @@ if (is_file($logoPdfPath)) {
                 : (seleccionActual ? [{
                     producto_id: seleccionActual.producto_id,
                     nombre: seleccionActual.nombre,
+                    presentacion_id: Number(seleccionActual.presentacion_id || 0),
                     cantidad: normalizarCantidadSalida(cantidadUnica, seleccionActual.venta_por_kilo),
                     stock: parseFloat(seleccionActual.stock || 0) || 0,
                     precio_venta: parseFloat(seleccionActual.precio) || 0
@@ -9021,13 +9550,13 @@ if (is_file($logoPdfPath)) {
 
             const itemsUnicos = new Map();
             items.forEach(item => {
-                const productoId = Number(item.producto_id);
-                const existente = itemsUnicos.get(productoId);
+                const clave = `${Number(item.producto_id)}:${Number(item.presentacion_id || 0)}`;
+                const existente = itemsUnicos.get(clave);
                 if (existente) {
                     existente.cantidad += item.cantidad;
                     return;
                 }
-                itemsUnicos.set(productoId, { ...item });
+                itemsUnicos.set(clave, { ...item });
             });
             items = Array.from(itemsUnicos.values());
 
@@ -9109,6 +9638,23 @@ if (is_file($logoPdfPath)) {
                         text: error.message || 'No fue posible registrar el crédito'
                     });
                     return;
+                }
+
+                const totalSalidaSinRedondear = calcularTotalItemsSalida(items);
+                const totalSalidaRedondeado = redondearTotalSalida(totalSalidaSinRedondear);
+                if (Math.abs(totalSalidaRedondeado - totalSalidaSinRedondear) > 0.001) {
+                    const confirmacionTotal = await Swal.fire({
+                        icon: 'info',
+                        title: 'TOTAL AJUSTADO',
+                        text: `El total de la salida es ${formatoMonedaInventario(totalSalidaSinRedondear)} y se ajustará a ${formatoMonedaInventario(totalSalidaRedondeado)}.`,
+                        showCancelButton: true,
+                        confirmButtonText: 'CONTINUAR',
+                        cancelButtonText: 'REVISAR'
+                    });
+                    if (!confirmacionTotal.isConfirmed) {
+                        liberarEnvioSalida();
+                        return;
+                    }
                 }
             }
 
@@ -9320,10 +9866,9 @@ if (is_file($logoPdfPath)) {
             if (productoSalidaSelect) {
                 productoSalidaSelect.addEventListener('change', function() {
                     const selectedOption = this.options[this.selectedIndex];
-                    const imagenFilename = selectedOption ? selectedOption.getAttribute('data-imagen') : '';
                     const codigo = selectedOption ? selectedOption.getAttribute('data-codigo') : '';
-                    const previewDiv = document.getElementById('productoSalidaPreview');
                     const codigoField = document.getElementById('codigoProductoSalida');
+                    const previewDiv = document.getElementById('productoSalidaPreview');
 
                     if (!this.value) {
                         if (codigoField) codigoField.value = '';
@@ -9340,20 +9885,23 @@ if (is_file($logoPdfPath)) {
                     if (codigoField) {
                         codigoField.value = codigo || '';
                     }
+                    if (previewDiv) {
+                        const imagenFilename = selectedOption?.getAttribute('data-imagen') || '';
+                        const imgSrc = resolverImagenProductoInventario(imagenFilename);
+                        previewDiv.innerHTML = imgSrc
+                            ? `<img src="${imgSrc}" alt="Producto" style="width:70px; height:70px; object-fit:contain;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'">`
+                            : '';
+                    }
 
                     const cantidadField = document.getElementById('cantidadSalida');
                     if (cantidadField) {
-                        const esPorKilo = selectedOption?.dataset.ventaPorKilo === '1';
+                        const esPorKilo = esProductoPorKilosSalida(selectedOption);
+                        cantidadField.min = esPorKilo ? '0.001' : '1';
+                        cantidadField.step = esPorKilo ? '0.001' : '1';
                         cantidadField.value = esPorKilo ? '0.001' : '1';
                         cantidadField.removeAttribute('max');
                     }
                     
-                    if (this.value && imagenFilename) {
-                        const imgSrc = resolverImagenProductoInventario(imagenFilename);
-                        previewDiv.innerHTML = `<img src="${imgSrc}" alt="Producto" style="width: 84px; height: 84px; object-fit: contain; border-radius: 8px; border: 2px solid #ddd; background: #fff;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'">`;
-                    } else {
-                        previewDiv.innerHTML = '';
-                    }
                     validarCantidadSalida();
                 });
             }
@@ -9379,9 +9927,9 @@ if (is_file($logoPdfPath)) {
                 }
                 const option = productoSalida.options[productoSalida.selectedIndex];
                 if (!option) return;
-                const stockActual = parseInt(option.getAttribute('data-stock') || '0', 10) || 0;
+                const stockActual = parseFloat(option.getAttribute('data-stock') || '0') || 0;
                 cantidadSalida.max = stockActual > 0 ? stockActual : '';
-                const cantidadValor = normalizarCantidadSalida(cantidadSalida.value);
+                const cantidadValor = normalizarCantidadSalida(cantidadSalida.value, esProductoPorKilosSalida(option));
 
                 if (cantidadValor > stockActual) {
                     const texto = stockActual > 0 ? `Solo hay ${stockActual} unidad(es) disponibles de ${option.getAttribute('data-codigo') || 'este producto'}.` : `No hay stock disponible para ${option.getAttribute('data-codigo') || 'este producto'}.`;
@@ -9422,9 +9970,12 @@ if (is_file($logoPdfPath)) {
                         if (document.getElementById('buscarProductoSalida')?.dataset.seleccionProductoEnCurso === '1') return;
                         const option = producto.options[producto.selectedIndex];
                         if (!option) return;
-                        const stockActual = parseInt(option.getAttribute('data-stock') || '0', 10) || 0;
+                        const stockActual = parseFloat(option.getAttribute('data-stock') || '0') || 0;
+                        const esPorKilo = esProductoPorKilosSalida(option);
+                        cantidad.min = esPorKilo ? '0.001' : '1';
+                        cantidad.step = esPorKilo ? '0.001' : '1';
                         cantidad.max = stockActual > 0 ? stockActual : '';
-                        const val = Math.max(1, parseInt(cantidad.value, 10) || 1);
+                        const val = normalizarCantidadSalida(cantidad.value, esPorKilo);
                         if (val > stockActual) {
                             if (stockActual <= 0) {
                                 limpiarSeleccionSalidaUI();
@@ -9443,8 +9994,8 @@ if (is_file($logoPdfPath)) {
                 cantidad.addEventListener('wheel', function(e) {
                     const option = producto.options[producto.selectedIndex];
                     if (!option) return;
-                    const stockActual = parseInt(option.getAttribute('data-stock') || '0', 10) || 0;
-                    const val = Math.max(1, parseInt(cantidad.value, 10) || 1);
+                    const stockActual = parseFloat(option.getAttribute('data-stock') || '0') || 0;
+                    const val = normalizarCantidadSalida(cantidad.value, esProductoPorKilosSalida(option));
                     if ((e.deltaY < 0) && val >= stockActual) {
                         e.preventDefault();
                         mostrarAlertaStockInsuficiente(option, stockActual);
@@ -9454,9 +10005,9 @@ if (is_file($logoPdfPath)) {
                 cantidad.addEventListener('keydown', function(e) {
                     const option = producto.options[producto.selectedIndex];
                     if (!option) return;
-                    const stockActual = parseInt(option.getAttribute('data-stock') || '0', 10) || 0;
+                    const stockActual = parseFloat(option.getAttribute('data-stock') || '0') || 0;
                     if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
-                        const val = Math.max(1, parseInt(cantidad.value, 10) || 1);
+                        const val = normalizarCantidadSalida(cantidad.value, esProductoPorKilosSalida(option));
                         if (val >= stockActual) {
                             e.preventDefault();
                             const texto = stockActual > 0 ? `Solo hay ${stockActual} unidad(es) disponibles de ${option.getAttribute('data-codigo') || 'este producto'}.` : `No hay stock disponible para ${option.getAttribute('data-codigo') || 'este producto'}.`;
@@ -9483,8 +10034,8 @@ if (is_file($logoPdfPath)) {
                 cantidadSalida.addEventListener('wheel', function(e) {
                     const option = productoSalida.options[productoSalida.selectedIndex];
                     if (!option) return;
-                    const stockActual = parseInt(option.getAttribute('data-stock') || '0', 10) || 0;
-                    const val = Math.max(1, parseInt(cantidadSalida.value, 10) || 1);
+                    const stockActual = parseFloat(option.getAttribute('data-stock') || '0') || 0;
+                    const val = normalizarCantidadSalida(cantidadSalida.value, esProductoPorKilosSalida(option));
                     // si la rueda intenta aumentar cuando ya está en tope
                     if ((e.deltaY < 0) && val >= stockActual) {
                         e.preventDefault();
@@ -9505,10 +10056,10 @@ if (is_file($logoPdfPath)) {
                 cantidadSalida.addEventListener('keydown', function(event) {
                     const option = productoSalida.options[productoSalida.selectedIndex];
                     if (!option) return;
-                    const stockActual = parseInt(option.getAttribute('data-stock') || '0', 10) || 0;
+                    const stockActual = parseFloat(option.getAttribute('data-stock') || '0') || 0;
                     if (stockActual <= 0) return;
                     if (event.key === 'ArrowUp' || event.key === 'ArrowRight') {
-                        const cantidadValor = Math.max(1, parseInt(cantidadSalida.value, 10) || 1);
+                        const cantidadValor = normalizarCantidadSalida(cantidadSalida.value, esProductoPorKilosSalida(option));
                         if (cantidadValor >= stockActual) {
                             event.preventDefault();
                             Swal.fire({
@@ -9554,8 +10105,8 @@ if (is_file($logoPdfPath)) {
                 if (!option && select.value) option = select.querySelector(`option[value="${select.value}"]`);
                 if (!option) return;
                 const stockAttr = option.getAttribute('data-stock') || option.dataset.stock || '0';
-                const stockActual = parseInt(String(stockAttr).replace(/[^0-9-]/g, ''), 10) || 0;
-                const val = Math.max(1, parseInt(inputEl.value, 10) || 1);
+                const stockActual = parseFloat(String(stockAttr).replace(',', '.')) || 0;
+                const val = normalizarCantidadSalida(inputEl.value, esProductoPorKilosSalida(option));
                 if (stockActual <= 0) {
                     const texto = `No hay stock disponible para ${option.getAttribute('data-codigo') || 'este producto'}.`;
                     limpiarSeleccionSalidaUI();
@@ -9790,9 +10341,25 @@ if (is_file($logoPdfPath)) {
         }
 
         function formatoCantidad(valor) {
-            const n = numero(valor, 0);
-            return Number.isInteger(n) ? String(n) : n.toFixed(3).replace(/0+$/, '').replace(/\.$/, '');
+            const n = Math.round(numero(valor, 0) * 1000) / 1000;
+            return n.toFixed(3);
         }
+        function formatoStockVisible(valor, categoria = '', ventaPorKilo = false) {
+            const n = Math.round(numero(valor, 0) * 1000) / 1000;
+            if (!Number.isInteger(n)) {
+                return n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            }
+            return String(n);
+        }
+        function formatoStockTotalVisible(valor) {
+            const n = Math.round(numero(valor, 0) * 1000) / 1000;
+            return Number.isInteger(n)
+                ? String(n)
+                : n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        }
+        window.formatoCantidad = formatoCantidad;
+        window.formatoStockVisible = formatoStockVisible;
+        window.formatoStockTotalVisible = formatoStockTotalVisible;
 
         async function obtenerPresentaciones(productoId) {
             const id = parseInt(productoId, 10) || 0;
@@ -9801,8 +10368,11 @@ if (is_file($logoPdfPath)) {
             try {
                 const respuesta = await fetch(`${urlControlador()}?action=obtenerPresentaciones&producto_id=${id}`);
                 const datos = await respuesta.json();
-                const resultado = (datos && datos.success && datos.maneja_presentaciones && Array.isArray(datos.presentaciones) && datos.presentaciones.length)
-                    ? { presentaciones: datos.presentaciones }
+                const resultado = datos && datos.success
+                    ? {
+                        maneja_presentaciones: datos.maneja_presentaciones === true || Number(datos.maneja_presentaciones || 0) === 1,
+                        presentaciones: Array.isArray(datos.presentaciones) ? datos.presentaciones : []
+                    }
                     : null;
                 cachePresentaciones.set(id, resultado);
                 return resultado;
@@ -9816,36 +10386,125 @@ if (is_file($logoPdfPath)) {
             cachePresentaciones.clear();
         }
 
+        function opcionesFactorPresentacion(valor) {
+            const estandares = [2, 3, 4, 6, 8, 10, 12, 15, 20, 24, 30, 36, 48, 50, 60, 100];
+            const factor = Math.max(2, Math.round(numero(valor, 12)));
+            if (!estandares.includes(factor)) estandares.push(factor);
+            return estandares.sort((a, b) => a - b);
+        }
+
+        let conservarPreciosPresentacionEntrada = false;
+
+        function pintarEditorPresentacionesEntrada(presentaciones) {
+            const editor = document.getElementById('editorPresentacionesEntrada');
+            const filas = document.getElementById('filasPresentacionesEntrada');
+            if (!editor || !filas) return;
+            const datos = Array.isArray(presentaciones) && presentaciones.length
+                ? presentaciones.slice(0, 2)
+                : [{ nombre: 'UNIDAD', factor_padre: 1 }, { nombre: 'PAQUETE', factor_padre: 12 }];
+            while (datos.length < 2) datos.push({ nombre: 'PAQUETE', factor_padre: 12 });
+            filas.innerHTML = datos.map((pres, indice) => {
+                const base = indice === 0;
+                const opciones = opcionesFactorPresentacion(pres.factor_padre).map(factor =>
+                    `<option value="${factor}" ${Number(pres.factor_padre) === factor ? 'selected' : ''}>${factor}</option>`
+                ).join('');
+                return `<div class="fila-presentacion-entrada" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;align-items:end;min-width:0;">
+                    <div><small style="display:block;color:#667085;font-weight:700;">${base ? 'NOMBRE BASE' : 'NOMBRE'}</small><input type="text" class="entrada-pres-nombre" value="${escapeHtmlInventario(String(pres.nombre || (base ? 'UNIDAD' : 'PAQUETE')).toUpperCase())}" ${base ? 'readonly' : ''} style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;text-transform:uppercase;"></div>
+                    <div><small style="display:block;color:#667085;font-weight:700;">${base ? 'EQUIVALENCIA' : 'CONTIENE'}</small>${base ? '<input class="entrada-pres-factor" value="1" readonly style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;background:#f1f5f9;">' : `<select class="entrada-pres-factor" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;">${opciones}</select>`}</div>
+                    <div><small style="display:block;color:#667085;font-weight:700;">PRECIO COMPRA</small><input type="number" class="entrada-pres-compra" min="0" step="0.01" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_compra, 0) > 0 ? numero(pres.precio_compra, 0).toFixed(2) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
+                    <div><small style="display:block;color:#667085;font-weight:700;">PRECIO VENTA</small><input type="number" class="entrada-pres-venta" min="0" step="0.01" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_venta, 0) > 0 ? numero(pres.precio_venta, 0).toFixed(2) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
+                </div>`;
+            }).join('');
+            editor.style.display = 'block';
+            sincronizarPrecioPresentacionUnidad(
+                numero(document.getElementById('precioCompra')?.value, 0),
+                numero(document.getElementById('precioVentaMostrado')?.value, 0)
+            );
+        }
+
+        async function guardarPresentacionesEntrada() {
+            const productoId = parseInt(document.getElementById('productoEntrada')?.value || '0', 10) || 0;
+            const filas = Array.from(document.querySelectorAll('#filasPresentacionesEntrada .fila-presentacion-entrada'));
+            if (productoId <= 0 || filas.length < 2) {
+                Swal.fire({ icon: 'warning', title: 'PRESENTACIONES', text: 'Selecciona un producto y define UNIDAD y PAQUETE.' });
+                return;
+            }
+            const presentaciones = filas.slice(0, 2).map((fila, indice) => ({
+                nombre: String(fila.querySelector('.entrada-pres-nombre')?.value || '').trim().toUpperCase(),
+                factor_padre: indice === 0 ? 1 : numero(fila.querySelector('.entrada-pres-factor')?.value, 12),
+                precio_compra: numero(fila.querySelector('.entrada-pres-compra')?.value, 0),
+                precio_venta: numero(fila.querySelector('.entrada-pres-venta')?.value, 0)
+            }));
+            const body = new FormData();
+            body.append('action', 'guardarPresentaciones');
+            body.append('producto_id', String(productoId));
+            body.append('maneja_presentaciones', '1');
+            body.append('presentaciones', JSON.stringify(presentaciones));
+            try {
+                const respuesta = await fetch(urlControlador(), { method: 'POST', body });
+                const resultado = await respuesta.json();
+                if (!resultado.success) throw new Error(resultado.message || 'No se pudieron guardar las presentaciones');
+                limpiarCachePresentaciones();
+                conservarPreciosPresentacionEntrada = true;
+                await sincronizar('entrada');
+                Swal.fire({ icon: 'success', title: 'PRESENTACIONES GUARDADAS', timer: 1500, showConfirmButton: false });
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudieron guardar las presentaciones' });
+            }
+        }
+        window.guardarPresentacionesEntrada = guardarPresentacionesEntrada;
+
         function pintarSelector(modo, datos) {
             const grupo = document.getElementById(modo === 'entrada' ? 'grupoPresentacionEntrada' : 'grupoPresentacionSalida');
             const select = document.getElementById(modo === 'entrada' ? 'presentacionEntrada' : 'presentacionSalida');
             const ayuda = document.getElementById(modo === 'entrada' ? 'ayudaPresentacionEntrada' : 'ayudaPresentacionSalida');
+            const productoSeleccionado = document.getElementById('productoEntrada')?.value;
+            const presentacionesActivas = Boolean(datos?.maneja_presentaciones);
+            if (modo === 'entrada') {
+                if (productoSeleccionado && presentacionesActivas) {
+                    pintarEditorPresentacionesEntrada(datos?.presentaciones || []);
+                } else {
+                    const editor = document.getElementById('editorPresentacionesEntrada');
+                    if (editor) editor.style.display = 'none';
+                    const filas = document.getElementById('filasPresentacionesEntrada');
+                    if (filas) filas.innerHTML = '';
+                    conservarPreciosPresentacionEntrada = false;
+                }
+            }
             if (!grupo || !select) return;
 
-            if (!datos) {
+            if (!presentacionesActivas || !datos.presentaciones.length) {
                 grupo.style.display = 'none';
                 select.innerHTML = '';
+                select.value = '';
                 if (ayuda) ayuda.textContent = '';
                 return;
             }
 
             select.innerHTML = '';
+            const productoSelect = document.getElementById(modo === 'entrada' ? 'productoEntrada' : 'productoSalida');
+            const productoEsKilo = Number(productoSelect?.selectedOptions?.[0]?.dataset?.ventaPorKilo || 0) === 1;
+            const stockBase = numero(datos.total_base, 0);
             datos.presentaciones.forEach((pres) => {
                 const opcion = document.createElement('option');
                 opcion.value = String(pres.id);
-                const disponible = formatoCantidad(pres.cantidad || 0);
+                const factor = numero(pres.factor_base, 1) || 1;
+                const disponibleBase = stockBase > 0 ? stockBase : numero(pres.cantidad, 0);
+                const disponible = productoEsKilo
+                    ? numero(factor > 1 ? disponibleBase / factor : disponibleBase, 0).toFixed(3)
+                    : String(Math.floor(factor > 1 ? disponibleBase / factor : disponibleBase));
                 opcion.textContent = `${String(pres.nombre || '').toUpperCase()} (DISPONIBLES: ${disponible})`;
                 opcion.dataset.nombre = String(pres.nombre || '').toUpperCase();
                 opcion.dataset.factor = String(numero(pres.factor_base, 1) || 1);
                 opcion.dataset.precioVenta = String(numero(pres.precio_venta, 0));
                 opcion.dataset.precioCompra = String(numero(pres.precio_compra, 0));
-                opcion.dataset.cantidad = String(numero(pres.cantidad, 0));
+                opcion.dataset.cantidad = String(factor > 1 ? Math.floor(disponibleBase / factor) : disponibleBase);
                 select.appendChild(opcion);
             });
 
             // Por defecto la presentación más pequeña (UNIDAD).
             select.selectedIndex = 0;
-            grupo.style.display = modo === 'entrada' ? 'flex' : 'flex';
+            grupo.style.display = modo === 'entrada' ? 'flex' : 'none';
             aplicarSeleccion(modo);
         }
 
@@ -9870,18 +10529,11 @@ if (is_file($logoPdfPath)) {
             if (modo === 'entrada') {
                 const etiqueta = document.getElementById('unidadEntradaLabel');
                 const ayuda = document.getElementById('ayudaPresentacionEntrada');
-                const precioCompra = document.getElementById('precioCompra');
                 if (etiqueta) etiqueta.textContent = seleccion ? `CANTIDAD DE ${seleccion.nombre}` : 'CANTIDAD';
                 if (ayuda) {
                     ayuda.textContent = seleccion
                         ? `1 ${seleccion.nombre} = ${formatoCantidad(seleccion.factor)} UNIDAD(ES) BASE`
                         : '';
-                }
-                if (seleccion && precioCompra && seleccion.precio_compra > 0 && !numero(precioCompra.value, 0)) {
-                    precioCompra.value = seleccion.precio_compra;
-                    if (typeof calcularPrecioVenta === 'function') {
-                        try { calcularPrecioVenta(); } catch (e) {}
-                    }
                 }
                 return;
             }
@@ -9919,16 +10571,19 @@ if (is_file($logoPdfPath)) {
             return seleccionActual('entrada');
         };
 
-        // El carrito de salida viaja con la presentación elegida.
+        // El carrito de salida inicia siempre en UNIDAD y cambia de presentación dentro del carrito.
         if (typeof window.productoSalidaSeleccionado === 'function') {
             const original = window.productoSalidaSeleccionado;
             window.productoSalidaSeleccionado = function () {
                 const producto = original.apply(this, arguments);
                 if (!producto || !producto.producto_id) return producto;
-                const seleccion = seleccionActual('salida');
-                if (!seleccion || seleccion.id <= 0) return producto;
+                const presentaciones = Array.isArray(estado.salida.datos?.presentaciones)
+                    ? estado.salida.datos.presentaciones
+                    : [];
+                if (!presentaciones.length) return producto;
+                const seleccion = presentaciones[0];
 
-                const factor = seleccion.factor > 0 ? seleccion.factor : 1;
+                const factor = Number(seleccion.factor_base || 1) > 0 ? Number(seleccion.factor_base) : 1;
                 const stockBase = numero(producto.stock, 0);
                 const disponibles = factor > 1 ? Math.floor(stockBase / factor) : stockBase;
                 const precio = seleccion.precio_venta > 0
@@ -9938,13 +10593,16 @@ if (is_file($logoPdfPath)) {
                 producto.presentacion_id = seleccion.id;
                 producto.presentacion_nombre = seleccion.nombre;
                 producto.presentacion_factor = factor;
+                producto.presentaciones = presentaciones;
+                producto.precio_producto = numero(producto.precio, 0);
+                producto.cantidad = 1;
                 producto.stock = disponibles;
                 producto.stock_base = stockBase;
                 producto.precio = precio;
                 producto.precio_original = precio;
                 producto.precio_venta = precio;
                 producto.descuento_porcentaje = 0;
-                producto.venta_por_kilo = false;
+                producto.venta_por_kilo = producto.venta_por_kilo === true || Number(producto.venta_por_kilo) === 1;
                 if (factor > 1 || String(seleccion.nombre || '').length) {
                     producto.nombre = `${producto.nombre} · ${seleccion.nombre}`;
                 }

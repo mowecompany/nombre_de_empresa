@@ -99,6 +99,13 @@ $baseUrl = rtrim((string)base_url(), '/');
         .pagination button { border:1px solid var(--border); background:#fff; border-radius:6px; padding:8px 12px; cursor:pointer; }
         .pagination button:disabled { opacity:.45; cursor:not-allowed; }
         .empty { padding:28px; text-align:center; color:var(--muted); }
+        .swal2-container { z-index:20000 !important; }
+        .credito-editar-cantidad::-webkit-outer-spin-button,
+        .credito-editar-cantidad::-webkit-inner-spin-button,
+        .credito-editar-precio::-webkit-outer-spin-button,
+        .credito-editar-precio::-webkit-inner-spin-button { margin:0; -webkit-appearance:none; }
+        .credito-editar-cantidad,
+        .credito-editar-precio { -moz-appearance:textfield; appearance:textfield; }
         @media (max-width:1100px) { #creditosLista { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
         @media (max-width:600px) { #creditosLista { grid-template-columns:1fr; } .page { padding:14px; } .page-header { align-items:flex-start; flex-direction:column; } }
     </style>
@@ -107,7 +114,10 @@ $baseUrl = rtrim((string)base_url(), '/');
     <main class="page">
         <header class="page-header">
             <h1><i class="fas fa-credit-card"></i> CRÉDITOS</h1>
-            
+            <div class="header-actions">
+                <button type="button" class="button" style="background:#3b82f6;" onclick="confirmarReinicioCreditos()"><i class="fas fa-broom"></i> REINICIAR</button>
+                <button type="button" class="button" style="background:#64748b;" onclick="confirmarDeshacerReinicioCreditos()"><i class="fas fa-undo"></i> DESHACER</button>
+            </div>
         </header>
         <div class="toolbar">
             <input class="search" id="buscarCredito" type="search" placeholder="BUSCAR CLIENTE, DOCUMENTO, CÓDIGO O REFERENCIA" oninput="renderizarCreditos()">
@@ -131,6 +141,20 @@ $baseUrl = rtrim((string)base_url(), '/');
             <button type="button" class="pay-button" style="margin-top:12px;width:100%;" onclick="confirmarPagoCredito()"><i class="fas fa-check"></i> CONFIRMAR PAGO</button>
         </div>
     </div>
+    <div id="modalEditarCredito" class="profile-overlay" style="z-index:1250;align-items:center;justify-content:center;" onclick="cerrarModalEditarCredito(event)">
+        <div class="panel" style="width:min(900px, calc(100% - 28px));max-height:90vh;overflow:auto;" onclick="event.stopPropagation()">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                <h2 style="margin-top:0;color:var(--primary);">EDITAR</h2>
+                <button type="button" class="profile-close" onclick="cerrarModalEditarCredito()">&times;</button>
+            </div>
+            <p class="muted">Edita la cantidad de los productos de este crédito y guarda los cambios.</p>
+            <div style="overflow-x:auto;"><table class="profile-table"><thead><tr><th>IMG</th><th>FECHA / HORA</th><th>PRODUCTO</th><th>CÓDIGO</th><th>CANTIDAD</th><th>PRECIO</th><th>TOTAL</th><th>ACCIONES</th></tr></thead><tbody id="editarCreditoProductos"></tbody></table></div>
+            <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px;">
+                <button type="button" class="button secondary" onclick="cerrarModalEditarCredito()">CANCELAR</button>
+                <button type="button" class="pay-button" onclick="guardarEdicionCredito()"><i class="fas fa-save"></i> GUARDAR CAMBIOS</button>
+            </div>
+        </div>
+    </div>
 <script>
     const creditosUrl = <?= json_encode($baseUrl . '/Controllers/CreditosController.php'); ?>;
     const baseUrlApp = <?= json_encode($baseUrl); ?>;
@@ -140,12 +164,29 @@ $baseUrl = rtrim((string)base_url(), '/');
 
     const escapar = valor => String(valor ?? '').replace(/[&<>"']/g, caracter => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[caracter]));
     const moneda = valor => new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 }).format(Number(valor || 0));
+    const normalizarBusquedaCredito = valor => String(valor ?? '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ');
+    const coincideBusquedaCredito = (valor, consulta) => {
+        const texto = normalizarBusquedaCredito(valor);
+        const busqueda = normalizarBusquedaCredito(consulta);
+        if (!busqueda) return true;
+        const tokens = busqueda.split(' ').filter(Boolean);
+        return tokens.every(token => texto.includes(token)) || texto.replace(/\s/g, '').includes(tokens.join(''));
+    };
     const formatearFechaHoraCredito = (valor) => {
         if (!valor) return { fecha: 'N/D', hora: 'N/D' };
         const raw = String(valor).trim();
         if (!raw) return { fecha: 'N/D', hora: 'N/D' };
 
-        const fechaLocal = new Date(raw.includes('T') ? raw : raw.replace(' ', 'T'));
+        const coincidencia = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+        const fechaLocal = coincidencia
+            ? new Date(Number(coincidencia[1]), Number(coincidencia[2]) - 1, Number(coincidencia[3]), Number(coincidencia[4] || 0), Number(coincidencia[5] || 0), Number(coincidencia[6] || 0))
+            : new Date(raw.includes('T') ? raw : raw.replace(' ', 'T'));
         if (Number.isNaN(fechaLocal.getTime())) {
             return { fecha: raw.toUpperCase(), hora: 'N/D' };
         }
@@ -177,26 +218,48 @@ $baseUrl = rtrim((string)base_url(), '/');
             apellido: nombreCompleto.slice(1).join(' ').toUpperCase()
         };
     };
-    const precioProducto = item => Number(item.precio_actual || item.precio_unitario || 0);
-    const imagenProducto = item => item.producto_imagen ? `<img class="product-image" src="${escapar(`${baseUrlApp}/Assets/images/productos/${item.producto_imagen}`)}" alt="">` : '<span class="product-image" style="display:inline-block;"></span>';
+    const precioProducto = item => Number(item.precio_unitario || item.precio_actual || 0);
+    const resolverImagenProducto = valor => {
+        const imagen = String(valor || '').trim().replace(/\\/g, '/');
+        if (!imagen) return `${baseUrlApp}/favicon.ico`;
+        if (/^(?:https?:|data:|blob:)/i.test(imagen)) return imagen;
+        const nombreArchivo = imagen.split('/').pop() || '';
+        if (!nombreArchivo || nombreArchivo.toLowerCase() === 'favicon.ico') {
+            return `${baseUrlApp}/favicon.ico`;
+        }
+        return `${baseUrlApp}/Assets/images/productos/${encodeURIComponent(nombreArchivo)}`;
+    };
+    const imagenProducto = item => {
+        const rutaImagen = resolverImagenProducto(item?.producto_imagen);
+        return `<img class="product-image" src="${escapar(rutaImagen)}" alt="" onerror="this.onerror=null;this.src='${escapar(`${baseUrlApp}/favicon.ico`)}';">`;
+    };
     const agruparProductosCredito = (detalles = []) => {
         const mapa = new Map();
         (detalles || []).forEach(item => {
-            const clave = String(item.producto_id ?? `${item.producto_nombre || 'producto'}-${item.producto_codigo || 'sin-codigo'}`);
+            const clave = `${String(item.producto_id ?? `${item.producto_nombre || 'producto'}-${item.producto_codigo || 'sin-codigo'}`)}:${Number(item.presentacion_id || 0)}`;
             const actual = mapa.get(clave) || {
                 ...item,
                 cantidad: 0,
+                cantidad_presentacion: item.cantidad_presentacion === null || item.cantidad_presentacion === undefined ? null : 0,
                 producto_nombre: item.producto_nombre || 'PRODUCTO',
                 producto_codigo: item.producto_codigo || 'N/D',
                 producto_imagen: item.producto_imagen || '',
-                precio_actual: Number(item.precio_actual || item.precio_unitario || 0),
+                precio_actual: Number(item.precio_unitario || item.precio_actual || 0),
                 total: 0
             };
             const cantidad = Number(item.cantidad || 0) || 0;
-            const precio = Number(item.precio_actual || item.precio_unitario || 0) || 0;
+            const cantidadPresentacion = item.cantidad_presentacion === null || item.cantidad_presentacion === undefined
+                ? null
+                : (Number(item.cantidad_presentacion) || 0);
+            const precio = Number(item.precio_unitario || item.precio_actual || 0) || 0;
             actual.cantidad = Number(actual.cantidad || 0) + cantidad;
-            actual.precio_actual = Math.max(Number(actual.precio_actual || 0), precio);
-            actual.total = Number(actual.cantidad || 0) * Number(actual.precio_actual || 0);
+            if (cantidadPresentacion !== null) {
+                actual.cantidad_presentacion = Number(actual.cantidad_presentacion || 0) + cantidadPresentacion;
+            }
+            actual.precio_actual = precio;
+            actual.precio_unitario = precio;
+            const cantidadCobro = actual.cantidad_presentacion === null ? actual.cantidad : actual.cantidad_presentacion;
+            actual.total = Number(cantidadCobro || 0) * Number(actual.precio_unitario || 0);
             actual.producto_nombre = actual.producto_nombre || item.producto_nombre || 'PRODUCTO';
             actual.producto_codigo = actual.producto_codigo || item.producto_codigo || 'N/D';
             actual.producto_imagen = actual.producto_imagen || item.producto_imagen || '';
@@ -239,8 +302,11 @@ $baseUrl = rtrim((string)base_url(), '/');
 
     function renderizarCreditos() {
         const lista = document.getElementById('creditosLista');
-        const filtro = String(document.getElementById('buscarCredito').value || '').trim().toLowerCase();
-        const filtrados = creditos.filter(credito => `${nombreCliente(credito)} ${credito.documento || ''} ${credito.codigo || ''} ${credito.referencia || ''}`.toLowerCase().includes(filtro));
+        const filtro = document.getElementById('buscarCredito').value || '';
+        const filtrados = creditos.filter(credito => {
+            const productos = (credito.detalles || []).map(item => `${item.producto_nombre || ''} ${item.producto_codigo || ''} ${item.producto_codigo_barras || ''}`).join(' ');
+            return coincideBusquedaCredito(`${nombreCliente(credito)} ${credito.documento || ''} ${credito.codigo || ''} ${credito.referencia || ''} ${productos}`, filtro);
+        });
         const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
         paginaActual = Math.min(paginaActual, totalPaginas);
         const inicio = (paginaActual - 1) * porPagina;
@@ -286,11 +352,15 @@ $baseUrl = rtrim((string)base_url(), '/');
             const credito = resultado.data;
             const productosAgrupados = agruparProductosCredito(credito.detalles || []);
             const productos = productosAgrupados.map(item => {
-                const precio = Number(item.precio_actual || item.precio_unitario || 0);
-                const cantidad = Number(item.cantidad || 0) || 0;
+                const precio = Number(item.precio_unitario || item.precio_actual || 0);
+                const esPresentacion = Number(item.presentacion_id || 0) > 0 && item.cantidad_presentacion !== null && item.cantidad_presentacion !== undefined;
+                const esPorKilo = Number(item.venta_por_kilo || 0) === 1;
+                const cantidadNumero = Number(esPresentacion ? item.cantidad_presentacion : item.cantidad) || 0;
+                const cantidad = esPorKilo ? cantidadNumero.toFixed(3).replace(/0+$/, '').replace(/\.$/, '') : String(Math.round(cantidadNumero));
+                const nombrePresentacion = esPresentacion ? ` · ${String(item.presentacion_nombre || '').toUpperCase()}` : '';
                 const total = cantidad * precio;
                 const fechaHora = formatearFechaHoraCredito(credito.fecha_creacion || item.fecha_creacion || item.fecha_venta || null);
-                return `<tr><td>${imagenProducto(item)}</td><td><div class="fecha-hora-cell"><span class="fecha">${escapar(fechaHora.fecha)}</span><span class="hora">${escapar(fechaHora.hora)}</span></div></td><td class="product-name-cell">${escapar((item.producto_nombre || 'PRODUCTO').toUpperCase())}</td><td>${escapar((item.producto_codigo || 'N/D').toUpperCase())}</td><td>${cantidad}</td><td>${moneda(precio)}</td><td>${moneda(total)}</td></tr>`;
+                return `<tr><td>${imagenProducto(item)}</td><td><div class="fecha-hora-cell"><span class="fecha">${escapar(fechaHora.fecha)}</span><span class="hora">${escapar(fechaHora.hora)}</span></div></td><td class="product-name-cell">${escapar((item.producto_nombre || 'PRODUCTO').toUpperCase() + nombrePresentacion)}</td><td>${escapar((item.producto_codigo || 'N/D').toUpperCase())}</td><td>${escapar(cantidad)}${esPorKilo ? ' KG' : ''}</td><td>${moneda(precio)}</td><td>${moneda(total)}</td></tr>`;
             }).join('');
             const estadoCredito = formatoEstadoCredito(credito);
             const estado = String(credito?.estado || '').trim().toLowerCase();
@@ -324,7 +394,7 @@ $baseUrl = rtrim((string)base_url(), '/');
                     <div class="info-box"><small>REFERENCIA</small><strong>${escapar(credito.referencia || 'N/D')}</strong></div>
                     ${totalVisible}
                 </div>
-                <div style="margin:14px 0;">${botonPago}</div>
+                <div style="margin:14px 0;display:flex;gap:10px;flex-wrap:wrap;">${botonPago}${estado === 'pendiente' ? `<button type="button" class="button" onclick="abrirModalEditarCredito(${Number(credito.id || 0)})"><i class="fas fa-edit"></i> EDITAR</button>` : ''}</div>
                 ${cuerpoProductos}
             `;
             document.getElementById('perfilCreditoOverlay').style.display = 'block';
@@ -392,6 +462,238 @@ $baseUrl = rtrim((string)base_url(), '/');
         document.getElementById('modalPagoCredito').style.display = 'none';
         await cargarCreditos();
         cerrarPerfilCredito();
+    }
+
+    let creditoEdicionActual = null;
+
+    function abrirModalEditarCredito(creditoId) {
+        const credito = creditos.find(item => Number(item.id || 0) === Number(creditoId));
+        if (!credito || String(credito.estado || '').toLowerCase() !== 'pendiente') return;
+        creditoEdicionActual = credito;
+        const contenedor = document.getElementById('editarCreditoProductos');
+        contenedor.innerHTML = (credito.detalles || []).map(item => {
+            const esPresentacion = Number(item.presentacion_id || 0) > 0 && item.cantidad_presentacion !== null && item.cantidad_presentacion !== undefined;
+            const cantidad = Number(esPresentacion ? item.cantidad_presentacion : item.cantidad) || 0;
+            const pasos = Number(item.venta_por_kilo || 0) === 1 || esPresentacion ? '0.001' : '1';
+            const fechaHora = formatearFechaHoraCredito(item.fecha_creacion || credito.fecha_creacion);
+            const nombre = `${String(item.producto_nombre || 'PRODUCTO').toUpperCase()}${item.presentacion_nombre ? ` · ${String(item.presentacion_nombre).toUpperCase()}` : ''}`;
+            const total = cantidad * Number(item.precio_unitario || 0);
+            return `<tr><td>${imagenProducto(item)}</td><td><div class="fecha-hora-cell"><span class="fecha">${escapar(fechaHora.fecha)}</span><span class="hora">${escapar(fechaHora.hora)}</span></div></td><td class="product-name-cell">${escapar(nombre)}</td><td>${escapar(String(item.producto_codigo || 'N/D').toUpperCase())}</td><td><div style="display:flex;align-items:center;justify-content:center;gap:3px;"><button type="button" class="button secondary" style="padding:3px 7px;font-size:13px;line-height:1;" onclick="ajustarCantidadCredito(this,-1)" title="Disminuir cantidad">−</button><input class="search credito-editar-cantidad" style="min-width:64px;width:70px;padding:7px 4px;text-align:center;" data-detalle-id="${Number(item.id || 0)}" data-presentacion-id="${Number(item.presentacion_id || 0)}" data-por-kilo="${Number(item.venta_por_kilo || 0) === 1 ? '1' : '0'}" type="number" min="0.001" step="${pasos}" value="${cantidad}" oninput="actualizarTotalLineaCredito(this)"><button type="button" class="button" style="padding:3px 7px;font-size:13px;line-height:1;" onclick="ajustarCantidadCredito(this,1)" title="Aumentar cantidad">+</button></div></td><td><input class="search credito-editar-precio" style="min-width:100px;width:110px;padding:7px 4px;text-align:center;" data-detalle-id="${Number(item.id || 0)}" type="number" min="0" step="0.01" value="${Number(item.precio_unitario || 0)}" oninput="actualizarTotalLineaCredito(this)"></td><td class="credito-editar-total" data-detalle-id="${Number(item.id || 0)}">${moneda(total)}</td><td><button type="button" class="button" style="padding:7px 9px;background:#dc2626;" onclick="eliminarDetalleCredito(${Number(item.id || 0)})" title="Eliminar producto" aria-label="Eliminar producto"><i class="fas fa-trash"></i></button></td></tr>`;
+        }).join('') || '<tr><td colspan="8" class="credit-empty-state">No hay productos para editar.</td></tr>';
+        document.getElementById('modalEditarCredito').style.display = 'flex';
+    }
+
+    function cerrarModalEditarCredito(event) {
+        if (!event || event.target === event.currentTarget) {
+            document.getElementById('modalEditarCredito').style.display = 'none';
+            creditoEdicionActual = null;
+        }
+    }
+
+    function ajustarCantidadCredito(boton, delta) {
+        const input = boton?.parentElement?.querySelector('.credito-editar-cantidad');
+        if (!input) return;
+        const porKilo = input.dataset.porKilo === '1';
+        const paso = porKilo ? 0.001 : 1;
+        const actual = Number(input.value || 0);
+        const nueva = Math.max(paso, actual + (delta * paso));
+        input.value = porKilo ? nueva.toFixed(3) : String(Math.round(nueva));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        actualizarTotalLineaCredito(input);
+    }
+
+    function actualizarTotalLineaCredito(elemento) {
+        const fila = elemento?.closest('tr');
+        if (!fila) return;
+        const cantidad = Number(fila.querySelector('.credito-editar-cantidad')?.value || 0);
+        const precio = Number(fila.querySelector('.credito-editar-precio')?.value || 0);
+        const total = fila.querySelector('.credito-editar-total');
+        if (total) total.textContent = moneda(cantidad * precio);
+    }
+
+    async function guardarEdicionCredito() {
+        if (!creditoEdicionActual) return;
+        const cantidades = Array.from(document.querySelectorAll('.credito-editar-cantidad'));
+        const precios = Array.from(document.querySelectorAll('.credito-editar-precio'));
+        const creditoId = Number(creditoEdicionActual.id || 0);
+        try {
+            for (const cantidadInput of cantidades) {
+                const detalleId = Number(cantidadInput.dataset.detalleId || 0);
+                const precioInput = precios.find(input => Number(input.dataset.detalleId || 0) === detalleId);
+                const cantidad = Number(cantidadInput.value || 0);
+                const precio = Number(precioInput?.value || 0);
+                if (detalleId <= 0 || !(cantidad > 0) || precio < 0) {
+                    throw new Error('Revisa las cantidades y precios de los productos.');
+                }
+                const datos = new FormData();
+                datos.append('action', 'editarDetalle');
+                datos.append('detalle_id', String(detalleId));
+                datos.append('cantidad', String(cantidad));
+                datos.append('precio_venta', String(precio));
+                datos.append('presentacion_id', String(cantidadInput.dataset.presentacionId || 0));
+                const respuesta = await fetch(creditosUrl, { method: 'POST', body: datos, credentials: 'same-origin' });
+                const resultado = await respuesta.json();
+                if (!respuesta.ok || !resultado.success) throw new Error(resultado.message || 'No se pudo guardar la edición');
+            }
+            await Swal.fire({ icon: 'success', title: 'CRÉDITO ACTUALIZADO', text: 'Todos los productos fueron actualizados.' });
+            await cargarCreditos();
+            await mostrarPerfilCredito(creditoId);
+            abrirModalEditarCredito(creditoId);
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudo editar el crédito' });
+        }
+    }
+
+    async function eliminarDetalleCredito(detalleId) {
+        if (!creditoEdicionActual || Number(detalleId || 0) <= 0) return;
+        const confirmacion = await Swal.fire({
+            icon: 'warning',
+            title: '¿ELIMINAR PRODUCTO?',
+            text: 'La cantidad reservada volverá al inventario.',
+            showCancelButton: true,
+            confirmButtonText: 'SÍ, ELIMINAR',
+            cancelButtonText: 'CANCELAR',
+            confirmButtonColor: '#dc2626'
+        });
+        if (!confirmacion.isConfirmed) return;
+
+        const creditoId = Number(creditoEdicionActual.id || 0);
+        const datos = new FormData();
+        datos.append('action', 'eliminarDetalle');
+        datos.append('detalle_id', String(detalleId));
+        try {
+            const respuesta = await fetch(creditosUrl, { method: 'POST', body: datos, credentials: 'same-origin' });
+            const resultado = await respuesta.json();
+            if (!respuesta.ok || !resultado.success) throw new Error(resultado.message || 'No se pudo eliminar el producto');
+            await Swal.fire({ icon: 'success', title: 'PRODUCTO ELIMINADO', text: 'La cantidad volvió al inventario.', timer: 1800, showConfirmButton: false });
+            await cargarCreditos();
+            await mostrarPerfilCredito(creditoId);
+            abrirModalEditarCredito(creditoId);
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudo eliminar el producto' });
+        }
+    }
+
+    async function editarDetalleCredito(detalleId, creditoId, cantidadInicial, precioInicial, presentacionId) {
+        const resultado = await Swal.fire({
+            title: 'EDITAR PRODUCTO DEL CRÉDITO',
+            html: `<input id="creditoEditarCantidad" class="swal2-input" type="number" min="0.001" step="0.001" value="${escapar(cantidadInicial)}" placeholder="Cantidad"><input id="creditoEditarPrecio" class="swal2-input" type="number" min="0" step="0.01" value="${escapar(precioInicial)}" placeholder="Precio">`,
+            showCancelButton: true,
+            confirmButtonText: 'GUARDAR',
+            cancelButtonText: 'CANCELAR',
+            focusConfirm: false,
+            preConfirm: () => {
+                const cantidad = Number(document.getElementById('creditoEditarCantidad')?.value || 0);
+                const precio = Number(document.getElementById('creditoEditarPrecio')?.value || 0);
+                if (!(cantidad > 0) || precio < 0) {
+                    Swal.showValidationMessage('Ingresa una cantidad y un precio válidos.');
+                    return false;
+                }
+                return { cantidad, precio };
+            }
+        });
+        if (!resultado.isConfirmed || !resultado.value) return;
+
+        const datos = new FormData();
+        datos.append('action', 'editarDetalle');
+        datos.append('detalle_id', String(detalleId));
+        datos.append('credito_id', String(creditoId));
+        datos.append('cantidad', String(resultado.value.cantidad));
+        datos.append('precio_venta', String(resultado.value.precio));
+        datos.append('presentacion_id', String(presentacionId || 0));
+
+        try {
+            const respuesta = await fetch(creditosUrl, { method: 'POST', body: datos, credentials: 'same-origin' });
+            const respuestaJson = await respuesta.json();
+            if (!respuesta.ok || !respuestaJson.success) {
+                throw new Error(respuestaJson.message || 'No se pudo editar el producto del crédito');
+            }
+            await Swal.fire({ icon: 'success', title: 'ACTUALIZADO', text: respuestaJson.message || 'Producto actualizado.' });
+            await cargarCreditos();
+            await mostrarPerfilCredito(creditoId);
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudo editar el producto del crédito' });
+        }
+    }
+
+    function confirmarReinicioCreditos() {
+        Swal.fire({
+            title: '¿Reiniciar créditos?',
+            text: 'Esta acción borrará los créditos y sus detalles. Puede deshacer este cambio con el botón correspondiente.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, reiniciar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#3b82f6'
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            const formData = new FormData();
+            formData.append('action', 'reiniciar');
+
+            fetch(creditosUrl, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data || !data.success) {
+                    throw new Error(data?.message || 'No se pudo reiniciar créditos');
+                }
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Créditos reiniciados',
+                    text: data.message || 'Los créditos fueron reiniciados correctamente.'
+                }).then(() => location.reload());
+            })
+            .catch(e => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: e.message || 'No se pudo reiniciar créditos'
+                });
+            });
+        });
+    }
+
+    function confirmarDeshacerReinicioCreditos() {
+        Swal.fire({
+            title: '¿Deshacer el último reinicio de créditos?',
+            text: 'Se restaurará el estado anterior de los créditos y sus detalles.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, restaurar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#64748b'
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            const formData = new FormData();
+            formData.append('action', 'deshacer');
+
+            fetch(creditosUrl, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data || !data.success) {
+                    throw new Error(data?.message || 'No se pudo deshacer el reinicio');
+                }
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Reinicio deshecho',
+                    text: data.message || 'El estado anterior se restauró correctamente.'
+                }).then(() => location.reload());
+            })
+            .catch(e => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: e.message || 'No se pudo deshacer el reinicio'
+                });
+            });
+        });
     }
 
     cargarCreditos();

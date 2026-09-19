@@ -34,6 +34,9 @@ class Inventario {
         if ($presentacionId <= 0) {
             return null;
         }
+        if (!$this->presentaciones()->manejaPresentaciones((int)$productoId)) {
+            return null;
+        }
         $presentacion = $this->presentaciones()->obtener($presentacionId);
         if (!$presentacion || (int)$presentacion['producto_id'] !== (int)$productoId) {
             throw new Exception('La presentacion seleccionada no corresponde al producto');
@@ -1081,11 +1084,12 @@ class Inventario {
                         CASE WHEN LOWER(TRIM(s.tipo_salida)) IN ('credito', 'venta_credito_pagada', 'venta_credito', 'credito_pagado', 'pagado') THEN 'venta' ELSE s.tipo_salida END
                     ELSE 'venta' END as tipo_salida,
                     CASE WHEN " . $this->expresionEsCredito('s') . " = 1 THEN 'credito' ELSE 'venta' END as tipo_salida_efectiva,
-                    s.*, p.codigo as codigo, p.nombre as producto_nombre, p.imagen as producto_imagen, 
+                    s.*, p.codigo as codigo, p.nombre as producto_nombre, p.imagen as producto_imagen, c.nombre as categoria_nombre,
                     " . $this->expresionEsCredito('s') . " AS es_credito,
                     u.nombre as usuario_nombre, u.apellidos as usuario_apellidos, u.rol as usuario_rol
                     FROM salidas_inventario s
                     INNER JOIN productos p ON s.producto_id = p.id
+                    LEFT JOIN categorias c ON c.id = p.categoria_id
                     LEFT JOIN usuarios u ON s.usuario_id = u.id
                     WHERE 1=1";
 
@@ -1160,6 +1164,13 @@ class Inventario {
             $factorEntrada = $presentacionEntrada ? (float)$presentacionEntrada['factor_base'] : 1.0;
             if ($factorEntrada <= 0) { $factorEntrada = 1.0; }
             $cantidadPresentacion = (float)($datos['cantidad'] ?? 0);
+            $stmtCategoriaEntrada = $this->db->prepare("SELECT p.venta_por_kilo, c.nombre FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id WHERE p.id = :id LIMIT 1");
+            $stmtCategoriaEntrada->execute([':id' => (int)($datos['producto_id'] ?? 0)]);
+            $datosCategoriaEntrada = $stmtCategoriaEntrada->fetch(PDO::FETCH_ASSOC) ?: [];
+            $admiteGramosEntrada = (int)($datosCategoriaEntrada['venta_por_kilo'] ?? 0) === 1;
+            if (!$admiteGramosEntrada) {
+                $cantidadPresentacion = floor($cantidadPresentacion);
+            }
             $cantidadBase = $cantidadPresentacion * $factorEntrada;
 
             // Vencimiento: obligatorio cuando la categoria del producto es perecedera.
@@ -1183,7 +1194,9 @@ class Inventario {
             $precio_compra_presentacion = floatval($datos['precio_compra']);
             $precio_compra = $precio_compra_presentacion / $factorEntrada;
             $porcentaje_ganancia = floatval($datos['porcentaje_ganancia'] ?? 0);
-            $precio_venta = $precio_compra + ($precio_compra * ($porcentaje_ganancia / 100));
+            $precio_calculado = $precio_compra + ($precio_compra * ($porcentaje_ganancia / 100));
+            $base_redondeo = floor($precio_calculado / 50) * 50;
+            $precio_venta = $base_redondeo + (fmod($precio_calculado, 50) > 25 ? 50 : 0);
             
             // Verificar si la columna 'notas' existe en la tabla
             $tiene_notas = $this->columnaExiste('entradas_inventario', 'notas');
@@ -1335,11 +1348,15 @@ class Inventario {
             $factorSalida = $presentacionSalida ? (float)$presentacionSalida['factor_base'] : 1.0;
             if ($factorSalida <= 0) { $factorSalida = 1.0; }
             $cantidadPresentacionSalida = (float)($datos['cantidad'] ?? 0);
+            $precioVentaPresentacion = $presentacionSalida
+                ? ((float)$presentacionSalida['precio_venta'] > 0 ? (float)$presentacionSalida['precio_venta'] : 0.0)
+                : 0.0;
             if ($presentacionSalida) {
                 $datos['cantidad'] = $cantidadPresentacionSalida * $factorSalida;
                 $precioPresentacion = isset($datos['precio_venta']) && (float)$datos['precio_venta'] > 0
                     ? (float)$datos['precio_venta']
-                    : (float)$presentacionSalida['precio_venta'];
+                    : $precioVentaPresentacion;
+                $precioVentaPresentacion = $precioPresentacion;
                 if ($precioPresentacion > 0) {
                     $datos['precio_venta'] = $precioPresentacion / $factorSalida;
                 }
@@ -1401,7 +1418,11 @@ class Inventario {
             // Si el frontend pasa precio_venta (e.g. precio con descuento aplicado), usarlo; sino usar precio del producto.
             $precioVentaPasado = isset($datos['precio_venta']) && $datos['precio_venta'] > 0 ? floatval($datos['precio_venta']) : null;
             $precioVentaUnitario = $precioVentaPasado ?? floatval($producto['precio'] ?? 0);
-            $precioVentaUnitario = max($precioVentaUnitario, floatval($producto['precio'] ?? 0));
+            if (!$presentacionSalida) {
+                $precioVentaUnitario = max($precioVentaUnitario, floatval($producto['precio'] ?? 0));
+            } elseif ($precioVentaUnitario <= 0) {
+                $precioVentaUnitario = $precioVentaPresentacion / $factorSalida;
+            }
             $sqlCosto = "SELECT precio_compra FROM entradas_inventario WHERE producto_id = :producto_id";
             $paramsCosto = [':producto_id' => $datos['producto_id']];
             if ($entradasTieneEmpresa) {
@@ -1414,11 +1435,24 @@ class Inventario {
             $stmtCosto->execute($paramsCosto);
             $costoUnitario = floatval($stmtCosto->fetchColumn() ?: 0);
 
+            $costoPresentacion = $presentacionSalida
+                ? ((float)$presentacionSalida['precio_compra'] > 0
+                    ? (float)$presentacionSalida['precio_compra']
+                    : $costoUnitario * $factorSalida)
+                : $costoUnitario;
             $gananciaUnitaria = $precioVentaUnitario - $costoUnitario;
             $porcentajeGanancia = $costoUnitario > 0 ? (($gananciaUnitaria / $costoUnitario) * 100) : 0;
             $esVenta = $tipoSalida === 'venta';
-            $totalVenta = $esVenta ? $precioVentaUnitario * floatval($datos['cantidad']) : 0.0;
-            $totalGanancia = $esVenta ? $gananciaUnitaria * floatval($datos['cantidad']) : 0.0;
+            $totalVenta = $esVenta
+                ? ($presentacionSalida
+                    ? $precioVentaPresentacion * $cantidadPresentacionSalida
+                    : $precioVentaUnitario * floatval($datos['cantidad']))
+                : 0.0;
+            $totalGanancia = $esVenta
+                ? ($presentacionSalida
+                    ? ($precioVentaPresentacion - $costoPresentacion) * $cantidadPresentacionSalida
+                    : $gananciaUnitaria * floatval($datos['cantidad']))
+                : 0.0;
             
             // Verificar si la columna 'notas' existe en la tabla
             $tiene_notas = $this->columnaExiste('salidas_inventario', 'notas');
@@ -1587,6 +1621,7 @@ class Inventario {
     public function registrarProductoDanado(array $datos): array {
         $productoId = (int)($datos['producto_id'] ?? 0);
         $cantidad = (float)($datos['cantidad'] ?? 0);
+        $grupo = ($datos['grupo'] ?? 'perecederos') === 'no_perecederos' ? 'no_perecederos' : 'perecederos';
         if ($productoId <= 0 || $cantidad <= 0) {
             return ['success' => false, 'message' => 'Selecciona un producto e indica una cantidad válida.'];
         }
@@ -1607,9 +1642,12 @@ class Inventario {
 
             $categoria = mb_strtolower(trim((string)$producto['categoria']), 'UTF-8');
             $categoria = strtr($categoria, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
-            $permitida = in_array($categoria, ['frutas', 'verduras', 'carnicos y refrigerados'], true);
+            $esPerecedero = in_array($categoria, ['frutas', 'verduras', 'carnicos y refrigerados'], true);
+            $permitida = $grupo === 'perecederos' ? $esPerecedero : !$esPerecedero;
             if (!$permitida) {
-                return ['success' => false, 'message' => 'Solo se pueden registrar daños en frutas, verduras y cárnicos y refrigerados.'];
+                return ['success' => false, 'message' => $grupo === 'perecederos'
+                    ? 'Solo se pueden registrar daños en frutas, verduras y cárnicos y refrigerados.'
+                    : 'Este botón es para productos dañados no perecederos.'];
             }
             if ($cantidad > (float)$producto['stock']) {
                 return ['success' => false, 'message' => 'La cantidad dañada supera el stock disponible.'];
@@ -1960,13 +1998,9 @@ class Inventario {
                 $filtroSalidas .= " AND usuario_id = {$usuarioId}";
             }
 
-            $filtroEntradas = "";
-            if ($entradasTieneEmpresa) {
-                $filtroEntradas .= $this->construirFiltroEmpresaEstricto('entradas_inventario');
-            }
-            if ($filtrarPorUsuario && $entradasTieneUsuario && $usuarioId > 0) {
-                $filtroEntradas .= " AND usuario_id = {$usuarioId}";
-            }
+            // Las entradas pertenecen al inventario compartido de la empresa.
+            // No filtrar por usuario evita ocultar el costo real en los resúmenes.
+            $filtroEntradas = $this->construirFiltroEmpresaEstricto('entradas_inventario');
 
             $tablas_existen = true;
             try {
@@ -2006,6 +2040,19 @@ class Inventario {
                 ? $filtroMesEntradas
                 : ' AND fecha_entrada >= ' . $this->dbDateSubDays(30);
 
+            $resumenVentasJoin = "LEFT JOIN (
+                SELECT producto_id, SUM(cantidad) AS ventas_30dias
+                FROM salidas_inventario
+                WHERE LOWER(COALESCE(NULLIF(TRIM(tipo_salida), ''), 'venta')) = 'venta'{$filtroSalidas}{$filtroVentasFecha}
+                GROUP BY producto_id
+            ) resumen_ventas ON resumen_ventas.producto_id = p.id";
+            $resumenEntradasJoin = "LEFT JOIN (
+                SELECT producto_id, SUM(cantidad) AS entradas_30dias
+                FROM entradas_inventario
+                WHERE 1 = 1{$filtroEntradas}{$filtroEntradasFecha}
+                GROUP BY producto_id
+            ) resumen_entradas ON resumen_entradas.producto_id = p.id";
+
             if ($tablas_existen) {
                 $sql = "SELECT 
                         p.id, 
@@ -2020,10 +2067,12 @@ class Inventario {
                         {$exprGananciaBasePct} as porcentaje_ganancia,
                         {$exprPrecioFinal} as precio_final,
                         IFNULL(c.nombre, 'SIN CATEGORÍA') as categoria,
-                        IFNULL((SELECT SUM(cantidad) FROM salidas_inventario WHERE producto_id = p.id AND LOWER(COALESCE(NULLIF(TRIM(tipo_salida), ''), 'venta')) = 'venta' " . $filtroSalidas . $filtroVentasFecha . "), 0) as ventas_30dias,
-                        IFNULL((SELECT SUM(cantidad) FROM entradas_inventario WHERE producto_id = p.id " . $filtroEntradas . $filtroEntradasFecha . "), 0) as entradas_30dias
+                        COALESCE(resumen_ventas.ventas_30dias, 0) as ventas_30dias,
+                        COALESCE(resumen_entradas.entradas_30dias, 0) as entradas_30dias
                         FROM productos p
                         LEFT JOIN categorias c ON p.categoria_id = c.id
+                        {$resumenVentasJoin}
+                        {$resumenEntradasJoin}
                         WHERE p.estado = 1" . $filtroProductos . "
                         ORDER BY p.id DESC";
             } else {
@@ -2048,21 +2097,10 @@ class Inventario {
                         ORDER BY p.id DESC";
             }
 
-            error_log("SQL para resumen: " . $sql);
-
             $query = $this->db->prepare($sql);
             $query->execute();
 
             $resultados = $query->fetchAll(PDO::FETCH_OBJ);
-            error_log("Productos encontrados en total: " . count($resultados));
-
-            $con_stock = 0;
-            foreach ($resultados as $prod) {
-                if ($prod->stock > 0) {
-                    $con_stock++;
-                }
-            }
-            error_log("Productos con stock > 0: " . $con_stock);
 
             return $resultados;
         } catch(PDOException $e) {
@@ -2175,6 +2213,25 @@ class Inventario {
             $query = $this->db->prepare($sql);
             $query->execute();
             $estadisticas['valor_total'] = $query->fetch(PDO::FETCH_OBJ)->total ?? 0;
+
+            // Valor total de compra del inventario actual, sin tocar el valor del inventario
+            $sql = "SELECT COALESCE(SUM(
+                        COALESCE(p.stock, 0) * COALESCE(
+                            (
+                                SELECT e.precio_compra
+                                FROM entradas_inventario e
+                                WHERE e.producto_id = p.id
+                                ORDER BY e.fecha_entrada DESC, e.id DESC
+                                LIMIT 1
+                            ),
+                            0
+                        )
+                    ), 0) as total
+                    FROM productos p
+                    WHERE p.estado = 1 AND COALESCE(p.stock, 0) > 0" . $filtroProductos;
+            $query = $this->db->prepare($sql);
+            $query->execute();
+            $estadisticas['valor_compra_total'] = $query->fetch(PDO::FETCH_OBJ)->total ?? 0;
             
             // BAJO STOCK en dashboard: coincide con reorden (critico/urgente/normal => stock <= 5).
             $sql = "SELECT COUNT(*) as total FROM productos WHERE estado = 1 AND IFNULL(stock, 0) <= 5" . $filtroProductos;
@@ -2226,21 +2283,44 @@ class Inventario {
             $query = $this->db->prepare($sql);
             $query->execute();
             $productos = $query->fetchAll(PDO::FETCH_OBJ);
+
+            $stmtUltimoPrecioCompra = $this->db->prepare(
+                "SELECT precio_compra
+                 FROM entradas_inventario
+                 WHERE producto_id = :producto_id
+                 ORDER BY fecha_entrada DESC, id DESC
+                 LIMIT 1"
+            );
+
+            foreach ($productos as $prod) {
+                $stock = floatval($prod->stock ?? 0);
+                $precioCompra = 0.0;
+                $stmtUltimoPrecioCompra->execute([':producto_id' => (int)($prod->id ?? 0)]);
+                $precioCompra = floatval($stmtUltimoPrecioCompra->fetchColumn() ?: 0);
+                $prod->precio_compra = $precioCompra;
+                $prod->valor_compra_total = $stock * $precioCompra;
+            }
             
             // Calcular totales
             $valor_total = 0;
+            $valor_compra_total = 0;
+            $valor_ganancia_total = 0;
             foreach ($productos as $prod) {
                 $valor_total += floatval($prod->valor_total);
+                $valor_compra_total += floatval($prod->valor_compra_total ?? 0);
+                $valor_ganancia_total += (floatval($prod->precio ?? 0) - floatval($prod->precio_compra ?? 0)) * floatval($prod->stock ?? 0);
             }
             
             return [
                 'productos' => $productos,
                 'valor_total' => $valor_total,
+                'valor_compra_total' => $valor_compra_total,
+                'valor_ganancia_total' => $valor_ganancia_total,
                 'cantidad_productos' => count($productos)
             ];
         } catch(PDOException $e) {
             error_log("Error en obtenerValorInventario: " . $e->getMessage());
-            return ['productos' => [], 'valor_total' => 0, 'cantidad_productos' => 0];
+            return ['productos' => [], 'valor_total' => 0, 'valor_compra_total' => 0, 'valor_ganancia_total' => 0, 'cantidad_productos' => 0];
         }
     }
     
@@ -2796,7 +2876,8 @@ class Inventario {
     public function obtenerProductosConGanancia() {
         try {
             $filtroProductos = $this->construirFiltroTenant('productos', 'p');
-            $filtroEntradas = $this->construirFiltroTenant('entradas_inventario');
+            // El costo de compra debe ser visible para todos los usuarios que ven el producto.
+            $filtroEntradas = $this->construirFiltroTenant('entradas_inventario', '', false);
             $tieneDescuento = $this->columnaDescuentoProductos() !== '';
             $tieneVentaPorKilo = $this->columnaExiste('productos', 'venta_por_kilo');
             $tienePrecioOriginal = $this->columnaExiste('productos', 'precio_original');

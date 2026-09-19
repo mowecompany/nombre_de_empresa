@@ -19,7 +19,7 @@ $baseUrl = rtrim((string)base_url(), '/');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos a vencer - <?= htmlspecialchars((string)NOMBRE_EMPRESA, ENT_QUOTES, 'UTF-8') ?></title>
+    <title>Productos vencidos y dañados - <?= htmlspecialchars((string)NOMBRE_EMPRESA, ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -74,6 +74,9 @@ $baseUrl = rtrim((string)base_url(), '/');
         }
         .venc-toolbar input { flex: 1; min-width: 240px; }
 
+        .venc-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .venc-tabs .btn.activo { background: var(--navy); color: #fff; }
+
         .btn {
             border: none; border-radius: 8px; padding: 11px 16px; font-family: inherit; font-weight: 700;
             font-size: 13px; cursor: pointer; text-transform: uppercase; color: #fff; background: var(--navy);
@@ -109,8 +112,17 @@ $baseUrl = rtrim((string)base_url(), '/');
 </head>
 <body>
     <div class="venc-shell">
-        <h1 class="venc-title"><i class="fas fa-calendar-times"></i> PRODUCTOS A VENCER</h1>
-        <p class="venc-sub">LOTES DE PRODUCTOS PERECEDEROS ORDENADOS POR LA FECHA DE VENCIMIENTO MÁS CERCANA</p>
+        <h1 class="venc-title"><i class="fas fa-calendar-times"></i> PRODUCTOS VENCIDOS Y DAÑADOS</h1>
+        <p class="venc-sub">PRODUCTOS VENCIDOS Y PRODUCTOS DAÑADOS REGISTRADOS EN EL INVENTARIO</p>
+
+        <div class="venc-tabs" role="tablist" aria-label="PRODUCTOS VENCIDOS Y DAÑADOS">
+            <button type="button" class="btn ghost activo" id="btnVistaVencidos" onclick="cambiarVista('vencidos')">
+                <i class="fas fa-calendar-xmark"></i> PRODUCTOS VENCIDOS
+            </button>
+            <button type="button" class="btn ghost" id="btnVistaDanados" onclick="cambiarVista('danados')">
+                <i class="fas fa-triangle-exclamation"></i> PRODUCTOS DAÑADOS
+            </button>
+        </div>
 
         <div class="venc-cards" id="tarjetas"></div>
 
@@ -125,6 +137,7 @@ $baseUrl = rtrim((string)base_url(), '/');
             </select>
             <button class="btn ghost" id="btnRefrescar"><i class="fas fa-sync"></i> ACTUALIZAR</button>
             <button class="btn rojo" id="btnArchivarTodos"><i class="fas fa-box-archive"></i> ARCHIVAR TODOS LOS VENCIDOS</button>
+            <button class="btn ghost" id="btnVerArchivados" type="button" onclick="cambiarVista(vistaActiva === 'archivados' ? 'vencidos' : 'archivados')"><i class="fas fa-box-archive"></i> PRODUCTOS ARCHIVADOS</button>
         </div>
 
         <div class="venc-table-wrap">
@@ -136,9 +149,9 @@ $baseUrl = rtrim((string)base_url(), '/');
                         <th>PRODUCTO</th>
                         <th>CATEGORÍA</th>
                         <th>CANTIDAD</th>
-                        <th>VENCE</th>
-                        <th>DÍAS</th>
-                        <th>PROVEEDOR</th>
+                        <th id="encabezadoFecha">VENCE</th>
+                        <th id="encabezadoDias">DÍAS</th>
+                        <th id="encabezadoProveedor">PROVEEDOR</th>
                         <th>ESTADO</th>
                         <th>ACCIÓN</th>
                     </tr>
@@ -155,14 +168,39 @@ $baseUrl = rtrim((string)base_url(), '/');
         const CONTROLADOR = baseUrl + '/Controllers/InventarioController.php';
         let lotes = [];
         let resumen = {};
+        let danados = [];
+        let archivados = [];
+        let vistaActiva = new URLSearchParams(window.location.search).get('vista') === 'danados'
+            ? 'danados'
+            : new URLSearchParams(window.location.search).get('vista') === 'archivados'
+                ? 'archivados'
+            : 'vencidos';
 
         function escapar(texto) {
             return String(texto ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         }
 
+        function coincideBusquedaVencimientos(valores, consulta) {
+            const normalizar = (valor) => String(valor || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim()
+                .replace(/\s+/g, ' ');
+            const texto = normalizar((valores || []).join(' '));
+            const busqueda = normalizar(consulta);
+            if (!busqueda) return true;
+            const tokens = busqueda.split(' ').filter(Boolean);
+            return tokens.every(token => texto.includes(token)) || texto.replace(/\s/g, '').includes(tokens.join(''));
+        }
+
         function imagenUrl(archivo) {
-            const nombre = String(archivo || '').trim();
-            if (!nombre) return baseUrl + '/favicon.ico';
+            const imagen = String(archivo || '').trim().replace(/\\/g, '/');
+            if (!imagen) return baseUrl + '/favicon.ico';
+            if (/^(?:https?:|data:|blob:)/i.test(imagen)) return imagen;
+            const nombre = imagen.split('/').pop() || '';
+            if (!nombre || nombre.toLowerCase() === 'favicon.ico') return baseUrl + '/favicon.ico';
             return baseUrl + '/Assets/images/productos/' + encodeURIComponent(nombre);
         }
 
@@ -193,16 +231,123 @@ $baseUrl = rtrim((string)base_url(), '/');
             `;
         }
 
-        function pintarTabla() {
+        function pintarTarjetasDanados() {
+            const contenedor = document.getElementById('tarjetas');
+            contenedor.innerHTML = `
+                <div class="venc-card rojo"><strong>${danados.length}</strong><span>PRODUCTOS DAÑADOS REGISTRADOS</span></div>
+            `;
+        }
+
+        function pintarTarjetasArchivados() {
+            const contenedor = document.getElementById('tarjetas');
+            contenedor.innerHTML = `
+                <div class="venc-card rojo"><strong>${archivados.length}</strong><span>PRODUCTOS VENCIDOS ARCHIVADOS</span></div>
+            `;
+        }
+
+        function actualizarVista() {
+            const esDanados = vistaActiva === 'danados';
+            const esArchivados = vistaActiva === 'archivados';
+            document.title = 'Productos vencidos y dañados - <?= htmlspecialchars((string)NOMBRE_EMPRESA, ENT_QUOTES, 'UTF-8') ?>';
+            document.getElementById('btnVistaVencidos').classList.toggle('activo', !esDanados);
+            document.getElementById('btnVistaDanados').classList.toggle('activo', esDanados);
+            document.getElementById('filtroEstado').style.display = esDanados || esArchivados ? 'none' : '';
+            document.getElementById('btnArchivarTodos').style.display = esDanados || esArchivados ? 'none' : '';
+            const botonArchivados = document.getElementById('btnVerArchivados');
+            botonArchivados.style.display = esDanados ? 'none' : '';
+            botonArchivados.innerHTML = esArchivados
+                ? '<i class="fas fa-calendar-xmark"></i> VER PRODUCTOS VENCIDOS'
+                : '<i class="fas fa-box-archive"></i> PRODUCTOS ARCHIVADOS';
+            document.getElementById('encabezadoFecha').textContent = esDanados ? 'FECHA' : (esArchivados ? 'ARCHIVADO' : 'VENCE');
+            document.getElementById('encabezadoDias').textContent = esDanados ? 'REFERENCIA' : (esArchivados ? 'VENCE' : 'DÍAS');
+            document.getElementById('encabezadoProveedor').textContent = esDanados ? 'NOTA' : (esArchivados ? 'NOTA' : 'PROVEEDOR');
+            document.getElementById('tarjetas').style.display = '';
+            if (esDanados) {
+                pintarTarjetasDanados();
+                pintarTablaDanados();
+            } else if (esArchivados) {
+                pintarTarjetasArchivados();
+                pintarTablaArchivados();
+            } else {
+                pintarTarjetas();
+                pintarTabla();
+            }
+        }
+
+        function pintarTablaDanados() {
             const cuerpo = document.getElementById('cuerpo');
-            const texto = (document.getElementById('buscador').value || '').trim().toLowerCase();
+            const texto = document.getElementById('buscador').value || '';
+            const visibles = danados.filter((item) => {
+                if (!texto) return true;
+                return coincideBusquedaVencimientos([item.producto_nombre, item.codigo, item.codigo_barras, item.categoria_nombre, item.referencia, item.notas], texto);
+            });
+
+            if (!visibles.length) {
+                cuerpo.innerHTML = '<tr><td colspan="10" class="vacio">NO HAY PRODUCTOS DAÑADOS PARA MOSTRAR</td></tr>';
+                return;
+            }
+
+            cuerpo.innerHTML = visibles.map((item) => `
+                <tr>
+                    <td><img class="prod-img" loading="lazy" src="${imagenUrl(item.producto_imagen)}" alt="${escapar(item.producto_nombre)}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
+                    <td>${escapar(item.codigo || 'N/D')}</td>
+                    <td><strong>${escapar(item.producto_nombre || 'N/D')}</strong></td>
+                    <td>${escapar(item.categoria_nombre || 'N/D')}</td>
+                    <td>${Number(item.cantidad) || 0}</td>
+                    <td>${fechaBonita(item.fecha_salida)}</td>
+                    <td>${escapar(item.referencia || 'N/D')}</td>
+                    <td>${escapar(item.notas || 'PRODUCTO DAÑADO')}</td>
+                    <td><span class="pill vencido">DAÑADO</span></td>
+                    <td><span style="color:#94a3b8;">—</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function pintarTablaArchivados() {
+            const cuerpo = document.getElementById('cuerpo');
+            const texto = document.getElementById('buscador').value || '';
+            const visibles = archivados.filter((item) => {
+                if (!texto) return true;
+                return coincideBusquedaVencimientos([item.producto_nombre, item.producto_codigo, item.codigo_barras, item.categoria_nombre, item.notas], texto);
+            });
+
+            if (!visibles.length) {
+                cuerpo.innerHTML = '<tr><td colspan="10" class="vacio">NO HAY PRODUCTOS ARCHIVADOS PARA MOSTRAR</td></tr>';
+                return;
+            }
+
+            cuerpo.innerHTML = visibles.map((item) => `
+                <tr>
+                    <td><img class="prod-img" loading="lazy" src="${imagenUrl(item.producto_imagen)}" alt="${escapar(item.producto_nombre)}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
+                    <td>${escapar(item.producto_codigo || 'N/D')}</td>
+                    <td><strong>${escapar(item.producto_nombre || 'N/D')}</strong></td>
+                    <td>${escapar(item.categoria_nombre || 'N/D')}</td>
+                    <td>${Number(item.cantidad) || 0}</td>
+                    <td>${fechaBonita(item.fecha_archivado)}</td>
+                    <td>${fechaBonita(item.fecha_vencimiento)}</td>
+                    <td>${escapar(item.notas || 'PRODUCTO VENCIDO ARCHIVADO')}</td>
+                    <td><span class="pill vencido">ARCHIVADO</span></td>
+                    <td><span style="color:#94a3b8;">—</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function cambiarVista(vista) {
+            vistaActiva = ['danados', 'archivados'].includes(vista) ? vista : 'vencidos';
+            actualizarVista();
+        }
+
+        function pintarTabla() {
+            if (vistaActiva === 'danados') return pintarTablaDanados();
+            if (vistaActiva === 'archivados') return pintarTablaArchivados();
+            const cuerpo = document.getElementById('cuerpo');
+            const texto = document.getElementById('buscador').value || '';
             const estadoFiltro = document.getElementById('filtroEstado').value;
 
             const visibles = lotes.filter((lote) => {
                 if (estadoFiltro !== 'todos' && lote.estado !== estadoFiltro) return false;
                 if (!texto) return true;
-                return [lote.producto, lote.codigo, lote.categoria, lote.proveedor]
-                    .some((valor) => String(valor || '').toLowerCase().includes(texto));
+                return coincideBusquedaVencimientos([lote.producto, lote.codigo, lote.codigo_barras, lote.categoria, lote.proveedor], texto);
             });
 
             if (!visibles.length) {
@@ -232,13 +377,22 @@ $baseUrl = rtrim((string)base_url(), '/');
             const boton = document.getElementById('btnRefrescar');
             boton.disabled = true;
             try {
-                const respuesta = await fetch(CONTROLADOR + '?action=lotesPorVencer', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                const datos = await respuesta.json();
+                const [respuestaLotes, respuestaDanados, respuestaArchivados] = await Promise.all([
+                    fetch(CONTROLADOR + '?action=lotesPorVencer', { headers: { 'X-Requested-With': 'XMLHttpRequest' } }),
+                    fetch(CONTROLADOR + '?action=obtenerSalidas&tipo_salida=dañado', { headers: { 'X-Requested-With': 'XMLHttpRequest' } }),
+                    fetch(CONTROLADOR + '?action=lotesVencidosArchivados', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                ]);
+                const datos = await respuestaLotes.json();
+                const datosDanados = await respuestaDanados.json();
+                const datosArchivados = await respuestaArchivados.json();
                 if (!datos.success) throw new Error(datos.message || 'No se pudieron cargar los lotes');
                 lotes = Array.isArray(datos.data) ? datos.data : [];
                 resumen = datos.resumen || {};
-                pintarTarjetas();
-                pintarTabla();
+                danados = Array.isArray(datosDanados?.data)
+                    ? datosDanados.data.filter(item => String(item.tipo_salida || '').trim().toLowerCase() === 'dañado' && !String(item.referencia || '').toUpperCase().startsWith('VENCIDO-'))
+                    : [];
+                archivados = Array.isArray(datosArchivados?.data) ? datosArchivados.data : [];
+                actualizarVista();
             } catch (error) {
                 document.getElementById('cuerpo').innerHTML = `<tr><td colspan="10" class="vacio">${escapar(error.message)}</td></tr>`;
             } finally {

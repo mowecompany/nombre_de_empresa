@@ -5,6 +5,10 @@ function resetDbCreditoPrueba(string $sqlitePath): void {
     if (file_exists($sqlitePath)) {
         unlink($sqlitePath);
     }
+    $ref = new ReflectionClass('Database');
+    $prop = $ref->getProperty('connections');
+    $prop->setAccessible(true);
+    $prop->setValue([]);
     putenv('DB_CONNECTION=sqlite');
     putenv('SQLITE_PATH=' . $sqlitePath);
     $_SERVER['DB_CONNECTION'] = 'sqlite';
@@ -14,6 +18,11 @@ function resetDbCreditoPrueba(string $sqlitePath): void {
 }
 
 function ejecutarCredito(string $sqlitePath, array $post): void {
+    static $datosInicializados = false;
+    $ref = new ReflectionClass('Database');
+    $prop = $ref->getProperty('connections');
+    $prop->setAccessible(true);
+    $prop->setValue([]);
     $_POST = $post;
     $_GET = [];
     $_SESSION = [
@@ -25,15 +34,23 @@ function ejecutarCredito(string $sqlitePath, array $post): void {
 
     $conexion = Database::connect();
     $conexion->exec('CREATE TABLE IF NOT EXISTS empresas (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, tipo_empresa_id INTEGER, imagen TEXT);');
-    $conexion->exec('CREATE TABLE IF NOT EXISTS usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, apellidos TEXT, documento TEXT, codigo TEXT, rol TEXT, empresa_id INTEGER);');
-    $conexion->exec('CREATE TABLE IF NOT EXISTS productos (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, codigo TEXT, stock DECIMAL(12,3) DEFAULT 0, precio DECIMAL(12,2) DEFAULT 0, empresa_id INTEGER);');
+    $conexion->exec('CREATE TABLE IF NOT EXISTS usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, apellidos TEXT, correo TEXT, telefono TEXT, tipo_documento TEXT, documento TEXT, codigo TEXT, rol TEXT, estado TEXT DEFAULT "activo", empresa_id INTEGER);');
+    $conexion->exec('CREATE TABLE IF NOT EXISTS productos (id INTEGER PRIMARY KEY AUTOINCREMENT, nombre TEXT, codigo TEXT, stock DECIMAL(12,3) DEFAULT 0, precio DECIMAL(12,2) DEFAULT 0, empresa_id INTEGER, venta_por_kilo INTEGER NOT NULL DEFAULT 0);');
+    $conexion->exec('CREATE TABLE IF NOT EXISTS entradas_inventario (id INTEGER PRIMARY KEY AUTOINCREMENT, producto_id INTEGER, proveedor_id INTEGER, cantidad DECIMAL(12,3) DEFAULT 0, precio_compra DECIMAL(12,2) DEFAULT 0, fecha_entrada DATETIME DEFAULT CURRENT_TIMESTAMP, usuario_id INTEGER, empresa_id INTEGER);');
+    $conexion->exec('CREATE TABLE IF NOT EXISTS salidas_inventario (id INTEGER PRIMARY KEY AUTOINCREMENT, producto_id INTEGER, cantidad DECIMAL(12,3) DEFAULT 0, tipo_salida TEXT, fecha_salida DATETIME DEFAULT CURRENT_TIMESTAMP, referencia TEXT, usuario_id INTEGER, empresa_id INTEGER, notas TEXT, metodo_pago TEXT, es_credito INTEGER DEFAULT 0, presentacion_id INTEGER NULL, cantidad_presentacion DECIMAL(12,3) NULL, precio_venta_unitario DECIMAL(12,2) DEFAULT 0, total_venta DECIMAL(12,2) DEFAULT 0);');
+    $conexion->exec('CREATE TABLE IF NOT EXISTS movimientos_inventario (id INTEGER PRIMARY KEY AUTOINCREMENT, producto_id INTEGER, tipo_movimiento TEXT, cantidad DECIMAL(12,3) DEFAULT 0, stock_anterior DECIMAL(12,3) DEFAULT 0, stock_nuevo DECIMAL(12,3) DEFAULT 0, precio_unitario DECIMAL(12,2) DEFAULT 0, referencia_id INTEGER, usuario_id INTEGER, descripcion TEXT, empresa_id INTEGER, presentacion_id INTEGER NULL, cantidad_presentacion DECIMAL(12,3) NULL);');
+    $conexion->exec('CREATE TABLE IF NOT EXISTS producto_presentaciones (id INTEGER PRIMARY KEY AUTOINCREMENT, producto_id INTEGER NOT NULL, nombre TEXT NOT NULL, factor_padre REAL NOT NULL DEFAULT 1, factor_base REAL NOT NULL DEFAULT 1, precio_venta REAL NOT NULL DEFAULT 0, precio_compra REAL NOT NULL DEFAULT 0, nivel INTEGER NOT NULL DEFAULT 0, es_base INTEGER NOT NULL DEFAULT 0, orden INTEGER NOT NULL DEFAULT 0, estado INTEGER NOT NULL DEFAULT 1, empresa_id INTEGER NULL);');
+    $conexion->exec('CREATE TABLE IF NOT EXISTS producto_stock_presentacion (id INTEGER PRIMARY KEY AUTOINCREMENT, producto_id INTEGER NOT NULL, presentacion_id INTEGER NOT NULL, cantidad REAL NOT NULL DEFAULT 0);');
     $conexion->exec('CREATE TABLE IF NOT EXISTS creditos (id INTEGER PRIMARY KEY AUTOINCREMENT, empresa_id INTEGER, cliente_id INTEGER NOT NULL, referencia VARCHAR(80) NOT NULL, total DECIMAL(12,2) NOT NULL DEFAULT 0, abono_inicial DECIMAL(12,2) NOT NULL DEFAULT 0, saldo DECIMAL(12,2) NOT NULL DEFAULT 0, estado VARCHAR(20) NOT NULL DEFAULT "pendiente", ultimo_recargo_mes VARCHAR(7), fecha_pago DATETIME, notas TEXT, usuario_id INTEGER, fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);');
-    $conexion->exec('CREATE TABLE IF NOT EXISTS detalle_creditos (id INTEGER PRIMARY KEY AUTOINCREMENT, credito_id INTEGER NOT NULL, producto_id INTEGER NOT NULL, cantidad DECIMAL(12,3) NOT NULL, precio_unitario DECIMAL(12,2) NOT NULL DEFAULT 0, total DECIMAL(12,2) NOT NULL DEFAULT 0);');
+    $conexion->exec('CREATE TABLE IF NOT EXISTS detalle_creditos (id INTEGER PRIMARY KEY AUTOINCREMENT, credito_id INTEGER NOT NULL, producto_id INTEGER NOT NULL, cantidad DECIMAL(12,3) NOT NULL, precio_unitario DECIMAL(12,2) NOT NULL DEFAULT 0, total DECIMAL(12,2) NOT NULL DEFAULT 0, presentacion_id INTEGER NULL, cantidad_presentacion DECIMAL(12,3) NULL);');
     $conexion->exec('CREATE TABLE IF NOT EXISTS abonos_creditos (id INTEGER PRIMARY KEY AUTOINCREMENT, credito_id INTEGER NOT NULL, monto DECIMAL(12,2) NOT NULL, metodo_pago VARCHAR(30) NOT NULL DEFAULT "efectivo", usuario_id INTEGER, fecha_abono DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP);');
-    $conexion->exec('DELETE FROM usuarios; DELETE FROM empresas; DELETE FROM productos; DELETE FROM creditos; DELETE FROM detalle_creditos; DELETE FROM abonos_creditos;');
-    $conexion->prepare('INSERT INTO empresas (id, nombre, tipo_empresa_id, imagen) VALUES (?, ?, ?, ?)')->execute([1, 'Empresa test', 1, null]);
-    $conexion->prepare('INSERT INTO usuarios (id, nombre, apellidos, documento, codigo, rol, empresa_id) VALUES (?, ?, ?, ?, ?, ?, ?)')->execute([1, 'Ana', 'García', '123', 'CLI-1', 'cliente', 1]);
-    $conexion->prepare('INSERT INTO productos (id, nombre, codigo, stock, precio, empresa_id) VALUES (?, ?, ?, ?, ?, ?)')->execute([10, 'Arroz', 'P-10', 10, 100, 1]);
+    if (!$datosInicializados) {
+        $conexion->exec('DELETE FROM usuarios; DELETE FROM empresas; DELETE FROM productos; DELETE FROM entradas_inventario; DELETE FROM salidas_inventario; DELETE FROM movimientos_inventario; DELETE FROM producto_presentaciones; DELETE FROM producto_stock_presentacion; DELETE FROM creditos; DELETE FROM detalle_creditos; DELETE FROM abonos_creditos;');
+        $conexion->prepare('INSERT INTO empresas (id, nombre, tipo_empresa_id, imagen) VALUES (?, ?, ?, ?)')->execute([1, 'Empresa test', 1, null]);
+        $conexion->prepare('INSERT INTO usuarios (id, nombre, apellidos, correo, telefono, tipo_documento, documento, codigo, rol, estado, empresa_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')->execute([1, 'Ana', 'García', 'ana@test.com', '3000000000', 'CC', '123', 'CLI-1', 'cliente', 'activo', 1]);
+        $conexion->prepare('INSERT INTO productos (id, nombre, codigo, stock, precio, empresa_id) VALUES (?, ?, ?, ?, ?, ?)')->execute([10, 'Arroz', 'P-10', 10, 100, 1]);
+        $datosInicializados = true;
+    }
 
     ob_start();
     include __DIR__ . '/../Controllers/CreditosController.php';

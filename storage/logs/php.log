@@ -1870,3 +1870,32 @@
 [12-Sep-2026 23:56:40 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1417
 [12-Sep-2026 23:56:59 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1417
 [13-Sep-2026 00:04:19 America/Bogota] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php on line 124
+[14-Sep-2026 00:23:59 America/Bogota] Creando categoria con datos: {"nombre":"frutas","descripcion":"frutas","imagen":null,"estado":1}
+[14-Sep-2026 00:23:59 America/Bogota] Resultado de crear categoria: true
+[14-Sep-2026 00:25:53 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1417
+[14-Sep-2026 00:28:06 America/Bogota] Creando categoria con datos: {"nombre":"FRUTAS","descripcion":"FRUTAS","imagen":null,"estado":1}
+[14-Sep-2026 00:28:06 America/Bogota] Resultado de crear categoria: true
+[15-Sep-2026 20:49:00 America/Bogota] Creando categoria con datos: {"nombre":"VERDURAS","descripcion":"VERDURAS","imagen":"categoria_20260915_204900_c2a6f3f6.png","estado":1}
+[15-Sep-2026 20:49:00 America/Bogota] Resultado de crear categoria: true
+[15-Sep-2026 23:26:13 America/Bogota] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php on line 124
+[16-Sep-2026 07:07:57 America/Bogota] Creando categoria con datos: {"nombre":"verduras","descripcion":"verduras","imagen":null,"estado":1}
+[16-Sep-2026 07:07:57 America/Bogota] Resultado de crear categoria: true
+[16-Sep-2026 07:18:21 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[16-Sep-2026 07:33:50 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[16-Sep-2026 07:34:16 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[16-Sep-2026 07:37:19 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[16-Sep-2026 08:27:19 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 20:36:56 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 20:37:10 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 20:37:25 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 20:42:48 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 20:43:01 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 20:43:31 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 20:48:07 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 20:48:35 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 20:49:35 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 20:52:06 America/Bogota] PHP Deprecated:  ini_set(): Use of mbstring.internal_encoding is deprecated in C:\xampp\htdocs\nombre_de_empresa\Helpers\Helpers.php on line 280
+[18-Sep-2026 20:52:06 America/Bogota] PHP Deprecated:  ini_set(): Use of mbstring.http_output is deprecated in C:\xampp\htdocs\nombre_de_empresa\Helpers\Helpers.php on line 281
+[18-Sep-2026 20:52:06 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1429
+[18-Sep-2026 20:52:22 America/Bogota] PHP Deprecated:  ini_set(): Use of mbstring.internal_encoding is deprecated in C:\xampp\htdocs\nombre_de_empresa\Helpers\Helpers.php on line 280
+[18-Sep-2026 20:52:22 America/Bogota] PHP Deprecated:  ini_set(): Use of mbstring.http_output is deprecated in C:\xampp\htdocs\nombre_de_empresa\Helpers\Helpers.php on line 281

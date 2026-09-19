@@ -313,7 +313,7 @@ CREATE TABLE `productos` (
   `precio` decimal(10,2) NOT NULL,
   `descuento_ganacia` decimal(5,2) NOT NULL DEFAULT 0.00,
   `precio_original` decimal(10,2) DEFAULT NULL,
-  `stock` int(11) DEFAULT 0,
+  `stock` decimal(14,3) NOT NULL DEFAULT 0.000,
   `imagen` varchar(255) DEFAULT NULL,
   `estado` tinyint(1) DEFAULT 1,
   `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),

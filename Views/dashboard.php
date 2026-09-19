@@ -8420,6 +8420,11 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             letter-spacing: .15px;
         }
 
+        .menu-item-text-long {
+            font-size: 10px !important;
+            letter-spacing: 0 !important;
+        }
+
         .menu-item:hover,
         .menu-item.active,
         .menu-item-store:hover {
@@ -9186,7 +9191,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                         </a>
                         <a href="vencimientos.php" class="menu-item">
                             <i class="fas fa-calendar-times"></i>
-                            <span class="menu-item-text">PRODUCTOS A VENCER</span>
+                            <span class="menu-item-text menu-item-text-long">PRODUCTOS VENCIDOS Y DAÑADOS</span>
                         </a>
                     <?php endif; ?>
 

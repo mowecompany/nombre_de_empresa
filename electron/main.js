@@ -15,8 +15,13 @@ const PORTABLE_CLIENT_PORT = 8001;
 const STOPPED_SERVER_LOCAL_PORT = 8002;
 const DEFAULT_SERVER_PORT = 8000;
 const PROJECT_ROOT = path.resolve(__dirname, '..');
-const ICON_PATH = path.join(PROJECT_ROOT, 'logo.ico');
-const FALLBACK_ICON_PATH = path.join(PROJECT_ROOT, 'electron', 'build', 'app_icon.ico');
+const COMPANY_LOGO_ICON_PATH = fs.existsSync(path.join(PROJECT_ROOT, 'logo.ico'))
+  ? path.join(PROJECT_ROOT, 'logo.ico')
+  : fs.existsSync(path.join(PROJECT_ROOT, 'Assets', 'images', 'Empresas', 'mi_estrella_solo_imprimir.png'))
+    ? path.join(PROJECT_ROOT, 'Assets', 'images', 'Empresas', 'mi_estrella_solo_imprimir.png')
+    : path.join(PROJECT_ROOT, 'favicon.ico');
+const ICON_PATH = COMPANY_LOGO_ICON_PATH;
+const FALLBACK_ICON_PATH = path.join(PROJECT_ROOT, 'logo.ico');
 
 function findPhpExecutable(rootDir) {
   if (!fs.existsSync(rootDir)) {
@@ -579,11 +584,13 @@ function eliminarReglaFirewall(port) {
 }
 
 function createMainWindow(serverUrl) {
+  const appIconPath = fs.existsSync(ICON_PATH)
+    ? ICON_PATH
+    : (fs.existsSync(FALLBACK_ICON_PATH) ? FALLBACK_ICON_PATH : undefined);
+
   mainWindow = new BrowserWindow({
     title: APP_DISPLAY_NAME,
-    icon: fs.existsSync(ICON_PATH)
-      ? ICON_PATH
-      : (fs.existsSync(FALLBACK_ICON_PATH) ? FALLBACK_ICON_PATH : undefined),
+    icon: appIconPath,
     show: false,
     backgroundColor: '#F7F7F7',
     autoHideMenuBar: true,
@@ -1255,7 +1262,7 @@ ipcMain.handle('print-html', async (_, payload = {}) => {
       ? html.replace(/window\.onload\s*=\s*function\(\)\s*\{[\s\S]*?window\.print\(\);[\s\S]*?\};/, '')
       : html;
     const htmlParaPdf = payload.silent === false && !payload.pageSize
-      ? html.replace('</head>', '<style>@page{size:A4;margin:12mm}html,body{width:100%!important;max-width:none!important;min-height:273mm!important;margin:0!important;padding:0!important;box-sizing:border-box}body{font-size:12px!important}.print-wrapper,.header,footer,table{width:100%!important;max-width:none!important;box-sizing:border-box}.print-wrapper{padding:0!important}.header h1{font-size:22px!important}.header .info{max-width:64%!important}.logo-empresa img{width:150px!important;height:110px!important}.meta{font-size:13px!important}table{table-layout:fixed}th,td{padding:8px!important;font-size:12px!important}</style></head>')
+      ? html.replace('</head>', '<style>@page{size:A4;margin:12mm}html,body{width:100%!important;max-width:none!important;min-height:273mm!important;margin:0!important;padding:0!important;box-sizing:border-box;text-rendering:geometricPrecision}body{font-size:12px!important;color:#000!important;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-shadow:none!important;-webkit-text-stroke:0!important;-webkit-font-smoothing:none!important}img{image-rendering:auto;-webkit-transform:translateZ(0);transform:translateZ(0)}.print-wrapper,.header,footer,table{width:100%!important;max-width:none!important;box-sizing:border-box;color:#000!important}.print-wrapper{padding:0!important}.header h1,.header .info,.empresa,.meta,table,th,td,footer,span{color:#000!important}table{table-layout:fixed;border-collapse:collapse}th,td{padding:8px!important;font-size:12px!important;border:1px solid rgba(0,0,0,.18)!important;background:#fff!important}.logo-empresa img{width:150px!important;height:96px!important;filter:grayscale(100%) brightness(0.62) contrast(1.25)!important}.footer-brand-logo{filter:brightness(0.7) contrast(1.1)!important}</style></head>')
       : htmlBase;
     const htmlVistaPrevia = payload.preview
       ? htmlParaPdf.replace(/window\.onload\s*=\s*function\(\)\s*\{[\s\S]*?window\.print\(\);[\s\S]*?\};/, '')
@@ -1343,7 +1350,7 @@ ipcMain.handle('save-html-pdf', async (_, payload = {}) => {
     pdfWindow = new BrowserWindow({
       webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: false }
     });
-    const pdfHtml = html.replace('</head>', '<meta name="viewport" content="width=device-width, initial-scale=1"><style>@page{size:A4;margin:12mm}html,body{display:block!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;min-height:273mm!important;margin:0!important;padding:0!important;box-sizing:border-box}body{font-size:12px!important}.print-wrapper,.header,footer,table{display:table!important;width:100%!important;max-width:none!important;min-width:100%!important;box-sizing:border-box}.print-wrapper{display:block!important;padding:0!important}.header{display:flex!important;margin-bottom:16px!important}.header h1{font-size:22px!important}.header .info{max-width:64%!important}.logo-empresa img{width:150px!important;height:110px!important}.empresa{font-size:20px!important}.meta{font-size:13px!important}.subtitulo{font-size:15px!important}table{table-layout:fixed!important;font-size:12px!important}th,td{padding:8px!important;font-size:12px!important}#electron-preview-controls{display:none!important}</style></head>');
+    const pdfHtml = html.replace('</head>', '<meta name="viewport" content="width=device-width, initial-scale=1"><style>@page{size:A4;margin:12mm}html,body{display:block!important;width:100vw!important;max-width:100vw!important;min-width:100vw!important;min-height:273mm!important;margin:0!important;padding:0!important;box-sizing:border-box;text-rendering:geometricPrecision}body{font-size:12px!important;color:#000!important;background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-shadow:none!important;-webkit-text-stroke:0!important;-webkit-font-smoothing:none!important}img{image-rendering:auto;-webkit-transform:translateZ(0);transform:translateZ(0)}.print-wrapper,.header,footer,table{display:table!important;width:100%!important;max-width:none!important;min-width:100%!important;box-sizing:border-box;color:#000!important}.print-wrapper{display:block!important;padding:0!important}.header{display:flex!important;margin-bottom:16px!important}.header h1{font-size:22px!important}.header .info{max-width:64%!important}.logo-empresa img{width:150px!important;height:96px!important;filter:grayscale(100%) brightness(0.62) contrast(1.25)!important}.empresa{font-size:20px!important;color:#000!important}.meta{font-size:13px!important;color:#000!important}.subtitulo{font-size:15px!important;color:#000!important}table{table-layout:fixed!important;font-size:12px!important;border-collapse:collapse}th,td{padding:8px!important;font-size:12px!important;color:#000!important;border:1px solid rgba(0,0,0,.18)!important;background:#fff!important}.footer-brand-logo{filter:brightness(0.7) contrast(1.1)!important}#electron-preview-controls{display:none!important}</style></head>');
     await pdfWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(pdfHtml));
     await new Promise((resolve) => setTimeout(resolve, 250));
     const pdf = await pdfWindow.webContents.printToPDF({

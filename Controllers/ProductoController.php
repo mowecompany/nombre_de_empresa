@@ -12,11 +12,14 @@ if (!defined('ROOT_PATH')) {
 require_once ROOT_PATH . '/Config/database.php';
 require_once ROOT_PATH . '/Models/Producto.php';
 require_once ROOT_PATH . '/Models/Categoria.php';
+require_once ROOT_PATH . '/Models/Presentacion.php';
 
 try {
     $db = Database::connect();
     
     $producto = new Producto($db);
+    $presentacionesModelo = new Presentacion($db);
+    $presentacionesModelo->asegurarEsquema();
 
     $empresaIdSesion = isset($_SESSION['empresa_id']) ? (int)$_SESSION['empresa_id'] : 0;
     $usuarioIdSesion = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : 0;
@@ -40,6 +43,12 @@ try {
             $ordenIdExcluir = isset($_GET['orden_id']) && is_numeric($_GET['orden_id']) ? (int)$_GET['orden_id'] : 0;
             $result = $producto->getAll($ordenIdExcluir);
             if ($result !== null) {
+                $presentacionesModelo = new Presentacion($db);
+                foreach ($result as $filaProducto) {
+                    $filaProducto->presentaciones = (int)($filaProducto->maneja_presentaciones ?? 0) === 1
+                        ? $presentacionesModelo->listar((int)($filaProducto->id ?? 0))
+                        : [];
+                }
                 echo json_encode([
                     'success' => true,
                     'data' => $result
@@ -219,6 +228,13 @@ try {
                             ':id' => $idCreado
                         ]);
                     }
+                    if ($idCreado > 0 && dbColumnExists($db, 'productos', 'maneja_presentaciones')) {
+                        $stmtPresentacion = $db->prepare('UPDATE productos SET maneja_presentaciones = :maneja_presentaciones WHERE id = :id');
+                        $stmtPresentacion->execute([
+                            ':maneja_presentaciones' => !empty($_POST['maneja_presentaciones']) ? 1 : 0,
+                            ':id' => $idCreado
+                        ]);
+                    }
                     $productoCreado = null;
                     if ($idCreado > 0) {
                         $producto->setId($idCreado);
@@ -331,7 +347,7 @@ try {
                             $stmtPc->execute([$idNuevo]);
                             $pc = floatval($stmtPc->fetchColumn() ?? 0);
                         }
-                        if ($pc > 0) {
+                        if ($porc > 0 && $pc > 0) {
                             $nuevoPrecio = $pc + ($pc * ($porc / 100));
                             $producto->setPrecio($nuevoPrecio);
                             $precioCalculadoDesdePorcentaje = true;
@@ -349,10 +365,20 @@ try {
                     }
 
                     // Validar existencia de la categoría seleccionada
-                    $stmtCat = $db->prepare("SELECT id FROM categorias WHERE id = :id LIMIT 1");
+                    $stmtCat = $db->prepare("SELECT id, nombre FROM categorias WHERE id = :id LIMIT 1");
                     $stmtCat->execute([':id' => $categoriaIdNuevo]);
-                    if (!$stmtCat->fetch()) {
+                    $categoriaSeleccionada = $stmtCat->fetch(PDO::FETCH_ASSOC);
+                    if (!$categoriaSeleccionada) {
                         throw new Exception('La categoría seleccionada no existe');
+                    }
+
+                    $nombreCategoriaSeleccionada = mb_strtolower(trim((string)($categoriaSeleccionada['nombre'] ?? '')), 'UTF-8');
+                    $nombreCategoriaSeleccionada = strtr($nombreCategoriaSeleccionada, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
+                    $ventaPorKiloEnviado = isset($_POST['venta_por_kilo'])
+                        ? (int)$_POST['venta_por_kilo'] === 1
+                        : (int)($productoAntes->venta_por_kilo ?? 0) === 1;
+                    if (isset($_POST['stock'])) {
+                        $producto->setStock($parseDecimalInput($_POST['stock']));
                     }
 
                     $producto->setCategoriaId($categoriaIdNuevo);
@@ -370,8 +396,12 @@ try {
                     }
 
                     // Registrar un movimiento de entrada informativo al editar el producto con datos de stock/precio
-                    $stockAnterior = isset($productoAntes->stock) ? (int)$productoAntes->stock : 0;
-                    $stockNuevo = isset($_POST['stock']) ? (int)$_POST['stock'] : $stockAnterior;
+                    $stockAnterior = isset($productoAntes->stock)
+                        ? (float)$productoAntes->stock
+                        : 0;
+                    $stockNuevo = isset($_POST['stock'])
+                        ? $parseDecimalInput($_POST['stock'])
+                        : $stockAnterior;
                     $precioAnterior = isset($productoAntes->precio) ? (float)$productoAntes->precio : 0;
                     $precioNuevo = isset($_POST['precio']) ? $parseDecimalInput($_POST['precio']) : $precioAnterior;
                     $precioCompraEnviado = isset($_POST['precio_compra']) && trim((string)$_POST['precio_compra']) !== '' ? $parseDecimalInput($_POST['precio_compra']) : null;
@@ -467,6 +497,13 @@ try {
                             $stmtKilo = $db->prepare('UPDATE productos SET venta_por_kilo = :venta_por_kilo WHERE id = :id');
                             $stmtKilo->execute([
                                 ':venta_por_kilo' => !empty($_POST['venta_por_kilo']) ? 1 : 0,
+                                ':id' => $idNuevo
+                            ]);
+                        }
+                        if (dbColumnExists($db, 'productos', 'maneja_presentaciones')) {
+                            $stmtPresentacion = $db->prepare('UPDATE productos SET maneja_presentaciones = :maneja_presentaciones WHERE id = :id');
+                            $stmtPresentacion->execute([
+                                ':maneja_presentaciones' => !empty($_POST['maneja_presentaciones']) ? 1 : 0,
                                 ':id' => $idNuevo
                             ]);
                         }

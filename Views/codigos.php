@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 
 if (!defined('ROOT_PATH')) {
@@ -116,17 +116,20 @@ $baseUrl = rtrim((string)base_url(), '/');
             align-items: center;
             justify-content: flex-end;
             gap: 10px;
+            flex: 0 1 330px;
             width: min(100%, 330px);
-            padding: 10px 13px;
-            border: 1px solid #c9dce9;
-            border-radius: 10px;
-            background: #fbfdff;
+            min-height: 42px;
+            padding: 0;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
             color: var(--muted);
         }
 
-        .search-box input { order: 1; width: 100%; border: 0; outline: 0; color: var(--ink); font: inherit; text-transform: uppercase; }
+        .search-box input { order: 1; width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; padding: 11px 12px; color: var(--ink); font: inherit; text-transform: uppercase; }
         .search-box input::placeholder { text-transform: uppercase; }
-        .search-box i { order: 2; color: #2f4a5a; }
+        .search-box i { order: 2; display: flex; align-items: center; justify-content: center; width: 42px; min-width: 42px; height: 100%; border-left: 1px solid #e6e9ee; background: #f8fafc; color: #667085; }
 
         .table-wrap { width: 100%; overflow-x: auto; overflow-y: visible; max-height: none; }
         table { width: 100%; min-width: 1200px; border-collapse: separate; border-spacing: 0; margin: 0; box-sizing: border-box; text-transform: uppercase; table-layout: fixed; border-radius: 8px; font-family: var(--font-saira); }
@@ -182,6 +185,10 @@ $baseUrl = rtrim((string)base_url(), '/');
         .code-value { color: #2f4a5a; font-size: .95rem; font-weight: 800; letter-spacing: .02em; text-align: center; }
         .product-name { font-size: 1rem; font-weight: 700; text-align: center; }
         .product-price { color: #1f7a52; font-size: 1rem; font-weight: 800; text-align: center; white-space: nowrap; }
+        .presentation-switcher { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top:8px; }
+        .presentation-option { min-width:78px; min-height:32px; padding:6px 10px; border:2px solid #bfdbfe; border-radius:6px; background:#eff6ff; color:#1d4ed8; cursor:pointer; font-size:11px; font-weight:800; text-transform:uppercase; transition:background .15s ease, border-color .15s ease, box-shadow .15s ease; }
+        .presentation-option:hover { border-color:#2563eb; background:#dbeafe; }
+        .presentation-option.is-selected { border-color:#1e3a8a; background:#2563eb; color:#fff; box-shadow:0 0 0 3px rgba(37,99,235,.22); }
         .print-product-button {
             display: inline-flex;
             align-items: center;
@@ -294,6 +301,24 @@ $baseUrl = rtrim((string)base_url(), '/');
             }
         }
 
+        function normalizarBusquedaProducto(valor) {
+            return String(valor || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim()
+                .replace(/\s+/g, ' ');
+        }
+
+        function coincideBusquedaProducto(valor, consulta) {
+            const texto = normalizarBusquedaProducto(valor);
+            const busqueda = normalizarBusquedaProducto(consulta);
+            if (!busqueda) return true;
+            const tokens = busqueda.split(' ').filter(Boolean);
+            return tokens.every(token => texto.includes(token)) || texto.replace(/\s/g, '').includes(tokens.join(''));
+        }
+
         function imageUrl(image) {
             const value = String(image || '').trim();
             if (!value || value === 'favicon.ico') return `${baseUrl}/favicon.ico`;
@@ -309,11 +334,10 @@ $baseUrl = rtrim((string)base_url(), '/');
         }
 
         function renderProducts() {
-            const query = codesSearch.value.trim().toLowerCase();
+            const query = codesSearch.value;
             const visible = products.filter(product => {
-                const name = String(product.nombre || '').toLowerCase();
-                const code = String(product.codigo || '').toLowerCase();
-                return !query || name.includes(query) || code.includes(query);
+                const textoProducto = `${product.id || ''} ${product.nombre || ''} ${product.codigo || ''} ${product.codigo_barras || ''} ${product.categoria_nombre || ''}`;
+                return coincideBusquedaProducto(textoProducto, query);
             });
 
             codesCount.textContent = `${visible.length} PRODUCTO${visible.length === 1 ? '' : 'S'}`;
@@ -337,12 +361,19 @@ $baseUrl = rtrim((string)base_url(), '/');
                 rows.push(`<tr class="category-row"><td colspan="5"><span class="category-heading"><img class="category-image" loading="lazy" decoding="async" src="${categoryImageUrl(categoryImage)}" alt="${escapeHtml(category)}" onerror="this.src='${baseUrl}/favicon.ico'"><i class="fas fa-tag category-icon"></i><span>${escapeHtml(category)}</span></span></td></tr>`);
                 grouped[category].sort((first, second) => categorySort.compare(String(first.nombre || ''), String(second.nombre || ''))).forEach(product => {
                     const productIndex = products.indexOf(product);
+                    const presentaciones = Array.isArray(product.presentaciones) ? product.presentaciones : [];
+                    const selectedId = Number(product.selectedPresentationId || presentaciones[0]?.id || 0);
+                    const selected = presentaciones.find(presentation => Number(presentation.id) === selectedId) || null;
+                    const precioVisible = selected ? selected.precio_venta : product.precio;
+                    const presentationButtons = presentaciones.length > 1
+                        ? `<div class="presentation-switcher" role="group" aria-label="Presentaciones de ${escapeHtml(product.nombre || 'producto')}">${presentaciones.map(presentation => `<button type="button" class="presentation-option${Number(presentation.id) === selectedId ? ' is-selected' : ''}" data-product-index="${productIndex}" data-presentation-id="${Number(presentation.id)}" aria-pressed="${Number(presentation.id) === selectedId ? 'true' : 'false'}">${escapeHtml(String(presentation.nombre || '').toUpperCase())}${Number(presentation.id) === selectedId ? ' ✓' : ''}</button>`).join('')}</div>`
+                        : '';
                     rows.push(`
                         <tr>
                             <td><img class="product-image" loading="lazy" decoding="async" src="${imageUrl(product.imagen)}" alt="${escapeHtml(product.nombre || 'Producto')}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
                             <td class="code-value">${escapeHtml(product.codigo || 'SIN CÓDIGO')}</td>
-                            <td class="product-name">${escapeHtml(product.nombre || 'Sin nombre')}</td>
-                            <td class="product-price">${formatPrice(product.precio)}</td>
+                            <td class="product-name">${escapeHtml(product.nombre || 'Sin nombre')}${presentationButtons}</td>
+                            <td class="product-price">${formatPrice(precioVisible)}</td>
                             <td><button type="button" class="print-product-button" data-product-index="${productIndex}" title="Imprimir etiqueta" aria-label="Imprimir etiqueta"><i class="fas fa-print"></i></button></td>
                         </tr>
                     `);
@@ -386,14 +417,20 @@ $baseUrl = rtrim((string)base_url(), '/');
 
         function printProduct(product) {
             if (!product) return;
-            const name = escapeHtml(product.nombre || 'Sin nombre');
+            const presentaciones = Array.isArray(product.presentaciones) ? product.presentaciones : [];
+            const selectedId = Number(product.selectedPresentationId || presentaciones[0]?.id || 0);
+            const selected = presentaciones.find(presentation => Number(presentation.id) === selectedId) || null;
+            const name = escapeHtml(selected ? `${product.nombre || 'Sin nombre'} · ${selected.nombre}` : (product.nombre || 'Sin nombre'));
             const code = escapeHtml(String(product.codigo || 'SIN CÓDIGO').trim());
             const ventaPorKilo = [1, '1', true, 'true', 'si', 'sí'].includes(product.venta_por_kilo);
-            const price = escapeHtml(formatPrice(product.precio));
-            const priceUnit = ventaPorKilo ? 'X/KG' : 'C/U';
+            const price = escapeHtml(formatPrice(selected ? selected.precio_venta : product.precio));
+            const nombrePresentacion = String(selected?.nombre || '').trim().toUpperCase();
+            const esUnidad = ['UNIDAD', 'UNIDADES', 'UND', 'U'].includes(nombrePresentacion);
+            const esPaquete = ['PAQUETE', 'PAQUETES', 'PK', 'P'].includes(nombrePresentacion);
+            const priceUnit = selected ? (esUnidad ? 'C/U' : esPaquete ? 'X/PAQUETE' : nombrePresentacion) : (ventaPorKilo ? 'X/KG' : 'C/U');
             const title = `Etiqueta ${product.codigo || product.nombre || 'producto'}`;
             const html = `<!doctype html><html lang="es"><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title><style>
-                @page{size:58mm auto;margin:0}*{box-sizing:border-box}html,body{margin:0 auto;width:58mm;height:auto;min-height:0;background:#fff}body{font-family:Arial,sans-serif;color:#17212b}.label{position:relative;width:58mm;height:auto;min-height:0;margin:0 auto;padding:1mm 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1.5mm;text-align:center}.label-top{display:flex;align-items:center;justify-content:space-between;width:58mm;padding:0 1.5mm}.label-company{width:35mm;font-family:Arial,sans-serif;font-size:12px;font-style:normal;font-weight:800;line-height:1.1;letter-spacing:0;text-align:center;white-space:normal}.label-name{width:58mm;margin:8mm 0 0;padding:0;font-size:26px;font-weight:900;line-height:1.05;text-align:center;text-transform:uppercase}.label-price{width:58mm;margin:2mm 0 0;padding:0;color:#167348;font-size:40px;font-weight:900;line-height:1;text-align:center}.label-unit{width:58mm;margin:0;color:#167348;font-size:17px;font-weight:900;line-height:1;text-align:center}.label-code{max-width:20mm;font-family:Arial,sans-serif;font-size:21px;font-style:normal;font-weight:800;letter-spacing:.5px;text-align:center;white-space:nowrap}footer{width:100%;margin-top:1mm;background:#ffffff;color:#0b1f3a;padding:6px 0 0;display:flex;justify-content:center;align-items:center;gap:5px;flex-wrap:wrap;font-size:10px;font-weight:700;text-align:center;box-sizing:border-box;border-top:1px solid #d1d5db}footer span{display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1}footer .footer-wordmark{display:inline-flex;align-items:center;justify-content:center;gap:4px}footer .footer-brand-logo{width:28px;height:28px;object-fit:contain;display:inline-flex;vertical-align:middle}@media print{html,body,.label{height:auto;min-height:0}}
+                @page{size:58mm auto;margin:0}*{box-sizing:border-box}html,body{margin:0 auto;width:58mm;height:auto;min-height:0;background:#fff}body{font-family:Arial,sans-serif;color:#000;text-shadow:none;-webkit-text-stroke:0}.label{position:relative;width:58mm;height:auto;min-height:0;margin:0 auto;padding:1mm 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:1.5mm;text-align:center;color:#000}.label-top{display:flex;align-items:center;justify-content:space-between;width:58mm;padding:0 1.5mm}.label-company{width:35mm;font-family:Arial,sans-serif;font-size:11px;font-style:normal;font-weight:800;line-height:1.1;letter-spacing:0;text-align:center;white-space:normal;color:#000}.label-name{width:52mm;margin:8mm 0 0;padding:0;font-size:clamp(12px,3.8vw,23px);font-weight:900;line-height:1.08;text-align:center;text-transform:uppercase;color:#000;letter-spacing:.2px;overflow-wrap:anywhere;word-break:break-word}.label-price{width:58mm;margin:2mm 0 0;padding:0;color:#000;font-size:34px;font-weight:900;line-height:1;text-align:center}.label-unit{width:58mm;margin:0;color:#000;font-size:15px;font-weight:900;line-height:1;text-align:center}.label-code{max-width:20mm;font-family:Arial,sans-serif;font-size:18px;font-style:normal;font-weight:800;letter-spacing:.5px;text-align:center;white-space:nowrap;color:#000}footer{width:100%;margin-top:1mm;background:#fff;color:#000;padding:6px 0 0;display:flex;justify-content:center;align-items:center;gap:5px;flex-wrap:wrap;font-size:9px;font-weight:800;text-align:center;box-sizing:border-box;border-top:1px solid #000}footer span{display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1;color:#000;font-weight:800}footer .footer-wordmark{display:inline-flex;align-items:center;justify-content:center;gap:4px;color:#000;font-weight:900}footer .footer-brand-logo{width:28px;height:28px;object-fit:contain;display:inline-flex;vertical-align:middle;filter:brightness(0) contrast(1.5)}@media print{html,body,.label{height:auto;min-height:0}}
             </style></head><body><main class="label"><div class="label-top"><div class="label-company">AUTOSERVICIO<br>MI ESTRELLA</div><div class="label-code">${code}</div></div><div class="label-name">${name}</div><div class="label-price">${price}</div><div class="label-unit">${priceUnit}</div><footer><span>&copy; ${new Date().getFullYear()}</span><span class="footer-wordmark"><img src="${baseUrl + '/favicon.ico'}" alt="Favicon" class="footer-brand-logo"><span>OWE COMPANY</span></span><span>TODOS LOS DERECHOS RESERVADOS</span></footer></main><script>window.onload=function(){window.print();};<\/script></body></html>`;
 
             if (typeof window.electronAPI?.printHtml === 'function') {
@@ -436,6 +473,15 @@ $baseUrl = rtrim((string)base_url(), '/');
         window.addEventListener('scroll', saveCatalogScrollPosition, { passive: true });
         window.addEventListener('beforeunload', saveCatalogScrollPosition);
         codesBody.addEventListener('click', event => {
+            const presentationButton = event.target.closest('.presentation-option');
+            if (presentationButton) {
+                const product = products[Number(presentationButton.dataset.productIndex)];
+                if (product) {
+                    product.selectedPresentationId = Number(presentationButton.dataset.presentationId || 0);
+                    renderProducts();
+                }
+                return;
+            }
             const button = event.target.closest('.print-product-button');
             if (!button) return;
             printProduct(products[Number(button.dataset.productIndex)]);

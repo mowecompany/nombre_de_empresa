@@ -1950,6 +1950,10 @@ try {
                             <input type="checkbox" class="venta-kilo-input" id="venta_por_kilo" name="venta_por_kilo" value="1" style="width:18px; height:18px; margin:0; cursor:pointer;">
                             <span class="producto-kilo-text">X KILOS</span>
                         </label>
+                        <label for="maneja_presentaciones_nuevo" class="producto-kilo-option" title="Marcar producto con presentaciones" style="grid-column:4; grid-row:1; justify-self:end;">
+                            <input type="checkbox" class="venta-kilo-input" id="maneja_presentaciones_nuevo" name="maneja_presentaciones" value="1" style="width:18px; height:18px; margin:0; cursor:pointer;">
+                            <span class="producto-kilo-text">PRESENTACIÓN</span>
+                        </label>
                     </div>
                         <small style="display:block;margin-top:6px;color:#667085;">Ingrese el código de barras del producto o escanéelo con la cámara.</small>
                 </div>
@@ -2034,6 +2038,32 @@ try {
                             <input type="checkbox" class="venta-kilo-input" id="ventaPorKiloEdit" name="venta_por_kilo" value="1" style="width:18px; height:18px; margin:0; cursor:pointer;">
                             <span class="producto-kilo-text">X KILOS</span>
                         </label>
+                        <label for="manejaPresentacionesEdit" class="producto-kilo-option" title="Marcar producto con presentaciones" style="grid-column:4; grid-row:1; justify-self:end;">
+                            <input type="checkbox" class="venta-kilo-input" id="manejaPresentacionesEdit" name="maneja_presentaciones" value="1" style="width:18px; height:18px; margin:0; cursor:pointer;">
+                            <span class="producto-kilo-text">PRESENTACIÓN</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editProdPrecioCompra"><i class="fas fa-cart-arrow-down"></i> PRECIO DE COMPRA</label>
+                        <input type="number" id="editProdPrecioCompra" name="precio_compra" min="0" step="0.01" autocomplete="off" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="editProdPrecio"><i class="fas fa-dollar-sign"></i> PRECIO DE VENTA</label>
+                        <input type="number" id="editProdPrecio" name="precio" min="0" step="0.01" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editProdStock"><i class="fas fa-cubes"></i> STOCK</label>
+                        <input type="number" id="editProdStock" name="stock" min="0" step="0.001" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                    </div>
+                    <div class="form-group">
+                        <label for="editProdPorcentaje"><i class="fas fa-percent"></i> PORCENTAJE DE GANANCIA</label>
+                        <input type="number" id="editProdPorcentaje" name="porcentaje_ganancia" min="0" step="0.01" autocomplete="off" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
                     </div>
                 </div>
 
@@ -2052,25 +2082,6 @@ try {
                         </div>
                     </div>
                 </div>
-
-                <!-- PRESENTACIONES DEL PRODUCTO (UNIDAD / PAQUETE / CAJA / BOLSA) -->
-                <div class="form-group" id="bloquePresentaciones" style="margin-top:18px; border:1px solid #e6e9ee; border-radius:8px; padding:14px; background:#fafcff;">
-                    <label style="display:flex; align-items:center; gap:10px; margin:0 0 6px 0; cursor:pointer; color:#2f4a5a; font-weight:700;">
-                        <input type="checkbox" id="manejaPresentaciones" style="width:18px;height:18px;margin:0;cursor:pointer;" onchange="alternarPresentaciones()">
-                        <span><i class="fas fa-boxes"></i> ESTE PRODUCTO SE VENDE EN VARIAS PRESENTACIONES</span>
-                    </label>
-                    <small style="display:block; color:#667085; margin-bottom:10px;">Por ejemplo: UNIDAD, PAQUETE (30 UNIDADES) y CAJA (12 PAQUETES). La primera fila es la presentación más pequeña.</small>
-
-                    <div id="presentacionesContenido" style="display:none;">
-                        <div id="presentacionesResumen" style="display:none; margin-bottom:10px; padding:10px; border-radius:6px; background:#ecfdf3; color:#027a48; font-size:13px; font-weight:600;"></div>
-                        <div id="presentacionesFilas" style="display:flex; flex-direction:column; gap:10px;"></div>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
-                            <button type="button" onclick="agregarFilaPresentacion()" style="padding:9px 14px; border:1px solid #1d4ed8; background:#ffffff; color:#1d4ed8; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-plus"></i> AGREGAR PRESENTACIÓN</button>
-                            <button type="button" onclick="guardarPresentacionesProducto()" style="padding:9px 14px; border:none; background:#1d4ed8; color:#ffffff; border-radius:6px; font-weight:600; cursor:pointer;"><i class="fas fa-save"></i> GUARDAR PRESENTACIONES</button>
-                        </div>
-                    </div>
-                </div>
-
 
                 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
                     <button type="submit" class="btn-save" id="btnSaveEdit"><i class="fas fa-save"></i> ACTUALIZAR PRODUCTO</button>
@@ -2129,6 +2140,12 @@ try {
 
     <div class="container main-scroll-panel">
         <div class="estadistica-card">
+            <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+                <div style="position:relative; width:min(100%, 300px);">
+                    <input type="text" id="buscarTablaProductos" placeholder="BUSCAR PRODUCTO..." autocomplete="off" style="width:100%; padding:9px 12px; border:1px solid #d0d7de; border-radius:6px; background:#fff; text-transform:uppercase;">
+                    <div id="resultadosTablaProductos" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); max-height:220px; overflow-y:auto; border:1px solid #d0d7de; border-radius:6px; background:#fff; box-shadow:0 8px 20px rgba(31,41,55,.12); z-index:100;"></div>
+                </div>
+            </div>
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -2140,6 +2157,7 @@ try {
                             <th class="product-header"><i class="fas fa-qrcode"></i> CÓDIGO DE BARRAS</th>
                             <th class="product-header"><i class="fas fa-box"></i> NOMBRE</th>
                             <th class="product-header"><i class="fas fa-file-alt"></i> DESCRIPCIÓN</th>
+                            <th class="product-header"><i class="fas fa-dollar-sign"></i> COMPRA</th>
                             <th class="product-header"><i class="fas fa-dollar-sign"></i> PRECIO</th>
                             <th class="product-header"><i class="fas fa-cubes"></i> STOCK</th>
                             <th class="product-header"><i class="fas fa-weight-scale"></i> VENTA</th>
@@ -2161,6 +2179,7 @@ try {
     <script src="<?= base_url() ?>/Assets/js/image-cropper.js"></script>
     <script>
         const mostrarColumnaId = <?= json_encode($mostrarColumnaId); ?>;
+        let productosTablaCache = [];
         // Funciones para ocultar/mostrar headers sticky cuando hay modales o alertas
         const hideHeaders = () => {
             const headers = document.querySelectorAll('thead, [role="rowheader"]');
@@ -2508,12 +2527,18 @@ try {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
+                        productosTablaCache = data.data;
+                        renderResultadosTablaProductos();
                         const tbody = document.getElementById('productos-tbody');
                         tbody.innerHTML = '';
-                        
-                        data.data.forEach(producto => {
-                            const fila = generarFilaProducto(producto);
-                            tbody.appendChild(fila);
+                        const busqueda = normalizarBusquedaTablaProductos(document.getElementById('buscarTablaProductos')?.value || '');
+                        data.data.filter(producto => !busqueda || textoProductoTabla(producto).includes(busqueda)).forEach(producto => {
+                            try {
+                                const fila = generarFilaProducto(producto);
+                                tbody.appendChild(fila);
+                            } catch (error) {
+                                console.warn('No se pudo renderizar un producto:', producto, error);
+                            }
                         });
                         if (typeof callback === 'function') {
                             callback();
@@ -2525,6 +2550,64 @@ try {
                 .catch(error => {
                     console.error('Error:', error);
                 });
+        }
+
+        function normalizarBusquedaTablaProductos(valor) {
+            return String(valor || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim()
+                .replace(/\s+/g, ' ');
+        }
+
+        function coincideBusquedaTablaProductos(valor, consulta) {
+            const texto = normalizarBusquedaTablaProductos(valor);
+            const busqueda = normalizarBusquedaTablaProductos(consulta);
+            if (!busqueda) return true;
+            const tokens = busqueda.split(' ').filter(Boolean);
+            return tokens.every(token => texto.includes(token)) || texto.replace(/\s/g, '').includes(tokens.join(''));
+        }
+
+        function escapeHtml(valor) {
+            return String(valor ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function textoProductoTabla(producto) {
+            return normalizarBusquedaTablaProductos(`${producto.id || ''} ${producto.nombre || ''} ${producto.codigo || ''} ${producto.codigo_barras || ''}`);
+        }
+
+        function renderResultadosTablaProductos() {
+            const input = document.getElementById('buscarTablaProductos');
+            const resultados = document.getElementById('resultadosTablaProductos');
+            if (!input || !resultados) return;
+            const texto = normalizarBusquedaTablaProductos(input.value);
+            const coincidencias = productosTablaCache.filter(producto => coincideBusquedaTablaProductos(textoProductoTabla(producto), texto));
+            resultados.innerHTML = coincidencias.map(producto => `<button type="button" data-nombre="${escapeHtml(String(producto.nombre || ''))}" style="display:block;width:100%;padding:9px 12px;border:0;border-bottom:1px solid #f1f5f9;background:#fff;text-align:left;cursor:pointer;text-transform:uppercase;">${escapeHtml(String(producto.nombre || ''))}</button>`).join('');
+            resultados.style.display = coincidencias.length && texto ? 'block' : 'none';
+        }
+
+        function filtrarTablaProductos() {
+            const input = document.getElementById('buscarTablaProductos');
+            const tbody = document.getElementById('productos-tbody');
+            if (!input || !tbody) return;
+            const texto = normalizarBusquedaTablaProductos(input.value);
+            tbody.innerHTML = '';
+            productosTablaCache.filter(producto => coincideBusquedaTablaProductos(textoProductoTabla(producto), texto))
+                .forEach(producto => {
+                    try {
+                        tbody.appendChild(generarFilaProducto(producto));
+                    } catch (error) {
+                        console.warn('No se pudo renderizar un producto:', producto, error);
+                    }
+                });
+            renderResultadosTablaProductos();
         }
 
         function refrescarProductosManteniendoScroll() {
@@ -2615,11 +2698,12 @@ try {
         // Generar fila de producto
         function generarFilaProducto(prod) {
             const tr = document.createElement('tr');
+            const nombreProducto = String(prod?.nombre ?? '').trim();
             
             // Imagen
             let imagenHTML = '';
             const imgSrc = resolverImagenProducto(prod.imagen);
-            imagenHTML = `<div class="producto-thumb"><img class="producto-thumb-img" src="${imgSrc}" alt="${prod.nombre}" onerror="this.onerror=null;this.src='${base_url}/favicon.ico';"></div>`;
+            imagenHTML = `<div class="producto-thumb"><img class="producto-thumb-img" src="${imgSrc}" alt="${escapeHtml(nombreProducto)}" onerror="this.onerror=null;this.src='${base_url}/favicon.ico';"></div>`;
             
             // Estado
             let estadoHTML = '';
@@ -2652,6 +2736,11 @@ try {
             
             const colorTexto = String(prod.color || '').trim();
             const swatchColor = colorTexto || '#D0D7DE';
+            const precioCompra = Number(prod.ultimo_precio_compra ?? prod.precio_compra ?? 0) || 0;
+            const stockNumero = Number(prod.stock ?? 0) || 0;
+            const stockVisible = Number.isInteger(stockNumero)
+                ? String(stockNumero)
+                : stockNumero.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             const colorCell = `
                 <td>
                     <div class="producto-color-cell">
@@ -2663,12 +2752,13 @@ try {
                 ${mostrarColumnaId ? `<td>${prod.id}</td>` : ''}
                 <td>${prod.codigo || '-'}</td>
                 <td>${prod.codigo_barras || '-'}</td>
-                <td>${prod.nombre.toUpperCase()}</td>
+                <td>${escapeHtml(nombreProducto.toUpperCase())}</td>
                 <td class="descripcion-cell">
                     <div class="descripcion-content">${(prod.descripcion || '').toUpperCase()}</div>
                 </td>
+                <td style="color:#b42318; font-weight:700;">${formatMonedaColombia(precioCompra)}</td>
                 <td>${formatMonedaColombia(Number(prod.stock) === 0 ? 0 : parseFloat(prod.precio))}</td>
-                <td>${(prod.stock === 0 || prod.stock === '0') ? '0' : (prod.stock || '-')}</td>
+                <td>${stockVisible}</td>
                 <td>${Number(prod.venta_por_kilo) === 1 ? 'KILO' : 'NORMAL'}</td>
                 <td>${(prod.categoria_nombre || '-').toUpperCase()}</td>
                 ${colorCell}
@@ -3476,13 +3566,24 @@ try {
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #b42318; border-radius: 4px;">
+                            <label style="font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; display: block; margin-bottom: 4px;"><i class="fas fa-dollar-sign"></i> PRECIO DE COMPRA</label>
+                            <p style="color: #b42318; margin: 0; font-size: 15px; font-weight: 700;">${formatMonedaColombia(Number(prod.ultimo_precio_compra ?? prod.precio_compra ?? 0) || 0)}</p>
+                        </div>
                         <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #0B6623; border-radius: 4px;">
                             <label style="font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; display: block; margin-bottom: 4px;"><i class="fas fa-dollar-sign"></i> PRECIO</label>
                             <p style="color: #0B6623; margin: 0; font-size: 15px; font-weight: 700;">${formatMonedaColombia(Number(prod.stock) === 0 ? 0 : parseFloat(prod.precio))}</p>
                         </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                         <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #0B6623; border-radius: 4px;">
                             <label style="font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; display: block; margin-bottom: 4px;"><i class="fas fa-cubes"></i> STOCK</label>
                             <p style="color: #0B6623; margin: 0; font-size: 15px; font-weight: 700;">${prod.stock} UND</p>
+                        </div>
+                        <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #3591CA; border-radius: 4px;">
+                            <label style="font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; display: block; margin-bottom: 4px;"><i class="fas fa-tag"></i> VENTA</label>
+                            <p style="color: #3591CA; margin: 0; font-size: 15px; font-weight: 700;">${Number(prod.venta_por_kilo) === 1 ? 'KILO' : 'NORMAL'}</p>
                         </div>
                     </div>
 
@@ -3532,6 +3633,8 @@ try {
                 document.getElementById('nombreEdit').value = producto.nombre;
                 const ventaPorKiloEdit = document.getElementById('ventaPorKiloEdit');
                 if (ventaPorKiloEdit) ventaPorKiloEdit.checked = Number(producto.venta_por_kilo) === 1;
+                const manejaPresentacionesEdit = document.getElementById('manejaPresentacionesEdit');
+                if (manejaPresentacionesEdit) manejaPresentacionesEdit.checked = Number(producto.maneja_presentaciones) === 1;
                 document.getElementById('descripcionEdit').value = producto.descripcion || '';
                 const codigoBarrasEdit = document.getElementById('editProdCodigoBarras');
                 if (codigoBarrasEdit) {
@@ -3541,6 +3644,22 @@ try {
                 if (categoriaEdit) {
                     const categoriaIdStr = String(producto.categoria_id ?? producto.id_categoria ?? '').trim();
                     categoriaEdit.value = categoriaIdStr;
+                }
+                const precioCompraEdit = document.getElementById('editProdPrecioCompra');
+                if (precioCompraEdit) {
+                    precioCompraEdit.value = Number(producto.ultimo_precio_compra ?? producto.precio_compra ?? 0).toFixed(2);
+                }
+                const precioVentaEdit = document.getElementById('editProdPrecio');
+                if (precioVentaEdit) {
+                    precioVentaEdit.value = Number(producto.precio ?? 0).toFixed(2);
+                }
+                const stockEdit = document.getElementById('editProdStock');
+                if (stockEdit) {
+                    stockEdit.value = Number(producto.stock ?? 0).toFixed(3);
+                }
+                const porcentajeEdit = document.getElementById('editProdPorcentaje');
+                if (porcentajeEdit) {
+                    porcentajeEdit.value = Number(producto.porcentaje_ganancia ?? 0).toFixed(2);
                 }
                 // Solo Super Administrador puede editar el ID
                 const idDisplay = document.getElementById('idDisplay');
@@ -3676,6 +3795,20 @@ try {
 
         // Manejar submit del formulario de edición
         document.addEventListener('DOMContentLoaded', function() {
+            const buscarTablaProductos = document.getElementById('buscarTablaProductos');
+            const resultadosTablaProductos = document.getElementById('resultadosTablaProductos');
+            if (buscarTablaProductos) {
+                buscarTablaProductos.addEventListener('input', filtrarTablaProductos);
+                buscarTablaProductos.addEventListener('focus', renderResultadosTablaProductos);
+                buscarTablaProductos.addEventListener('blur', () => setTimeout(() => { if (resultadosTablaProductos) resultadosTablaProductos.style.display = 'none'; }, 200));
+            }
+            if (resultadosTablaProductos) resultadosTablaProductos.addEventListener('mousedown', event => {
+                const opcion = event.target.closest('button[data-nombre]');
+                if (!opcion) return;
+                buscarTablaProductos.value = opcion.dataset.nombre || '';
+                filtrarTablaProductos();
+                resultadosTablaProductos.style.display = 'none';
+            });
             const buscarCategoria = document.getElementById('buscarCategoriaProducto');
             const categoriaSelect = document.getElementById('categoria_id');
             const camposCodigoBarras = [
@@ -3759,6 +3892,11 @@ try {
                         formData.append('categoria_id', document.getElementById('categoriaEdit').value);
                         formData.append('codigo_barras', document.getElementById('editProdCodigoBarras').value.trim());
                         formData.append('venta_por_kilo', document.getElementById('ventaPorKiloEdit').checked ? '1' : '0');
+                        formData.append('maneja_presentaciones', document.getElementById('manejaPresentacionesEdit').checked ? '1' : '0');
+                        formData.append('precio_compra', document.getElementById('editProdPrecioCompra').value);
+                        formData.append('precio', document.getElementById('editProdPrecio').value);
+                        formData.append('stock', document.getElementById('editProdStock').value);
+                        formData.append('porcentaje_ganancia', document.getElementById('editProdPorcentaje').value);
                         
                         const imagenFile = document.getElementById('imagenEdit').files[0];
                         if (imagenFile) {
@@ -3853,6 +3991,12 @@ try {
                 agregarFilaPresentacion({ nombre: 'UNIDAD', factor_padre: 1 });
                 agregarFilaPresentacion({ nombre: 'PAQUETE', factor_padre: 12 });
             }
+        }
+
+        function abrirPanelPresentaciones() {
+            const check = document.getElementById('manejaPresentaciones');
+            if (check) check.checked = true;
+            alternarPresentaciones();
         }
 
         function agregarFilaPresentacion(datos) {

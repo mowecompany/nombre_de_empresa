@@ -457,7 +457,7 @@ class Vencimiento
         $salida = $inventario->registrarSalida([
             'producto_id' => $lote['producto_id'],
             'cantidad' => $cantidad,
-            'tipo_salida' => 'dañado',
+            'tipo_salida' => 'vencido',
             'referencia' => 'VENCIDO-' . $entradaId,
             'usuario_id' => $usuarioId > 0 ? $usuarioId : null,
             'notas' => 'Producto vencido el ' . $lote['fecha_vencimiento'] . '. Archivado desde Productos a vencer.'
@@ -544,7 +544,10 @@ class Vencimiento
     {
         $this->asegurarEsquema();
         try {
-            $sql = 'SELECT * FROM lotes_vencidos WHERE 1=1';
+                $sql = 'SELECT l.*, p.imagen AS producto_imagen
+                    FROM lotes_vencidos l
+                    LEFT JOIN productos p ON p.id = l.producto_id
+                    WHERE 1=1';
             $params = [];
             $empresaId = $this->empresaId();
             if ($empresaId > 0) {

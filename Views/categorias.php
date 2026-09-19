@@ -1809,6 +1809,12 @@ $categorias = [];
 
     <div class="container main-scroll-panel">
         <div class="estadistica-card">
+            <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+                <div style="position:relative; width:min(100%, 280px);">
+                    <input type="text" id="buscarTablaCategorias" placeholder="BUSCAR CATEGORÍA..." autocomplete="off" style="width:100%; padding:9px 12px; border:1px solid #d0d7de; border-radius:6px; background:#fff; text-transform:uppercase;">
+                    <div id="resultadosTablaCategorias" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); max-height:220px; overflow-y:auto; border:1px solid #d0d7de; border-radius:6px; background:#fff; box-shadow:0 8px 20px rgba(31,41,55,.12); z-index:100;"></div>
+                </div>
+            </div>
             <div class="table-wrapper">
                 <table>
                     <thead>
@@ -1853,6 +1859,8 @@ $categorias = [];
             width: 2400,
             height: 1400
         };
+
+        let categoriasTablaCache = [];
 
         const SCROLL_SAVE_KEY = 'categorias-scroll-position';
         let restoredScrollY = null;
@@ -2167,10 +2175,12 @@ $categorias = [];
             obtenerJson(`${CATEGORIA_CONTROLLER_URL}?action=getAll`)
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
+                        categoriasTablaCache = data.data;
+                        renderResultadosTablaCategorias();
                         const tbody = document.getElementById('categorias-tbody');
                         tbody.innerHTML = '';
-                        
-                        data.data.forEach(categoria => {
+                        const busqueda = String(document.getElementById('buscarTablaCategorias')?.value || '').trim().toLowerCase();
+                        data.data.filter(categoria => !busqueda || `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(busqueda)).forEach(categoria => {
                             const fila = generarFilaCategoria(categoria);
                             tbody.appendChild(fila);
                         });
@@ -2188,6 +2198,27 @@ $categorias = [];
                 .catch(error => {
                     console.error('Error:', error);
                 });
+        }
+
+        function renderResultadosTablaCategorias() {
+            const input = document.getElementById('buscarTablaCategorias');
+            const resultados = document.getElementById('resultadosTablaCategorias');
+            if (!input || !resultados) return;
+            const texto = String(input.value || '').trim().toLowerCase();
+            const coincidencias = categoriasTablaCache.filter(categoria => `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(texto));
+            resultados.innerHTML = coincidencias.map(categoria => `<button type="button" data-nombre="${escapeHtml(String(categoria.nombre || ''))}" style="display:block;width:100%;padding:9px 12px;border:0;border-bottom:1px solid #f1f5f9;background:#fff;text-align:left;cursor:pointer;text-transform:uppercase;">${escapeHtml(String(categoria.nombre || ''))}</button>`).join('');
+            resultados.style.display = coincidencias.length && texto ? 'block' : 'none';
+        }
+
+        function filtrarTablaCategorias() {
+            const input = document.getElementById('buscarTablaCategorias');
+            const tbody = document.getElementById('categorias-tbody');
+            if (!input || !tbody) return;
+            const texto = String(input.value || '').trim().toLowerCase();
+            tbody.innerHTML = '';
+            categoriasTablaCache.filter(categoria => `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(texto))
+                .forEach(categoria => tbody.appendChild(generarFilaCategoria(categoria)));
+            renderResultadosTablaCategorias();
         }
 
         function refrescarCategoriasManteniendoScroll() {
@@ -2669,6 +2700,20 @@ $categorias = [];
 
         // Manejar submit del formulario de edición
         document.addEventListener('DOMContentLoaded', function() {
+            const buscarTablaCategorias = document.getElementById('buscarTablaCategorias');
+            const resultadosTablaCategorias = document.getElementById('resultadosTablaCategorias');
+            if (buscarTablaCategorias) {
+                buscarTablaCategorias.addEventListener('input', filtrarTablaCategorias);
+                buscarTablaCategorias.addEventListener('focus', renderResultadosTablaCategorias);
+                buscarTablaCategorias.addEventListener('blur', () => setTimeout(() => { if (resultadosTablaCategorias) resultadosTablaCategorias.style.display = 'none'; }, 200));
+            }
+            if (resultadosTablaCategorias) resultadosTablaCategorias.addEventListener('mousedown', event => {
+                const opcion = event.target.closest('button[data-nombre]');
+                if (!opcion) return;
+                buscarTablaCategorias.value = opcion.dataset.nombre || '';
+                filtrarTablaCategorias();
+                resultadosTablaCategorias.style.display = 'none';
+            });
             // Cargar CATEGORÍAs al iniciar
             cargarCategorias();
             

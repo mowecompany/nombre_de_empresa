@@ -381,6 +381,7 @@ try {
                 echo json_encode($this->inventario->registrarProductoDanado([
                     'producto_id' => (int)($_POST['producto_id'] ?? 0),
                     'cantidad' => (float)str_replace(',', '.', (string)($_POST['cantidad'] ?? 0)),
+                    'grupo' => $_POST['grupo'] ?? 'perecederos',
                     'notas' => $_POST['notas'] ?? '',
                     'usuario_id' => $this->getUsuarioIdSesion() ?: null
                 ]));

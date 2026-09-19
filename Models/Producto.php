@@ -24,6 +24,7 @@ class Producto {
     public function __construct($db) {
         $this->db = $db;
         $this->repararEsquemaProductosSiEsNecesario();
+        $this->inicializarStockDecimal();
         $this->inicializarColumnasDescuento();
         $this->inicializarColumnasGanancia();
         $this->inicializarColumnaColor();
@@ -111,7 +112,7 @@ class Producto {
                 precio NUMERIC NOT NULL,
                 descuento_porcentaje NUMERIC NOT NULL DEFAULT 0.00,
                 precio_original NUMERIC DEFAULT NULL,
-                stock INTEGER DEFAULT 0,
+                stock NUMERIC DEFAULT 0,
                 imagen TEXT DEFAULT NULL,
                 estado INTEGER DEFAULT 1,
                 fecha_creacion timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -136,6 +137,20 @@ class Producto {
             }
         } catch (\Throwable $e) {
             error_log('No se pudo agregar columna ' . $columna . ' en ' . $tabla . ': ' . $e->getMessage());
+        }
+    }
+
+    private function inicializarStockDecimal(): void {
+        try {
+            if ($this->esMysql()) {
+                $stmt = $this->db->query("SELECT DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'productos' AND COLUMN_NAME = 'stock' LIMIT 1");
+                $tipo = strtolower((string)$stmt->fetchColumn());
+                if (in_array($tipo, ['tinyint', 'smallint', 'mediumint', 'int', 'integer', 'bigint'], true)) {
+                    $this->db->exec('ALTER TABLE productos MODIFY COLUMN stock DECIMAL(14,3) NOT NULL DEFAULT 0');
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('No se pudo preparar stock decimal: ' . $e->getMessage());
         }
     }
 
@@ -541,7 +556,7 @@ class Producto {
     public function setImagen($imagen) { $this->imagen = $imagen; }
     public function setCategoriaId($categoria_id) { $this->categoria_id = $categoria_id; }
     public function setEstado($estado) { $this->estado = $estado; }
-    public function setStock($stock) { $this->stock = $stock; }
+    public function setStock($stock) { $this->stock = is_numeric($stock) ? (float)$stock : 0.0; }
     public function setDescuentoPorcentaje($descuento_porcentaje) { $this->descuento_porcentaje = $descuento_porcentaje; }
     public function setPorcentajeGanancia($porcentaje_ganancia) { $this->porcentaje_ganancia = $porcentaje_ganancia; }
     public function setColor($color) { $this->color = $color; }
@@ -1301,6 +1316,7 @@ class Producto {
             $usuarioId = $this->getUsuarioId();
             $filtrarPorUsuario = $this->debeFiltrarPorUsuario();
             $tieneUsuarioId = $this->tieneColumnaUsuarioIdProductos();
+            $tieneEmpresaId = $this->tieneColumnaEmpresaId();
             $tieneDescuento = $this->tieneColumnaDescuentoPorcentaje() || $this->tieneColumnaDescuentoGanacia();
             $tieneColumnaColor = $this->tieneColumnaColor();
             $tienePrecioOriginal = $this->tieneColumnaPrecioOriginal();
@@ -1326,9 +1342,6 @@ class Producto {
 
             // Construimos la consulta de actualización
             // ahora sí permitimos modificar precio y stock si se proporcionan
-            if ($this->precio !== null) {
-                $this->precio = $this->obtenerPrecioMaximoHistorico((int)$this->id, (float)$this->precio);
-            }
             $sql = "UPDATE productos SET nombre = ?, descripcion = ?";
             $params = [
                 $this->nombre,
