@@ -50,8 +50,10 @@ if (!class_exists('Database', false)) {
                     $conexion->exec("PRAGMA encoding = 'UTF-8'");
 
                     self::$connections[$connectionKey] = $conexion;
+                    self::aplicarIndices($conexion, true, 'sqlite:' . $sqlitePath);
                     return self::$connections[$connectionKey];
                 }
+
 
                 $host = self::env('DB_HOST', defined('DB_HOST') ? DB_HOST : 'localhost');
                 $user = self::env('DB_USERNAME', defined('DB_USERNAME') ? DB_USERNAME : 'root');
@@ -77,6 +79,7 @@ if (!class_exists('Database', false)) {
                     $conexion->exec("SET NAMES '{$charset}' COLLATE '{$charset}_unicode_ci'");
                 }
                 self::$connections[$connectionKey] = $conexion;
+                self::aplicarIndices($conexion, false, $connectionKey);
                 return self::$connections[$connectionKey];
             } catch (PDOException $e) {
                 error_log('Database connect error: ' . $e->getMessage());
@@ -87,6 +90,43 @@ if (!class_exists('Database', false)) {
                 die('Error de base de datos. Revisa el log.');
             }
         }
+
+        /**
+         * Crea una sola vez los índices de rendimiento. En MySQL se deja una
+         * marca en disco para no revisar information_schema en cada petición.
+         */
+        private static function aplicarIndices(PDO $conexion, bool $esSqlite, string $clave): void
+        {
+            try {
+                $indicesPath = __DIR__ . '/Indices.php';
+                if (!is_file($indicesPath)) {
+                    return;
+                }
+                require_once $indicesPath;
+                if (!class_exists('Indices')) {
+                    return;
+                }
+
+                $marca = null;
+                if (!$esSqlite) {
+                    $marca = sys_get_temp_dir() . '/estrella_indices_' . self::VERSION_INDICES . '_' . md5($clave) . '.ok';
+                    if (is_file($marca)) {
+                        return;
+                    }
+                }
+
+                Indices::aplicar($conexion, $esSqlite);
+
+                if ($marca !== null) {
+                    @file_put_contents($marca, (string)time());
+                }
+            } catch (Throwable $e) {
+                error_log('Database: no se pudieron aplicar los índices: ' . $e->getMessage());
+            }
+        }
+
+        private const VERSION_INDICES = 4;
+
 
         private static function env(string $key, $default = null) {
             $value = getenv($key);

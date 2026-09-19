@@ -5,7 +5,7 @@ require_once __DIR__ . '/Vencimiento.php';
 
 class Inventario {
     private $db;
-    private $columnasCache = [];
+    private static $columnasCache = [];
     private $presentacionesModelo = null;
     private $vencimientosModelo = null;
 
@@ -231,7 +231,7 @@ class Inventario {
             }
             $tipo = $this->esSqlite() ? 'INTEGER NOT NULL DEFAULT 0' : 'TINYINT(1) NOT NULL DEFAULT 0';
             $this->db->exec("ALTER TABLE salidas_inventario ADD COLUMN es_credito {$tipo}");
-            $this->columnasCache['salidas_inventario.es_credito'] = true;
+            self::$columnasCache['salidas_inventario.es_credito'] = true;
             // Compatibilidad: los pagos de crédito anteriores quedaron marcados en las notas.
             if ($this->columnaExiste('salidas_inventario', 'notas')) {
                 $this->db->exec("UPDATE salidas_inventario SET es_credito = 1 WHERE LOWER(TRIM(COALESCE(notas, ''))) = 'crédito pagado'");
@@ -428,8 +428,8 @@ class Inventario {
 
     private function columnaExiste(string $tabla, string $columna): bool {
         $key = $tabla . '.' . $columna;
-        if (array_key_exists($key, $this->columnasCache)) {
-            return $this->columnasCache[$key];
+        if (array_key_exists($key, self::$columnasCache)) {
+            return self::$columnasCache[$key];
         }
 
         try {
@@ -440,11 +440,11 @@ class Inventario {
                 $columnas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 foreach ($columnas as $col) {
                     if (strcasecmp($col['name'] ?? '', $columna) === 0) {
-                        $this->columnasCache[$key] = true;
+                        self::$columnasCache[$key] = true;
                         return true;
                     }
                 }
-                $this->columnasCache[$key] = false;
+                self::$columnasCache[$key] = false;
                 return false;
             }
 
@@ -453,11 +453,11 @@ class Inventario {
             $stmt->bindValue(':columna', $columna, PDO::PARAM_STR);
             $stmt->execute();
             $existe = ((int)$stmt->fetchColumn()) > 0;
-            $this->columnasCache[$key] = $existe;
+            self::$columnasCache[$key] = $existe;
             return $existe;
         } catch (Exception $e) {
             error_log("Error en columnaExiste Inventario ({$tabla}.{$columna}): " . $e->getMessage());
-            $this->columnasCache[$key] = false;
+            self::$columnasCache[$key] = false;
             return false;
         }
     }
@@ -472,7 +472,7 @@ class Inventario {
                 ? "ALTER TABLE salidas_inventario ADD COLUMN metodo_pago TEXT NOT NULL DEFAULT 'efectivo'"
                 : "ALTER TABLE salidas_inventario ADD COLUMN metodo_pago VARCHAR(30) NOT NULL DEFAULT 'efectivo'";
             $this->db->exec($sql);
-            $this->columnasCache['salidas_inventario.metodo_pago'] = true;
+            self::$columnasCache['salidas_inventario.metodo_pago'] = true;
         } catch (Exception $e) {
             error_log('No se pudo agregar metodo_pago a salidas_inventario: ' . $e->getMessage());
         }
@@ -488,7 +488,7 @@ class Inventario {
                 ? "ALTER TABLE salidas_inventario ADD COLUMN notas TEXT"
                 : "ALTER TABLE salidas_inventario ADD COLUMN notas TEXT NULL";
             $this->db->exec($sql);
-            $this->columnasCache['salidas_inventario.notas'] = true;
+            self::$columnasCache['salidas_inventario.notas'] = true;
         } catch (Exception $e) {
             error_log('No se pudo agregar notas a salidas_inventario: ' . $e->getMessage());
         }
@@ -1009,7 +1009,7 @@ class Inventario {
                 $sql .= ' AND m.tipo_movimiento = :tipo';
                 $params[':tipo'] = (string)$filtros['tipo'];
             }
-            $sql .= " ORDER BY m.fecha_movimiento DESC, m.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $sql .= " ORDER BY m.fecha_movimiento ASC, m.id ASC LIMIT {$limite} OFFSET {$offset}";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
@@ -1041,7 +1041,7 @@ class Inventario {
                 $sql .= ' AND e.producto_id = :producto_id';
                 $params[':producto_id'] = (int)$filtros['producto_id'];
             }
-            $sql .= " ORDER BY e.fecha_entrada DESC, e.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $sql .= " ORDER BY e.fecha_entrada ASC, e.id ASC LIMIT {$limite} OFFSET {$offset}";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
@@ -1072,7 +1072,7 @@ class Inventario {
                 $sql .= ' AND s.producto_id = :producto_id';
                 $params[':producto_id'] = (int)$filtros['producto_id'];
             }
-            $sql .= " ORDER BY s.fecha_salida DESC, s.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $sql .= " ORDER BY s.fecha_salida ASC, s.id ASC LIMIT {$limite} OFFSET {$offset}";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
@@ -1127,7 +1127,7 @@ class Inventario {
                 $params[':fecha_fin'] = $filtro['fecha_fin'];
             }
             
-            $sql .= " ORDER BY e.fecha_entrada DESC";
+            $sql .= " ORDER BY e.fecha_entrada ASC, e.id ASC";
             
             $query = $this->db->prepare($sql);
             $query->execute($params);
@@ -1207,7 +1207,7 @@ class Inventario {
                 $params[':fecha_fin'] = $filtro['fecha_fin'];
             }
             
-            $sql .= " ORDER BY s.fecha_salida DESC, s.id DESC";
+            $sql .= " ORDER BY s.fecha_salida ASC, s.id ASC";
             
             $query = $this->db->prepare($sql);
             

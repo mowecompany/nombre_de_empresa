@@ -131,6 +131,33 @@ $baseUrl = rtrim((string)base_url(), '/');
         .search-box input::placeholder { text-transform: uppercase; }
         .search-box i { order: 2; display: flex; align-items: center; justify-content: center; width: 42px; min-width: 42px; height: 100%; border-left: 1px solid #e6e9ee; background: #f8fafc; color: #667085; }
 
+        .btn-save {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-save:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
+        }
+
         .table-wrap { width: 100%; overflow-x: auto; overflow-y: visible; max-height: none; }
         table { width: 100%; min-width: 1200px; border-collapse: separate; border-spacing: 0; margin: 0; box-sizing: border-box; text-transform: uppercase; table-layout: fixed; border-radius: 8px; font-family: var(--font-saira); }
         thead { position: sticky; top: 0; z-index: 5; }
@@ -234,17 +261,10 @@ $baseUrl = rtrim((string)base_url(), '/');
         </header>
 
         <section class="codes-panel" aria-labelledby="codes-title">
-            <div class="toolbar" style="align-items:center;">
-                <label class="search-box" for="codes-search" style="border-color:#2f4a5a;border-radius:8px;">
-                    <i class="fas fa-search"></i>
-                    <input id="codes-search" type="search" placeholder="Buscar por nombre o código" autocomplete="off">
-                </label>
-                <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;">
+            <div class="toolbar" style="align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;">
+                <input type="search" id="codes-search" placeholder="BUSCAR CÓDIGO..." style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
                 <select id="codes-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
-                <button type="button" id="codes-page-prev" class="print-product-button" title="Página anterior" aria-label="Página anterior" style="width:28px;height:28px;min-width:28px;padding:0;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;" disabled><i class="fas fa-chevron-left"></i></button>
-                <span id="codes-page-label" style="min-width:90px;text-align:center;font-weight:700;font-size:11px;">PÁGINA 1</span>
-                <button type="button" id="codes-page-next" class="print-product-button" title="Página siguiente" aria-label="Página siguiente" style="width:28px;height:28px;min-width:28px;padding:0;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;"><i class="fas fa-chevron-right"></i></button>
-                </div>
+                <div id="codes-pagination" style="display:flex;gap:6px;"></div>
             </div>
             <div class="table-wrap">
                 <table>
@@ -349,9 +369,15 @@ $baseUrl = rtrim((string)base_url(), '/');
             codesPage = Math.min(codesPage, totalPaginas - 1);
             const visible = visibleAll.slice(codesPage * codesPageSize, (codesPage + 1) * codesPageSize);
 
-            document.getElementById('codes-page-prev').disabled = codesPage === 0;
-            document.getElementById('codes-page-next').disabled = (codesPage + 1) * codesPageSize >= visibleAll.length;
-            document.getElementById('codes-page-label').textContent = `PÁGINA ${codesPage + 1} / ${totalPaginas}`;
+            // Generar paginador dinámico
+            const paginationDiv = document.getElementById('codes-pagination');
+            if (paginationDiv) {
+                paginationDiv.innerHTML = `
+                    <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${codesPage === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
+                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${codesPage + 1} / ${totalPaginas}</span>
+                    <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${(codesPage + 1) * codesPageSize >= visibleAll.length ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
+                `;
+            }
             if (!visibleAll.length) {
                 codesBody.innerHTML = '<tr><td colspan="5" class="empty-state"><i class="fas fa-box-open"></i>No hay productos que coincidan.</td></tr>';
                 return;
@@ -477,29 +503,30 @@ $baseUrl = rtrim((string)base_url(), '/');
             }
         }
 
-        let categoryImages = {};
         codesSearch.addEventListener('input', () => {
             codesPage = 0;
             renderProducts();
         });
-        document.getElementById('codes-page-prev').addEventListener('click', () => {
-            if (codesPage === 0) return;
-            codesPage -= 1;
-            renderProducts();
-        });
-        document.getElementById('codes-page-next').addEventListener('click', () => {
-            const total = Math.ceil(products.filter(product => coincideBusquedaProducto(`${product.id || ''} ${product.nombre || ''} ${product.codigo || ''} ${product.codigo_barras || ''} ${product.categoria_nombre || ''}`, codesSearch.value)).length / codesPageSize);
-            if (codesPage >= total - 1) return;
-            codesPage += 1;
-            renderProducts();
-        });
         document.getElementById('codes-page-size').addEventListener('change', (event) => {
             const tamanoAnterior = codesPageSize;
-            const indiceProductoAncla = codesPage * tamanoAnterior;
+            const indiceCodeAncla = codesPage * tamanoAnterior;
             codesPageSize = Number(event.target.value) || 50;
-            // Conserva el primer producto visible, no el número bruto de página.
-            codesPage = Math.floor(indiceProductoAncla / codesPageSize);
+            codesPage = Math.floor(indiceCodeAncla / codesPageSize);
             renderProducts();
+        });
+        // Event listeners para paginador dinámico
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.inventory-page-prev')) {
+                if (codesPage === 0) return;
+                codesPage -= 1;
+                renderProducts();
+            }
+            if (e.target.closest('.inventory-page-next')) {
+                const total = Math.ceil(products.filter(product => coincideBusquedaProducto(`${product.id || ''} ${product.nombre || ''} ${product.codigo || ''} ${product.codigo_barras || ''} ${product.categoria_nombre || ''}`, codesSearch.value)).length / codesPageSize);
+                if (codesPage >= total - 1) return;
+                codesPage += 1;
+                renderProducts();
+            }
         });
         codesTableWrap?.addEventListener('scroll', saveCatalogScrollPosition, { passive: true });
         window.addEventListener('scroll', saveCatalogScrollPosition, { passive: true });

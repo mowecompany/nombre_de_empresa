@@ -121,7 +121,7 @@ $baseUrl = rtrim((string)base_url(), '/');
         </header>
         <div class="toolbar">
             <input class="search" id="buscarCredito" type="search" placeholder="BUSCAR CLIENTE, DOCUMENTO, CÓDIGO O REFERENCIA" oninput="renderizarCreditos()">
-            <select id="creditosPorPagina" class="search" aria-label="Registros por página" style="width:auto;padding:6px 9px;border:1px solid #2f4a5a;border-radius:8px;color:#2f4a5a;background:#fff;">
+            <select id="creditosPorPagina" class="search" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;color:#2f4a5a;background:#fff;">
                     <option value="25">25</option><option value="50" selected>50</option><option value="100">100</option><option value="200">200</option>
             </select>
             <div id="creditosPaginacion" class="pagination" style="margin:0;"></div>
@@ -294,7 +294,7 @@ $baseUrl = rtrim((string)base_url(), '/');
                 const estadoA = String(a?.estado || '').trim().toLowerCase() === 'pendiente' ? 0 : 1;
                 const estadoB = String(b?.estado || '').trim().toLowerCase() === 'pendiente' ? 0 : 1;
                 if (estadoA !== estadoB) return estadoA - estadoB;
-                return new Date(b?.fecha_creacion || 0) - new Date(a?.fecha_creacion || 0);
+                return new Date(a?.fecha_creacion || 0) - new Date(b?.fecha_creacion || 0);
             });
             paginaActual = 1;
             renderizarCreditos();
@@ -330,7 +330,7 @@ $baseUrl = rtrim((string)base_url(), '/');
                 : '<span class="credit-state-chip paid"><span class="status-dot"></span>PAGADO</span>';
             return `<button type="button" class="credit-row ${claseEstado}" data-credito-id="${creditoId}" onclick="mostrarPerfilCredito(${creditoId}, this)"><div class="row-top"><div class="client-name-wrap"><div class="client-name">${escapar(nombreSplit.nombre || 'CLIENTE')}</div><div class="client-lastname">${escapar(nombreSplit.apellido || '')}</div><div class="client-meta">DOC: ${escapar(credito.documento || 'N/D')}</div></div><div class="credit-side"><div class="credit-code">${escapar(String(credito.codigo || 'N/D').toUpperCase())}</div></div></div><div class="row-footer"><div class="credit-total-box"><strong>${totalCompacto}</strong><span>TOTAL</span></div><div class="credit-status-wrap">${badgeEstado}</div></div></button>`;
         }).join('') : '<div class="empty">No hay créditos para mostrar.</div>';
-        document.getElementById('creditosPaginacion').innerHTML = filtrados.length > porPagina ? `<button type="button" onclick="cambiarPagina(-1)" ${paginaActual === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><strong>PÁGINA ${paginaActual} DE ${totalPaginas}</strong><button type="button" onclick="cambiarPagina(1)" ${paginaActual === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>` : '';
+        document.getElementById('creditosPaginacion').innerHTML = filtrados.length > porPagina ? `<button type="button" class="btn-save" onclick="cambiarPagina(-1)" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${paginaActual} / ${totalPaginas}</span><button type="button" class="btn-save" onclick="cambiarPagina(1)" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>` : '';
     }
 
     function cambiarPagina(direccion) {

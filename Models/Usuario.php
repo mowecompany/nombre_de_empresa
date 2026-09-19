@@ -950,7 +950,7 @@ class Usuario {
                         {$selectImagenEmpresa}
                      FROM " . $this->table . " u
                      LEFT JOIN empresas e ON e.id = u.{$colEmpresa}
-                     ORDER BY u.id DESC";
+                     ORDER BY u.id ASC";
             if ($limite !== null) {
                 $limite = min(200, max(1, $limite));
                 $offset = max(0, $offset);

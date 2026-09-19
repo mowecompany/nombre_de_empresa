@@ -812,7 +812,7 @@ class Producto {
                 $params[] = $usuarioId;
             }
 
-            $sql .= " ORDER BY p.id DESC";
+            $sql .= " ORDER BY p.id ASC";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
@@ -834,7 +834,7 @@ class Producto {
                     $fallbackSql .= " AND p.usuario_id = ?";
                     $fallbackParams[] = $usuarioId;
                 }
-                $fallbackSql .= " ORDER BY p.id DESC";
+                $fallbackSql .= " ORDER BY p.id ASC";
                 $fallbackStmt = $this->db->prepare($fallbackSql);
                 $fallbackStmt->execute($fallbackParams);
                 $fallbackResult = $fallbackStmt->fetchAll(PDO::FETCH_OBJ);
@@ -883,7 +883,7 @@ class Producto {
                 $params[':busqueda'] = '%' . $busqueda . '%';
             }
 
-            $sql .= " ORDER BY p.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $sql .= " ORDER BY p.id ASC LIMIT {$limite} OFFSET {$offset}";
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];

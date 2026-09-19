@@ -330,34 +330,32 @@ try {
         }
 
         .btn-save {
-            background: linear-gradient(135deg, #2f4a5a 0%, #1a2d4f 100%);
-            color: white;
-            padding: 14px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            max-width: 300px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(47, 74, 90, 0.2);
-            letter-spacing: 0.5px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-save:hover {
-            background: linear-gradient(135deg, #1a2d4f 0%, #0f1a2e 100%);
-            box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
+            background: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
+        }
             transform: translateY(-2px);
         }
         
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
         }
 
         /* Título y botón volver */
@@ -1605,36 +1603,32 @@ try {
 
         button[type="submit"],
         .btn-save {
-            background: linear-gradient(135deg, #2f4a5a 0%, #1a2d4f 100%);
-            color: white;
-            padding: 14px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            max-width: 300px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(47, 74, 90, 0.2);
-            letter-spacing: 0.5px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         button[type="submit"]:hover,
         .btn-save:hover {
-            background: linear-gradient(135deg, #1a2d4f 0%, #0f1a2e 100%);
-            box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
+            background: #0b5ed7;
             transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
         }
         
         button[type="submit"]:active,
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
         }
 
         /* Estilos para la columna de descripción */
@@ -2142,14 +2136,12 @@ try {
         <div class="estadistica-card">
             <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
                 <div style="position:relative; width:min(100%, 300px);">
-                    <input type="text" id="buscarTablaProductos" placeholder="BUSCAR PRODUCTO..." autocomplete="off" style="width:100%; padding:7px 10px; border:1px solid #2f4a5a; border-radius:8px; background:#fff; text-transform:uppercase;">
+                    <input type="text" id="buscarTablaProductos" placeholder="BUSCAR PRODUCTO..." autocomplete="off" style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
                     <div id="resultadosTablaProductos" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); max-height:220px; overflow-y:auto; border:1px solid #d0d7de; border-radius:6px; background:#fff; box-shadow:0 8px 20px rgba(31,41,55,.12); z-index:100;"></div>
                 </div>
             <div id="paginacionProductos" style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0;">
                 <select id="productosTamanoPagina" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
-                <button type="button" id="productosPaginaAnterior" class="btn-save" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;width:28px;min-width:28px;height:28px;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;" disabled><i class="fas fa-chevron-left"></i></button>
-                <span id="productosPaginaTexto" style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA 1</span>
-                <button type="button" id="productosPaginaSiguiente" class="btn-save" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;width:28px;min-width:28px;height:28px;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;"><i class="fas fa-chevron-right"></i></button>
+                <div id="productosPagination" style="display:flex;gap:6px;"></div>
             </div>
             </div>
             <div class="table-wrapper">
@@ -2577,12 +2569,14 @@ try {
         }
 
             function actualizarPaginacionProductos() {
-                const anterior = document.getElementById('productosPaginaAnterior');
-                const siguiente = document.getElementById('productosPaginaSiguiente');
-                const texto = document.getElementById('productosPaginaTexto');
-                if (anterior) anterior.disabled = productosPaginaActual === 0;
-                if (siguiente) siguiente.disabled = !productosHayPaginaSiguiente;
-                if (texto) texto.textContent = `PÁGINA ${productosPaginaActual + 1}`;
+                const paginationDiv = document.getElementById('productosPagination');
+                if (!paginationDiv) return;
+                const totalPaginas = productosHayPaginaSiguiente ? productosPaginaActual + 2 : productosPaginaActual + 1;
+                paginationDiv.innerHTML = `
+                    <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${productosPaginaActual === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
+                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${productosPaginaActual + 1} / ${totalPaginas}</span>
+                    <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${!productosHayPaginaSiguiente ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
+                `;
             }
 
         function normalizarBusquedaTablaProductos(valor) {
@@ -3834,22 +3828,29 @@ try {
                 filtrarTablaProductos();
                 resultadosTablaProductos.style.display = 'none';
             });
-            document.getElementById('productosPaginaAnterior')?.addEventListener('click', () => {
-                if (productosPaginaActual === 0) return;
-                productosPaginaActual -= 1;
-                cargarProductos();
-            });
-            document.getElementById('productosTamanoPagina')?.addEventListener('change', (event) => {
-                const tamanoAnterior = productosTamanoPagina;
-                const indiceProductoAncla = productosPaginaActual * tamanoAnterior;
-                productosTamanoPagina = Number(event.target.value) || 50;
-                productosPaginaActual = Math.floor(indiceProductoAncla / productosTamanoPagina);
-                cargarProductos();
-            });
-            document.getElementById('productosPaginaSiguiente')?.addEventListener('click', () => {
-                if (!productosHayPaginaSiguiente) return;
-                productosPaginaActual += 1;
-                cargarProductos();
+            const productosTamanoPaginaSelect = document.getElementById('productosTamanoPagina');
+            if (productosTamanoPaginaSelect) {
+                productosTamanoPaginaSelect.value = productosTamanoPagina;
+                productosTamanoPaginaSelect.addEventListener('change', (event) => {
+                    const tamanoAnterior = productosTamanoPagina;
+                    const indiceProductoAncla = productosPaginaActual * tamanoAnterior;
+                    productosTamanoPagina = Number(event.target.value) || 50;
+                    productosPaginaActual = Math.floor(indiceProductoAncla / productosTamanoPagina);
+                    cargarProductos();
+                });
+            }
+            // Event listeners para paginador dinámico
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.inventory-page-prev')) {
+                    if (productosPaginaActual === 0) return;
+                    productosPaginaActual -= 1;
+                    cargarProductos();
+                }
+                if (e.target.closest('.inventory-page-next')) {
+                    if (!productosHayPaginaSiguiente) return;
+                    productosPaginaActual += 1;
+                    cargarProductos();
+                }
             });
             const buscarCategoria = document.getElementById('buscarCategoriaProducto');
             const categoriaSelect = document.getElementById('categoria_id');

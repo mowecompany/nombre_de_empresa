@@ -69,7 +69,19 @@ try {
             return $rol === 'super administrador' && empty($_SESSION['superadmin_modo_empresa']);
         }
 
+        private static $columnasExistenCache = [];
+
         private function columnaExiste(string $tabla, string $columna): bool {
+            $clave = strtolower($tabla . '.' . $columna);
+            if (array_key_exists($clave, self::$columnasExistenCache)) {
+                return self::$columnasExistenCache[$clave];
+            }
+            $resultado = $this->columnaExisteConsulta($tabla, $columna);
+            self::$columnasExistenCache[$clave] = $resultado;
+            return $resultado;
+        }
+
+        private function columnaExisteConsulta(string $tabla, string $columna): bool {
             try {
                 $driver = strtolower((string)$this->inventario->getDb()->getAttribute(PDO::ATTR_DRIVER_NAME));
                 if ($driver === 'sqlite') {

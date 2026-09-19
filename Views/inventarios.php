@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Si se recibió PHPSESSID como parámetro (desde iframe), usarlo para la sesión
 if (isset($_GET['PHPSESSID']) && !empty($_GET['PHPSESSID'])) {
     session_id($_GET['PHPSESSID']);
@@ -2347,6 +2347,11 @@ if (is_file($logoPdfPath)) {
         <!-- TAB: RESUMEN -->
         <div id="resumen" class="tab-content active">
             <div class="card">
+                <div class="inventory-list-toolbar" data-inventory-toolbar="resumen" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <input type="search" class="inventory-list-search" placeholder="BUSCAR PRODUCTO..." style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
+                    <select class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                    <div class="inventory-pagination" style="display:flex;gap:6px;"></div>
+                </div>
                 <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
                     <h2><i class="fas fa-list"></i> RESUMEN DE INVENTARIO</h2>
                     <?php if ($esSuperAdminGlobalInventario || $esAdministradorContexto): ?>
@@ -3543,6 +3548,7 @@ if (is_file($logoPdfPath)) {
         const inventarioPaginas = new Map();
         const inventarioTamanosPagina = new Map();
         const inventarioTablaPorClave = {
+            resumen: 'resumenTableBody',
             entradas: 'entradasTableBody',
             salidas: 'salidasTableBody',
             movimientos: 'movimientosTableBody'
@@ -3554,7 +3560,10 @@ if (is_file($logoPdfPath)) {
             if (!toolbar || !tbody) return;
             const textoBusqueda = String(toolbar.querySelector('.inventory-list-search')?.value || '').trim().toLowerCase();
             const todasLasFilas = Array.from(tbody.children).filter(fila => fila.tagName === 'TR');
-            const filas = todasLasFilas.filter(fila => !textoBusqueda || String(fila.textContent || '').toLowerCase().includes(textoBusqueda));
+            // Los separadores de fecha no son registros: no se cuentan ni se paginan
+            const esSeparador = (fila) => fila.classList.contains('group-date');
+            const filasDatos = todasLasFilas.filter(fila => !esSeparador(fila));
+            const filas = filasDatos.filter(fila => !textoBusqueda || String(fila.textContent || '').toLowerCase().includes(textoBusqueda));
             const selector = toolbar.querySelector('.inventory-page-size');
             const porPagina = Math.max(1, Number(selector?.value || 50));
             const totalPaginas = Math.max(1, Math.ceil(filas.length / porPagina));
@@ -3564,15 +3573,17 @@ if (is_file($logoPdfPath)) {
             filas.forEach((fila, indice) => {
                 fila.style.display = indice >= pagina * porPagina && indice < (pagina + 1) * porPagina ? '' : 'none';
             });
-            // Asegurar que las filas de encabezado de fecha siempre se muestren con sus grupos
-            if (clave === 'entradas') {
-                const filasHeader = todasLasFilas.filter(fila => fila.classList.contains('group-date'));
-                filasHeader.forEach(fila => {
-                    const fechaGrupo = fila.querySelector('.group-date-value')?.textContent || '';
-                    const tieneFilasVisibles = filas.some(f => !f.classList.contains('group-date') && f.style.display !== 'none' && f.textContent.includes(fechaGrupo));
-                    fila.style.display = tieneFilasVisibles ? '' : 'none';
-                });
-            }
+            // Mostrar cada separador de fecha solo si su grupo tiene filas visibles debajo
+            todasLasFilas.forEach((fila, indice) => {
+                if (!esSeparador(fila)) return;
+                let visible = false;
+                for (let i = indice + 1; i < todasLasFilas.length; i++) {
+                    const siguiente = todasLasFilas[i];
+                    if (esSeparador(siguiente)) break;
+                    if (siguiente.style.display !== 'none') { visible = true; break; }
+                }
+                fila.style.display = visible ? '' : 'none';
+            });
             toolbar.querySelector('.inventory-pagination').innerHTML = `
                 <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${pagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
                 <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${pagina + 1} / ${totalPaginas}</span>
@@ -5471,7 +5482,7 @@ if (is_file($logoPdfPath)) {
                         
                         actualizarSugerenciasResumen(data.data);
                         
-                        const productosOrdenados = [...data.data].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+                        const productosOrdenados = [...data.data].sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
                         const filas = document.createDocumentFragment();
 
                         productosOrdenados.forEach((item) => {
@@ -5583,8 +5594,8 @@ if (is_file($logoPdfPath)) {
                         const entradasOrdenadas = [...data.data].sort((a, b) => {
                             const fechaA = parsearFechaEntrada(a.fecha_entrada).getTime() || 0;
                             const fechaB = parsearFechaEntrada(b.fecha_entrada).getTime() || 0;
-                            if (fechaA !== fechaB) return fechaB - fechaA;
-                            return (Number(b.id) || 0) - (Number(a.id) || 0);
+                            if (fechaA !== fechaB) return fechaA - fechaB;
+                            return (Number(a.id) || 0) - (Number(b.id) || 0);
                         });
 
                         const gruposPorFecha = {};
@@ -5620,7 +5631,7 @@ if (is_file($logoPdfPath)) {
                             .sort((a, b) => {
                                 const fechaA = new Date(a.split('/').reverse().join('-'));
                                 const fechaB = new Date(b.split('/').reverse().join('-'));
-                                return fechaB - fechaA;
+                                return fechaA - fechaB;
                             })
                             .forEach(fechaDia => {
                                 const grupoFecha = gruposPorFecha[fechaDia];
@@ -5801,7 +5812,7 @@ if (is_file($logoPdfPath)) {
                 if (!grupos[clave]) grupos[clave] = [];
                 grupos[clave].push(item);
             });
-            const filas = Object.keys(grupos).sort().reverse().map(clave => {
+            const filas = Object.keys(grupos).sort().map(clave => {
                 const fecha = clave.match(/^\d{4}-(\d{2})$/);
                 const titulo = fecha ? `${mesesNombre[Number(fecha[1]) - 1]} ${fecha[0].slice(0, 4)}` : clave;
                 const productos = new Map();
@@ -5911,11 +5922,11 @@ if (is_file($logoPdfPath)) {
                             const referenciaB = String(b.referencia || '').trim();
                             const numeroA = numeroReferenciaSalida(referenciaA);
                             const numeroB = numeroReferenciaSalida(referenciaB);
-                            if (numeroA !== numeroB) return numeroB - numeroA;
+                            if (numeroA !== numeroB) return numeroA - numeroB;
                             const fechaA = parseFechaInventario(a.fecha_salida || a.fecha_movimiento || a.fecha || a.created_at);
                             const fechaB = parseFechaInventario(b.fecha_salida || b.fecha_movimiento || b.fecha || b.created_at);
-                            if (fechaA !== fechaB) return fechaB - fechaA;
-                            return (Number(b.id) || 0) - (Number(a.id) || 0);
+                            if (fechaA !== fechaB) return fechaA - fechaB;
+                            return (Number(a.id) || 0) - (Number(b.id) || 0);
                         });
 
                         const grupos = {};
@@ -5963,7 +5974,7 @@ if (is_file($logoPdfPath)) {
                         const gruposPorFecha = {};
 
                         Object.values(grupos)
-                            .sort((a, b) => numeroReferenciaSalida(b.referencia) - numeroReferenciaSalida(a.referencia) || parseFechaInventario(b.fechaRaw) - parseFechaInventario(a.fechaRaw) || (Number(b.items?.[0]?.id) || 0) - (Number(a.items?.[0]?.id) || 0))
+                            .sort((a, b) => numeroReferenciaSalida(a.referencia) - numeroReferenciaSalida(b.referencia) || parseFechaInventario(a.fechaRaw) - parseFechaInventario(b.fechaRaw) || (Number(a.items?.[0]?.id) || 0) - (Number(b.items?.[0]?.id) || 0))
                             .forEach(grupo => {
                                 const fechaDia = formatarFechaDia(grupo.fechaRaw);
                                 if (!gruposPorFecha[fechaDia]) {
@@ -5989,7 +6000,7 @@ if (is_file($logoPdfPath)) {
                             });
 
                         Object.entries(gruposPorFecha)
-                            .sort(([, grupoA], [, grupoB]) => grupoB.mayorReferencia - grupoA.mayorReferencia || grupoB.ultimaFechaTimestamp - grupoA.ultimaFechaTimestamp)
+                            .sort(([, grupoA], [, grupoB]) => grupoA.mayorReferencia - grupoB.mayorReferencia || grupoA.ultimaFechaTimestamp - grupoB.ultimaFechaTimestamp)
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
@@ -6359,8 +6370,8 @@ if (is_file($logoPdfPath)) {
                         const movimientosOrdenados = [...data.data].sort((a, b) => {
                             const fechaB = parseFechaInventario(b.fecha_movimiento || b.fecha_salida || b.fecha || b.created_at);
                             const fechaA = parseFechaInventario(a.fecha_movimiento || a.fecha_salida || a.fecha || a.created_at);
-                            if (fechaB !== fechaA) return fechaB - fechaA;
-                            return (Number(b.id) || 0) - (Number(a.id) || 0);
+                            if (fechaB !== fechaA) return fechaA - fechaB;
+                            return (Number(a.id) || 0) - (Number(b.id) || 0);
                         });
 
                         const formatarFechaDia = (valorFecha) => {
@@ -6407,7 +6418,7 @@ if (is_file($logoPdfPath)) {
                         const gruposPorFecha = {};
 
                         Object.values(grupos)
-                            .sort((a, b) => parseFechaInventario(b.fechaRaw) - parseFechaInventario(a.fechaRaw) || (Number(b.items?.[0]?.id) || 0) - (Number(a.items?.[0]?.id) || 0))
+                            .sort((a, b) => parseFechaInventario(a.fechaRaw) - parseFechaInventario(b.fechaRaw) || (Number(a.items?.[0]?.id) || 0) - (Number(b.items?.[0]?.id) || 0))
                             .forEach(grupo => {
                                 const fechaDia = formatarFechaDia(grupo.fechaRaw);
                                 if (!gruposPorFecha[fechaDia]) {
@@ -6422,8 +6433,8 @@ if (is_file($logoPdfPath)) {
 
                         Object.entries(gruposPorFecha)
                             .sort(([, grupoA], [, grupoB]) => {
-                                const diferencia = parseFechaInventario(grupoB.grupos?.[0]?.fechaRaw) - parseFechaInventario(grupoA.grupos?.[0]?.fechaRaw);
-                                return diferencia || (Number(grupoB.grupos?.[0]?.items?.[0]?.id) || 0) - (Number(grupoA.grupos?.[0]?.items?.[0]?.id) || 0);
+                                const diferencia = parseFechaInventario(grupoA.grupos?.[0]?.fechaRaw) - parseFechaInventario(grupoB.grupos?.[0]?.fechaRaw);
+                                return diferencia || (Number(grupoA.grupos?.[0]?.items?.[0]?.id) || 0) - (Number(grupoB.grupos?.[0]?.items?.[0]?.id) || 0);
                             })
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');
@@ -8925,7 +8936,18 @@ if (is_file($logoPdfPath)) {
             return verificarYAlertarProductosCriticosYUrgentes();
         }
 
+        // Agrupa varias peticiones de refresco seguidas en una sola pasada,
+        // para no repetir las mismas consultas al servidor al registrar un movimiento.
+        let refrescoInventarioTimer = null;
         function refrescarInventarioInmediato() {
+            if (refrescoInventarioTimer) clearTimeout(refrescoInventarioTimer);
+            refrescoInventarioTimer = setTimeout(() => {
+                refrescoInventarioTimer = null;
+                refrescarInventarioAhora();
+            }, 200);
+        }
+
+        function refrescarInventarioAhora() {
             // Refresco inmediato de la vista sin recargar la página completa.
             // Se actualizan solo las secciones activas para reducir el parpadeo y evitar
             // que la vista actual se salga del contexto del usuario.

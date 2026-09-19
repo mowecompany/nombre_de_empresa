@@ -270,74 +270,6 @@ $baseUrl = rtrim((string)base_url(), '/');
 
         function pintarTablaDanados() {
             const cuerpo = document.getElementById('cuerpo');
-            const texto = (document.getElementById('buscador').value || '').trim().toLowerCase();
-            const visibles = danados.filter((item) => {
-                if (!texto) return true;
-                return [item.producto_nombre, item.codigo, item.categoria_nombre, item.referencia, item.notas]
-                    .some((valor) => String(valor || '').toLowerCase().includes(texto));
-            });
-
-            if (!visibles.length) {
-                cuerpo.innerHTML = '<tr><td colspan="10" class="vacio">NO HAY PRODUCTOS DAÑADOS PARA MOSTRAR</td></tr>';
-                return;
-            }
-
-            cuerpo.innerHTML = visibles.map((item) => `
-                <tr>
-                    <td><img class="prod-img" loading="lazy" src="${imagenUrl(item.producto_imagen)}" alt="${escapar(item.producto_nombre)}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
-                    <td>${escapar(item.codigo || 'N/D')}</td>
-                    <td><strong>${escapar(item.producto_nombre || 'N/D')}</strong></td>
-                    <td>${escapar(item.categoria_nombre || 'N/D')}</td>
-                    <td>${Number(item.cantidad) || 0}</td>
-                    <td>${fechaBonita(item.fecha_salida)}</td>
-                    <td>${escapar(item.referencia || 'N/D')}</td>
-                    <td>${escapar(item.notas || 'PRODUCTO DAÑADO')}</td>
-                    <td><span class="pill vencido">DAÑADO</span></td>
-                    <td><span style="color:#94a3b8;">—</span></td>
-                </tr>
-            `).join('');
-        }
-
-        function pintarTablaArchivados() {
-            const cuerpo = document.getElementById('cuerpo');
-            const texto = (document.getElementById('buscador').value || '').trim().toLowerCase();
-            const visibles = archivados.filter((item) => {
-                if (!texto) return true;
-                return [item.producto_nombre, item.producto_codigo, item.categoria_nombre, item.notas]
-                    .some((valor) => String(valor || '').toLowerCase().includes(texto));
-            });
-
-            if (!visibles.length) {
-                cuerpo.innerHTML = '<tr><td colspan="10" class="vacio">NO HAY PRODUCTOS ARCHIVADOS PARA MOSTRAR</td></tr>';
-                return;
-            }
-
-            cuerpo.innerHTML = visibles.map((item) => `
-                <tr>
-                    <td><img class="prod-img" loading="lazy" src="${imagenUrl(item.producto_imagen)}" alt="${escapar(item.producto_nombre)}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
-                    <td>${escapar(item.producto_codigo || 'N/D')}</td>
-                    <td><strong>${escapar(item.producto_nombre || 'N/D')}</strong></td>
-                    <td>${escapar(item.categoria_nombre || 'N/D')}</td>
-                    <td>${Number(item.cantidad) || 0}</td>
-                    <td>${fechaBonita(item.fecha_archivado)}</td>
-                    <td>${fechaBonita(item.fecha_vencimiento)}</td>
-                    <td>${escapar(item.notas || 'PRODUCTO VENCIDO ARCHIVADO')}</td>
-                    <td><span class="pill vencido">ARCHIVADO</span></td>
-                    <td><span style="color:#94a3b8;">—</span></td>
-                </tr>
-            `).join('');
-        }
-
-        function cambiarVista(vista) {
-            vistaActiva = ['danados', 'archivados'].includes(vista) ? vista : 'vencidos';
-            actualizarVista();
-        }
-
-        function pintarTabla() {
-            if (vistaActiva === 'danados') return pintarTablaDanados();
-            if (vistaActiva === 'archivados') return pintarTablaArchivados();
->>>>>>> Stashed changes
-            const cuerpo = document.getElementById('cuerpo');
             const texto = document.getElementById('buscador').value || '';
             const visibles = danados.filter((item) => {
                 if (!texto) return true;
@@ -420,7 +352,7 @@ $baseUrl = rtrim((string)base_url(), '/');
             const totalPaginas = Math.max(1, Math.ceil(visibles.length / vencimientosPorPagina));
             vencimientosPagina = Math.min(vencimientosPagina, totalPaginas - 1);
             const paginaVisible = visibles.slice(vencimientosPagina * vencimientosPorPagina, (vencimientosPagina + 1) * vencimientosPorPagina);
-            document.getElementById('vencimientosPaginacion').innerHTML = `<button type="button" class="btn ghost venc-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;width:28px;min-width:28px;height:28px;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;" ${vencimientosPagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;font-size:11px;">PÁGINA ${vencimientosPagina + 1} / ${totalPaginas}</span><button type="button" class="btn ghost venc-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;width:28px;min-width:28px;height:28px;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;" ${vencimientosPagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+            document.getElementById('vencimientosPaginacion').innerHTML = `<button type="button" class="btn-save venc-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${vencimientosPagina + 1} / ${totalPaginas}</span><button type="button" class="btn-save venc-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
             cuerpo.innerHTML = paginaVisible.map((lote) => `
                 <tr>
                     <td><img class="prod-img" loading="lazy" src="${imagenUrl(lote.imagen)}" alt="${escapar(lote.producto)}" onerror="this.src='${baseUrl}/favicon.ico'"></td>

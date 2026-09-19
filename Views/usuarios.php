@@ -1418,34 +1418,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .btn-save {
-            background: var(--btn-create);
-            color: var(--white);
-            padding: 14px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            max-width: 300px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(47, 74, 90, 0.2);
-            letter-spacing: 0.5px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-save:hover {
-            background: var(--primary-blue);
-            box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
+            background: #0b5ed7;
             transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
         }
         
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
+        }
         }
 
         .swal2-confirm {
@@ -1952,33 +1949,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .btn-save {
-            background: linear-gradient(135deg, var(--primary-blue) 0%, #2575a8 100%);
-            color: white;
-            padding: 14px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(53, 145, 202, 0.2);
-            letter-spacing: 0.5px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-save:hover {
-            background: linear-gradient(135deg, #2575a8 0%, #1e5a8e 100%);
-            box-shadow: 0 6px 18px rgba(53, 145, 202, 0.35);
+            background: #0b5ed7;
             transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
         }
 
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
         }
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
@@ -2188,15 +2182,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="container main-scroll-panel">
         <div class="estadistica-card">
-            <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
-                <select onchange="cambiarPaginacionUsuarios(this.value)" aria-label="Registros por página" style="width:auto;padding:5px 8px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;">
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                <select onchange="cambiarPaginacionUsuarios(this.value)" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;">
                         <?php foreach ([25, 50, 100, 200] as $tamano): ?>
                             <option value="<?php echo $tamano; ?>" <?php echo $usuariosTamanoPagina === $tamano ? 'selected' : ''; ?>><?php echo $tamano; ?></option>
                         <?php endforeach; ?>
                 </select>
-                <a href="?pagina=<?php echo max(1, $usuariosPagina - 1); ?>&por_pagina=<?php echo $usuariosTamanoPagina; ?>" class="button-primary" title="Página anterior" aria-label="Página anterior" style="width:28px;height:28px;min-width:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;<?php echo $usuariosPagina <= 1 ? 'pointer-events:none;opacity:.45;' : ''; ?>"><i class="fas fa-chevron-left"></i></a>
-                <span style="min-width:90px;text-align:center;font-weight:700;font-size:11px;">PÁGINA <?php echo $usuariosPagina; ?> / <?php echo $usuariosTotalPaginas; ?></span>
-                <a href="?pagina=<?php echo min($usuariosTotalPaginas, $usuariosPagina + 1); ?>&por_pagina=<?php echo $usuariosTamanoPagina; ?>" class="button-primary" title="Página siguiente" aria-label="Página siguiente" style="width:28px;height:28px;min-width:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;<?php echo $usuariosPagina >= $usuariosTotalPaginas ? 'pointer-events:none;opacity:.45;' : ''; ?>"><i class="fas fa-chevron-right"></i></a>
+                <div style="display:flex;gap:6px;">
+                    <button type="button" onclick="window.location.href='?pagina=<?php echo max(1, $usuariosPagina - 1); ?>&por_pagina=<?php echo $usuariosTamanoPagina; ?>'" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" <?php echo $usuariosPagina <= 1 ? 'disabled' : ''; ?>><i class="fas fa-chevron-left"></i></button>
+                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA <?php echo $usuariosPagina; ?> / <?php echo $usuariosTotalPaginas; ?></span>
+                    <button type="button" onclick="window.location.href='?pagina=<?php echo min($usuariosTotalPaginas, $usuariosPagina + 1); ?>&por_pagina=<?php echo $usuariosTamanoPagina; ?>'" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" <?php echo $usuariosPagina >= $usuariosTotalPaginas ? 'disabled' : ''; ?>><i class="fas fa-chevron-right"></i></button>
+                </div>
             </div>
             <div class="table-wrapper">
             <?php
