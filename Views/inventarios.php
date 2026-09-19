@@ -861,29 +861,52 @@ if (is_file($logoPdfPath)) {
             color: var(--primary-blue);
         }
 
-        #valorInventarioModal .stat-card {
-            padding: 18px 16px;
+        #stockTotalModal .stats-container,
+        #reordenModal .stats-container {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        #valorInventarioModal .stats-container {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+
+        #stockTotalModal .stat-card,
+        #valorInventarioModal .stat-card,
+        #reordenModal .stat-card {
+            padding: 18px 14px;
             gap: 12px;
             min-width: 0;
         }
 
-        #valorInventarioModal .stat-content {
+        #stockTotalModal .stat-content,
+        #valorInventarioModal .stat-content,
+        #reordenModal .stat-content {
             min-width: 0;
             flex: 1 1 auto;
         }
 
-        #valorInventarioModal .stat-content h3 {
+        #stockTotalModal .stat-content h3,
+        #valorInventarioModal .stat-content h3,
+        #reordenModal .stat-content h3 {
             margin-bottom: 6px;
             line-height: 1.2;
+            white-space: nowrap;
         }
 
-        #valorInventarioModal .stat-content p {
-            font-size: clamp(30px, 2vw + 16px, 56px);
+        #stockTotalModal .stat-content p,
+        #valorInventarioModal .stat-content p,
+        #reordenModal .stat-content p {
+            font-size: 28px;
             line-height: 1.15;
             white-space: nowrap;
-            overflow: visible;
-            text-overflow: unset;
-            word-break: normal;
+            overflow: hidden;
+            text-overflow: clip;
+        }
+
+        #stockTotalModal th,
+        #valorInventarioModal th,
+        #reordenModal th {
+            white-space: nowrap;
         }
 
         .ganancia-item {
@@ -1203,16 +1226,15 @@ if (is_file($logoPdfPath)) {
             }
         }
 
->>>>>>> Stashed changes
         /* Modales de métricas: tamaño tipo pantalla + scroll interno */
         #ventasDiaModal .modal-content,
         #todosProductosModal .modal-content,
         #stockTotalModal .modal-content,
         #valorInventarioModal .modal-content,
         #reordenModal .modal-content {
-            width: min(96vw, 1500px);
-            max-width: min(96vw, 1500px) !important;
-            max-height: 90vh;
+            width: min(96vw, 1600px);
+            max-width: min(96vw, 1600px) !important;
+            max-height: 94vh;
             padding: 0;
             display: flex;
             flex-direction: column;
@@ -1396,7 +1418,8 @@ if (is_file($logoPdfPath)) {
         #valorInventarioModal .modal-content,
         #reordenModal .modal-content {
             height: auto !important;
-            max-height: 90vh !important;
+            min-height: min(88vh, 920px);
+            max-height: 94vh !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
         }
@@ -1831,7 +1854,14 @@ if (is_file($logoPdfPath)) {
             #reordenModal .modal-content {
                 width: 98vw;
                 max-width: 98vw !important;
-                max-height: 92vh;
+                min-height: 0;
+                max-height: 94vh;
+            }
+
+            #stockTotalModal .stats-container,
+            #valorInventarioModal .stats-container,
+            #reordenModal .stats-container {
+                grid-template-columns: 1fr;
             }
 
             #ventasDiaModal .modal-content {
@@ -3316,7 +3346,7 @@ if (is_file($logoPdfPath)) {
 
     <!-- MODAL: STOCK TOTAL -->
     <div id="stockTotalModal" class="modal">
-        <div class="modal-content" style="max-width: 1400px;">
+        <div class="modal-content" style="max-width: 1600px;">
             <div class="modal-header">
                 <h2><i class="fas fa-cubes"></i> DESGLOSE DE STOCK TOTAL</h2>
                 <button class="close-btn" onclick="cerrarModal('stockTotalModal')">&times;</button>
@@ -3396,7 +3426,7 @@ if (is_file($logoPdfPath)) {
     <!-- MODAL: NECESIDAD DE REORDEN -->
     <!-- MODAL: VALOR DEL INVENTARIO -->
     <div id="valorInventarioModal" class="modal">
-        <div class="modal-content" style="max-width: 1000px;">
+        <div class="modal-content" style="max-width: 1600px;">
             <div class="modal-header">
                 <h2><i class="fas fa-chart-pie"></i> DESGLOSE DE VALOR DEL INVENTARIO</h2>
                 <button class="close-btn" onclick="cerrarModal('valorInventarioModal')">&times;</button>
@@ -3486,7 +3516,7 @@ if (is_file($logoPdfPath)) {
     </div>
 
     <div id="reordenModal" class="modal">
-        <div class="modal-content" style="max-width: 1000px;">
+        <div class="modal-content" style="max-width: 1600px;">
             <div class="modal-header">
                 <h2><i class="fas fa-shopping-cart"></i> NECESIDAD DE REORDEN</h2>
                 <button class="close-btn" onclick="cerrarModal('reordenModal')">&times;</button>
@@ -5122,7 +5152,7 @@ if (is_file($logoPdfPath)) {
             const esResumenVentas = /^(efectivo|transferencia|ganancia|valorVentas)(Dia|Mes)$/.test(elementoId)
                 || elementoId === 'totalDiaCard'
                 || elementoId === 'gananciaDiaCard';
-            const esValorInventario = elementoId === 'valorTotal' || ['valorTotalDetalle', 'valorCompraDetalle', 'valorGananciaDetalle'].includes(elementoId);
+            const esValorInventario = elementoId === 'valorTotal';
 
             let tamano = esResumenVentas ? 22 : 38;
             let tamanoMinimo = esValorInventario ? 19 : 12;
