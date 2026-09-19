@@ -709,8 +709,22 @@ if (is_file($logoPdfPath)) {
             grid-template-columns: repeat(5, 1fr);
         }
 
+        #valorInventarioModal .stats-container {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        #reordenModal .stats-container {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
         @media (max-width: 1200px) {
             #ventasDiaModal .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            #valorInventarioModal .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            #reordenModal .stats-container {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
@@ -719,10 +733,22 @@ if (is_file($logoPdfPath)) {
             #ventasDiaModal .stats-container {
                 grid-template-columns: repeat(2, 1fr);
             }
+            #valorInventarioModal .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            #reordenModal .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
         @media (max-width: 480px) {
             #ventasDiaModal .stats-container {
+                grid-template-columns: 1fr;
+            }
+            #valorInventarioModal .stats-container {
+                grid-template-columns: 1fr;
+            }
+            #reordenModal .stats-container {
                 grid-template-columns: 1fr;
             }
         }
@@ -3396,7 +3422,7 @@ if (is_file($logoPdfPath)) {
     <!-- MODAL: NECESIDAD DE REORDEN -->
     <!-- MODAL: VALOR DEL INVENTARIO -->
     <div id="valorInventarioModal" class="modal">
-        <div class="modal-content" style="max-width: 1000px;">
+        <div class="modal-content" style="max-width: 1400px;">
             <div class="modal-header">
                 <h2><i class="fas fa-chart-pie"></i> DESGLOSE DE VALOR DEL INVENTARIO</h2>
                 <button class="close-btn" onclick="cerrarModal('valorInventarioModal')">&times;</button>
@@ -3486,7 +3512,7 @@ if (is_file($logoPdfPath)) {
     </div>
 
     <div id="reordenModal" class="modal">
-        <div class="modal-content" style="max-width: 1000px;">
+        <div class="modal-content" style="max-width: 1400px;">
             <div class="modal-header">
                 <h2><i class="fas fa-shopping-cart"></i> NECESIDAD DE REORDEN</h2>
                 <button class="close-btn" onclick="cerrarModal('reordenModal')">&times;</button>

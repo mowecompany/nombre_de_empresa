@@ -156,11 +156,11 @@ $baseUrl = rtrim((string)base_url(), '/');
         <div class="venc-cards" id="tarjetas"></div>
 
         <div class="venc-toolbar">
+            <button class="btn ghost" id="btnRefrescar"><i class="fas fa-sync"></i> ACTUALIZAR</button>
+            <button class="btn ghost" id="btnVerArchivados" type="button" onclick="cambiarVista(vistaActiva === 'archivados' ? 'vencidos' : 'archivados')"><i class="fas fa-box-archive"></i> PRODUCTOS ARCHIVADOS</button>
             <input type="text" id="buscador" placeholder="BUSCAR POR PRODUCTO, CÓDIGO O CATEGORÍA" autocomplete="off" style="border-color:#2f4a5a;border-radius:8px;">
             <select id="vencimientosPorPagina" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
             <div id="vencimientosPaginacion" style="display:inline-flex;align-items:center;gap:6px;"></div>
-            <button class="btn ghost" id="btnRefrescar"><i class="fas fa-sync"></i> ACTUALIZAR</button>
-            <button class="btn ghost" id="btnVerArchivados" type="button" onclick="cambiarVista(vistaActiva === 'archivados' ? 'vencidos' : 'archivados')"><i class="fas fa-box-archive"></i> PRODUCTOS ARCHIVADOS</button>
         </div>
 
         <div class="venc-table-wrap">
