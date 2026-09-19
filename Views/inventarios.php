@@ -10352,6 +10352,52 @@ if (is_file($logoPdfPath)) {
 
 <script>
     /* ===================================================================
+       Funciones globales de formato de inventario
+       =================================================================== */
+    function numero(valor, porDefecto = 0) {
+        const n = parseFloat(String(valor).replace(',', '.'));
+        return Number.isFinite(n) ? n : porDefecto;
+    }
+
+    function formatoCantidad(valor) {
+        const n = Math.round(numero(valor, 0) * 1000) / 1000;
+        return n.toFixed(3);
+    }
+
+    function esCategoriaGramosInventario(nombre) {
+        const normalizado = String(nombre || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim()
+            .replace(/\s+/g, ' ');
+        return ['frutas', 'verduras', 'carnicos y refrigerados'].includes(normalizado);
+    }
+
+    function formatoStockVisible(valor, categoria = '', ventaPorKilo = false) {
+        const n = Math.round(numero(valor, 0) * 1000) / 1000;
+        const esPorGramos = ventaPorKilo || esCategoriaGramosInventario(categoria);
+        if (esPorGramos) {
+            return n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        }
+        return String(n);
+    }
+
+    function formatoStockTotalVisible(valor) {
+        const n = Math.round(numero(valor, 0) * 1000) / 1000;
+        return Number.isInteger(n)
+            ? String(n)
+            : n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    }
+
+    window.formatoCantidad = formatoCantidad;
+    window.formatoStockVisible = formatoStockVisible;
+    window.formatoStockTotalVisible = formatoStockTotalVisible;
+</script>
+
+<script>
+    /* ===================================================================
        Presentaciones (UNIDAD / PAQUETE / CAJA) en Entradas y Salidas
        =================================================================== */
     (function () {
@@ -10365,34 +10411,6 @@ if (is_file($logoPdfPath)) {
             if (typeof inventarioControllerUrl === 'string' && inventarioControllerUrl) return inventarioControllerUrl;
             return (typeof base_url !== 'undefined' ? base_url : '') + '/Controllers/InventarioController.php';
         }
-
-        function numero(valor, porDefecto = 0) {
-            const n = parseFloat(String(valor).replace(',', '.'));
-            return Number.isFinite(n) ? n : porDefecto;
-        }
-
-        function formatoCantidad(valor) {
-            const n = Math.round(numero(valor, 0) * 1000) / 1000;
-            return n.toFixed(3);
-        }
-        function formatoStockVisible(valor, categoria = '', ventaPorKilo = false) {
-            const n = Math.round(numero(valor, 0) * 1000) / 1000;
-            const esPorGramos = ventaPorKilo || esCategoriaGramosInventario(categoria);
-            if (esPorGramos) {
-                return n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-            }
-            return String(n);
-        }
-        function formatoStockTotalVisible(valor) {
-            const n = Math.round(numero(valor, 0) * 1000) / 1000;
-            return Number.isInteger(n)
-                ? String(n)
-                : n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-        }
-        }
-        window.formatoCantidad = formatoCantidad;
-        window.formatoStockVisible = formatoStockVisible;
-        window.formatoStockTotalVisible = formatoStockTotalVisible;
 
         async function obtenerPresentaciones(productoId) {
             const id = parseInt(productoId, 10) || 0;
