@@ -29,6 +29,7 @@ class Producto {
         $this->inicializarColumnasGanancia();
         $this->inicializarColumnaColor();
         $this->inicializarColumnaVentaPorKilo();
+        $this->aproximarPreciosVentaRegistrados();
     }
 
     private function esSqlite(): bool {
@@ -215,6 +216,59 @@ class Producto {
             $this->agregarColumnaSiNoExiste('productos', 'venta_por_kilo', $sql);
         } catch (Throwable $e) {
             error_log('No se pudo inicializar columna venta_por_kilo: ' . $e->getMessage());
+        }
+    }
+
+    private function aproximarPreciosVentaRegistrados(): void {
+        static $versionEjecutada = 0;
+        $version = 2;
+        if ($versionEjecutada >= $version || !function_exists('redondearPrecioVenta')) {
+            return;
+        }
+        $versionEjecutada = $version;
+
+        try {
+            $tieneOriginal = dbColumnExists($this->db, 'productos', 'precio_original');
+            $sql = $tieneOriginal
+                ? 'SELECT id, precio, precio_original FROM productos WHERE COALESCE(precio, 0) > 0 OR COALESCE(precio_original, 0) > 0'
+                : 'SELECT id, precio FROM productos WHERE COALESCE(precio, 0) > 0';
+            $filas = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+            $actualizar = $tieneOriginal
+                ? $this->db->prepare('UPDATE productos SET precio = :precio, precio_original = CASE WHEN COALESCE(precio_original, 0) > 0 THEN :original ELSE precio_original END WHERE id = :id')
+                : $this->db->prepare('UPDATE productos SET precio = :precio WHERE id = :id');
+            foreach ($filas as $fila) {
+                $precio = (float)($fila['precio'] ?? 0);
+                $precioNuevo = $precio > 0 ? redondearPrecioVenta($precio) : $precio;
+                $original = $tieneOriginal ? (float)($fila['precio_original'] ?? 0) : 0.0;
+                $originalNuevo = $original > 0 ? redondearPrecioVenta($original) : $original;
+                if (abs($precioNuevo - $precio) < 0.005 && abs($originalNuevo - $original) < 0.005) {
+                    continue;
+                }
+                $params = [':precio' => $precioNuevo, ':id' => (int)$fila['id']];
+                if ($tieneOriginal) {
+                    $params[':original'] = $originalNuevo;
+                }
+                $actualizar->execute($params);
+            }
+        } catch (Throwable $e) {
+            error_log('No se pudieron aproximar precios de venta de productos: ' . $e->getMessage());
+        }
+
+        try {
+            if (!function_exists('dbTableExists') || !dbTableExists($this->db, 'producto_presentaciones')) {
+                return;
+            }
+            $filasPres = $this->db->query('SELECT id, precio_venta FROM producto_presentaciones WHERE COALESCE(precio_venta, 0) > 0')->fetchAll(PDO::FETCH_ASSOC);
+            $updPres = $this->db->prepare('UPDATE producto_presentaciones SET precio_venta = :precio WHERE id = :id');
+            foreach ($filasPres as $fila) {
+                $actual = (float)($fila['precio_venta'] ?? 0);
+                $nuevo = redondearPrecioVenta($actual);
+                if (abs($nuevo - $actual) >= 0.005) {
+                    $updPres->execute([':precio' => $nuevo, ':id' => (int)$fila['id']]);
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('No se pudieron aproximar precios de venta de presentaciones: ' . $e->getMessage());
         }
     }
 
@@ -552,7 +606,11 @@ class Producto {
     public function setCodigoBarras($codigo_barras) { $this->codigo_barras = $codigo_barras; }
     public function setNombre($nombre) { $this->nombre = $nombre; }
     public function setDescripcion($descripcion) { $this->descripcion = $descripcion; }
-    public function setPrecio($precio) { $this->precio = $precio; }
+    public function setPrecio($precio) {
+        $this->precio = function_exists('redondearPrecioVenta')
+            ? redondearPrecioVenta($precio)
+            : (is_numeric($precio) ? (float)$precio : 0.0);
+    }
     public function setImagen($imagen) { $this->imagen = $imagen; }
     public function setCategoriaId($categoria_id) { $this->categoria_id = $categoria_id; }
     public function setEstado($estado) { $this->estado = $estado; }
@@ -1668,12 +1726,12 @@ class Producto {
             
             $stmt = $this->db->prepare($sql);
             
-            $paramsCrear = [
+                $paramsCrear = [
                 $datos['codigo'],
                 $datos['codigo_barras'] ?? null,
                 $datos['nombre'],
                 $datos['descripcion'] ?? '',
-                $datos['precio'] ?? 0,
+                function_exists('redondearPrecioVenta') ? redondearPrecioVenta($datos['precio'] ?? 0) : ($datos['precio'] ?? 0),
                 $imagenCrear,
                 $datos['categoria_id'],
                 $datos['estado'] ?? 1,

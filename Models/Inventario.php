@@ -1280,8 +1280,9 @@ class Inventario {
             $precio_compra = $precio_compra_presentacion / $factorEntrada;
             $porcentaje_ganancia = floatval($datos['porcentaje_ganancia'] ?? 0);
             $precio_calculado = $precio_compra + ($precio_compra * ($porcentaje_ganancia / 100));
-            $base_redondeo = floor($precio_calculado / 50) * 50;
-            $precio_venta = $base_redondeo + (fmod($precio_calculado, 50) > 25 ? 50 : 0);
+            $precio_venta = function_exists('redondearPrecioVenta')
+                ? redondearPrecioVenta($precio_calculado)
+                : $precio_calculado;
             
             // Verificar si la columna 'notas' existe en la tabla
             $tiene_notas = $this->columnaExiste('entradas_inventario', 'notas');
@@ -1507,6 +1508,9 @@ class Inventario {
                 $precioVentaUnitario = max($precioVentaUnitario, floatval($producto['precio'] ?? 0));
             } elseif ($precioVentaUnitario <= 0) {
                 $precioVentaUnitario = $precioVentaPresentacion / $factorSalida;
+            }
+            if (function_exists('redondearPrecioVenta')) {
+                $precioVentaUnitario = redondearPrecioVenta($precioVentaUnitario);
             }
             $sqlCosto = "SELECT precio_compra FROM entradas_inventario WHERE producto_id = :producto_id";
             $paramsCosto = [':producto_id' => $datos['producto_id']];

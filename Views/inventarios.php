@@ -2350,6 +2350,7 @@ if (is_file($logoPdfPath)) {
     </style>
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/redondeo-precio-venta.js"></script>
 </head>
 <body class="inventario">
     <!-- Header -->
@@ -2848,7 +2849,7 @@ if (is_file($logoPdfPath)) {
                                 $imgFileSalida = htmlspecialchars($prod->imagen ?? '');
                                 $codigoDisplay = $prod->codigo ? " [{$prod->codigo}]" : "";
                                 $descPct = (float)($prod->descuento_porcentaje ?? 0);
-                                $precioBas = (float)($prod->precio ?? 0);
+                                $precioBas = function_exists('redondearPrecioVenta') ? redondearPrecioVenta((float)($prod->precio ?? 0)) : (float)($prod->precio ?? 0);
                                 $precioFinalCalc = $precioBas;
                                 $stockActual = (float)($prod->stock ?? 0);
                                 $stockReservado = (int)($prod->reservado ?? 0);
@@ -2866,7 +2867,7 @@ if (is_file($logoPdfPath)) {
                                 $imgFileSalida = htmlspecialchars($prod->imagen ?? '');
                                 $codigoDisplay = $prod->codigo ? " [{$prod->codigo}]" : "";
                                 $descPct = (float)($prod->descuento_porcentaje ?? 0);
-                                $precioBas = (float)($prod->precio ?? 0);
+                                $precioBas = function_exists('redondearPrecioVenta') ? redondearPrecioVenta((float)($prod->precio ?? 0)) : (float)($prod->precio ?? 0);
                                 $precioFinalCalc = $precioBas;
                                 $stockActual = (float)($prod->stock ?? 0);
                                 $stockReservado = (int)($prod->reservado ?? 0);
@@ -4391,17 +4392,18 @@ if (is_file($logoPdfPath)) {
             const esPorKilo = esProductoPorKilosSalida(option) || ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoriaPeso);
             const cantidadSeleccionada = normalizarCantidadSalida(document.getElementById('cantidadSalida')?.value || '1', esPorKilo);
             const precioFinalAtributo = parseFloat(option?.getAttribute('data-precio-final') || 0) || 0;
-            const precioFinal = (precioFinalAtributo > 0 && precioBase > 0 && precioFinalAtributo <= precioBase)
-                ? precioFinalAtributo
-                : calcularPrecioFinalConDescuento(precioBase, descuentoPct, stockActual);
-            const precioVenta = precioBase;
+            const precioCerrado = typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(precioBase) : precioBase;
+            const precioFinal = (precioFinalAtributo > 0 && precioCerrado > 0 && precioFinalAtributo <= precioCerrado)
+                ? (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(precioFinalAtributo) : precioFinalAtributo)
+                : calcularPrecioFinalConDescuento(precioCerrado, descuentoPct, stockActual);
+            const precioVenta = precioFinal > 0 ? precioFinal : precioCerrado;
             return {
                 producto_id: parseInt(select.value, 10),
                 nombre: (option?.textContent || '').replace(/\s*\[[^\]]*\]\s*$/, '').trim(),
                 codigo: (option?.getAttribute('data-codigo') || '').trim(),
                 imagen: (option?.getAttribute('data-imagen') || '').trim(),
                 precio: precioVenta,
-                precio_original: precioBase,
+                precio_original: precioCerrado,
                 descuento_porcentaje: descuentoPct,
                 stock: stockActual,
                 venta_por_kilo: esPorKilo,
@@ -5073,9 +5075,15 @@ if (is_file($logoPdfPath)) {
         }
 
         function redondearTotalSalida(valor) {
+            if (typeof redondearPrecioVenta === 'function') {
+                return redondearPrecioVenta(valor);
+            }
             const total = Math.max(0, Number(valor) || 0);
-            const baseRedondeo = Math.floor(total / 100) * 100;
-            return baseRedondeo + (total % 100 > 20 ? 100 : 0);
+            const base = Math.floor(total / 100) * 100;
+            const resto = total - base;
+            if (resto < 25) return base;
+            if (resto <= 50) return base + 50;
+            return base + 100;
         }
 
         function calcularTotalItemsSalida(items) {
@@ -5103,8 +5111,8 @@ if (is_file($logoPdfPath)) {
                 const codigo = item.codigo || 'N/A';
                 const referencia = item.referencia || item.codigo || 'N/A';
                 const stock = parseFloat(item.stock || 0) || 0;
-                const precio = stock <= 0 ? 0 : parseFloat(item.precio) || 0;
-                const precioOriginal = stock <= 0 ? 0 : parseFloat(item.precio_original) || 0;
+                const precio = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(item.precio) || 0) : (parseFloat(item.precio) || 0));
+                const precioOriginal = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(item.precio_original) || 0) : (parseFloat(item.precio_original) || 0));
                 const descuentoPct = stock <= 0 ? 0 : parseFloat(item.descuento_porcentaje) || 0;
                 const esPorKilo = typeof window.esProductoPorKiloInventario === 'function'
                     ? window.esProductoPorKiloInventario(item.venta_por_kilo, item.categoria_nombre || item.categoria)
@@ -5180,7 +5188,9 @@ if (is_file($logoPdfPath)) {
             item.presentacion_nombre = String(seleccion.nombre || '').toUpperCase();
             item.presentacion_factor = factor;
             item.stock = factor > 1 ? Math.floor(stockBase / factor) : stockBase;
-            item.precio = Number(seleccion.precio_venta || 0) || Number(item.precio_producto || item.precio || 0);
+            item.precio = typeof redondearPrecioVenta === 'function'
+                ? redondearPrecioVenta(Number(seleccion.precio_venta || 0) || Number(item.precio_producto || item.precio || 0))
+                : (Number(seleccion.precio_venta || 0) || Number(item.precio_producto || item.precio || 0));
             item.precio_original = item.precio;
             item.precio_venta = item.precio;
             item.cantidad = 1;
@@ -5463,10 +5473,11 @@ if (is_file($logoPdfPath)) {
             const stockActual = parseFloat(stock) || 0;
 
             if (stockActual <= 0 || original <= 0 || descuento <= 0) {
-                return original;
+                return typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(original) : original;
             }
 
-            return Math.max(0, original * (1 - descuento / 100));
+            const conDescuento = Math.max(0, original * (1 - descuento / 100));
+            return typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(conDescuento) : conDescuento;
         }
 
         function renderResumenPrecioDescuento(precioOriginal, precioFinal, descuentoPorcentaje) {
@@ -5613,7 +5624,9 @@ if (is_file($logoPdfPath)) {
                             // Preparar imagen del producto
                             const imgSrc = resolverImagenProductoInventario(item.imagen);
                             const stock = parseFloat(item.stock || 0) || 0;
-                            const precioBase = stock <= 0 ? 0 : (parseFloat(item.precio_final || item.precio || 0) || 0);
+                            const precioBase = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                                ? redondearPrecioVenta(parseFloat(item.precio_final || item.precio || 0) || 0)
+                                : (parseFloat(item.precio_final || item.precio || 0) || 0));
                             const precioCompra = stock <= 0 ? 0 : (parseFloat(item.ultimo_precio_compra || item.precio_compra_promedio || item.precio_compra || 0) || 0);
                             const porcentajeBase = stock <= 0 ? 0 : (!isNaN(parseFloat(item.porcentaje_ganancia)) ? parseFloat(item.porcentaje_ganancia) : 0);
                             const porcentajeGanancia = stock <= 0 ? 0 : calcularPorcentajeGananciaInventario(precioBase, precioCompra, porcentajeBase);
@@ -8231,8 +8244,12 @@ if (is_file($logoPdfPath)) {
                             const stock = parseFloat(item.stock || 0) || 0;
                             const precioCompra = stock <= 0 ? 0 : (parseFloat(item.ultimo_precio_compra || item.precio_compra_promedio || 0) || 0);
                             const descuentoPct = stock <= 0 ? 0 : (parseFloat(item.descuento_porcentaje || 0) || 0);
-                            const precioOriginal = stock <= 0 ? 0 : (parseFloat(item.precio_original || item.precio || item.precio_venta || 0) || 0);
-                            const precioVenta = stock <= 0 ? 0 : (parseFloat(item.precio_venta || item.precio_final || 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock));
+                            const precioOriginal = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                                ? redondearPrecioVenta(parseFloat(item.precio_original || item.precio || item.precio_venta || 0) || 0)
+                                : (parseFloat(item.precio_original || item.precio || item.precio_venta || 0) || 0));
+                            const precioVenta = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                                ? redondearPrecioVenta(parseFloat(item.precio_venta || item.precio_final || 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock))
+                                : (parseFloat(item.precio_venta || item.precio_final || 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock)));
                             const gananciaUnitaria = stock <= 0 ? 0 : (!isNaN(parseFloat(item.ganancia_unitaria)) ? parseFloat(item.ganancia_unitaria) : (precioVenta - precioCompra));
                             const porcentajeGanancia = stock <= 0 ? 0 : calcularPorcentajeGananciaInventario(precioVenta, precioCompra, item.porcentaje_ganancia);
                             const valorProducto = stock <= 0 ? 0 : stock * precioVenta;
@@ -8522,7 +8539,9 @@ if (is_file($logoPdfPath)) {
                         document.getElementById('editProdCategoria').value = p.categoria_id != null ? p.categoria_id : '';
 
                         const precioCompraValue = p.ultimo_precio_compra != null ? parseFloat(p.ultimo_precio_compra).toFixed(2) : '';
-                        const precioVentaValue = p.precio != null ? parseFloat(p.precio).toFixed(2) : '';
+                        const precioVentaValue = p.precio != null
+                            ? (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(p.precio)) : parseFloat(p.precio)).toFixed(0)
+                            : '';
                         const porcentajeValue = p.porcentaje_ganancia != null ? parseFloat(p.porcentaje_ganancia).toFixed(1) : '';
                         const stockInput = document.getElementById('editProdStock');
                         if (stockInput) {
@@ -8553,7 +8572,10 @@ if (is_file($logoPdfPath)) {
                             const pc = getPc();
                             const pct = parseFloat(pctInput.value) || 0;
                             if (pc > 0) {
-                                document.getElementById('editProdPrecio').value = (pc * (1 + pct/100)).toFixed(2);
+                                const precioCalculado = pc * (1 + pct/100);
+                                document.getElementById('editProdPrecio').value = (typeof redondearPrecioVenta === 'function'
+                                    ? redondearPrecioVenta(precioCalculado)
+                                    : precioCalculado).toFixed(0);
                             }
                         };
                         // cuando usuario modifique precio, actualizar porcentaje si hay precio de compra
@@ -8784,10 +8806,11 @@ if (is_file($logoPdfPath)) {
             const porcentaje = parseFloat(document.getElementById('porcentajeGanancia').value) || 0;
             
             const precioCalculado = precioCompra + (precioCompra * (porcentaje / 100));
-            const baseRedondeo = Math.floor(precioCalculado / 50) * 50;
-            const precioVenta = baseRedondeo + (precioCalculado % 50 > 25 ? 50 : 0);
+            const precioVenta = typeof redondearPrecioVenta === 'function'
+                ? redondearPrecioVenta(precioCalculado)
+                : precioCalculado;
             
-            document.getElementById('precioVentaMostrado').value = precioVenta.toFixed(2);
+            document.getElementById('precioVentaMostrado').value = precioVenta > 0 ? String(precioVenta) : '';
             sincronizarPrecioPresentacionUnidad(precioCompra, precioVenta);
         }
 
@@ -8799,7 +8822,7 @@ if (is_file($logoPdfPath)) {
             const compra = filaUnidad.querySelector('.entrada-pres-compra');
             const venta = filaUnidad.querySelector('.entrada-pres-venta');
             if (compra) compra.value = precioCompra > 0 ? precioCompra.toFixed(2) : '';
-            if (venta) venta.value = precioVenta > 0 ? precioVenta.toFixed(2) : '';
+            if (venta) venta.value = precioVenta > 0 ? String(precioVenta) : '';
         }
 
         function resetEntradaModalFields() {
@@ -9326,7 +9349,7 @@ if (is_file($logoPdfPath)) {
                     presentacion_id: Number(item.presentacion_id || 0),
                     cantidad: normalizarCantidadSalida(item.cantidad, item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1),
                     stock: parseFloat(item.stock || 0) || 0,
-                    precio_venta: parseFloat(item.precio) || 0
+                    precio_venta: typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(item.precio) || 0) : (parseFloat(item.precio) || 0)
                 }))
                 : (seleccionActual ? [{
                     producto_id: seleccionActual.producto_id,
@@ -9456,7 +9479,7 @@ if (is_file($logoPdfPath)) {
                 if (Number(item.presentacion_id || 0) > 0) {
                     formData.append('presentacion_id', String(item.presentacion_id));
                 }
-                formData.append('precio_venta', String(item.precio_venta || 0));
+                formData.append('precio_venta', String(typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(item.precio_venta || 0) : (item.precio_venta || 0)));
                 formData.append('tipo_salida', tipoSalida);
                 formData.append('metodo_pago', metodoPagoSalida);
                 formData.append('referencia', referenciaVenta);
@@ -10245,7 +10268,7 @@ if (is_file($logoPdfPath)) {
                     <div><small style="display:block;color:#667085;font-weight:700;">${base ? 'NOMBRE BASE' : 'NOMBRE'}</small><input type="text" class="entrada-pres-nombre" value="${escapeHtmlInventario(String(pres.nombre || (base ? 'UNIDAD' : 'PAQUETE')).toUpperCase())}" ${base ? 'readonly' : ''} style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;text-transform:uppercase;"></div>
                     <div><small style="display:block;color:#667085;font-weight:700;">${base ? 'EQUIVALENCIA' : 'CONTIENE'}</small>${base ? '<input class="entrada-pres-factor" value="1" readonly style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;background:#f1f5f9;">' : `<select class="entrada-pres-factor" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;">${opciones}</select>`}</div>
                     <div><small style="display:block;color:#667085;font-weight:700;">PRECIO COMPRA</small><input type="number" class="entrada-pres-compra" min="0" step="0.01" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_compra, 0) > 0 ? numero(pres.precio_compra, 0).toFixed(2) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
-                    <div><small style="display:block;color:#667085;font-weight:700;">PRECIO VENTA</small><input type="number" class="entrada-pres-venta" min="0" step="0.01" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_venta, 0) > 0 ? numero(pres.precio_venta, 0).toFixed(2) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
+                    <div><small style="display:block;color:#667085;font-weight:700;">PRECIO VENTA</small><input type="number" class="entrada-pres-venta" min="0" step="50" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_venta, 0) > 0 ? (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(numero(pres.precio_venta, 0)) : numero(pres.precio_venta, 0)) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
                 </div>`;
             }).join('');
             editor.style.display = 'block';

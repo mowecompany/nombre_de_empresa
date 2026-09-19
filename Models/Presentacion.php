@@ -309,7 +309,9 @@ class Presentacion
                 'id' => (int)($fila['id'] ?? 0),
                 'nombre' => $nombre,
                 'factor_padre' => $factorPadre,
-                'precio_venta' => (float)str_replace(',', '.', (string)($fila['precio_venta'] ?? 0)),
+                'precio_venta' => function_exists('redondearPrecioVenta')
+                    ? redondearPrecioVenta($fila['precio_venta'] ?? 0)
+                    : (float)str_replace(',', '.', (string)($fila['precio_venta'] ?? 0)),
                 'precio_compra' => (float)str_replace(',', '.', (string)($fila['precio_compra'] ?? 0)),
             ];
         }

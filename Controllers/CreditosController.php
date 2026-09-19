@@ -316,7 +316,9 @@ try {
     if ($accion === 'editarDetalle') {
         $detalleId = (int)($_POST['detalle_id'] ?? 0);
         $cantidad = (float)($_POST['cantidad'] ?? 0);
-        $precioVenta = (float)($_POST['precio_venta'] ?? 0);
+        $precioVenta = function_exists('redondearPrecioVenta')
+            ? redondearPrecioVenta((float)($_POST['precio_venta'] ?? 0))
+            : (float)($_POST['precio_venta'] ?? 0);
         $presentacionId = isset($_POST['presentacion_id']) ? (int)$_POST['presentacion_id'] : null;
 
         if ($detalleId <= 0) {
@@ -807,6 +809,9 @@ try {
 
         $cantidadVenta = max(0, (float)($item['cantidad'] ?? 0));
         $precio = max(0, (float)($item['precio_venta'] ?? 0));
+        if (function_exists('redondearPrecioVenta')) {
+            $precio = redondearPrecioVenta($precio);
+        }
         $presentacionId = (int)($item['presentacion_id'] ?? 0);
 
         $stmtTipoProducto = $db->prepare('SELECT COALESCE(venta_por_kilo, 0) FROM productos WHERE id = :id LIMIT 1');

@@ -138,6 +138,7 @@ $baseUrl = rtrim((string)base_url(), '/');
     </style>
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/redondeo-precio-venta.js"></script>
 </head>
 <body>
     <main class="page">
@@ -250,7 +251,9 @@ $baseUrl = rtrim((string)base_url(), '/');
             apellido: nombreCompleto.slice(1).join(' ').toUpperCase()
         };
     };
-    const precioProducto = item => Number(item.precio_actual || item.precio_unitario || 0);
+    const precioProducto = item => typeof redondearPrecioVenta === 'function'
+        ? redondearPrecioVenta(Number(item.precio_actual || item.precio_unitario || 0))
+        : Number(item.precio_actual || item.precio_unitario || 0);
     const resolverImagenProducto = valor => {
         const imagen = String(valor || '').trim().replace(/\\/g, '/');
         if (!imagen) return `${baseUrlApp}/favicon.ico`;
@@ -283,7 +286,9 @@ $baseUrl = rtrim((string)base_url(), '/');
             const cantidadPresentacion = item.cantidad_presentacion === null || item.cantidad_presentacion === undefined
                 ? null
                 : (Number(item.cantidad_presentacion) || 0);
-            const precio = Number(item.precio_unitario || item.precio_actual || 0) || 0;
+            const precio = typeof redondearPrecioVenta === 'function'
+                ? redondearPrecioVenta(Number(item.precio_unitario || item.precio_actual || 0) || 0)
+                : (Number(item.precio_unitario || item.precio_actual || 0) || 0);
             actual.cantidad = Number(actual.cantidad || 0) + cantidad;
             if (cantidadPresentacion !== null) {
                 actual.cantidad_presentacion = Number(actual.cantidad_presentacion || 0) + cantidadPresentacion;

@@ -1871,6 +1871,7 @@ try {
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/redondeo-precio-venta.js"></script>
 </head>
 <body class="page-productos">
     <!-- Reemplazar la sección hero-section actual por esto -->
@@ -2860,7 +2861,7 @@ try {
                     <div class="descripcion-content">${(prod.descripcion || '').toUpperCase()}</div>
                 </td>
                 <td style="color:#b42318; font-weight:700;">${formatMonedaColombia(precioCompra)}</td>
-                <td>${formatMonedaColombia(Number(prod.stock) === 0 ? 0 : parseFloat(prod.precio))}</td>
+                <td>${formatMonedaColombia(Number(prod.stock) === 0 ? 0 : (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(prod.precio)) : parseFloat(prod.precio)))}</td>
                 <td>${stockVisible}</td>
                 <td>${Number(prod.venta_por_kilo) === 1 ? 'KILO' : 'NORMAL'}</td>
                 <td>${(prod.categoria_nombre || '-').toUpperCase()}</td>
@@ -3675,7 +3676,7 @@ try {
                         </div>
                         <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #0B6623; border-radius: 4px;">
                             <label style="font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; display: block; margin-bottom: 4px;"><i class="fas fa-dollar-sign"></i> PRECIO</label>
-                            <p style="color: #0B6623; margin: 0; font-size: 15px; font-weight: 700;">${formatMonedaColombia(Number(prod.stock) === 0 ? 0 : parseFloat(prod.precio))}</p>
+                            <p style="color: #0B6623; margin: 0; font-size: 15px; font-weight: 700;">${formatMonedaColombia(Number(prod.stock) === 0 ? 0 : (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(prod.precio)) : parseFloat(prod.precio)))}</p>
                         </div>
                     </div>
 
@@ -3754,7 +3755,9 @@ try {
                 }
                 const precioVentaEdit = document.getElementById('editProdPrecio');
                 if (precioVentaEdit) {
-                    precioVentaEdit.value = Number(producto.precio ?? 0).toFixed(2);
+                    precioVentaEdit.value = (typeof redondearPrecioVenta === 'function'
+                        ? redondearPrecioVenta(Number(producto.precio ?? 0))
+                        : Number(producto.precio ?? 0)).toFixed(0);
                 }
                 const stockEdit = document.getElementById('editProdStock');
                 if (stockEdit) {
