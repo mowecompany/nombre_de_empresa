@@ -769,19 +769,6 @@ $correoPrefillLogin = trim((string)($_GET['correo'] ?? $_GET['email'] ?? ''));
                         if (!window.primeraActualizacion) {
                             const tiempoTranscurridoInicial = Math.max(0, duracionTotal - Math.floor(diferencia / 1000));
                             const porcentajeInicial = Math.round((tiempoTranscurridoInicial / duracionTotal) * 100);
-                            
-                            console.log('=== INICIO TEMPORIZADOR ===');
-                            console.log('Fecha actual:', ahora.toLocaleString());
-                            console.log('  Timestamp actual:', ahora.getTime());
-                            console.log('Fecha de bloqueo (fin):', fechaBloqueo.toLocaleString());
-                            console.log('  Timestamp bloqueo:', fechaBloqueo.getTime());
-                            console.log('Diferencia (ms):', diferencia);
-                            console.log('Diferencia (minutos):', Math.round(diferencia / 1000 / 60 * 10) / 10);
-                            console.log('Duración total (seg):', duracionTotal);
-                            console.log('Segundos restantes:', segundosRestantes);
-                            console.log('Tiempo transcurrido:', tiempoTranscurridoInicial, 'seg');
-                            console.log('📊 PROGRESO INICIAL:', porcentajeInicial + '%');
-                            console.log('============================');
                             window.primeraActualizacion = true;
                         }
 
@@ -797,7 +784,6 @@ $correoPrefillLogin = trim((string)($_GET['correo'] ?? $_GET['email'] ?? ''));
                                 })
                                 .then(response => response.json())
                                 .then(data => {
-                                    console.log('Intentos reseteados:', data);
                                 })
                                 .catch(error => {
                                     console.error('Error al resetear intentos:', error);
@@ -858,7 +844,6 @@ $correoPrefillLogin = trim((string)($_GET['correo'] ?? $_GET['email'] ?? ''));
                         // Log del progreso para verificar
                         const porcentajeRedondeado = Math.round(porcentajeTranscurrido);
                         if (porcentajeRedondeado % 5 === 0 && !window['logged_' + porcentajeRedondeado]) {
-                            console.log('⏱️ Progreso:', porcentajeRedondeado + '%', '| Transcurrido:', tiempoTranscurrido + 's', '| Restante:', tiempoRestante + 's', '| Total:', duracionTotal + 's');
                             window['logged_' + porcentajeRedondeado] = true;
                         }
                         

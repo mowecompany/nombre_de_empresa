@@ -11489,6 +11489,10 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 if (btnCancelar) btnCancelar.style.display = 'none';
             });
 
+            const liberarBasculaAntesDeNavegar = async () => {
+                return Promise.resolve();
+            };
+
             const updateSidebarIcon = () => {
                 if (!sidebarToggleIcon) return;
                 const collapsed = document.body.classList.contains('sidebar-collapsed');
@@ -11645,7 +11649,6 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     try {
                         await liberarBasculaAntesDeNavegar();
                     } catch (error) {
-                        console.error('[BASCULA] no se pudo liberar al volver al inicio', error);
                         return;
                     }
                     if (moduleLoadTimer) {
@@ -12928,11 +12931,9 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
         window.refrescarDashboard = function() {
             const ventasCanvas = document.getElementById('ventasChart');
             if (!ventasCanvas) {
-                console.log('Dashboard: gráficos no encontrados');
                 return;
             }
 
-            console.log('Dashboard: refrescando datos...');
 
             const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#F67019', '#1E8FBE', '#8E44AD'];
             const topCount = 6;
@@ -13293,14 +13294,12 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 selector.value = currentMonthValue;
             }
             const query = mesSeleccionado ? `&mes=${encodeURIComponent(mesSeleccionado)}` : '';
-            console.log('Dashboard: mesSeleccionado=', mesSeleccionado, ' query=', query);
             fetch('<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8'); ?>/Controllers/InventarioController.php?action=obtenerResumen' + query)
                 .then((response) => {
                     if (!response.ok) throw new Error('Error de red al cargar resumen de inventario');
                     return response.json();
                 })
                 .then((data) => {
-                    console.log('Dashboard: respuesta backend requested_mes=', data?.requested_mes, 'items=', Array.isArray(data?.data) ? data.data.length : 0);
                     const productos = Array.isArray(data?.data) ? data.data : [];
                     // Ventas por mes se mostrará en el panel de 'VENTAS POR MES' (chart)
                     try {
@@ -13315,7 +13314,6 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     }
                     lastResumenProductos = productos;
                     buildSummary(productos);
-                    console.log('Dashboard: datos refrescados');
                 })
                 .catch((error) => {
                     console.error('Error refrescando datos de inventario:', error);
@@ -13449,7 +13447,6 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                         // Log en cambio de selección y reset de selección global cuando se cambia mes
                         selector.addEventListener('change', function() {
                             const val2 = selector.value || '';
-                            console.log('Dashboard: selector changed ->', val2, labelMap[val2] || '');
                             try {
                                 closeChartListPanels();
                             } catch (e) {
@@ -13476,7 +13473,6 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     if (movimientosFiltroEl) {
                         movimientosFiltroEl.addEventListener('change', function(e) {
                             movimientosTipo = String(e.target.value || 'both');
-                            console.log('Dashboard: movimientosTipo cambiado a', movimientosTipo);
                             actualizarMovimientosPorFiltro();
                         });
                     }

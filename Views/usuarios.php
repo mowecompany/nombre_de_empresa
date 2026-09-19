@@ -3232,8 +3232,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Usamos trim() para eliminar espacios y verificamos que no sea vacío
                 const action = (usuarioId && usuarioId.trim() !== '') ? 'update' : 'crear';
                 
-                console.log('ID del usuario:', usuarioId);
-                console.log('Acción determinada:', action);
                 
                 const correo = String(formData.get('correo') || '').trim().toLowerCase();
                 const telefono = String(formData.get('telefono') || '').trim();
@@ -3317,8 +3315,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     body: formDataActualizada
                 });
                 
-                console.log('Acción a enviar:', action);
-                console.log('Teléfono normalizado:', telefono);
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -3326,7 +3322,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 const result = await response.json();
                 
-                console.log('Respuesta del servidor:', result);
                 
                 if (result.success) {
                     const esAdminCreado = Boolean(result.es_administrador);
@@ -3613,7 +3608,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 contrasena_nueva: contrasenanueva
             };
 
-            console.log('DEBUG: Enviando cambio de contraseña', {usuarioId, contrasenaActual: '***', contrasenanueva: '***'});
 
             try {
                 const response = await fetch('usuarios.php', {

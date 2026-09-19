@@ -4847,7 +4847,6 @@ if (is_file($logoPdfPath)) {
 
         function agregarProductoSalida() {
             const producto = productoSalidaSeleccionado();
-            try { console.log('agregarProductoSalida - producto:', producto); } catch(e) {}
             if (!producto || !producto.producto_id) {
                 if (document.getElementById('buscarProductoSalida')?.dataset.agregandoAutomatico === '1') return;
                 aseguraryMostrarSwalEstilizado('Selecciona un producto para agregar al carrito de salida.');
@@ -5390,14 +5389,12 @@ if (is_file($logoPdfPath)) {
         }
 
         function cargarEstadisticas() {
-            console.log('Iniciando carga de estadísticas...');
             fetch(inventarioControllerUrl + '?action=obtenerEstadisticas')
                 .then(r => {
                     if (!r.ok) throw new Error('Error en respuesta del servidor');
                     return r.json();
                 })
                 .then(data => {
-                    console.log('Datos de estadísticas:', data);
                     if (data.success && data.data) {
                         const totalProductos = parseInt(data.data.total_productos) || 0;
                         const stockTotal = parseFloat(data.data.stock_total) || 0;
@@ -5433,7 +5430,6 @@ if (is_file($logoPdfPath)) {
                     return r.json();
                 })
                 .then(data => {
-                    console.log('Datos de ventas del día:', data);
                     if (data.success && data.data) {
                         const totalVendidoDia = parseFloat(data.data.valor_total_ventas ?? 0) || 0;
                         const gananciaTotalDia = parseFloat(data.data.ganancia_total_dia ?? data.data.ganancia_dia ?? 0) || 0;
@@ -5455,9 +5451,7 @@ if (is_file($logoPdfPath)) {
 
         // Cargar resumen
         function cargarResumen() {
-            console.log('=== INICIANDO CARGA DE RESUMEN ===');
             const tbody = document.getElementById('resumenTableBody');
-            console.log('Elemento tbody encontrado:', tbody);
             
             if (!tbody) {
                 console.error('ERROR: No se encontró el elemento resumenTableBody');
@@ -5466,7 +5460,6 @@ if (is_file($logoPdfPath)) {
             
             fetch(inventarioControllerUrl + '?action=obtenerResumen')
                 .then(r => {
-                    console.log('Respuesta recibida. Status:', r.status);
                     if (!r.ok) {
                         throw new Error('HTTP error! status: ' + r.status);
                     }
@@ -6809,7 +6802,6 @@ if (is_file($logoPdfPath)) {
                     return data;
                 })
                 .then(data => {
-                    console.log('Respuesta obtenerVentasMes:', data);
                     if (!data.success) {
                         const acumuladoMesValorError = document.getElementById('acumuladoMesValor');
                         const acumuladoMesGananciaError = document.getElementById('acumuladoMesGanancia');
@@ -7195,8 +7187,6 @@ if (is_file($logoPdfPath)) {
             fetch(inventarioControllerUrl + '?action=obtenerResumen')
                 .then(r => r.json())
                 .then(data => {
-                    console.log('=== DATOS REORDEN RECIBIDOS ===');
-                    console.log('Data:', data);
                     
                     if (data.success && data.data) {
                         const productos = Array.isArray(data.data) ? data.data : [];
@@ -7205,8 +7195,6 @@ if (is_file($logoPdfPath)) {
                             const stockNormalizado = Number.isFinite(stock) ? stock : 0;
                             return stockNormalizado <= 5;
                         });
-                        console.log('Productos recibidos:', productos.length);
-                        console.log('Productos bajo stock (<=5):', productosBajoStock.length);
                         
                         // Contar por urgencia
                         let criticos = 0;
@@ -7241,7 +7229,6 @@ if (is_file($logoPdfPath)) {
                         tbody.innerHTML = '';
                         
                         if (productosBajoStock.length === 0) {
-                            console.log('No hay productos para mostrar');
                             tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">- No hay productos con bajo stock</td></tr>';
                             return;
                         }
@@ -7279,7 +7266,6 @@ if (is_file($logoPdfPath)) {
                         };
 
                         const renderProducto = (item, nivel) => {
-                            console.log('Procesando producto:', item);
                             const row = document.createElement('tr');
                             const stock = Number(item?.stock);
                             const stockNormalizado = Number.isFinite(stock) ? stock : 0;
@@ -8450,7 +8436,6 @@ if (is_file($logoPdfPath)) {
                     const s = document.createElement('style'); s.id = 'swal-stock-style'; s.appendChild(document.createTextNode(css)); document.head.appendChild(s);
                 }
             } catch (e) {}
-            try { console.log('[ALERTA STOCK] ', texto); } catch (e) {}
             if (window.Swal) {
                 return Swal.fire({ icon: 'warning', title: 'STOCK INSUFICIENTE', text: texto, confirmButtonText: 'ENTENDIDO', allowOutsideClick: false, allowEscapeKey: false, target: document.body });
             } else {
@@ -8987,7 +8972,6 @@ if (is_file($logoPdfPath)) {
                 }
                 window.dispatchEvent(new Event('refreshDashboard'));
             } catch (e) {
-                console.log('Dashboard no disponible para refrescar');
             }
 
             const reorden = document.getElementById('reordenModal');
@@ -9416,7 +9400,6 @@ if (is_file($logoPdfPath)) {
 
         // Iniciar carga de datos
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Inicializando inventario...');
 
             inicializarBusquedaSelect('productoEntrada', 'buscarProductoEntrada', 'productoEntradaSearchResults');
             inicializarBusquedaSelect('productoSalida', 'buscarProductoSalida', 'productoSalidaSearchResults');

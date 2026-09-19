@@ -3390,8 +3390,6 @@ try {
         }
 
         function eliminarProducto(id) {
-            console.log('Iniciando eliminación del producto ID:', id);
-            console.log('¿Tiene permiso de eliminar?:', tienePermisoEliminar);
             
             if (!tienePermisoEliminar) {
                 mostrarAlerta('error', 'No tienes permiso para eliminar productos');
@@ -3415,22 +3413,18 @@ try {
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    console.log('Usuario confirmó la eliminación');
                     const formData = new FormData();
                     formData.append('action', 'eliminar');
                     formData.append('id', id);
 
-                    console.log('Enviando fetch a ProductoController...');
                     fetch(`${base_url}/Controllers/ProductoController.php`, {
                         method: 'POST',
                         body: formData
                     })
                     .then(response => {
-                        console.log('Response recibido:', response.status);
                         return response.json();
                     })
                     .then(data => {
-                        console.log('Datos del response:', data);
                         if (data.success) {
                             mostrarAlerta('success', '¡EL PRODUCTO HA SIDO ELIMINADO!');
                             notificarCambioDashboard();
@@ -3447,7 +3441,6 @@ try {
                         mostrarAlerta('error', 'Error al procesar la solicitud: ' + error.message);
                     });
                 } else {
-                    console.log('Usuario canceló la eliminación');
                 }
             });
         }
