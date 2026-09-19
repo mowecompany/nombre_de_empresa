@@ -1167,7 +1167,11 @@ class Inventario {
             $stmtCategoriaEntrada = $this->db->prepare("SELECT p.venta_por_kilo, c.nombre FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id WHERE p.id = :id LIMIT 1");
             $stmtCategoriaEntrada->execute([':id' => (int)($datos['producto_id'] ?? 0)]);
             $datosCategoriaEntrada = $stmtCategoriaEntrada->fetch(PDO::FETCH_ASSOC) ?: [];
-            $admiteGramosEntrada = (int)($datosCategoriaEntrada['venta_por_kilo'] ?? 0) === 1;
+            $admitePorVentaPorKilo = (int)($datosCategoriaEntrada['venta_por_kilo'] ?? 0) === 1;
+            $categoriaEntrada = mb_strtolower(trim((string)($datosCategoriaEntrada['nombre'] ?? '')), 'UTF-8');
+            $categoriaEntrada = strtr($categoriaEntrada, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
+            $admitePorCategoria = in_array($categoriaEntrada, ['frutas', 'verduras', 'carnicos y refrigerados'], true);
+            $admiteGramosEntrada = $admitePorVentaPorKilo || $admitePorCategoria;
             if (!$admiteGramosEntrada) {
                 $cantidadPresentacion = floor($cantidadPresentacion);
             }

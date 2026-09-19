@@ -374,11 +374,14 @@ try {
 
                     $nombreCategoriaSeleccionada = mb_strtolower(trim((string)($categoriaSeleccionada['nombre'] ?? '')), 'UTF-8');
                     $nombreCategoriaSeleccionada = strtr($nombreCategoriaSeleccionada, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
+                    $categoriaAdmiteGramos = in_array($nombreCategoriaSeleccionada, ['frutas', 'verduras', 'carnicos y refrigerados'], true);
                     $ventaPorKiloEnviado = isset($_POST['venta_por_kilo'])
                         ? (int)$_POST['venta_por_kilo'] === 1
                         : (int)($productoAntes->venta_por_kilo ?? 0) === 1;
                     if (isset($_POST['stock'])) {
-                        $producto->setStock($parseDecimalInput($_POST['stock']));
+                        $producto->setStock($categoriaAdmiteGramos || $ventaPorKiloEnviado
+                            ? $parseDecimalInput($_POST['stock'])
+                            : (int)$parseDecimalInput($_POST['stock']));
                     }
 
                     $producto->setCategoriaId($categoriaIdNuevo);
@@ -397,10 +400,10 @@ try {
 
                     // Registrar un movimiento de entrada informativo al editar el producto con datos de stock/precio
                     $stockAnterior = isset($productoAntes->stock)
-                        ? (float)$productoAntes->stock
+                        ? ($categoriaAdmiteGramos || $ventaPorKiloEnviado ? (float)$productoAntes->stock : (int)$productoAntes->stock)
                         : 0;
                     $stockNuevo = isset($_POST['stock'])
-                        ? $parseDecimalInput($_POST['stock'])
+                        ? ($categoriaAdmiteGramos || $ventaPorKiloEnviado ? $parseDecimalInput($_POST['stock']) : (int)$parseDecimalInput($_POST['stock']))
                         : $stockAnterior;
                     $precioAnterior = isset($productoAntes->precio) ? (float)$productoAntes->precio : 0;
                     $precioNuevo = isset($_POST['precio']) ? $parseDecimalInput($_POST['precio']) : $precioAnterior;

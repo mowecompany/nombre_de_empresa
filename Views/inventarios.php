@@ -1181,6 +1181,7 @@ if (is_file($logoPdfPath)) {
             }
         }
 
+>>>>>>> Stashed changes
         /* Modales de métricas: tamaño tipo pantalla + scroll interno */
         #ventasDiaModal .modal-content,
         #todosProductosModal .modal-content,
@@ -2765,6 +2766,11 @@ if (is_file($logoPdfPath)) {
                     </div>
                     </div>
                     <input type="hidden" id="codigoProductoSalida">
+                    <div id="grupoPresentacionSalida" style="display:none; margin-top:10px; flex-direction:column; gap:6px; align-items:flex-start;">
+                        <label for="presentacionSalida" style="margin:0;"><i class="fas fa-boxes-stacked"></i> PRESENTACIÓN *</label>
+                        <select id="presentacionSalida" style="min-width:260px; padding:8px; border:1px solid #ccc; border-radius:4px; text-transform:uppercase;"></select>
+                        <small id="ayudaPresentacionSalida" style="color:#475569; font-weight:700; text-transform:uppercase;"></small>
+                    </div>
                     <div id="productoSalidaDetalle" style="display:none; align-items:flex-start; gap:12px; margin-top:12px; padding:10px 0; border-top:1px solid #e2e8f0;">
                         <div style="display:flex; flex-direction:column; align-items:flex-start; gap:8px;">
                             <div class="form-group" style="margin:0; min-width:190px;">
@@ -4295,7 +4301,8 @@ if (is_file($logoPdfPath)) {
             const precioBase = parseFloat(option?.getAttribute('data-precio') || 0) || 0;
             const descuentoPct = parseFloat(option?.getAttribute('data-descuento') || 0) || 0;
             const stockActual = parseFloat(option?.getAttribute('data-stock') || 0) || 0;
-            const esPorKilo = esProductoPorKilosSalida(option);
+            const categoriaPeso = String(select.dataset.categoriaPeso || '').toLowerCase();
+            const esPorKilo = esProductoPorKilosSalida(option) || ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoriaPeso);
             const cantidadSeleccionada = normalizarCantidadSalida(document.getElementById('cantidadSalida')?.value || '1', esPorKilo);
             const precioFinalAtributo = parseFloat(option?.getAttribute('data-precio-final') || 0) || 0;
             const precioFinal = (precioFinalAtributo > 0 && precioBase > 0 && precioFinalAtributo <= precioBase)
@@ -4327,7 +4334,10 @@ if (is_file($logoPdfPath)) {
 
         function esProductoPorKilosSalida(option) {
             const valor = option?.dataset?.ventaPorKilo ?? option?.getAttribute?.('data-venta-por-kilo') ?? '0';
-            return ['1', 'true', 'si', 'sí'].includes(String(valor).trim().toLowerCase());
+            const porVentaPorKilo = ['1', 'true', 'si', 'sí'].includes(String(valor).trim().toLowerCase());
+            const categoria = normalizarTextoBusquedaInventario(option?.dataset?.categoriaNombre || '');
+            const porCategoria = ['frutas', 'verduras', 'carnicos y refrigerados'].includes(categoria);
+            return porVentaPorKilo || porCategoria;
         }
 
         function esCategoriaEspecialSalida(option) {
@@ -4356,7 +4366,8 @@ if (is_file($logoPdfPath)) {
         function actualizarModoBalanzaPorProducto() {
             const select = document.getElementById('productoSalida');
             const opcion = select?.options[select.selectedIndex];
-            const esPorKilo = esProductoPorKilosSalida(opcion);
+            const categoriaPeso = String(select?.dataset.categoriaPeso || '').toLowerCase();
+            const esPorKilo = esProductoPorKilosSalida(opcion) || ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoriaPeso);
             const pesoBarra = document.getElementById('pesoCategoriaSalidaBarra');
             const cantidad = document.getElementById('cantidadSalida');
             const etiqueta = document.getElementById('unidadSalidaLabel');
@@ -4435,7 +4446,7 @@ if (is_file($logoPdfPath)) {
                     const nombre = (option.dataset.nombre || option.textContent || '').trim();
                     const codigo = String(option.dataset.codigo || '').replace(/[/*()]/g, '').trim();
                     tarjeta.dataset.searchText = normalizarTextoBusquedaInventario(`${nombre} ${codigo} ${option.dataset.barcode || ''}`);
-                    const esPorKiloTarjeta = esProductoPorKilosSalida(option);
+                    const esPorKiloTarjeta = esProductoPorKilosSalida(option) || ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoria);
                     const precio = parseFloat(option.dataset.precio || 0) || 0;
                     const stock = parseFloat(option.dataset.stock || 0) || 0;
                     tarjeta.disabled = stock <= 0;
@@ -8108,7 +8119,9 @@ if (is_file($logoPdfPath)) {
                 programarAgregarSalidaSeleccionada(select, input);
                 input.focus();
             } else {
-                const esPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option.dataset.ventaPorKilo || '0').trim().toLowerCase());
+                const porVentaPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option.dataset.ventaPorKilo || '0').trim().toLowerCase());
+                const porCategoria = esCategoriaGramosInventario(option.dataset.categoriaNombre || '');
+                const esPorKilo = porVentaPorKilo || porCategoria;
                 const cantidad = document.getElementById('cantidadEntrada');
                 const etiqueta = document.getElementById('unidadEntradaLabel');
                 if (etiqueta) etiqueta.textContent = esPorKilo ? 'KILOS' : 'CANTIDAD';
@@ -8139,6 +8152,13 @@ if (is_file($logoPdfPath)) {
                     temporizadorAgregarSalidaAutomatico = null;
                     return;
                 }
+                const grupoPresentacion = document.getElementById('grupoPresentacionSalida');
+                const presentacion = document.getElementById('presentacionSalida');
+                const esperandoPresentacion = grupoPresentacion && grupoPresentacion.style.display !== 'none' && presentacion && !presentacion.value;
+                if (esperandoPresentacion && Date.now() - inicio < 4000) {
+                    temporizadorAgregarSalidaAutomatico = setTimeout(esperarPresentacion, 50);
+                    return;
+                }
                 try {
                     if (String(select.value || '') === productoIdSeleccionado) agregarProductoSalida();
                 } finally {
@@ -8154,7 +8174,9 @@ if (is_file($logoPdfPath)) {
             const option = select?.options[select.selectedIndex];
             const cantidad = document.getElementById('cantidadEntrada');
             const etiqueta = document.getElementById('unidadEntradaLabel');
-            const esPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option?.dataset.ventaPorKilo || '0').trim().toLowerCase());
+            const porVentaPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option?.dataset.ventaPorKilo || '0').trim().toLowerCase());
+            const porCategoria = esCategoriaGramosInventario(option?.dataset.categoriaNombre || '');
+            const esPorKilo = porVentaPorKilo || porCategoria;
             if (etiqueta) etiqueta.textContent = esPorKilo ? 'KILOS' : 'CANTIDAD';
             if (cantidad) {
                 cantidad.min = esPorKilo ? '0.001' : '1';
@@ -8732,10 +8754,19 @@ if (is_file($logoPdfPath)) {
 
         // Cargar formulario de edición para producto
         function configurarStockEdicionPorCategoria() {
+            const categoria = document.getElementById('editProdCategoria');
             const stock = document.getElementById('editProdStock');
             if (!stock) return;
+
             stock.min = '0';
             stock.step = '0.001';
+
+            if (categoria) {
+                const nombreCategoria = normalizarTextoBusquedaInventario(categoria.options[categoria.selectedIndex]?.textContent || '');
+                const esPorGramos = ['frutas', 'verduras', 'carnicos y refrigerados'].includes(nombreCategoria);
+                stock.min = esPorGramos ? '0.001' : '0';
+                stock.step = esPorGramos ? '0.001' : '1';
+            }
         }
 
         function editarProducto(id) {
@@ -9071,7 +9102,7 @@ if (is_file($logoPdfPath)) {
             if (porcentajeGanancia) {
                 porcentajeGanancia.value = '25';
             }
-
+ 
             const precioVentaMostrado = document.getElementById('precioVentaMostrado');
             if (precioVentaMostrado) {
                 precioVentaMostrado.value = '';
@@ -10346,7 +10377,8 @@ if (is_file($logoPdfPath)) {
         }
         function formatoStockVisible(valor, categoria = '', ventaPorKilo = false) {
             const n = Math.round(numero(valor, 0) * 1000) / 1000;
-            if (!Number.isInteger(n)) {
+            const esPorGramos = ventaPorKilo || esCategoriaGramosInventario(categoria);
+            if (esPorGramos) {
                 return n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
             }
             return String(n);
@@ -10356,6 +10388,7 @@ if (is_file($logoPdfPath)) {
             return Number.isInteger(n)
                 ? String(n)
                 : n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        }
         }
         window.formatoCantidad = formatoCantidad;
         window.formatoStockVisible = formatoStockVisible;

@@ -218,7 +218,7 @@ $baseUrl = rtrim((string)base_url(), '/');
             apellido: nombreCompleto.slice(1).join(' ').toUpperCase()
         };
     };
-    const precioProducto = item => Number(item.precio_unitario || item.precio_actual || 0);
+    const precioProducto = item => Number(item.precio_actual || item.precio_unitario || 0);
     const resolverImagenProducto = valor => {
         const imagen = String(valor || '').trim().replace(/\\/g, '/');
         if (!imagen) return `${baseUrlApp}/favicon.ico`;

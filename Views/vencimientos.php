@@ -276,6 +276,74 @@ $baseUrl = rtrim((string)base_url(), '/');
 
         function pintarTablaDanados() {
             const cuerpo = document.getElementById('cuerpo');
+            const texto = (document.getElementById('buscador').value || '').trim().toLowerCase();
+            const visibles = danados.filter((item) => {
+                if (!texto) return true;
+                return [item.producto_nombre, item.codigo, item.categoria_nombre, item.referencia, item.notas]
+                    .some((valor) => String(valor || '').toLowerCase().includes(texto));
+            });
+
+            if (!visibles.length) {
+                cuerpo.innerHTML = '<tr><td colspan="10" class="vacio">NO HAY PRODUCTOS DAÑADOS PARA MOSTRAR</td></tr>';
+                return;
+            }
+
+            cuerpo.innerHTML = visibles.map((item) => `
+                <tr>
+                    <td><img class="prod-img" loading="lazy" src="${imagenUrl(item.producto_imagen)}" alt="${escapar(item.producto_nombre)}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
+                    <td>${escapar(item.codigo || 'N/D')}</td>
+                    <td><strong>${escapar(item.producto_nombre || 'N/D')}</strong></td>
+                    <td>${escapar(item.categoria_nombre || 'N/D')}</td>
+                    <td>${Number(item.cantidad) || 0}</td>
+                    <td>${fechaBonita(item.fecha_salida)}</td>
+                    <td>${escapar(item.referencia || 'N/D')}</td>
+                    <td>${escapar(item.notas || 'PRODUCTO DAÑADO')}</td>
+                    <td><span class="pill vencido">DAÑADO</span></td>
+                    <td><span style="color:#94a3b8;">—</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function pintarTablaArchivados() {
+            const cuerpo = document.getElementById('cuerpo');
+            const texto = (document.getElementById('buscador').value || '').trim().toLowerCase();
+            const visibles = archivados.filter((item) => {
+                if (!texto) return true;
+                return [item.producto_nombre, item.producto_codigo, item.categoria_nombre, item.notas]
+                    .some((valor) => String(valor || '').toLowerCase().includes(texto));
+            });
+
+            if (!visibles.length) {
+                cuerpo.innerHTML = '<tr><td colspan="10" class="vacio">NO HAY PRODUCTOS ARCHIVADOS PARA MOSTRAR</td></tr>';
+                return;
+            }
+
+            cuerpo.innerHTML = visibles.map((item) => `
+                <tr>
+                    <td><img class="prod-img" loading="lazy" src="${imagenUrl(item.producto_imagen)}" alt="${escapar(item.producto_nombre)}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
+                    <td>${escapar(item.producto_codigo || 'N/D')}</td>
+                    <td><strong>${escapar(item.producto_nombre || 'N/D')}</strong></td>
+                    <td>${escapar(item.categoria_nombre || 'N/D')}</td>
+                    <td>${Number(item.cantidad) || 0}</td>
+                    <td>${fechaBonita(item.fecha_archivado)}</td>
+                    <td>${fechaBonita(item.fecha_vencimiento)}</td>
+                    <td>${escapar(item.notas || 'PRODUCTO VENCIDO ARCHIVADO')}</td>
+                    <td><span class="pill vencido">ARCHIVADO</span></td>
+                    <td><span style="color:#94a3b8;">—</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function cambiarVista(vista) {
+            vistaActiva = ['danados', 'archivados'].includes(vista) ? vista : 'vencidos';
+            actualizarVista();
+        }
+
+        function pintarTabla() {
+            if (vistaActiva === 'danados') return pintarTablaDanados();
+            if (vistaActiva === 'archivados') return pintarTablaArchivados();
+>>>>>>> Stashed changes
+            const cuerpo = document.getElementById('cuerpo');
             const texto = document.getElementById('buscador').value || '';
             const visibles = danados.filter((item) => {
                 if (!texto) return true;

@@ -2568,6 +2568,7 @@ try {
             if (!busqueda) return true;
             const tokens = busqueda.split(' ').filter(Boolean);
             return tokens.every(token => texto.includes(token)) || texto.replace(/\s/g, '').includes(tokens.join(''));
+
         }
 
         function escapeHtml(valor) {
