@@ -3564,6 +3564,15 @@ if (is_file($logoPdfPath)) {
             filas.forEach((fila, indice) => {
                 fila.style.display = indice >= pagina * porPagina && indice < (pagina + 1) * porPagina ? '' : 'none';
             });
+            // Asegurar que las filas de encabezado de fecha siempre se muestren con sus grupos
+            if (clave === 'entradas') {
+                const filasHeader = todasLasFilas.filter(fila => fila.classList.contains('group-date'));
+                filasHeader.forEach(fila => {
+                    const fechaGrupo = fila.querySelector('.group-date-value')?.textContent || '';
+                    const tieneFilasVisibles = filas.some(f => !f.classList.contains('group-date') && f.style.display !== 'none' && f.textContent.includes(fechaGrupo));
+                    fila.style.display = tieneFilasVisibles ? '' : 'none';
+                });
+            }
             toolbar.querySelector('.inventory-pagination').innerHTML = `
                 <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${pagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
                 <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${pagina + 1} / ${totalPaginas}</span>
@@ -5608,6 +5617,11 @@ if (is_file($logoPdfPath)) {
                         });
 
                         Object.keys(gruposPorFecha)
+                            .sort((a, b) => {
+                                const fechaA = new Date(a.split('/').reverse().join('-'));
+                                const fechaB = new Date(b.split('/').reverse().join('-'));
+                                return fechaB - fechaA;
+                            })
                             .forEach(fechaDia => {
                                 const grupoFecha = gruposPorFecha[fechaDia];
                                 const headerRow = document.createElement('tr');
