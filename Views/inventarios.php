@@ -3598,7 +3598,7 @@ if (is_file($logoPdfPath)) {
         const inventarioPaginas = new Map();
         const inventarioTamanosPagina = new Map();
         const inventarioFilasOriginales = new Map();
-        const inventarioActualizandoDom = new Set();
+        const inventarioObservadores = new Map();
         const inventarioTablaPorClave = {
             resumen: 'resumenTableBody',
             entradas: 'entradasTableBody',
@@ -3610,20 +3610,29 @@ if (is_file($logoPdfPath)) {
             const toolbar = document.querySelector(`[data-inventory-toolbar="${clave}"]`);
             const tbody = document.getElementById(inventarioTablaPorClave[clave]);
             if (!toolbar || !tbody) return;
-            const textoBusqueda = String(toolbar.querySelector('.inventory-list-search')?.value || '').trim().toLowerCase();
+            const textoBusqueda = normalizarFiltroInventario(toolbar.querySelector('.inventory-list-search')?.value);
+            const textoBusquedaGeneral = normalizarFiltroInventario(document.getElementById('filtroResumen')?.value);
             const estadoFilas = inventarioFilasOriginales.get(clave) || { filas: [], encabezados: new Map() };
             const todasLasFilas = estadoFilas.filas;
             const esSeparador = (fila) => fila.classList.contains('group-date');
             const filasDatos = todasLasFilas.filter(fila => !esSeparador(fila));
-            const filas = filasDatos.filter(fila => !textoBusqueda || String(fila.textContent || '').toLowerCase().includes(textoBusqueda));
+            const filas = filasDatos.filter((fila) => {
+                const contenido = normalizarFiltroInventario(fila.textContent);
+                return (!textoBusqueda || contenido.includes(textoBusqueda))
+                    && (!textoBusquedaGeneral || contenido.includes(textoBusquedaGeneral));
+            });
             const selector = toolbar.querySelector('.inventory-page-size');
             const porPagina = Math.max(1, Number(selector?.value || 50));
             const totalPaginas = Math.max(1, Math.ceil(filas.length / porPagina));
             const pagina = Math.min(inventarioPaginas.get(clave) || 0, totalPaginas - 1);
             inventarioPaginas.set(clave, pagina);
-            const inicio = pagina * porPagina;
-            // Igual que Productos: se conserva el bloque de la página y se pinta de mayor a menor.
-            const filasPagina = filas.slice(inicio, inicio + porPagina).reverse();
+            const inicioNatural = pagina * porPagina;
+            const inicio = pagina === totalPaginas - 1 && filas.length > porPagina
+                ? Math.max(0, filas.length - porPagina)
+                : inicioNatural;
+            // Las filas ya llegan ordenadas de la más reciente a la más antigua.
+            // La última página cronológica se ancla al final para completar el tamaño seleccionado.
+            const filasPagina = filas.slice(inicio, inicio + porPagina);
             const fragmento = document.createDocumentFragment();
             let ultimoEncabezado = null;
             filasPagina.forEach((fila) => {
@@ -3635,11 +3644,13 @@ if (is_file($logoPdfPath)) {
                 fila.style.display = '';
                 fragmento.appendChild(fila);
             });
-            inventarioActualizandoDom.add(clave);
+            const observador = inventarioObservadores.get(clave);
+            if (observador) observador.disconnect();
             tbody.replaceChildren(fragmento);
+            if (observador) observador.observe(tbody, { childList: true });
             toolbar.querySelector('.inventory-pagination').innerHTML = `
                 <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${pagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
-                <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${pagina + 1} / ${totalPaginas}</span>
+                <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - pagina} / ${totalPaginas}</span>
                 <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${pagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
         }
 
@@ -3649,10 +3660,23 @@ if (is_file($logoPdfPath)) {
                 const tbody = document.getElementById(inventarioTablaPorClave[clave]);
                 if (!toolbar || !tbody) return;
                 toolbar.querySelector('.inventory-page-size')?.addEventListener('change', () => {
+                    const estadoFilas = inventarioFilasOriginales.get(clave) || { filas: [] };
+                    const textoBusqueda = normalizarFiltroInventario(toolbar.querySelector('.inventory-list-search')?.value);
+                    const textoBusquedaGeneral = normalizarFiltroInventario(document.getElementById('filtroResumen')?.value);
+                    const totalRegistros = estadoFilas.filas.filter((fila) => {
+                        if (fila.classList.contains('group-date')) return false;
+                        const contenido = normalizarFiltroInventario(fila.textContent);
+                        return (!textoBusqueda || contenido.includes(textoBusqueda))
+                            && (!textoBusquedaGeneral || contenido.includes(textoBusquedaGeneral));
+                    }).length;
                     const tamanoAnterior = inventarioTamanosPagina.get(clave) || 50;
-                    const paginaActual = inventarioPaginas.get(clave) || 0;
+                    const totalPaginasAnterior = Math.max(1, Math.ceil(totalRegistros / tamanoAnterior));
+                    const paginaInternaAnterior = Math.min(inventarioPaginas.get(clave) || 0, totalPaginasAnterior - 1);
+                    const paginaVisibleAnterior = totalPaginasAnterior - paginaInternaAnterior;
                     const nuevoTamano = Number(toolbar.querySelector('.inventory-page-size')?.value || 50);
-                    inventarioPaginas.set(clave, Math.floor((paginaActual * tamanoAnterior) / nuevoTamano));
+                    const totalPaginasNuevo = Math.max(1, Math.ceil(totalRegistros / nuevoTamano));
+                    const paginaVisibleNueva = Math.min(paginaVisibleAnterior, totalPaginasNuevo);
+                    inventarioPaginas.set(clave, totalPaginasNuevo - paginaVisibleNueva);
                     inventarioTamanosPagina.set(clave, nuevoTamano);
                     actualizarPaginacionInventario(clave);
                 });
@@ -3666,11 +3690,7 @@ if (is_file($logoPdfPath)) {
                     if (event.target.closest('.inventory-page-next')) inventarioPaginas.set(clave, paginaActual + 1);
                     actualizarPaginacionInventario(clave);
                 });
-                new MutationObserver(() => {
-                    if (inventarioActualizandoDom.has(clave)) {
-                        inventarioActualizandoDom.delete(clave);
-                        return;
-                    }
+                const observador = new MutationObserver(() => {
                     const filas = Array.from(tbody.children).filter(fila => fila.tagName === 'TR');
                     const encabezados = new Map();
                     let encabezadoActual = null;
@@ -3682,8 +3702,11 @@ if (is_file($logoPdfPath)) {
                         }
                     });
                     inventarioFilasOriginales.set(clave, { filas, encabezados });
+                    inventarioPaginas.set(clave, 0);
                     actualizarPaginacionInventario(clave);
-                }).observe(tbody, { childList: true });
+                });
+                inventarioObservadores.set(clave, observador);
+                observador.observe(tbody, { childList: true });
                 const filasIniciales = Array.from(tbody.children).filter(fila => fila.tagName === 'TR');
                 inventarioFilasOriginales.set(clave, { filas: filasIniciales, encabezados: new Map() });
                 inventarioTamanosPagina.set(clave, Number(toolbar.querySelector('.inventory-page-size')?.value || 50));
@@ -3857,24 +3880,9 @@ if (is_file($logoPdfPath)) {
         }
 
         function filtrarTablasInventario() {
-            const texto = normalizarFiltroInventario(document.getElementById('filtroResumen')?.value);
-            ['resumenTableBody', 'entradasTableBody', 'salidasTableBody', 'movimientosTableBody'].forEach(id => {
-                const tbody = document.getElementById(id);
-                if (!tbody) return;
-                const filas = Array.from(tbody.querySelectorAll('tr'));
-                filas.forEach(fila => {
-                    if (fila.classList.contains('group-date')) return;
-                    fila.style.display = !texto || normalizarFiltroInventario(fila.textContent).includes(texto) ? '' : 'none';
-                });
-                filas.filter(fila => fila.classList.contains('group-date')).forEach(encabezado => {
-                    let siguiente = encabezado.nextElementSibling;
-                    let visible = false;
-                    while (siguiente && !siguiente.classList.contains('group-date')) {
-                        if (siguiente.style.display !== 'none') visible = true;
-                        siguiente = siguiente.nextElementSibling;
-                    }
-                    encabezado.style.display = visible ? '' : 'none';
-                });
+            Object.keys(inventarioTablaPorClave).forEach((clave) => {
+                inventarioPaginas.set(clave, 0);
+                actualizarPaginacionInventario(clave);
             });
         }
 
@@ -5554,7 +5562,7 @@ if (is_file($logoPdfPath)) {
                         
                         actualizarSugerenciasResumen(data.data);
                         
-                        const productosOrdenados = [...data.data].sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
+                        const productosOrdenados = [...data.data].sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
                         const filas = document.createDocumentFragment();
 
                         productosOrdenados.forEach((item) => {
@@ -5666,8 +5674,8 @@ if (is_file($logoPdfPath)) {
                         const entradasOrdenadas = [...data.data].sort((a, b) => {
                             const fechaA = parsearFechaEntrada(a.fecha_entrada).getTime() || 0;
                             const fechaB = parsearFechaEntrada(b.fecha_entrada).getTime() || 0;
-                            if (fechaA !== fechaB) return fechaA - fechaB;
-                            return (Number(a.id) || 0) - (Number(b.id) || 0);
+                            if (fechaA !== fechaB) return fechaB - fechaA;
+                            return (Number(b.id) || 0) - (Number(a.id) || 0);
                         });
 
                         const gruposPorFecha = {};
@@ -5703,7 +5711,7 @@ if (is_file($logoPdfPath)) {
                             .sort((a, b) => {
                                 const fechaA = new Date(a.split('/').reverse().join('-'));
                                 const fechaB = new Date(b.split('/').reverse().join('-'));
-                                return fechaA - fechaB;
+                                return fechaB - fechaA;
                             })
                             .forEach(fechaDia => {
                                 const grupoFecha = gruposPorFecha[fechaDia];
@@ -5994,11 +6002,11 @@ if (is_file($logoPdfPath)) {
                             const referenciaB = String(b.referencia || '').trim();
                             const numeroA = numeroReferenciaSalida(referenciaA);
                             const numeroB = numeroReferenciaSalida(referenciaB);
-                            if (numeroA !== numeroB) return numeroA - numeroB;
+                            if (numeroA !== numeroB) return numeroB - numeroA;
                             const fechaA = parseFechaInventario(a.fecha_salida || a.fecha_movimiento || a.fecha || a.created_at);
                             const fechaB = parseFechaInventario(b.fecha_salida || b.fecha_movimiento || b.fecha || b.created_at);
-                            if (fechaA !== fechaB) return fechaA - fechaB;
-                            return (Number(a.id) || 0) - (Number(b.id) || 0);
+                            if (fechaA !== fechaB) return fechaB - fechaA;
+                            return (Number(b.id) || 0) - (Number(a.id) || 0);
                         });
 
                         const grupos = {};
@@ -6046,7 +6054,7 @@ if (is_file($logoPdfPath)) {
                         const gruposPorFecha = {};
 
                         Object.values(grupos)
-                            .sort((a, b) => numeroReferenciaSalida(a.referencia) - numeroReferenciaSalida(b.referencia) || parseFechaInventario(a.fechaRaw) - parseFechaInventario(b.fechaRaw) || (Number(a.items?.[0]?.id) || 0) - (Number(b.items?.[0]?.id) || 0))
+                            .sort((a, b) => numeroReferenciaSalida(b.referencia) - numeroReferenciaSalida(a.referencia) || parseFechaInventario(b.fechaRaw) - parseFechaInventario(a.fechaRaw) || (Number(b.items?.[0]?.id) || 0) - (Number(a.items?.[0]?.id) || 0))
                             .forEach(grupo => {
                                 const fechaDia = formatarFechaDia(grupo.fechaRaw);
                                 if (!gruposPorFecha[fechaDia]) {
@@ -6072,7 +6080,7 @@ if (is_file($logoPdfPath)) {
                             });
 
                         Object.entries(gruposPorFecha)
-                            .sort(([, grupoA], [, grupoB]) => grupoA.mayorReferencia - grupoB.mayorReferencia || grupoA.ultimaFechaTimestamp - grupoB.ultimaFechaTimestamp)
+                            .sort(([, grupoA], [, grupoB]) => grupoB.mayorReferencia - grupoA.mayorReferencia || grupoB.ultimaFechaTimestamp - grupoA.ultimaFechaTimestamp)
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');
                                 headerRow.className = 'group-date';
@@ -6456,8 +6464,8 @@ if (is_file($logoPdfPath)) {
                         const movimientosOrdenados = [...data.data].sort((a, b) => {
                             const fechaB = parseFechaInventario(b.fecha_movimiento || b.fecha_salida || b.fecha || b.created_at);
                             const fechaA = parseFechaInventario(a.fecha_movimiento || a.fecha_salida || a.fecha || a.created_at);
-                            if (fechaB !== fechaA) return fechaA - fechaB;
-                            return (Number(a.id) || 0) - (Number(b.id) || 0);
+                            if (fechaB !== fechaA) return fechaB - fechaA;
+                            return (Number(b.id) || 0) - (Number(a.id) || 0);
                         });
 
                         const formatarFechaDia = (valorFecha) => {
@@ -6504,7 +6512,7 @@ if (is_file($logoPdfPath)) {
                         const gruposPorFecha = {};
 
                         Object.values(grupos)
-                            .sort((a, b) => parseFechaInventario(a.fechaRaw) - parseFechaInventario(b.fechaRaw) || (Number(a.items?.[0]?.id) || 0) - (Number(b.items?.[0]?.id) || 0))
+                            .sort((a, b) => parseFechaInventario(b.fechaRaw) - parseFechaInventario(a.fechaRaw) || (Number(b.items?.[0]?.id) || 0) - (Number(a.items?.[0]?.id) || 0))
                             .forEach(grupo => {
                                 const fechaDia = formatarFechaDia(grupo.fechaRaw);
                                 if (!gruposPorFecha[fechaDia]) {
@@ -6519,8 +6527,8 @@ if (is_file($logoPdfPath)) {
 
                         Object.entries(gruposPorFecha)
                             .sort(([, grupoA], [, grupoB]) => {
-                                const diferencia = parseFechaInventario(grupoA.grupos?.[0]?.fechaRaw) - parseFechaInventario(grupoB.grupos?.[0]?.fechaRaw);
-                                return diferencia || (Number(grupoA.grupos?.[0]?.items?.[0]?.id) || 0) - (Number(grupoB.grupos?.[0]?.items?.[0]?.id) || 0);
+                                const diferencia = parseFechaInventario(grupoB.grupos?.[0]?.fechaRaw) - parseFechaInventario(grupoA.grupos?.[0]?.fechaRaw);
+                                return diferencia || (Number(grupoB.grupos?.[0]?.items?.[0]?.id) || 0) - (Number(grupoA.grupos?.[0]?.items?.[0]?.id) || 0);
                             })
                             .forEach(([fechaDia, grupoFecha]) => {
                                 const headerRow = document.createElement('tr');

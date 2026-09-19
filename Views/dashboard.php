@@ -13869,7 +13869,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             }).join('');
             lista.innerHTML = fichas || '<p style="padding:20px;text-align:center;color:#64748b;">No hay créditos registrados.</p>';
             if (creditosDashboardDetalles.length > creditosDashboardPorPagina) {
-                lista.innerHTML += `<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 0;"><button type="button" class="chart-list-btn" onclick="cambiarPaginaCreditosDashboard(-1)" ${creditosDashboardPagina === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><strong>PÁGINA ${creditosDashboardPagina} DE ${totalPaginas}</strong><button type="button" class="chart-list-btn" onclick="cambiarPaginaCreditosDashboard(1)" ${creditosDashboardPagina === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button></div>`;
+                lista.innerHTML += `<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 0;"><button type="button" class="chart-list-btn" onclick="cambiarPaginaCreditosDashboard(-1)" ${creditosDashboardPagina === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><strong>PÁGINA ${totalPaginas - (creditosDashboardPagina - 1)} / ${totalPaginas}</strong><button type="button" class="chart-list-btn" onclick="cambiarPaginaCreditosDashboard(1)" ${creditosDashboardPagina === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button></div>`;
             }
         }
 
