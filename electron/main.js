@@ -313,6 +313,10 @@ function getWritableDatabasePath() {
 
 function buildPhpEnvironment(port) {
   const sqlitePath = getWritableDatabasePath();
+  // Escala los workers según el hardware: en cajas con más núcleos, más peticiones
+  // concurrentes se atienden sin hacer cola. Mínimo 8, máximo 16.
+  const cpuCount = Math.max(1, (os.cpus() || []).length || 4);
+  const workers = Math.min(16, Math.max(8, cpuCount * 2));
   return {
     ...process.env,
     APP_ENV: app.isPackaged ? 'production' : 'development',
@@ -324,7 +328,7 @@ function buildPhpEnvironment(port) {
     SQLITE_PATH: sqlitePath,
     DB_CHARSET: 'utf8mb4',
     // Permite que el servidor PHP integrado atienda varias cajas a la vez.
-    PHP_CLI_SERVER_WORKERS: process.env.PHP_CLI_SERVER_WORKERS || '6'
+    PHP_CLI_SERVER_WORKERS: process.env.PHP_CLI_SERVER_WORKERS || String(workers)
   };
 }
 
@@ -352,6 +356,61 @@ function startPhpServer(port, bindHost) {
         phpArgs.push('-c', iniPath);
       }
       phpArgs.push('-d', `extension_dir=${path.join(path.dirname(phpExecutable), 'ext')}`);
+      // Extensiones críticas para rendimiento y funcionalidad. Se cargan siempre
+      // para que la app no dependa de que estén habilitadas en el php.ini.
+      phpArgs.push('-d', 'zend_extension=opcache');
+      phpArgs.push('-d', 'extension=pdo_sqlite');
+      phpArgs.push('-d', 'extension=pdo_mysql');
+      phpArgs.push('-d', 'extension=mbstring');
+      phpArgs.push('-d', 'extension=openssl');
+      phpArgs.push('-d', 'extension=curl');
+      phpArgs.push('-d', 'extension=fileinfo');
+      phpArgs.push('-d', 'extension=gd');
+    }
+    // Aceleración PHP: OPcache + JIT + preload + realpath cache + buffering.
+    // Estas banderas son seguras si OPcache no está compilado (PHP las ignora).
+    const preloadPath = path.join(PROJECT_ROOT, 'php', 'preload.php');
+    const opcacheFileCacheDir = path.join(app.getPath('userData'), 'opcache-file');
+    const sessionDir = path.join(app.getPath('userData'), 'tmp', 'sessions');
+    try { fs.mkdirSync(opcacheFileCacheDir, { recursive: true }); } catch (_) {}
+    try { fs.mkdirSync(sessionDir, { recursive: true }); } catch (_) {}
+
+    const opcacheFlags = [
+      'opcache.enable=1',
+      'opcache.enable_cli=1',
+      'opcache.memory_consumption=192',
+      'opcache.interned_strings_buffer=16',
+      'opcache.max_accelerated_files=20000',
+      'opcache.validate_timestamps=' + (app.isPackaged ? '0' : '1'),
+      'opcache.revalidate_freq=' + (app.isPackaged ? '0' : '2'),
+      'opcache.save_comments=1',
+      'opcache.fast_shutdown=1',
+      // JIT tracing: acelera bucles calientes (listas grandes, reportes).
+      'opcache.jit_buffer_size=128M',
+      'opcache.jit=tracing',
+      // Respaldo persistente entre reinicios del servidor.
+      'opcache.file_cache=' + opcacheFileCacheDir,
+      'opcache.file_cache_consistency_checks=0',
+      'realpath_cache_size=4M',
+      'realpath_cache_ttl=600',
+      'memory_limit=256M',
+      'output_buffering=4096',
+      'zlib.output_compression=On',
+      'zlib.output_compression_level=4',
+      // Sesiones en carpeta rápida (dentro de userData) en vez de %TEMP%.
+      'session.save_path=' + sessionDir,
+      'session.gc_probability=1',
+      'session.gc_divisor=1000',
+      'session.lazy_write=1',
+      'session.sid_length=32',
+      'session.sid_bits_per_character=5'
+    ];
+    // Preload: precompila las clases del núcleo al arrancar el servidor.
+    if (fs.existsSync(preloadPath)) {
+      opcacheFlags.push('opcache.preload=' + preloadPath);
+    }
+    for (const flag of opcacheFlags) {
+      phpArgs.push('-d', flag);
     }
     phpArgs.push('-S', `${bindHost}:${port}`, '-t', PROJECT_ROOT);
 
@@ -359,7 +418,10 @@ function startPhpServer(port, bindHost) {
       cwd: PROJECT_ROOT,
       env,
       windowsHide: true,
-      stdio: ['ignore', 'pipe', 'pipe']
+      // Descartamos stdout: en producción php -S imprime una línea por request
+      // y drenar ese pipe desde Electron cuesta CPU en cargas grandes. stderr sí
+      // se conserva para detectar puertos ocupados o errores de arranque.
+      stdio: ['ignore', app.isPackaged ? 'ignore' : 'pipe', 'pipe']
     });
     const launchedProcess = phpProcess;
 
@@ -391,6 +453,33 @@ function stopPhpServer() {
   if (phpProcess && !phpProcess.killed) {
     phpProcess.kill();
     phpProcess = null;
+  }
+}
+
+/**
+ * Precalienta el servidor PHP disparando peticiones silenciosas a rutas
+ * ligeras justo después de arrancar. OPcache/preload/SQLite quedan tibios
+ * antes de que el usuario haga clic en cualquier módulo.
+ */
+function warmUpPhpServer(port) {
+  const rutas = ['/health.php', '/Views/login.php', '/Views/dashboard.php'];
+  for (const ruta of rutas) {
+    try {
+      const req = http.request({
+        host: SERVER_HOST,
+        port,
+        path: ruta,
+        method: 'GET',
+        headers: { 'X-Silent-Request': '1', 'User-Agent': 'Electron-WarmUp' },
+        timeout: 5000
+      }, (res) => {
+        res.on('data', () => {});
+        res.on('end', () => {});
+      });
+      req.on('error', () => {});
+      req.on('timeout', () => req.destroy());
+      req.end();
+    } catch (_) { /* el warm-up nunca debe interrumpir el arranque */ }
   }
 }
 
@@ -483,9 +572,40 @@ function createMainWindow(serverUrl) {
       // Sin esto, el puente de escritorio no llega a la pantalla de Conexión.
       nodeIntegrationInSubFrames: true,
       enableRemoteModule: false,
-      sandbox: false
+      sandbox: false,
+      // Mantiene la ventana con máximo rendimiento aunque pierda foco (caja registradora).
+      backgroundThrottling: false,
+      // No se necesita corrector ortográfico en un TPV; ahorra memoria y CPU.
+      spellcheck: false
     }
   });
+
+  // Caché de larga duración para /Assets/**: el navegador Electron los guarda
+  // en su caché de disco, así que la segunda apertura de cualquier módulo carga
+  // los estáticos sin ida y vuelta al servidor PHP.
+  try {
+    mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+      const url = String(details.url || '');
+      const isStaticAsset = /\/(Assets|favicon\.ico)(\/|$|\?)/i.test(url)
+        && !/\.php(\?|$)/i.test(url);
+      if (isStaticAsset) {
+        const headers = { ...(details.responseHeaders || {}) };
+        // Eliminamos cualquier no-cache heredado del .htaccess original.
+        for (const key of Object.keys(headers)) {
+          const k = key.toLowerCase();
+          if (k === 'cache-control' || k === 'pragma' || k === 'expires') {
+            delete headers[key];
+          }
+        }
+        headers['Cache-Control'] = ['public, max-age=604800, immutable'];
+        callback({ responseHeaders: headers });
+        return;
+      }
+      callback({ responseHeaders: details.responseHeaders });
+    });
+  } catch (error) {
+    console.warn('No se pudo instalar la caché de estáticos de Electron:', error.message);
+  }
 
   // La báscula la administra exclusivamente el proceso principal (BasculaService).
   // El frontend no abre puertos seriales: Web Serial queda deshabilitado a propósito.
@@ -503,8 +623,14 @@ function createMainWindow(serverUrl) {
 
   mainWindow.setMenuBarVisibility(false);
 
-  // Diagnóstico de recargas: deja constancia de cada navegación de la ventana.
+  // Diagnóstico de recargas: en desarrollo se persiste cada navegación en disco.
+  // En producción solo registramos fallos/caídas para no golpear el disco en
+  // cada navegación normal (bloqueaba visiblemente el arranque de módulos).
+  const soloRegistrarErrores = app.isPackaged;
   const registrarNavegacion = (evento, detalle = '') => {
+    if (soloRegistrarErrores && evento !== 'did-fail-load' && evento !== 'render-process-gone' && evento !== 'unresponsive') {
+      return;
+    }
     try {
       const linea = `[${new Date().toISOString()}] ${evento} ${detalle}\n`;
       fs.appendFileSync(path.join(app.getPath('userData'), 'navegacion.log'), linea, 'utf8');
@@ -709,6 +835,8 @@ app.whenReady().then(async () => {
     }
     const serverUrl = `http://${SERVER_HOST}:${activePort}`;
     await startPhpServer(activePort, activeBindHost);
+    // Precalienta el servidor en segundo plano mientras se abre la ventana.
+    setImmediate(() => warmUpPhpServer(activePort));
     createMainWindow(serverUrl);
     // La báscula se conecta sola al arrancar y se mantiene abierta toda la sesión.
     basculaService.iniciar();

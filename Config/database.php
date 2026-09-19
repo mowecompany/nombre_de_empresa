@@ -45,9 +45,18 @@ if (!class_exists('Database', false)) {
                     $conexion->exec('PRAGMA journal_mode = WAL');
                     $conexion->exec('PRAGMA synchronous = NORMAL');
                     $conexion->exec('PRAGMA busy_timeout = 5000');
-                    $conexion->exec('PRAGMA cache_size = -20000');
+                    // Caché en memoria por conexión: 64 MB (antes 20 MB).
+                    $conexion->exec('PRAGMA cache_size = -65536');
                     $conexion->exec('PRAGMA temp_store = MEMORY');
+                    // Mapea hasta 256 MB del archivo SQLite en memoria: las lecturas
+                    // pasan a ser prácticamente sin syscalls.
+                    $conexion->exec('PRAGMA mmap_size = 268435456');
+                    // Autocheckpoint del WAL cada 1000 páginas (evita que crezca).
+                    $conexion->exec('PRAGMA wal_autocheckpoint = 1000');
                     $conexion->exec("PRAGMA encoding = 'UTF-8'");
+                    // Reconstruye estadísticas del planificador cuando toca. Es
+                    // barato y mejora consultas grandes de inventario/productos.
+                    try { $conexion->exec('PRAGMA optimize'); } catch (Throwable $e) { /* opcional */ }
 
                     self::$connections[$connectionKey] = $conexion;
                     self::aplicarIndices($conexion, true, 'sqlite:' . $sqlitePath);
