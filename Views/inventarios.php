@@ -2249,6 +2249,8 @@ if (is_file($logoPdfPath)) {
             text-transform: uppercase !important;
         }
     </style>
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body class="inventario">
     <!-- Header -->
@@ -4467,7 +4469,7 @@ if (is_file($logoPdfPath)) {
             indicador.innerHTML = conectada
                 ? `<i class="fas fa-circle-check"></i> BÁSCULA CONECTADA${puertoBalanzaSalida ? ` · ${escapeHtmlInventario(puertoBalanzaSalida)}` : ''}`
                 : (conectando
-                    ? '<i class="fas fa-spinner fa-spin"></i> CONECTANDO BÁSCULA'
+                    ? 'CONECTANDO BÁSCULA…'
                     : '<i class="fas fa-circle-xmark"></i> BÁSCULA NO CONECTADA');
         }
 

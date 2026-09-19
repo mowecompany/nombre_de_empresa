@@ -90,6 +90,8 @@ require_once ROOT_PATH . '/Config/Config.php';
         }
         .trama { font-family: 'Consolas', monospace; }
     </style>
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body>
 
@@ -159,6 +161,7 @@ require_once ROOT_PATH . '/Config/Config.php';
     const $ = (id) => document.getElementById(id);
     const api = window.basculaAPI;
     let ultimoDiagnostico = {};
+    let primeraCarga = true;
 
     const mostrarAviso = (elemento, texto, esError) => {
         if (!texto) { elemento.hidden = true; elemento.textContent = ''; return; }
@@ -241,10 +244,20 @@ require_once ROOT_PATH . '/Config/Config.php';
     }
 
     async function refrescar() {
+        if (primeraCarga) {
+            window.EstrellaSkeleton?.show(document.querySelector('.panel'), 'panel');
+            window.EstrellaSkeleton?.show($('puertos'), 'table', { rows: 4 });
+        }
         try {
             pintarDiagnostico(await api.diagnostico());
         } catch (error) {
             mostrarAviso($('avisoAccion'), 'No se pudo consultar el estado de la báscula: ' + (error && error.message ? error.message : error), true);
+        } finally {
+            if (primeraCarga) {
+                primeraCarga = false;
+                window.EstrellaSkeleton?.hide(document.querySelector('.panel'), true);
+                window.EstrellaSkeleton?.hide($('puertos'), true);
+            }
         }
     }
 

@@ -68,6 +68,10 @@
         if (!el) return;
 
         if (visible) {
+            if (window.EstrellaSkeleton && el.dataset.skeletonOwned !== '1') {
+                const variant = document.body?.classList.contains('page-login') ? 'login' : 'page';
+                window.EstrellaSkeleton.show(el, variant);
+            }
             el.style.display = 'flex';
             el.classList.add('is-active');
             loadingState.minVisibleAt = Date.now() + MIN_VISIBLE_MS;
@@ -84,6 +88,9 @@
             if (!target) return;
             target.classList.remove('is-active');
             target.style.display = 'none';
+            if (window.EstrellaSkeleton) {
+                window.EstrellaSkeleton.hide(target, true);
+            }
         }, wait);
     }
 

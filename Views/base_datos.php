@@ -38,6 +38,8 @@ $baseUrl = rtrim((string)base_url(), '/');
         @media (max-width: 650px) { body { padding: 12px; } .database-panel { padding: 20px; } .actions { grid-template-columns: 1fr; } }
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body class="page-basedatos">
     <main class="database-panel">
@@ -68,6 +70,7 @@ $baseUrl = rtrim((string)base_url(), '/');
         const fileName = document.getElementById('fileName');
         exportLink.addEventListener('click', async event => {
             event.preventDefault();
+            window.EstrellaSkeleton?.show(document.querySelector('.actions'), 'cards', { cards: 2 });
             try {
                 const response = await fetch(exportLink.href);
                 if (!response.ok) throw new Error(await response.text() || 'No se pudo exportar la base de datos.');
@@ -91,6 +94,8 @@ _${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
                 await Swal.fire('Exportación completada', 'La base de datos se exportó correctamente.', 'success');
             } catch (error) {
                 Swal.fire('Error', error.message || 'No se pudo exportar la base de datos.', 'error');
+            } finally {
+                window.EstrellaSkeleton?.hide(document.querySelector('.actions'), true);
             }
         });
         fileInput.addEventListener('change', () => { fileName.textContent = fileInput.files[0]?.name || 'Ningún archivo seleccionado'; });
@@ -101,6 +106,7 @@ _${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
             if (!confirmation.isConfirmed) return;
             const formData = new FormData(event.target);
             formData.append('action', 'importar');
+            window.EstrellaSkeleton?.show(document.querySelector('.actions'), 'cards', { cards: 2 });
             try {
                 const response = await fetch(`${baseUrl}/Controllers/BaseDatosController.php?action=importar`, { method: 'POST', body: formData });
                 const responseText = await response.text();
@@ -110,6 +116,7 @@ _${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
                 await Swal.fire('Importación completada', result.message, 'success');
                 window.top.location.href = `${baseUrl}/Views/dashboard.php`;
             } catch (error) { Swal.fire('Error', error.message, 'error'); }
+            finally { window.EstrellaSkeleton?.hide(document.querySelector('.actions'), true); }
         });
     </script>
 </body>

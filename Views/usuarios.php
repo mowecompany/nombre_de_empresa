@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // cSpell:disable
 // Si se recibió PHPSESSID como parámetro (desde iframe), usarlo para la sesión
 if (isset($_GET['PHPSESSID']) && !empty($_GET['PHPSESSID'])) {
@@ -1976,6 +1976,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body class="page-usuarios">
     <div class="title_equipo">
@@ -2227,7 +2229,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <?php endif; ?>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="usuarios-tbody">
                     <?php 
                     if (empty($usuarios)) {
                         echo "<tr><td colspan='" . $numColumnas . "'>NO HAY USUARIOS REGISTRADOS EN EL SISTEMA</td></tr>";

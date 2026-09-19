@@ -701,6 +701,8 @@ $ipsServidor = array_values(array_unique($ipsServidor));
             text-align: center;
         }
     </style>
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body>
     <main class="page">
@@ -1644,6 +1646,7 @@ $ipsServidor = array_values(array_unique($ipsServidor));
         async function cargarDispositivosConectados(forzar = false) {
             if (!dispositivosLista || rolSeleccionado !== 'server') return;
             if (!forzar && document.visibilityState === 'hidden') return;
+            window.EstrellaSkeleton?.show(dispositivosLista, 'cards', { cards: 3 });
             try {
                 const respuesta = await fetch(`${baseUrl}/api/v1/index.php?action=presence`, { credentials: 'same-origin', cache: 'no-store' });
                 const resultado = await respuesta.json();
@@ -1656,6 +1659,8 @@ $ipsServidor = array_values(array_unique($ipsServidor));
             } catch (error) {
                 dispositivosCount.textContent = 'Sin datos';
                 dispositivosLista.innerHTML = '<div class="device-empty">No se pudo consultar los dispositivos conectados.</div>';
+            } finally {
+                window.EstrellaSkeleton?.hide(dispositivosLista, true);
             }
         }
 

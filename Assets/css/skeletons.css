@@ -1,0 +1,84 @@
+:root {
+    --skeleton-base: color-mix(in srgb, var(--company-border, var(--border, #dbe4ec)) 58%, #f8fafc);
+    --skeleton-highlight: color-mix(in srgb, var(--company-primary, var(--primary, #2f4a5a)) 8%, #ffffff);
+    --skeleton-surface: color-mix(in srgb, var(--company-background, var(--bg, #f4f7f9)) 88%, #ffffff);
+}
+
+.skeleton-loading { pointer-events: none; user-select: none; }
+.skeleton-line,
+.skeleton-circle,
+.skeleton-block {
+    display: block;
+    color: transparent !important;
+    background: linear-gradient(100deg, var(--skeleton-base) 20%, var(--skeleton-highlight) 42%, var(--skeleton-base) 64%);
+    background-size: 220% 100%;
+    animation: skeleton-shimmer 1.25s ease-in-out infinite;
+}
+.skeleton-line { width: 100%; height: 12px; border-radius: 4px; }
+.skeleton-line.short { width: 44%; }
+.skeleton-line.medium { width: 70%; }
+.skeleton-circle { width: 42px; height: 42px; border-radius: 50%; margin: auto; }
+.skeleton-block { min-height: 120px; border-radius: 8px; }
+
+.skeleton-table-cell { padding: 12px 10px !important; vertical-align: middle; }
+.skeleton-table-row:nth-child(2n) .skeleton-line,
+.skeleton-table-row:nth-child(2n) .skeleton-circle { animation-delay: -0.35s; }
+
+.skeleton-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; width: 100%; }
+.skeleton-card-placeholder {
+    min-height: 132px;
+    padding: 16px;
+    border: 1px solid var(--skeleton-base);
+    border-radius: 8px;
+    background: var(--skeleton-surface);
+}
+.skeleton-card-placeholder .skeleton-line + .skeleton-line { margin-top: 14px; }
+.skeleton-card-placeholder .skeleton-line:first-child { height: 26px; width: 38%; }
+
+.skeleton-panel-placeholder { width: 100%; min-height: 180px; padding: 18px; border-radius: 8px; background: var(--skeleton-surface); }
+.skeleton-panel-placeholder .skeleton-line { margin-bottom: 14px; }
+.skeleton-chart-placeholder { min-height: 220px; display: grid; align-items: end; grid-template-columns: repeat(8, 1fr); gap: 12px; padding: 24px; }
+.skeleton-chart-placeholder span { background: var(--skeleton-base); border-radius: 5px 5px 0 0; animation: skeleton-shimmer 1.25s ease-in-out infinite; }
+
+#divLoading.skeleton-global-overlay {
+    align-items: stretch !important;
+    justify-content: stretch !important;
+    padding: 24px !important;
+    background: color-mix(in srgb, var(--company-background, #f4f7f9) 92%, transparent) !important;
+    backdrop-filter: none !important;
+}
+#divLoading.skeleton-global-overlay > .skeleton-page-shell { width: min(1180px, 100%); margin: auto; }
+.skeleton-page-shell .skeleton-heading { width: 34%; height: 28px; margin-bottom: 18px; }
+.skeleton-page-shell .skeleton-toolbar { width: 100%; height: 44px; margin-bottom: 18px; }
+.skeleton-page-shell .skeleton-content { min-height: 420px; padding: 18px; background: var(--skeleton-surface); border: 1px solid var(--skeleton-base); border-radius: 8px; }
+
+.page-dashboard #divLoading.skeleton-global-overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 5 !important;
+    min-height: 100%;
+}
+.workspace-module { position: relative; }
+#moduleSkeleton.skeleton-global-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    overflow: hidden;
+}
+
+.page-login #divLoading.skeleton-global-overlay { position: fixed !important; inset: 0 !important; z-index: 99999 !important; }
+.page-login #divLoading .skeleton-page-shell { width: min(430px, calc(100% - 32px)); }
+.page-login #divLoading .skeleton-content { min-height: 520px; }
+
+.skeleton-action-busy { opacity: .66; cursor: wait !important; }
+
+@keyframes skeleton-shimmer { to { background-position-x: -220%; } }
+@media (prefers-reduced-motion: reduce) {
+    .skeleton-line, .skeleton-circle, .skeleton-block, .skeleton-chart-placeholder span { animation: none; }
+}
+@media (max-width: 720px) {
+    #divLoading.skeleton-global-overlay { padding: 14px !important; }
+    .skeleton-page-shell .skeleton-heading { width: 60%; }
+    .skeleton-card-grid { grid-template-columns: 1fr; }
+    .skeleton-table-row:nth-child(n+6) { display: none; }
+}

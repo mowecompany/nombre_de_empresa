@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Si se recibió PHPSESSID como parámetro (desde iframe), usarlo para la sesión
 if (isset($_GET['PHPSESSID']) && !empty($_GET['PHPSESSID'])) {
     session_id($_GET['PHPSESSID']);
@@ -1869,6 +1869,8 @@ try {
 
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body class="page-productos">
     <!-- Reemplazar la sección hero-section actual por esto -->
@@ -2525,6 +2527,7 @@ try {
 
         function cargarProductos(callback = null) {
             const inputBusqueda = document.getElementById('buscarTablaProductos');
+            window.EstrellaSkeleton?.show(document.getElementById('productos-tbody'), 'table', { rows: 7 });
             const busqueda = normalizarBusquedaTablaProductos(inputBusqueda?.value || '');
             const parametros = new URLSearchParams({
                 action: 'getPaginado',
@@ -2563,6 +2566,7 @@ try {
                         console.error('Error al cargar productos:', data);
                     }
                 })
+                .finally(() => window.EstrellaSkeleton?.hide(document.getElementById('productos-tbody'), true))
                 .catch(error => {
                     console.error('Error:', error);
                 });
