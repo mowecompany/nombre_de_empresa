@@ -9218,10 +9218,16 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                         </a>
                     <?php endif; ?>
 
+                    <a href="bascula.php" class="menu-item">
+                        <i class="fas fa-balance-scale"></i>
+                        <span class="menu-item-text">BÁSCULA</span>
+                    </a>
+
                     <a href="conexion.php" class="menu-item">
                         <i class="fas fa-plug"></i>
                         <span class="menu-item-text">CONEXIÓN</span>
                     </a>
+
 
                     <?php if ($esSuperAdminGlobalSesion && !$modoMenuPortable): ?>
                         <a href="base_datos.php" class="menu-item">
