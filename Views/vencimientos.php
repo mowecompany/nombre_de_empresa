@@ -138,6 +138,7 @@ $baseUrl = rtrim((string)base_url(), '/');
     </style>
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
 </head>
 <body>
     <div class="venc-shell">
@@ -378,9 +379,10 @@ $baseUrl = rtrim((string)base_url(), '/');
                 return;
             }
 
-            const totalPaginas = Math.max(1, Math.ceil(visibles.length / vencimientosPorPagina));
+            const totalPaginas = window.EstrellaPaginacion.totalPaginas(visibles.length, vencimientosPorPagina);
             vencimientosPagina = Math.min(vencimientosPagina, totalPaginas - 1);
-            const paginaVisible = visibles.slice(vencimientosPagina * vencimientosPorPagina, (vencimientosPagina + 1) * vencimientosPorPagina).slice().reverse();
+            const inicioVencimientos = window.EstrellaPaginacion.inicioBloque(visibles.length, vencimientosPagina, vencimientosPorPagina);
+            const paginaVisible = visibles.slice(inicioVencimientos, inicioVencimientos + vencimientosPorPagina);
             document.getElementById('vencimientosPaginacion').innerHTML = `<button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - vencimientosPagina} / ${totalPaginas}</span><button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
             cuerpo.innerHTML = paginaVisible.map((lote) => `
                 <tr>
@@ -415,12 +417,15 @@ $baseUrl = rtrim((string)base_url(), '/');
                 const datosDanados = await respuestaDanados.json();
                 const datosArchivados = await respuestaArchivados.json();
                 if (!datos.success) throw new Error(datos.message || 'No se pudieron cargar los lotes');
-                lotes = Array.isArray(datos.data) ? datos.data : [];
+                lotes = window.EstrellaPaginacion.recientesPrimero(Array.isArray(datos.data) ? datos.data : [], ['entrada_id', 'id']);
                 resumen = datos.resumen || {};
-                danados = Array.isArray(datosDanados?.data)
-                    ? datosDanados.data.filter(item => String(item.tipo_salida || '').trim().toLowerCase() === 'dañado' && !String(item.referencia || '').toUpperCase().startsWith('VENCIDO-'))
-                    : [];
-                archivados = Array.isArray(datosArchivados?.data) ? datosArchivados.data : [];
+                danados = window.EstrellaPaginacion.recientesPrimero(
+                    Array.isArray(datosDanados?.data)
+                        ? datosDanados.data.filter(item => String(item.tipo_salida || '').trim().toLowerCase() === 'dañado' && !String(item.referencia || '').toUpperCase().startsWith('VENCIDO-'))
+                        : [],
+                    ['fecha_salida', 'id']
+                );
+                archivados = window.EstrellaPaginacion.recientesPrimero(Array.isArray(datosArchivados?.data) ? datosArchivados.data : [], ['fecha_archivado', 'id']);
                 actualizarVista();
             } catch (error) {
                 document.getElementById('cuerpo').innerHTML = `<tr><td colspan="10" class="vacio">${escapar(error.message)}</td></tr>`;

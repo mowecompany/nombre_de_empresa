@@ -1643,6 +1643,7 @@ $categorias = [];
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
 </head>
 <body class="page-categorias">
     <!-- Reemplazar la sección hero-section actual por esto -->
@@ -2176,7 +2177,7 @@ $categorias = [];
             obtenerJson(`${CATEGORIA_CONTROLLER_URL}?action=getAll`)
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
-                        categoriasTablaCache = data.data;
+                        categoriasTablaCache = window.EstrellaPaginacion.recientesPrimero(data.data, ['id']);
                         categoriasPaginaActual = 0;
                         renderResultadosTablaCategorias();
                         renderPaginaCategorias();
@@ -2219,16 +2220,16 @@ $categorias = [];
             if (!input || !tbody) return;
             const texto = String(input.value || '').trim().toLowerCase();
             const filtradas = categoriasTablaCache.filter(categoria => `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(texto));
-            const inicio = categoriasPaginaActual * categoriasTamanoPagina;
+            const inicio = window.EstrellaPaginacion.inicioBloque(filtradas.length, categoriasPaginaActual, categoriasTamanoPagina);
             tbody.innerHTML = '';
             
             if (filtradas.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">No hay categorías para mostrar.</td></tr>';
             } else {
-                filtradas.slice(inicio, inicio + categoriasTamanoPagina).slice().reverse().forEach(categoria => tbody.appendChild(generarFilaCategoria(categoria)));
+                filtradas.slice(inicio, inicio + categoriasTamanoPagina).forEach(categoria => tbody.appendChild(generarFilaCategoria(categoria)));
             }
             
-            const totalPaginas = Math.max(1, Math.ceil(filtradas.length / categoriasTamanoPagina));
+            const totalPaginas = window.EstrellaPaginacion.totalPaginas(filtradas.length, categoriasTamanoPagina);
             
             // Generar paginador dinámico
             const paginationDiv = document.getElementById('categoriasPagination');
@@ -2732,9 +2733,10 @@ $categorias = [];
                 categoriasTamanoPaginaSelect.value = categoriasTamanoPagina;
                 categoriasTamanoPaginaSelect.addEventListener('change', (event) => {
                     const tamanoAnterior = categoriasTamanoPagina;
-                    const indiceCategoriaAncla = categoriasPaginaActual * tamanoAnterior;
+                    const textoCategoriasActual = String(document.getElementById('buscarTablaCategorias')?.value || '').trim().toLowerCase();
+                    const totalCategoriasFiltradas = categoriasTablaCache.filter(categoria => `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(textoCategoriasActual)).length;
                     categoriasTamanoPagina = Number(event.target.value) || 50;
-                    categoriasPaginaActual = Math.floor(indiceCategoriaAncla / categoriasTamanoPagina);
+                    categoriasPaginaActual = window.EstrellaPaginacion.paginaAlCambiarTamano(totalCategoriasFiltradas, categoriasPaginaActual, tamanoAnterior, categoriasTamanoPagina);
                     renderPaginaCategorias();
                 });
             }
@@ -2748,7 +2750,7 @@ $categorias = [];
                 if (e.target.closest('.inventory-page-next')) {
                     const texto = String(document.getElementById('buscarTablaCategorias')?.value || '').trim().toLowerCase();
                     const total = categoriasTablaCache.filter(categoria => `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(texto)).length;
-                    if ((categoriasPaginaActual + 1) * categoriasTamanoPagina >= total) return;
+                    if (categoriasPaginaActual >= window.EstrellaPaginacion.totalPaginas(total, categoriasTamanoPagina) - 1) return;
                     categoriasPaginaActual += 1;
                     renderPaginaCategorias();
                 }

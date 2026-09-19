@@ -1871,6 +1871,7 @@ try {
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
 </head>
 <body class="page-productos">
     <!-- Reemplazar la sección hero-section actual por esto -->
@@ -2591,7 +2592,7 @@ try {
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
-                        productosTablaCache = data.data;
+                        productosTablaCache = window.EstrellaPaginacion.recientesPrimero(data.data, ['id']);
                         productosHayPaginaSiguiente = false;
                         renderResultadosTablaProductos();
                         const tbody = document.getElementById('productos-tbody');
@@ -2599,12 +2600,12 @@ try {
                         // Filtrar y paginar client-side
                         const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
                         const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
-                        const inicio = productosPaginaActual * productosTamanoPagina;
+                        const inicio = window.EstrellaPaginacion.inicioBloque(filtradas.length, productosPaginaActual, productosTamanoPagina);
                         
                         if (filtradas.length === 0) {
                             tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">No hay productos para mostrar.</td></tr>';
                         } else {
-                            filtradas.slice(inicio, inicio + productosTamanoPagina).slice().reverse().forEach(producto => {
+                            filtradas.slice(inicio, inicio + productosTamanoPagina).forEach(producto => {
                                 try {
                                     const fila = generarFilaProducto(producto);
                                     tbody.appendChild(fila);
@@ -2635,12 +2636,12 @@ try {
             
             const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
             const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
-            const inicio = productosPaginaActual * productosTamanoPagina;
+            const inicio = window.EstrellaPaginacion.inicioBloque(filtradas.length, productosPaginaActual, productosTamanoPagina);
             
             if (filtradas.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">No hay productos para mostrar.</td></tr>';
             } else {
-                filtradas.slice(inicio, inicio + productosTamanoPagina).slice().reverse().forEach(producto => {
+                filtradas.slice(inicio, inicio + productosTamanoPagina).forEach(producto => {
                     try {
                         const fila = generarFilaProducto(producto);
                         tbody.appendChild(fila);
@@ -2658,7 +2659,7 @@ try {
                 const inputBusqueda = document.getElementById('buscarTablaProductos');
                 const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
                 const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
-                const totalPaginas = Math.max(1, Math.ceil(filtradas.length / productosTamanoPagina));
+                const totalPaginas = window.EstrellaPaginacion.totalPaginas(filtradas.length, productosTamanoPagina);
                 paginationDiv.innerHTML = `
                     <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${productosPaginaActual === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
                     <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - productosPaginaActual} / ${totalPaginas}</span>
@@ -3926,9 +3927,10 @@ try {
                 productosTamanoPaginaSelect.value = productosTamanoPagina;
                 productosTamanoPaginaSelect.addEventListener('change', (event) => {
                     const tamanoAnterior = productosTamanoPagina;
-                    const indiceProductoAncla = productosPaginaActual * tamanoAnterior;
+                    const textoProductosActual = String(document.getElementById('buscarTablaProductos')?.value || '').trim().toLowerCase();
+                    const totalProductosFiltrados = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(textoProductosActual)).length;
                     productosTamanoPagina = Number(event.target.value) || 50;
-                    productosPaginaActual = Math.floor(indiceProductoAncla / productosTamanoPagina);
+                    productosPaginaActual = window.EstrellaPaginacion.paginaAlCambiarTamano(totalProductosFiltrados, productosPaginaActual, tamanoAnterior, productosTamanoPagina);
                     cargarProductos();
                 });
             }
@@ -3943,7 +3945,7 @@ try {
                     const inputBusqueda = document.getElementById('buscarTablaProductos');
                     const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
                     const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
-                    const totalPaginas = Math.max(1, Math.ceil(filtradas.length / productosTamanoPagina));
+                    const totalPaginas = window.EstrellaPaginacion.totalPaginas(filtradas.length, productosTamanoPagina);
                     if (productosPaginaActual >= totalPaginas - 1) return;
                     productosPaginaActual += 1;
                     renderTablaProductosPaginada();

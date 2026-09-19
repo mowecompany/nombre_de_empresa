@@ -56,7 +56,12 @@ $usuariosPagina = max(1, (int)($_GET['pagina'] ?? 1));
 $usuariosTotal = $controller->contarUsuarios();
 $usuariosTotalPaginas = max(1, (int)ceil($usuariosTotal / $usuariosTamanoPagina));
 $usuariosPagina = min($usuariosPagina, $usuariosTotalPaginas);
-$usuarios = $controller->listarUsuarios($usuariosTamanoPagina, ($usuariosPagina - 1) * $usuariosTamanoPagina);
+// La última página (número visible 1) se ancla al final para completar el tamaño elegido.
+$usuariosOffset = ($usuariosPagina - 1) * $usuariosTamanoPagina;
+if ($usuariosPagina === $usuariosTotalPaginas && $usuariosTotal > $usuariosTamanoPagina) {
+    $usuariosOffset = max(0, $usuariosTotal - $usuariosTamanoPagina);
+}
+$usuarios = $controller->listarUsuarios($usuariosTamanoPagina, $usuariosOffset);
 // Mostrar la página en orden descendente: el usuario con mayor id del chunk arriba.
 if (is_array($usuarios)) { $usuarios = array_reverse($usuarios); }
 
@@ -1980,6 +1985,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
 </head>
 <body class="page-usuarios">
     <div class="title_equipo">
@@ -2332,10 +2338,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <script>
         const ES_SUPER_ADMIN_SESION = <?= $esSuperAdminSesion ? 'true' : 'false'; ?>;
 
+        const USUARIOS_TOTAL = <?= (int)$usuariosTotal; ?>;
+        const USUARIOS_TAMANO_ACTUAL = <?= (int)$usuariosTamanoPagina; ?>;
+        const USUARIOS_PAGINA_ACTUAL = <?= (int)$usuariosPagina; ?>;
+
         function cambiarPaginacionUsuarios(tamano) {
+            const nuevoTamano = Number(tamano) || 50;
+            const indiceNuevo = window.EstrellaPaginacion.paginaAlCambiarTamano(
+                USUARIOS_TOTAL,
+                USUARIOS_PAGINA_ACTUAL - 1,
+                USUARIOS_TAMANO_ACTUAL,
+                nuevoTamano
+            );
             const parametros = new URLSearchParams(window.location.search);
-            parametros.set('pagina', '1');
-            parametros.set('por_pagina', String(tamano));
+            parametros.set('pagina', String(indiceNuevo + 1));
+            parametros.set('por_pagina', String(nuevoTamano));
             window.location.search = parametros.toString();
         }
 
