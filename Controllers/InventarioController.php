@@ -221,6 +221,27 @@ try {
                 ]);
             }
         }
+
+        public function obtenerMovimientosPaginado() {
+            echo json_encode([
+                'success' => true,
+                'data' => $this->inventario->obtenerMovimientosPaginado($_GET)
+            ]);
+        }
+
+        public function obtenerEntradasPaginado() {
+            echo json_encode([
+                'success' => true,
+                'data' => $this->inventario->obtenerEntradasPaginado($_GET)
+            ]);
+        }
+
+        public function obtenerSalidasPaginado() {
+            echo json_encode([
+                'success' => true,
+                'data' => $this->inventario->obtenerSalidasPaginado($_GET)
+            ]);
+        }
     
         // Registrar entrada (POST)
         public function registrarEntrada() {

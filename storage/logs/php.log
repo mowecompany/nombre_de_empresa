@@ -1885,3 +1885,41 @@
 [16-Sep-2026 07:34:16 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
 [16-Sep-2026 07:37:19 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
 [16-Sep-2026 08:27:19 America/Bogota] PHP Warning:  Undefined variable $tieneEmpresaId in C:\xampp\htdocs\nombre_de_empresa\Models\Producto.php on line 1432
+[18-Sep-2026 23:49:25 America/Bogota] PHP Fatal error:  Uncaught Error: Call to undefined method Producto::getPaginado() in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php:86
+Stack trace:
+#0 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(39): {closure}()
+#1 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(86): medir()
+#2 {main}
+  thrown in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php on line 86
+[18-Sep-2026 23:49:50 America/Bogota] PHP Fatal error:  Uncaught Error: Call to undefined method Producto::getPaginado() in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php:86
+Stack trace:
+#0 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(39): {closure}()
+#1 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(86): medir()
+#2 {main}
+  thrown in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php on line 86
+[18-Sep-2026 23:49:54 America/Bogota] PHP Fatal error:  Uncaught Error: Call to undefined method Producto::getPaginado() in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php:86
+Stack trace:
+#0 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(39): {closure}()
+#1 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(86): medir()
+#2 {main}
+  thrown in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php on line 86
+[18-Sep-2026 23:50:25 America/Bogota] PHP Deprecated:  ini_set(): Use of mbstring.internal_encoding is deprecated in C:\xampp\htdocs\nombre_de_empresa\Helpers\Helpers.php on line 280
+[18-Sep-2026 23:50:25 America/Bogota] PHP Deprecated:  ini_set(): Use of mbstring.http_output is deprecated in C:\xampp\htdocs\nombre_de_empresa\Helpers\Helpers.php on line 281
+[18-Sep-2026 23:50:25 America/Bogota] PHP Fatal error:  Uncaught Error: Call to undefined method Producto::getPaginado() in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php:86
+Stack trace:
+#0 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(39): {closure}()
+#1 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(86): medir()
+#2 {main}
+  thrown in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php on line 86
+[18-Sep-2026 23:50:48 America/Bogota] PHP Fatal error:  Uncaught Error: Call to undefined method Inventario::obtenerMovimientosPaginado() in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php:88
+Stack trace:
+#0 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(39): {closure}()
+#1 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(88): medir()
+#2 {main}
+  thrown in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php on line 88
+[18-Sep-2026 23:51:25 America/Bogota] PHP Fatal error:  Uncaught Error: Call to undefined method Vencimiento::lotesPaginado() in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php:91
+Stack trace:
+#0 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(39): {closure}()
+#1 C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php(91): medir()
+#2 {main}
+  thrown in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php on line 91

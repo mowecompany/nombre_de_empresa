@@ -43,6 +43,10 @@ if (!class_exists('Database', false)) {
                     $conexion = new PDO($dsn, null, null, $options);
                     $conexion->exec('PRAGMA foreign_keys = ON');
                     $conexion->exec('PRAGMA journal_mode = WAL');
+                    $conexion->exec('PRAGMA synchronous = NORMAL');
+                    $conexion->exec('PRAGMA busy_timeout = 5000');
+                    $conexion->exec('PRAGMA cache_size = -20000');
+                    $conexion->exec('PRAGMA temp_store = MEMORY');
                     $conexion->exec("PRAGMA encoding = 'UTF-8'");
 
                     self::$connections[$connectionKey] = $conexion;

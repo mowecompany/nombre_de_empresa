@@ -983,6 +983,104 @@ class Inventario {
             return [];
         }
     }
+
+    public function obtenerMovimientosPaginado(array $filtros = []): array {
+        try {
+            $limite = min(200, max(1, (int)($filtros['limit'] ?? 50)));
+            $offset = max(0, (int)($filtros['offset'] ?? 0));
+            $sql = "SELECT m.*, p.nombre AS producto_nombre, p.codigo AS codigo,
+                    p.imagen AS producto_imagen, u.nombre AS usuario_nombre,
+                    u.apellidos AS usuario_apellidos
+                    FROM movimientos_inventario m
+                    INNER JOIN productos p ON p.id = m.producto_id
+                    LEFT JOIN usuarios u ON u.id = m.usuario_id
+                    WHERE 1=1";
+            $params = [];
+            $empresaId = $this->getEmpresaId();
+            if ($empresaId > 0 && $this->tablaTieneEmpresaId('movimientos_inventario')) {
+                $sql .= ' AND m.empresa_id = :empresa_id';
+                $params[':empresa_id'] = $empresaId;
+            }
+            if (!empty($filtros['producto_id'])) {
+                $sql .= ' AND m.producto_id = :producto_id';
+                $params[':producto_id'] = (int)$filtros['producto_id'];
+            }
+            if (!empty($filtros['tipo'])) {
+                $sql .= ' AND m.tipo_movimiento = :tipo';
+                $params[':tipo'] = (string)$filtros['tipo'];
+            }
+            $sql .= " ORDER BY m.fecha_movimiento DESC, m.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
+        } catch (Throwable $e) {
+            error_log('Error en obtenerMovimientosPaginado: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function obtenerEntradasPaginado(array $filtros = []): array {
+        try {
+            $limite = min(200, max(1, (int)($filtros['limit'] ?? 50)));
+            $offset = max(0, (int)($filtros['offset'] ?? 0));
+            $sql = "SELECT e.*, p.nombre AS producto_nombre, p.codigo AS codigo,
+                    p.imagen AS producto_imagen, pv.nombre AS proveedor_nombre,
+                    u.nombre AS usuario_nombre, u.apellidos AS usuario_apellidos
+                    FROM entradas_inventario e
+                    INNER JOIN productos p ON p.id = e.producto_id
+                    LEFT JOIN proveedores pv ON pv.id = e.proveedor_id
+                    LEFT JOIN usuarios u ON u.id = e.usuario_id
+                    WHERE 1=1";
+            $params = [];
+            $empresaId = $this->getEmpresaId();
+            if ($empresaId > 0 && $this->tablaTieneEmpresaId('entradas_inventario')) {
+                $sql .= ' AND e.empresa_id = :empresa_id';
+                $params[':empresa_id'] = $empresaId;
+            }
+            if (!empty($filtros['producto_id'])) {
+                $sql .= ' AND e.producto_id = :producto_id';
+                $params[':producto_id'] = (int)$filtros['producto_id'];
+            }
+            $sql .= " ORDER BY e.fecha_entrada DESC, e.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
+        } catch (Throwable $e) {
+            error_log('Error en obtenerEntradasPaginado: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function obtenerSalidasPaginado(array $filtros = []): array {
+        try {
+            $limite = min(200, max(1, (int)($filtros['limit'] ?? 50)));
+            $offset = max(0, (int)($filtros['offset'] ?? 0));
+            $sql = "SELECT s.*, p.nombre AS producto_nombre, p.codigo AS codigo,
+                    p.imagen AS producto_imagen, u.nombre AS usuario_nombre,
+                    u.apellidos AS usuario_apellidos
+                    FROM salidas_inventario s
+                    INNER JOIN productos p ON p.id = s.producto_id
+                    LEFT JOIN usuarios u ON u.id = s.usuario_id
+                    WHERE 1=1";
+            $params = [];
+            $empresaId = $this->getEmpresaId();
+            if ($empresaId > 0 && $this->tablaTieneEmpresaId('salidas_inventario')) {
+                $sql .= ' AND s.empresa_id = :empresa_id';
+                $params[':empresa_id'] = $empresaId;
+            }
+            if (!empty($filtros['producto_id'])) {
+                $sql .= ' AND s.producto_id = :producto_id';
+                $params[':producto_id'] = (int)$filtros['producto_id'];
+            }
+            $sql .= " ORDER BY s.fecha_salida DESC, s.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
+        } catch (Throwable $e) {
+            error_log('Error en obtenerSalidasPaginado: ' . $e->getMessage());
+            return [];
+        }
+    }
     
     // Obtener entradas de inventario
     public function obtenerEntradas($filtro = []) {
@@ -1061,23 +1159,6 @@ class Inventario {
             $salidasTieneEmpresa = $this->tablaTieneEmpresaId('salidas_inventario');
             $salidasTieneUsuario = $this->tablaTieneUsuarioId('salidas_inventario');
             $salidasTieneNotas = $this->columnaExiste('salidas_inventario', 'notas');
-            // corregir registros existentes con tipo_salida vacío para que se traten como venta
-            if ($salidasTieneEmpresa) {
-                if ($empresaId <= 0) {
-                    error_log('obtenerSalidas: No se pudo resolver empresa_id, intentando fallback sin filtro de empresa');
-                }
-                $sqlUpdateTipo = "UPDATE salidas_inventario SET tipo_salida='venta' WHERE (tipo_salida = '' OR tipo_salida IS NULL) AND empresa_id = " . intval($empresaId);
-                if ($filtrarPorUsuario && $salidasTieneUsuario && $usuarioId > 0) {
-                    $sqlUpdateTipo .= " AND usuario_id = " . intval($usuarioId);
-                }
-                $this->db->exec($sqlUpdateTipo);
-            } else {
-                if ($filtrarPorUsuario && $salidasTieneUsuario && $usuarioId > 0) {
-                    $this->db->exec("UPDATE salidas_inventario SET tipo_salida='venta' WHERE (tipo_salida = '' OR tipo_salida IS NULL) AND usuario_id = " . intval($usuarioId));
-                } else {
-                    $this->db->exec("UPDATE salidas_inventario SET tipo_salida='venta' WHERE (tipo_salida = '' OR tipo_salida IS NULL)");
-                }
-            }
 
             $sql = "SELECT 
                     CASE WHEN TRIM(COALESCE(s.tipo_salida, '')) <> '' THEN

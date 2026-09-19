@@ -2383,6 +2383,11 @@ if (is_file($logoPdfPath)) {
         <!-- TAB: ENTRADAS -->
         <div id="entradas" class="tab-content">
             <div class="card">
+                <div class="inventory-list-toolbar" data-inventory-toolbar="entradas" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <input type="search" class="inventory-list-search" placeholder="BUSCAR ENTRADA..." style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
+                    <select class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                    <div class="inventory-pagination" style="display:flex;gap:6px;"></div>
+                </div>
                 <div class="card-header">
                     <h2><i class="fas fa-arrow-down"></i> ENTRADAS DE INVENTARIO</h2>
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -2428,6 +2433,11 @@ if (is_file($logoPdfPath)) {
         <!-- TAB: SALIDAS -->
         <div id="salidas" class="tab-content">
             <div class="card">
+                <div class="inventory-list-toolbar" data-inventory-toolbar="salidas" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <input type="search" class="inventory-list-search" placeholder="BUSCAR SALIDA..." style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
+                    <select class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                    <div class="inventory-pagination" style="display:flex;gap:6px;"></div>
+                </div>
                 <div class="card-header">
                     <h2><i class="fas fa-arrow-up"></i> SALIDAS DE INVENTARIO</h2>
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -2479,6 +2489,11 @@ if (is_file($logoPdfPath)) {
         <!-- TAB: MOVIMIENTOS -->
         <div id="movimientos" class="tab-content">
             <div class="card">
+                <div class="inventory-list-toolbar" data-inventory-toolbar="movimientos" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <input type="search" class="inventory-list-search" placeholder="BUSCAR MOVIMIENTO..." style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
+                    <select class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                    <div class="inventory-pagination" style="display:flex;gap:6px;"></div>
+                </div>
                 <div class="card-header">
                     <h2><i class="fas fa-exchange-alt"></i> HISTORIAL DE MOVIMIENTOS</h2>
                     <?php if ($esSuperAdminGlobalInventario): ?>
@@ -3524,6 +3539,97 @@ if (is_file($logoPdfPath)) {
         const base_url = <?= json_encode(base_url()) ?>;
         const inventarioControllerUrl = base_url + '/Controllers/InventarioController.php';
         const productoControllerUrl = base_url + '/Controllers/ProductoController.php';
+
+        const inventarioPaginas = new Map();
+        const inventarioTamanosPagina = new Map();
+        const inventarioTablaPorClave = {
+            entradas: 'entradasTableBody',
+            salidas: 'salidasTableBody',
+            movimientos: 'movimientosTableBody'
+        };
+
+        function actualizarPaginacionInventario(clave) {
+            const toolbar = document.querySelector(`[data-inventory-toolbar="${clave}"]`);
+            const tbody = document.getElementById(inventarioTablaPorClave[clave]);
+            if (!toolbar || !tbody) return;
+            const textoBusqueda = String(toolbar.querySelector('.inventory-list-search')?.value || '').trim().toLowerCase();
+            const todasLasFilas = Array.from(tbody.children).filter(fila => fila.tagName === 'TR');
+            const filas = todasLasFilas.filter(fila => !textoBusqueda || String(fila.textContent || '').toLowerCase().includes(textoBusqueda));
+            const selector = toolbar.querySelector('.inventory-page-size');
+            const porPagina = Math.max(1, Number(selector?.value || 50));
+            const totalPaginas = Math.max(1, Math.ceil(filas.length / porPagina));
+            const pagina = Math.min(inventarioPaginas.get(clave) || 0, totalPaginas - 1);
+            inventarioPaginas.set(clave, pagina);
+            todasLasFilas.forEach(fila => { fila.style.display = 'none'; });
+            filas.forEach((fila, indice) => {
+                fila.style.display = indice >= pagina * porPagina && indice < (pagina + 1) * porPagina ? '' : 'none';
+            });
+            toolbar.querySelector('.inventory-pagination').innerHTML = `
+                <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${pagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
+                <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${pagina + 1} / ${totalPaginas}</span>
+                <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${pagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+        }
+
+        function inicializarPaginacionInventario() {
+            Object.keys(inventarioTablaPorClave).forEach((clave) => {
+                const toolbar = document.querySelector(`[data-inventory-toolbar="${clave}"]`);
+                const tbody = document.getElementById(inventarioTablaPorClave[clave]);
+                if (!toolbar || !tbody) return;
+                toolbar.querySelector('.inventory-page-size')?.addEventListener('change', () => {
+                    const tamanoAnterior = inventarioTamanosPagina.get(clave) || 50;
+                    const paginaActual = inventarioPaginas.get(clave) || 0;
+                    const nuevoTamano = Number(toolbar.querySelector('.inventory-page-size')?.value || 50);
+                    inventarioPaginas.set(clave, Math.floor((paginaActual * tamanoAnterior) / nuevoTamano));
+                    inventarioTamanosPagina.set(clave, nuevoTamano);
+                    actualizarPaginacionInventario(clave);
+                });
+                toolbar.querySelector('.inventory-list-search')?.addEventListener('input', () => {
+                    inventarioPaginas.set(clave, 0);
+                    actualizarPaginacionInventario(clave);
+                });
+                toolbar.addEventListener('click', (event) => {
+                    const paginaActual = inventarioPaginas.get(clave) || 0;
+                    if (event.target.closest('.inventory-page-prev')) inventarioPaginas.set(clave, Math.max(0, paginaActual - 1));
+                    if (event.target.closest('.inventory-page-next')) inventarioPaginas.set(clave, paginaActual + 1);
+                    actualizarPaginacionInventario(clave);
+                });
+                new MutationObserver(() => actualizarPaginacionInventario(clave)).observe(tbody, { childList: true });
+                inventarioTamanosPagina.set(clave, Number(toolbar.querySelector('.inventory-page-size')?.value || 50));
+                actualizarPaginacionInventario(clave);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', inicializarPaginacionInventario, { once: true });
+
+        let productosConGananciaCache = null;
+        let productosConGananciaPromise = null;
+
+        function obtenerProductosConGanancia(force = false) {
+            if (!force && Array.isArray(productosConGananciaCache)) {
+                return Promise.resolve({ success: true, data: productosConGananciaCache });
+            }
+
+            if (!force && productosConGananciaPromise) {
+                return productosConGananciaPromise;
+            }
+
+            productosConGananciaPromise = fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
+                .then(response => response.json())
+                .then(data => {
+                    productosConGananciaCache = Array.isArray(data?.data) ? data.data : [];
+                    return data;
+                })
+                .finally(() => {
+                    productosConGananciaPromise = null;
+                });
+
+            return productosConGananciaPromise;
+        }
+
+        function invalidarCacheProductosConGanancia() {
+            productosConGananciaCache = null;
+            productosConGananciaPromise = null;
+        }
 
         const resolveAppUrl = (path) => {
             const value = String(path || '').trim();
@@ -7776,8 +7882,7 @@ if (is_file($logoPdfPath)) {
 
         async function seleccionarSalidaEscaneadaActualizada(codigo, select, input, results, optionInicial = null) {
             try {
-                const response = await fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia');
-                const data = await response.json();
+                const data = await obtenerProductosConGanancia();
                 const productoActual = (Array.isArray(data?.data) ? data.data : []).find(item =>
                     normalizarCodigoBarrasInventario(item.codigo_barras) === codigo
                 );
@@ -7827,8 +7932,7 @@ if (is_file($logoPdfPath)) {
 
         // Cargar datos del listado completo de productos (uso compartido)
         function actualizarSelectProductosInventario() {
-            fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
-                .then(r => r.json())
+            obtenerProductosConGanancia()
                 .then(data => {
                     const productos = Array.isArray(data?.data) ? data.data : [];
                     const entradaSelect = document.getElementById('productoEntrada');
@@ -7913,8 +8017,7 @@ if (is_file($logoPdfPath)) {
         }
 
         function cargarTodosProductos() {
-            fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
-                .then(r => r.json())
+            obtenerProductosConGanancia()
                 .then(data => {
                     if (data.success && data.data) {
                         const productos = data.data;
@@ -8144,8 +8247,7 @@ if (is_file($logoPdfPath)) {
         }
 
         function cargarDetalleValorCompra() {
-            fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
-                .then(r => r.json())
+            obtenerProductosConGanancia()
                 .then(data => {
                     if (!data.success || !Array.isArray(data.data)) {
                         throw new Error(data.message || 'No se pudo cargar el valor de compra');
@@ -8405,8 +8507,7 @@ if (is_file($logoPdfPath)) {
         function mostrarModalStockTotal() {
             abrirModal('stockTotalModal');
             
-            fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
-                .then(r => r.json())
+            obtenerProductosConGanancia()
                 .then(data => {
                     if (data.success && data.data) {
                         const productos = data.data;
@@ -8814,6 +8915,7 @@ if (is_file($logoPdfPath)) {
             // Refresco inmediato de la vista sin recargar la página completa.
             // Se actualizan solo las secciones activas para reducir el parpadeo y evitar
             // que la vista actual se salga del contexto del usuario.
+            invalidarCacheProductosConGanancia();
             const modalTodosProductosAbierto = document.getElementById('todosProductosModal')?.classList.contains('active');
             const tabResumenActivo = document.getElementById('resumen')?.classList.contains('active');
             const tabEntradasActivo = document.getElementById('entradas')?.classList.contains('active');
@@ -8983,8 +9085,7 @@ if (is_file($logoPdfPath)) {
             if (!idsVendidos.size) return;
 
             try {
-                const response = await fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia');
-                const data = await response.json();
+                const data = await obtenerProductosConGanancia();
                 const productos = Array.isArray(data?.data) ? data.data : [];
                 const algunProductoEnCero = productos.some(producto =>
                     idsVendidos.has(String(producto.id || '')) && Number(producto.stock || 0) === 0

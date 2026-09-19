@@ -397,6 +397,16 @@ class Vencimiento
         return $resultado;
     }
 
+    public function lotesPaginado(array $filtros = []): array
+    {
+        $limite = min(200, max(1, (int)($filtros['limit'] ?? 50)));
+        $offset = max(0, (int)($filtros['offset'] ?? 0));
+
+        // El reparto FIFO necesita recorrer los lotes de cada producto antes de
+        // poder decidir cuánto queda disponible en cada fila.
+        return array_slice($this->lotes(), $offset, $limite);
+    }
+
     /** Contadores rápidos para avisos en pantalla. */
     public function resumen(): array
     {

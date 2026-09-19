@@ -22,6 +22,7 @@ if (!class_exists('Indices', false)) {
                 'idx_productos_estado'         => ['estado'],
                 'idx_productos_empresa_nombre' => ['empresa_id', 'nombre'],
                 'idx_productos_empresa_codigo' => ['empresa_id', 'codigo'],
+                'idx_productos_empresa_id'     => ['empresa_id', 'id'],
             ],
             'categorias' => [
                 'idx_categorias_nombre'  => ['nombre'],
@@ -36,6 +37,7 @@ if (!class_exists('Indices', false)) {
                 'idx_entradas_proveedor'     => ['proveedor_id'],
                 'idx_entradas_vencimiento'   => ['fecha_vencimiento'],
                 'idx_entradas_prod_fecha'    => ['producto_id', 'fecha_entrada'],
+                'idx_entradas_empresa_fecha' => ['empresa_id', 'fecha_entrada'],
             ],
             'salidas_inventario' => [
                 'idx_salidas_producto'    => ['producto_id'],
@@ -44,6 +46,7 @@ if (!class_exists('Indices', false)) {
                 'idx_salidas_usuario'     => ['usuario_id'],
                 'idx_salidas_referencia'  => ['referencia'],
                 'idx_salidas_tipo'        => ['tipo_salida'],
+                'idx_salidas_empresa_fecha' => ['empresa_id', 'fecha_salida'],
             ],
             'movimientos_inventario' => [
                 'idx_movimientos_producto'   => ['producto_id'],
@@ -51,6 +54,7 @@ if (!class_exists('Indices', false)) {
                 'idx_movimientos_empresa'    => ['empresa_id'],
                 'idx_movimientos_usuario'    => ['usuario_id'],
                 'idx_movimientos_tipo_ref'   => ['tipo_movimiento', 'referencia_id'],
+                'idx_movimientos_empresa_fecha' => ['empresa_id', 'fecha_movimiento'],
             ],
             'creditos' => [
                 'idx_creditos_empresa' => ['empresa_id'],
@@ -200,7 +204,7 @@ if (!class_exists('Indices', false)) {
          * Marca de revisión en SQLite: se guarda en user_version para no repetir
          * la comprobación de índices en cada apertura de la aplicación.
          */
-        private const VERSION_INDICES = 3;
+        private const VERSION_INDICES = 4;
 
         private static function sqliteNecesitaRevision(PDO $db): bool
         {

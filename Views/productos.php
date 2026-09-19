@@ -2140,11 +2140,17 @@ try {
 
     <div class="container main-scroll-panel">
         <div class="estadistica-card">
-            <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+            <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
                 <div style="position:relative; width:min(100%, 300px);">
-                    <input type="text" id="buscarTablaProductos" placeholder="BUSCAR PRODUCTO..." autocomplete="off" style="width:100%; padding:9px 12px; border:1px solid #d0d7de; border-radius:6px; background:#fff; text-transform:uppercase;">
+                    <input type="text" id="buscarTablaProductos" placeholder="BUSCAR PRODUCTO..." autocomplete="off" style="width:100%; padding:7px 10px; border:1px solid #2f4a5a; border-radius:8px; background:#fff; text-transform:uppercase;">
                     <div id="resultadosTablaProductos" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); max-height:220px; overflow-y:auto; border:1px solid #d0d7de; border-radius:6px; background:#fff; box-shadow:0 8px 20px rgba(31,41,55,.12); z-index:100;"></div>
                 </div>
+            <div id="paginacionProductos" style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0;">
+                <select id="productosTamanoPagina" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                <button type="button" id="productosPaginaAnterior" class="btn-save" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;width:28px;min-width:28px;height:28px;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;" disabled><i class="fas fa-chevron-left"></i></button>
+                <span id="productosPaginaTexto" style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA 1</span>
+                <button type="button" id="productosPaginaSiguiente" class="btn-save" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;width:28px;min-width:28px;height:28px;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;"><i class="fas fa-chevron-right"></i></button>
+            </div>
             </div>
             <div class="table-wrapper">
                 <table>
@@ -2180,6 +2186,10 @@ try {
     <script>
         const mostrarColumnaId = <?= json_encode($mostrarColumnaId); ?>;
         let productosTablaCache = [];
+        let productosPaginaActual = 0;
+        let productosHayPaginaSiguiente = false;
+        let productosBusquedaTimer = null;
+        let productosTamanoPagina = 50;
         // Funciones para ocultar/mostrar headers sticky cuando hay modales o alertas
         const hideHeaders = () => {
             const headers = document.querySelectorAll('thead, [role="rowheader"]');
@@ -2521,18 +2531,31 @@ try {
             requestAnimationFrame(() => requestAnimationFrame(restaurar));
         }
 
-        // Cargar todos los productos desde el Controller
         function cargarProductos(callback = null) {
-            fetch(base_url + '/Controllers/ProductoController.php?action=getAll')
+            const inputBusqueda = document.getElementById('buscarTablaProductos');
+            const busqueda = normalizarBusquedaTablaProductos(inputBusqueda?.value || '');
+            const parametros = new URLSearchParams({
+                action: 'getPaginado',
+                limit: String(productosTamanoPagina),
+                offset: String(productosPaginaActual * productosTamanoPagina),
+                search: busqueda
+            });
+
+            fetch(base_url + '/Controllers/ProductoController.php?' + parametros.toString())
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
+                        if (data.data.length === 0 && productosPaginaActual > 0) {
+                            productosPaginaActual -= 1;
+                            cargarProductos(callback);
+                            return;
+                        }
                         productosTablaCache = data.data;
+                        productosHayPaginaSiguiente = Boolean(data.has_more);
                         renderResultadosTablaProductos();
                         const tbody = document.getElementById('productos-tbody');
                         tbody.innerHTML = '';
-                        const busqueda = normalizarBusquedaTablaProductos(document.getElementById('buscarTablaProductos')?.value || '');
-                        data.data.filter(producto => !busqueda || textoProductoTabla(producto).includes(busqueda)).forEach(producto => {
+                        data.data.forEach(producto => {
                             try {
                                 const fila = generarFilaProducto(producto);
                                 tbody.appendChild(fila);
@@ -2540,6 +2563,7 @@ try {
                                 console.warn('No se pudo renderizar un producto:', producto, error);
                             }
                         });
+                        actualizarPaginacionProductos();
                         if (typeof callback === 'function') {
                             callback();
                         }
@@ -2551,6 +2575,15 @@ try {
                     console.error('Error:', error);
                 });
         }
+
+            function actualizarPaginacionProductos() {
+                const anterior = document.getElementById('productosPaginaAnterior');
+                const siguiente = document.getElementById('productosPaginaSiguiente');
+                const texto = document.getElementById('productosPaginaTexto');
+                if (anterior) anterior.disabled = productosPaginaActual === 0;
+                if (siguiente) siguiente.disabled = !productosHayPaginaSiguiente;
+                if (texto) texto.textContent = `PÁGINA ${productosPaginaActual + 1}`;
+            }
 
         function normalizarBusquedaTablaProductos(valor) {
             return String(valor || '')
@@ -2595,20 +2628,11 @@ try {
         }
 
         function filtrarTablaProductos() {
-            const input = document.getElementById('buscarTablaProductos');
-            const tbody = document.getElementById('productos-tbody');
-            if (!input || !tbody) return;
-            const texto = normalizarBusquedaTablaProductos(input.value);
-            tbody.innerHTML = '';
-            productosTablaCache.filter(producto => coincideBusquedaTablaProductos(textoProductoTabla(producto), texto))
-                .forEach(producto => {
-                    try {
-                        tbody.appendChild(generarFilaProducto(producto));
-                    } catch (error) {
-                        console.warn('No se pudo renderizar un producto:', producto, error);
-                    }
-                });
-            renderResultadosTablaProductos();
+            window.clearTimeout(productosBusquedaTimer);
+            productosBusquedaTimer = window.setTimeout(() => {
+                productosPaginaActual = 0;
+                cargarProductos();
+            }, 250);
         }
 
         function refrescarProductosManteniendoScroll() {
@@ -3809,6 +3833,23 @@ try {
                 buscarTablaProductos.value = opcion.dataset.nombre || '';
                 filtrarTablaProductos();
                 resultadosTablaProductos.style.display = 'none';
+            });
+            document.getElementById('productosPaginaAnterior')?.addEventListener('click', () => {
+                if (productosPaginaActual === 0) return;
+                productosPaginaActual -= 1;
+                cargarProductos();
+            });
+            document.getElementById('productosTamanoPagina')?.addEventListener('change', (event) => {
+                const tamanoAnterior = productosTamanoPagina;
+                const indiceProductoAncla = productosPaginaActual * tamanoAnterior;
+                productosTamanoPagina = Number(event.target.value) || 50;
+                productosPaginaActual = Math.floor(indiceProductoAncla / productosTamanoPagina);
+                cargarProductos();
+            });
+            document.getElementById('productosPaginaSiguiente')?.addEventListener('click', () => {
+                if (!productosHayPaginaSiguiente) return;
+                productosPaginaActual += 1;
+                cargarProductos();
             });
             const buscarCategoria = document.getElementById('buscarCategoriaProducto');
             const categoriaSelect = document.getElementById('categoria_id');

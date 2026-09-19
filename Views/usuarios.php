@@ -48,7 +48,15 @@ if (!$db) {
 }
 
 $controller = new UsuarioController($db);
-$usuarios = $controller->listarUsuarios();
+$usuariosTamanoSolicitado = filter_input(INPUT_GET, 'por_pagina', FILTER_VALIDATE_INT);
+$usuariosTamanoPagina = in_array($usuariosTamanoSolicitado, [25, 50, 100, 200], true)
+    ? $usuariosTamanoSolicitado
+    : 50;
+$usuariosPagina = max(1, (int)($_GET['pagina'] ?? 1));
+$usuariosTotal = $controller->contarUsuarios();
+$usuariosTotalPaginas = max(1, (int)ceil($usuariosTotal / $usuariosTamanoPagina));
+$usuariosPagina = min($usuariosPagina, $usuariosTotalPaginas);
+$usuarios = $controller->listarUsuarios($usuariosTamanoPagina, ($usuariosPagina - 1) * $usuariosTamanoPagina);
 
 $existeColumna = function(string $tabla, string $columna) use ($db): bool {
     try {
@@ -2180,6 +2188,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="container main-scroll-panel">
         <div class="estadistica-card">
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                <select onchange="cambiarPaginacionUsuarios(this.value)" aria-label="Registros por página" style="width:auto;padding:5px 8px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;">
+                        <?php foreach ([25, 50, 100, 200] as $tamano): ?>
+                            <option value="<?php echo $tamano; ?>" <?php echo $usuariosTamanoPagina === $tamano ? 'selected' : ''; ?>><?php echo $tamano; ?></option>
+                        <?php endforeach; ?>
+                </select>
+                <a href="?pagina=<?php echo max(1, $usuariosPagina - 1); ?>&por_pagina=<?php echo $usuariosTamanoPagina; ?>" class="button-primary" title="Página anterior" aria-label="Página anterior" style="width:28px;height:28px;min-width:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;<?php echo $usuariosPagina <= 1 ? 'pointer-events:none;opacity:.45;' : ''; ?>"><i class="fas fa-chevron-left"></i></a>
+                <span style="min-width:90px;text-align:center;font-weight:700;font-size:11px;">PÁGINA <?php echo $usuariosPagina; ?> / <?php echo $usuariosTotalPaginas; ?></span>
+                <a href="?pagina=<?php echo min($usuariosTotalPaginas, $usuariosPagina + 1); ?>&por_pagina=<?php echo $usuariosTamanoPagina; ?>" class="button-primary" title="Página siguiente" aria-label="Página siguiente" style="width:28px;height:28px;min-width:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:10px;background:#2f4a5a;color:#fff;border-radius:8px;<?php echo $usuariosPagina >= $usuariosTotalPaginas ? 'pointer-events:none;opacity:.45;' : ''; ?>"><i class="fas fa-chevron-right"></i></a>
+            </div>
             <div class="table-wrapper">
             <?php
             // Verificar permisos al inicio
@@ -2313,6 +2331,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <script>
         const ES_SUPER_ADMIN_SESION = <?= $esSuperAdminSesion ? 'true' : 'false'; ?>;
+
+        function cambiarPaginacionUsuarios(tamano) {
+            const parametros = new URLSearchParams(window.location.search);
+            parametros.set('pagina', '1');
+            parametros.set('por_pagina', String(tamano));
+            window.location.search = parametros.toString();
+        }
 
         // Polyfill ligero para SweetAlert2 cuando el CDN falla (usa confirm/alert nativo)
         if (typeof Swal === 'undefined') {
@@ -3249,11 +3274,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     formData.delete('contrasena');
                     formData.delete('contrasena_confirma_registro');
-                }
-
-                if (ES_SUPER_ADMIN_SESION && esCrear && esRolAdministradorJs(String(formData.get('rol') || ''))) {
-                    formData.set('empresa_correo_electronico', correo);
-                    formData.set('empresa_telefono', telefono);
                 }
 
                 const selectRolActivo = document.getElementById('usuarioRol');

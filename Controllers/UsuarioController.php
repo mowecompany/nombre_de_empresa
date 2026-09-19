@@ -158,12 +158,7 @@ class UsuarioController {
         $rolSesionNorm = $this->normalizarRolTexto((string)($_SESSION['rol'] ?? ''));
 
         if ($rolSesionNorm === 'superadministrador') {
-            $rolExistente = $this->obtenerRolPorNombre($rolObjetivo);
-            if ($rolExistente) {
-                return;
-            }
-
-            throw new Exception('El rol seleccionado no existe en la base de datos. Créelo en el módulo de Roles antes de asignarlo.');
+            return;
         }
 
         if ($rolSesionNorm === 'administrador') {
@@ -518,10 +513,6 @@ class UsuarioController {
             }
         }
 
-        if ($correoEmpresa !== '' && !filter_var($correoEmpresa, FILTER_VALIDATE_EMAIL)) {
-            throw new Exception('El correo de la empresa no es valido');
-        }
-
         // Asegura nombre unico sin bloquear el alta del administrador.
         $nombreBase = $nombre;
         $intento = 1;
@@ -642,8 +633,12 @@ class UsuarioController {
         return $empresaId;
     }
 
-    public function listarUsuarios() {
-        return $this->usuarioModel->obtenerUsuarios();
+    public function listarUsuarios(?int $limite = null, int $offset = 0) {
+        return $this->usuarioModel->obtenerUsuarios($limite, $offset);
+    }
+
+    public function contarUsuarios(): int {
+        return $this->usuarioModel->contarUsuarios();
     }
 
     /**
@@ -1065,34 +1060,7 @@ class UsuarioController {
                 $datos['imagen'] = is_string($imagenSubida) ? $imagenSubida : null;
             }
 
-            if ($esSuperAdminActual && $this->esRolAdministrador($datos['rol'] ?? '')) {
-                if ($this->existeColumna('empresas', 'imagen')) {
-                    $imagenEmpresaSubida = $this->procesarImagenEmpresaSubida('empresa_imagen_archivo');
-                    $datos['empresa_imagen'] = is_string($imagenEmpresaSubida) ? $imagenEmpresaSubida : '';
-                }
-
-                // Flujo de alta conjunta: empresa + administrador en una sola transaccion.
-                $this->db->beginTransaction();
-
-                $nuevaEmpresaId = $this->crearEmpresaParaAdministrador($datos);
-                if ($nuevaEmpresaId <= 0) {
-                    throw new Exception('No se pudo crear la empresa para el Administrador');
-                }
-
-                if ($idTipoEmpresa <= 0) {
-                    $colTipo = $this->existeColumna('empresas', 'tipo_empresa_id') ? 'tipo_empresa_id' : ($this->existeColumna('empresas', 'id_tipos_empresa') ? 'id_tipos_empresa' : '');
-                    if ($colTipo !== '') {
-                        $stmtTipoEmpresa = $this->db->prepare("SELECT {$colTipo} FROM empresas WHERE id = :id LIMIT 1");
-                        $stmtTipoEmpresa->bindValue(':id', $nuevaEmpresaId, PDO::PARAM_INT);
-                        $stmtTipoEmpresa->execute();
-                        $idTipoEmpresa = (int)($stmtTipoEmpresa->fetchColumn() ?: 0);
-                    }
-                }
-
-                $datos['empresa_id'] = $nuevaEmpresaId;
-                $datos['id_tipos_empresa'] = $idTipoEmpresa > 0 ? $idTipoEmpresa : null;
-
-            } elseif ($this->esRolAdministrador($datos['rol'] ?? '')) {
+            if ($esSuperAdminActual || $this->esRolAdministrador($datos['rol'] ?? '')) {
                 $empresaObjetivo = isset($datos['empresa_id']) ? intval($datos['empresa_id']) : 0;
                 if ($empresaObjetivo <= 0) {
                     $empresaObjetivo = (int)($_SESSION['empresa_id'] ?? 0);
@@ -1104,10 +1072,11 @@ class UsuarioController {
 
                 if ($empresaObjetivo > 0) {
                     $datos['empresa_id'] = $empresaObjetivo;
-
                 } else {
                     $datos['empresa_id'] = null;
                 }
+                // El rol no exige tipo de empresa ni correo empresarial.
+                $datos['id_tipos_empresa'] = null;
             }
 
             // Si quien crea es Administrador, el nuevo usuario queda asociado como su empleado.
@@ -1187,10 +1156,6 @@ class UsuarioController {
 
             if ($esNuevoAdmin && $nuevoUsuarioId > 0) {
                 $this->marcarPrimerInicioAdministrador($nuevoUsuarioId);
-            }
-
-            if ($esSuperAdminActual && $this->esRolAdministrador($datos['rol'] ?? '') && $this->db->inTransaction()) {
-                $this->db->commit();
             }
 
             $correoEnviado = $esClienteSolicitado

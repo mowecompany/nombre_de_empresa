@@ -850,6 +850,81 @@ class Producto {
         }
     }
 
+    public function getPaginado(array $filtros = []): array {
+        try {
+            $limite = min(200, max(1, (int)($filtros['limit'] ?? 50)));
+            $offset = max(0, (int)($filtros['offset'] ?? 0));
+            $empresaId = $this->getEmpresaId();
+            $tieneEmpresaId = $this->tieneColumnaEmpresaId();
+            $subqueryUltimoPrecioCompra = '(SELECT precio_compra FROM entradas_inventario e WHERE e.producto_id = p.id ORDER BY e.fecha_entrada DESC LIMIT 1)';
+            $columnaGanancia = $this->columnaPorcentajeGananciaProducto();
+            $exprPorcentajeGanancia = $columnaGanancia !== ''
+                ? "CASE WHEN COALESCE(p.stock, 0) <= 0 THEN 0 ELSE COALESCE(p.{$columnaGanancia}, 0) END"
+                : "CASE WHEN COALESCE(p.stock, 0) <= 0 THEN 0 ELSE CASE WHEN {$subqueryUltimoPrecioCompra} > 0 THEN ROUND(100 * (p.precio - {$subqueryUltimoPrecioCompra}) / {$subqueryUltimoPrecioCompra}, 1) ELSE 0 END END";
+
+            $sql = "SELECT p.*, c.nombre AS categoria_nombre,
+                    {$subqueryUltimoPrecioCompra} AS ultimo_precio_compra,
+                    {$exprPorcentajeGanancia} AS porcentaje_ganancia,
+                    0 AS stock_reservado,
+                    COALESCE(p.stock, 0) AS stock_disponible
+                    FROM productos p
+                    LEFT JOIN categorias c ON p.categoria_id = c.id
+                    WHERE 1=1";
+            $params = [];
+
+            if ($tieneEmpresaId && $empresaId > 0) {
+                $sql .= ' AND (p.empresa_id IS NULL OR p.empresa_id = 0 OR p.empresa_id = :empresa_id)';
+                $params[':empresa_id'] = $empresaId;
+            }
+
+            $busqueda = trim((string)($filtros['search'] ?? ''));
+            if ($busqueda !== '') {
+                $sql .= ' AND (p.nombre LIKE :busqueda OR p.codigo LIKE :busqueda OR p.codigo_barras LIKE :busqueda)';
+                $params[':busqueda'] = '%' . $busqueda . '%';
+            }
+
+            $sql .= " ORDER BY p.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
+        } catch (Throwable $e) {
+            error_log('Error en getPaginado: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function buscarPorCodigoBarras(string $codigo): ?object {
+        $codigo = trim($codigo);
+        if ($codigo === '') {
+            return null;
+        }
+
+        try {
+            $sql = 'SELECT p.*, c.nombre AS categoria_nombre FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id WHERE p.codigo_barras = :codigo';
+            $params = [':codigo' => $codigo];
+            if ($this->tieneColumnaEmpresaId()) {
+                $sql .= ' AND (p.empresa_id IS NULL OR p.empresa_id = 0 OR p.empresa_id = :empresa_id)';
+                $params[':empresa_id'] = $this->getEmpresaId();
+            }
+            $sql .= ' LIMIT 1';
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $resultado = $stmt->fetch(PDO::FETCH_OBJ);
+            return $resultado ?: null;
+        } catch (Throwable $e) {
+            error_log('Error en buscarPorCodigoBarras: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function buscarLigero(string $busqueda, int $limite = 50): array {
+        return $this->getPaginado([
+            'search' => $busqueda,
+            'limit' => min(200, max(1, $limite)),
+            'offset' => 0
+        ]);
+    }
+
     public function save() {
         try {
             $empresaId = $this->getEmpresaId();

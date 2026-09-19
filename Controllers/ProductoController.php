@@ -56,6 +56,21 @@ try {
             } else {
                 throw new Exception('Error al obtener productos');
             }
+        } elseif (isset($_GET['action']) && $_GET['action'] === 'getPaginado') {
+            $limite = min(200, max(1, (int)($_GET['limit'] ?? 50)));
+            $result = $producto->getPaginado([
+                'limit' => $limite + 1,
+                'offset' => $_GET['offset'] ?? 0,
+                'search' => $_GET['search'] ?? ''
+            ]);
+            $hasMore = count($result) > $limite;
+            echo json_encode([
+                'success' => true,
+                'data' => array_slice($result, 0, $limite),
+                'has_more' => $hasMore,
+                'limit' => $limite,
+                'offset' => max(0, (int)($_GET['offset'] ?? 0))
+            ]);
         } elseif (isset($_GET['action']) && $_GET['action'] === 'getOne' && isset($_GET['id'])) {
             // Obtener un producto por ID
             if (!is_numeric($_GET['id'])) {

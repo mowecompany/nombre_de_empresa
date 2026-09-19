@@ -96,7 +96,7 @@ $baseUrl = rtrim((string)base_url(), '/');
         .profile-overlay { display:none; position:fixed; inset:0; z-index:1090; background:rgba(15,23,42,.48); }
         .profile-close { border:0; background:transparent; color:var(--muted); font-size:22px; cursor:pointer; }
         .pagination { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:16px; }
-        .pagination button { border:1px solid var(--border); background:#fff; border-radius:6px; padding:8px 12px; cursor:pointer; }
+        .pagination button { border:1px solid #2f4a5a; background:#2f4a5a; color:#fff; border-radius:8px; padding:5px 7px; min-height:28px; min-width:28px; font-size:11px; cursor:pointer; }
         .pagination button:disabled { opacity:.45; cursor:not-allowed; }
         .empty { padding:28px; text-align:center; color:var(--muted); }
         .swal2-container { z-index:20000 !important; }
@@ -121,11 +121,14 @@ $baseUrl = rtrim((string)base_url(), '/');
         </header>
         <div class="toolbar">
             <input class="search" id="buscarCredito" type="search" placeholder="BUSCAR CLIENTE, DOCUMENTO, CÓDIGO O REFERENCIA" oninput="renderizarCreditos()">
+            <select id="creditosPorPagina" class="search" aria-label="Registros por página" style="width:auto;padding:6px 9px;border:1px solid #2f4a5a;border-radius:8px;color:#2f4a5a;background:#fff;">
+                    <option value="25">25</option><option value="50" selected>50</option><option value="100">100</option><option value="200">200</option>
+            </select>
+            <div id="creditosPaginacion" class="pagination" style="margin:0;"></div>
         </div>
         <section class="layout">
             <div class="panel">
                 <div id="creditosLista">Cargando créditos...</div>
-                <div id="creditosPaginacion" class="pagination"></div>
             </div>
         </section>
     </main>
@@ -160,7 +163,7 @@ $baseUrl = rtrim((string)base_url(), '/');
     const baseUrlApp = <?= json_encode($baseUrl); ?>;
     let creditos = [];
     let paginaActual = 1;
-    const porPagina = 8;
+    let porPagina = 8;
 
     const escapar = valor => String(valor ?? '').replace(/[&<>"']/g, caracter => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[caracter]));
     const moneda = valor => new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 }).format(Number(valor || 0));
@@ -334,6 +337,14 @@ $baseUrl = rtrim((string)base_url(), '/');
         paginaActual += direccion;
         renderizarCreditos();
     }
+
+    document.getElementById('creditosPorPagina').addEventListener('change', (event) => {
+        const tamanoAnterior = porPagina;
+        const indiceCreditoAncla = (paginaActual - 1) * tamanoAnterior;
+        porPagina = Number(event.target.value) || 8;
+        paginaActual = Math.floor(indiceCreditoAncla / porPagina) + 1;
+        renderizarCreditos();
+    });
 
     async function mostrarPerfilCredito(id, elemento) {
         document.querySelectorAll('.credit-row').forEach(row => row.classList.remove('active'));
