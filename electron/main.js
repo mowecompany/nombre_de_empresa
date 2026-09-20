@@ -150,7 +150,7 @@ let connectionConfig = {
 // Báscula ACS-30 (RS-232 -> CH340 -> COM): un único servicio en el proceso
 // principal. Ni las vistas ni ningún puente HTTP abren el puerto.
 // ---------------------------------------------------------------------------
-const { BasculaService } = require('./bascula/BasculaService');
+const { BasculaSupervisor } = require('./bascula/BasculaSupervisor');
 
 const puertoBasculaForzado = (() => {
   const argumento = process.argv.find((arg) => /^--bascula-puerto=/i.test(arg));
@@ -158,64 +158,10 @@ const puertoBasculaForzado = (() => {
   return process.env.BASCULA_PUERTO || null;
 })();
 
-const basculaService = new BasculaService({ puertoForzado: puertoBasculaForzado, procesoId: process.pid });
+const basculaService = new BasculaSupervisor({ puertoForzado: puertoBasculaForzado, procesoId: process.pid });
 let ventanaDiagnosticoBascula = null;
 let cierreEnCurso = null;
 let salidaAutorizada = false;
-
-function listarCopiasPropiasDeEstrella() {
-  if (process.platform !== 'win32' || !app.isPackaged) return [];
-  const script = [
-    "$actual = " + process.pid,
-    "$rutaActual = [System.IO.Path]::GetFullPath('" + String(process.execPath).replace(/'/g, "''") + "')",
-    "$nombreValido = '^AUTOSERVICIO MI ESTRELLA(?: PORTABLE)?(?: v[0-9.]+)?\\.exe$'",
-    'Get-CimInstance Win32_Process | Where-Object {',
-    "  $_.ProcessId -ne $actual -and $_.Name -match $nombreValido -and $_.ExecutablePath -and $_.CommandLine -notmatch '--type=(renderer|gpu-process|utility|crashpad-handler)'",
-    '} | ForEach-Object {',
-    '  [PSCustomObject]@{ pid = $_.ProcessId; name = $_.Name; path = $_.ExecutablePath; samePath = ([System.IO.Path]::GetFullPath($_.ExecutablePath) -eq $rutaActual) }',
-    '} | ConvertTo-Json -Compress'
-  ].join('\n');
-  const consulta = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], {
-    windowsHide: true,
-    encoding: 'utf8',
-    timeout: 8000
-  });
-  if (consulta.status !== 0 || !String(consulta.stdout || '').trim()) return [];
-  try {
-    const parsed = JSON.parse(consulta.stdout);
-    // Solo una raíz anterior del mismo ejecutable puede ser un resto huérfano.
-    // La instalada y la portable tienen rutas distintas y nunca se cierran entre sí.
-    return (Array.isArray(parsed) ? parsed : [parsed]).filter((item) => Number(item.pid) > 0 && item.samePath === true);
-  } catch (_) {
-    return [];
-  }
-}
-
-async function recuperarPuertoDeCopiaAnterior() {
-  const copias = listarCopiasPropiasDeEstrella();
-  if (!copias.length) {
-    const resultado = {
-      ok: false,
-      pids: [],
-      mensaje: 'COM3 sigue ocupado, pero no pertenece a otra copia identificable de ESTRELLA. No se cerró ningún programa ajeno.'
-    };
-    basculaService.registrarRecuperacion(resultado);
-    return resultado;
-  }
-
-  basculaService.registrar('info', 'Cerrando una copia anterior de ESTRELLA que puede conservar el puerto', copias.map((item) => item.pid));
-  for (const copia of copias) {
-    spawnSync('taskkill', ['/PID', String(copia.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore', timeout: 8000 });
-  }
-  await new Promise((resolve) => setTimeout(resolve, 1200));
-  const resultado = {
-    ok: true,
-    pids: copias.map((item) => item.pid),
-    mensaje: `Se cerró ${copias.length === 1 ? 'la copia anterior' : 'las copias anteriores'} de ESTRELLA. Esperando que Windows libere COM3.`
-  };
-  basculaService.registrarRecuperacion(resultado);
-  return resultado;
-}
 
 function enviarABascula(canal, payload) {
   const ventanas = [mainWindow, ventanaDiagnosticoBascula].filter((v) => v && !v.isDestroyed());
@@ -720,6 +666,15 @@ function createMainWindow(serverUrl) {
     solicitarCierreAplicacion().catch(() => {});
   });
 
+  // Windows puede terminar la sesión sin recorrer el cierre normal de Electron.
+  // Esta señal garantiza que el lector auxiliar y COM3 terminen primero.
+  mainWindow.on('session-end', () => {
+    solicitarCierreAplicacion().catch(() => {
+      salidaAutorizada = true;
+      app.exit(1);
+    });
+  });
+
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     const normalizedUrl = String(url || '').trim().toLowerCase();
     if (
@@ -898,13 +853,6 @@ app.whenReady().then(async () => {
     createMainWindow(serverUrl);
     // La báscula se conecta sola al arrancar y se mantiene abierta toda la sesión.
     basculaService.iniciar();
-    // Una versión anterior que quedó invisible puede conservar COM3. Damos
-    // tiempo al primer intento y recuperamos solamente procesos de ESTRELLA.
-    setTimeout(async () => {
-      if (basculaService.estado().ultimoError?.codigo !== 'puerto-ocupado') return;
-      const recuperacion = await recuperarPuertoDeCopiaAnterior();
-      if (recuperacion.ok) await basculaService.reconectar();
-    }, 1200);
   } catch (error) {
     showFatalError('No se pudo iniciar la aplicación.', error.message);
     app.quit();
@@ -957,16 +905,12 @@ app.on('activate', () => {
 ipcMain.handle('bascula:estado', async () => basculaService.estado());
 
 ipcMain.handle('bascula:diagnostico', async () => {
-  await basculaService.listarPuertos();
-  return basculaService.diagnostico();
+  return await basculaService.diagnostico();
 });
 
 ipcMain.handle('bascula:comando', async (_event, comando) => {
   switch (String(comando || '')) {
     case 'reconectar':
-      if (basculaService.estado().ultimoError?.codigo === 'puerto-ocupado') {
-        await recuperarPuertoDeCopiaAnterior();
-      }
       return basculaService.reconectar();
     case 'tarar':
       return basculaService.tarar();

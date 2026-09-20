@@ -28,6 +28,9 @@
   <div class="card"><b>Estado</b><span id="estado">—</span></div>
   <div class="card"><b>Puerto</b><span id="puerto">—</span></div>
   <div class="card"><b>Adaptador</b><span id="adaptador">—</span></div>
+  <div class="card"><b>Proceso principal</b><span id="proceso-principal">—</span></div>
+  <div class="card"><b>Lector de báscula</b><span id="proceso-auxiliar">—</span></div>
+  <div class="card"><b>Fase</b><span id="fase">—</span></div>
   <div class="card"><b>Peso interpretado</b><span class="peso" id="peso">—</span></div>
   <div class="card"><b>Última trama recibida</b><span id="trama">—</span></div>
   <div class="card"><b>Trama en hexadecimal</b><span id="hex">—</span></div>
@@ -49,9 +52,11 @@
 <script>
   const $ = (id) => document.getElementById(id);
   let ultimoDiagnostico = {};
+  let paginaActiva = true;
+  const cancelaciones = [];
 
   function pintarEstado(estado) {
-    if (!estado) return;
+    if (!paginaActiva || !estado) return;
     const conectado = estado.conectado;
     $('estado').textContent = estado.disponible
       ? (conectado ? 'Conectada' : 'Sin conexión')
@@ -61,6 +66,9 @@
     $('adaptador').textContent = estado.adaptador
       ? `${estado.adaptador.manufacturer || 'desconocido'} (${estado.adaptador.motivo || ''})`
       : 'no detectado';
+    $('proceso-principal').textContent = estado.procesoId || '—';
+    $('proceso-auxiliar').textContent = estado.procesoAuxiliarId || '—';
+    $('fase').textContent = String(estado.fase || '—').replace(/-/g, ' ');
     if (estado.ultimaTrama) {
       $('trama').textContent = JSON.stringify(estado.ultimaTrama.texto);
       $('hex').textContent = estado.ultimaTrama.hex;
@@ -91,18 +99,23 @@
   }
 
   if (window.basculaAPI) {
-    window.basculaAPI.onPeso(pintarPeso);
-    window.basculaAPI.onEstado(pintarEstado);
-    window.basculaAPI.onTrama((t) => {
+    cancelaciones.push(window.basculaAPI.onPeso(pintarPeso));
+    cancelaciones.push(window.basculaAPI.onEstado(pintarEstado));
+    cancelaciones.push(window.basculaAPI.onTrama((t) => {
       $('trama').textContent = JSON.stringify(t.texto);
       $('hex').textContent = t.hex;
-    });
+    }));
     $('btn-reconectar').onclick = () => window.basculaAPI.reconectar().then(refrescar);
     $('btn-tarar').onclick = () => window.basculaAPI.tarar();
     $('btn-quitar-tara').onclick = () => window.basculaAPI.quitarTara();
     $('btn-copiar').onclick = () => navigator.clipboard.writeText(JSON.stringify(ultimoDiagnostico, null, 2));
     refrescar();
-    setInterval(refrescar, 2000);
+    const intervalo = setInterval(refrescar, 2000);
+    window.addEventListener('pagehide', () => {
+      paginaActiva = false;
+      clearInterval(intervalo);
+      cancelaciones.forEach((cancelar) => { try { cancelar(); } catch (_) {} });
+    }, { once: true });
   } else {
     $('estado').textContent = 'Puente de escritorio no disponible';
   }

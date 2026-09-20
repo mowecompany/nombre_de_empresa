@@ -62,7 +62,8 @@ Esta integración permite ejecutar el proyecto PHP dentro de una aplicación de 
 ## Báscula ACS-30 (lectura de peso real)
 
 ### Regla principal
-El puerto COM lo abre **solo** el proceso principal de Electron (`electron/bascula/BasculaService.js`).
+El puerto COM lo abre **solo** el lector auxiliar propio de ESTRELLA (`electron/bascula/BasculaWorker.js`).
+El proceso principal lo supervisa y puede reiniciarlo para que Windows libere todos sus manejadores.
 La pantalla de ventas nunca abre el puerto: únicamente escucha `window.basculaAPI.onPeso()`.
 Un puerto serial admite una sola aplicación a la vez; por eso cualquier apertura desde el
 navegador (Web Serial) provoca `Failed to execute 'open' on 'SerialPort'` al recargar la página.
@@ -76,6 +77,8 @@ navegador (Web Serial) provoca `Failed to execute 'open' on 'SerialPort'` al rec
 ### Archivos vigentes
 - `electron/bascula/BasculaService.js`: detección del adaptador CH340 (VID `1a86`, respaldo `COM3`,
   `COM1` nunca), apertura 9600-8-N-1, lectura continua, reconexión automática y tara.
+- `electron/bascula/BasculaWorker.js`: proceso aislado que posee el puerto y muere completamente al reconectar.
+- `electron/bascula/BasculaSupervisor.js`: reinicia el lector y conserva la API usada por las pantallas.
 - `electron/bascula/parserAcs30.js`: interpretación de la trama.
 - `electron/bascula/diagnostico.html`: ventana de diagnóstico (tecla **F9**).
 - `electron/preload.js`: expone `window.basculaAPI`.
@@ -100,4 +103,5 @@ para recompilarlo contra Electron 26. Sin ese paso el puerto no abre.
 2. Cierre la ventana con la X y confirme en el Administrador de tareas que ESTRELLA desaparece.
 3. Abra ESTRELLA otra vez: debe detectar el CH340 y abrir COM3 automáticamente.
 4. Cierre sesión y vuelva a iniciarla: COM3 debe seguir abierto por la misma aplicación, sin desconectarse.
-5. Si una copia anterior de ESTRELLA quedó congelada, pulse **Reconectar báscula**. La copia actual solo cerrará procesos identificados con el nombre de ESTRELLA; nunca cerrará software de la balanza ni monitores seriales ajenos.
+5. Pulse **Reconectar báscula** sin desconectar el USB: ESTRELLA debe cerrar únicamente su lector auxiliar, iniciar uno limpio y recuperar COM3.
+6. Si un monitor serial ajeno ocupa COM3, ESTRELLA debe informar el bloqueo sin cerrar ese programa.
