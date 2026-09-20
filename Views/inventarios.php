@@ -4060,6 +4060,10 @@ if (is_file($logoPdfPath)) {
         let basculaNativaListenerRegistrado = false;
         let ultimoDatoBalanzaSalida = 0;
         let ultimoPesoBalanzaSalida = null;
+        // Marca de tiempo (ts) de la última lectura aplicada. Los eventos
+        // onPeso traen el ts del servicio; el sondeo de estado solo puede
+        // sobrescribir el peso si su lectura es más reciente que esta marca.
+        let ultimaLecturaBasculaTs = 0;
 
         function escapeHtml(str) {
             return String(str ?? '')
@@ -4643,9 +4647,16 @@ if (is_file($logoPdfPath)) {
             return /^(g|gr)$/i.test(coincidencia[2] || '') ? valor / 1000 : valor;
         }
 
-        function aplicarPesoBalanzaSalida(pesoKg) {
+        function aplicarPesoBalanzaSalida(pesoKg, tsLectura) {
             if (pesoKg === null || !Number.isFinite(pesoKg) || pesoKg < 0) {
                 return;
+            }
+            // Si llega una marca de tiempo, solo gana la lectura más reciente:
+            // así el sondeo de estado nunca pisa un peso nuevo con uno viejo.
+            const ts = Number(tsLectura);
+            if (Number.isFinite(ts) && ts > 0) {
+                if (ts < ultimaLecturaBasculaTs) return;
+                ultimaLecturaBasculaTs = ts;
             }
             ultimoPesoBalanzaSalida = pesoKg;
             actualizarPesoVivoCategoriaModal();
@@ -4662,8 +4673,10 @@ if (is_file($logoPdfPath)) {
 
             const cantidad = document.getElementById('cantidadSalida');
             const etiqueta = document.getElementById('pesoCategoriaSalidaValor');
-            if (cantidad && ventaPorPesoCategoriaActiva && pesoKg > 0) {
-                cantidad.value = Math.round(pesoKg * 1000) / 1000;
+            if (cantidad && ventaPorPesoCategoriaActiva) {
+                // Peso 0 (producto retirado) también se aplica: la cantidad
+                // vuelve a 0.000 para que un peso nuevo nunca herede el anterior.
+                cantidad.value = (Math.round(pesoKg * 1000) / 1000).toFixed(3);
                 cantidad.dispatchEvent(new Event('input', { bubbles: true }));
                 cantidad.dispatchEvent(new Event('change', { bubbles: true }));
             }
@@ -4698,8 +4711,12 @@ if (is_file($logoPdfPath)) {
                     if (estado) {
                         basculaNativaConectada = Boolean(estado.conectado);
                         const valor = Number(estado?.ultimoPeso?.peso);
-                        if (basculaNativaConectada && Number.isFinite(valor) && valor >= 0) {
-                            ultimoPesoBalanzaSalida = valor;
+                        const tsEstado = Number(estado?.ultimoPeso?.ts) || 0;
+                        // El sondeo es solo respaldo: aplica el peso del estado
+                        // únicamente si es más reciente que la última lectura
+                        // recibida por evento; nunca pisa un peso nuevo con uno viejo.
+                        if (basculaNativaConectada && Number.isFinite(valor) && valor >= 0 && tsEstado > ultimaLecturaBasculaTs) {
+                            aplicarPesoBalanzaSalida(valor, tsEstado);
                         }
                     }
                 } catch (error) { /* sin báscula: se muestra el estado actual */ }
@@ -4757,8 +4774,9 @@ if (is_file($logoPdfPath)) {
             basculaNativaConectada = conectada;
             puertoBalanzaSalida = estado?.puerto || null;
             const ultimoPesoEstado = Number(estado?.ultimoPeso?.peso);
+            const tsPesoEstado = Number(estado?.ultimoPeso?.ts) || 0;
             if (conectada && Number.isFinite(ultimoPesoEstado) && ultimoPesoEstado >= 0) {
-                aplicarPesoBalanzaSalida(ultimoPesoEstado);
+                aplicarPesoBalanzaSalida(ultimoPesoEstado, tsPesoEstado);
             }
             actualizarEstadoBalanzaSalida(conectada ? 'conectada' : 'desconectada');
             actualizarPesoVivoCategoriaModal();
@@ -4786,7 +4804,7 @@ if (is_file($logoPdfPath)) {
                 const valorPeso = Number(peso?.peso);
                 if (!peso || !Number.isFinite(valorPeso)) return;
                 ultimoDatoBalanzaSalida = Date.now();
-                aplicarPesoBalanzaSalida(valorPeso);
+                aplicarPesoBalanzaSalida(valorPeso, Number(peso?.ts) || Date.now());
             });
             api.onEstado(aplicarEstadoBasculaEscritorio);
             api.estado().then(aplicarEstadoBasculaEscritorio).catch(() => {});
