@@ -99,9 +99,11 @@ para recompilarlo contra Electron 26. Sin ese paso el puerto no abre.
 - *Acceso denegado / puerto ocupado*: el software de la balanza o un monitor serial ajeno tiene COM3.
   Ciérralo y pulsa Reintentar. Las copias de ESTRELLA comparten un solo lector y no deben competir.
 - *SetCommState / código 31*: Windows ve el CH340 pero el dispositivo o su controlador aún no responde.
-  ESTRELLA reintenta durante 20 segundos y, al pulsar Reconectar, puede solicitar UAC para reiniciar
+  Tras tres errores consecutivos, ESTRELLA intenta una única recuperación automática por ejecución. También al pulsar Reconectar puede solicitar UAC para reiniciar
   exclusivamente `VID_1A86&PID_7523` mediante `pnputil`. La aplicación completa no queda elevada.
   La versión WCH `3.9.2024.9` está marcada como problemática; pruebe `3.7.2022.01` o `3.5.2019.1`.
+  Descargue únicamente el controlador firmado desde WCH (`https://www.wch-ic.com/downloads/CH341SER_ZIP.html`)
+  o use una versión ya presente en el almacén de Windows. No instale copias de terceros.
 - *Prueba de permisos*: el botón **Comprobar permisos** registra si la ejecución actual está elevada.
   Si el código 31 también ocurre elevada, queda descartada la falta de privilegios. Un bloqueo real se
   reporta como `Acceso denegado`/`puerto ocupado`, que es un error distinto.
@@ -119,6 +121,7 @@ para recompilarlo contra Electron 26. Sin ese paso el puerto no abre.
 8. Para comparar permisos, ejecute una vez normalmente y otra con **Ejecutar como administrador**, pulse
    **Comprobar permisos** y repita la apertura sin desconectar el USB. Los resultados quedan guardados en
    `bascula-recuperacion.jsonl` dentro de la carpeta de datos de la aplicación.
+9. Confirme que F9 muestra `1.0.11-ch340-pnp-v2`; una versión distinta no contiene esta recuperación.
 
 ### Integraciones universales
 Productos comerciales como PV-COM usan patrones conocidos: agente local, puerto serial y salida como

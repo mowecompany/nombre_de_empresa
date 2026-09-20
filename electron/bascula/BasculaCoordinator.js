@@ -321,7 +321,7 @@ class BasculaCoordinator extends EventEmitter {
     }
     const supervisor = this.supervisor;
     this.supervisor = null;
-    if (supervisor) await supervisor.detener();
+    const cierreSupervisor = supervisor ? await supervisor.detener() : null;
     for (const socket of this.clientes) socket.destroy();
     this.clientes.clear();
     if (this.servidor) {
@@ -334,7 +334,7 @@ class BasculaCoordinator extends EventEmitter {
     }
     this.modo = 'detenida';
     this.ultimoEstado = this.decorar({ ...this.ultimoEstado, fase: 'detenido', conectado: false, puerto: null });
-    return { cerrado: true, propietario: Boolean(supervisor) };
+    return { cerrado: true, propietario: Boolean(supervisor), lector: cierreSupervisor };
   }
 }
 

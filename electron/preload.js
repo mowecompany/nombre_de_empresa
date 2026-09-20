@@ -62,11 +62,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
       callback?.(payload);
     });
   },
-  getAppInfo: () => ({
+  getAppInfo: () => ipcRenderer.invoke('bascula:diagnostico').then((d) => ({
     name: 'AUTOSERVICIO MI ESTRELLA',
     company: 'AUTOSERVICIO MI ESTRELLA',
-    version: process.env.npm_package_version || '1.0.0'
-  })
+    version: d?.compilacion?.version || 'desconocida',
+    compilacion: d?.compilacion || null
+  }))
 });
 
 // ---------------------------------------------------------------------------

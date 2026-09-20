@@ -125,6 +125,8 @@ require_once ROOT_PATH . '/Config/Config.php';
         <div class="dato"><b>Modo de conexión</b><span id="modoBascula">—</span></div>
         <div class="dato"><b>Controlador CH340</b><span id="controladorBascula">—</span></div>
         <div class="dato"><b>Fase actual</b><span id="faseConexion">—</span></div>
+        <div class="dato"><b>Versión instalada</b><span id="compilacionBascula">—</span></div>
+        <div class="dato"><b>Cierre anterior</b><span id="cierreAnterior">—</span></div>
     </div>
 </div>
 
@@ -224,8 +226,9 @@ require_once ROOT_PATH . '/Config/Config.php';
         } else if (estado.ultimoError) {
             chip.className = 'estado-chip mal';
             estadoTexto.textContent = 'Sin conexión con la báscula';
+            const driverProblematico = estado.controlador && estado.controlador.incompatibleConocido;
             const ayuda = estado.ultimoError.codigo === 'dispositivo-no-listo'
-                ? '\n\nEl código 31 apunta al controlador CH340, no a Acceso denegado. Reconectar puede solicitar autorización para reiniciar únicamente ese dispositivo.'
+                ? '\n\nEl código 31 apunta al controlador CH340, no a Acceso denegado. ESTRELLA intentará una recuperación automática una sola vez.' + (driverProblematico ? '\n\nEstá instalada la versión problemática 3.9.2024.9. Si el reinicio no basta, instale desde WCH la 3.7.2022.01 o 3.5.2019.1.' : '')
                 : '\n\nPulse "Reconectar báscula". ESTRELLA nunca cerrará otros programas.';
             mostrarAviso($('avisoCaja'), estado.ultimoError.mensaje + ayuda, true);
         } else {
@@ -253,6 +256,16 @@ require_once ROOT_PATH . '/Config/Config.php';
                 : 'no disponible';
         }
         if ($('faseConexion')) $('faseConexion').textContent = String(estado.fase || '—').replace(/-/g, ' ');
+        if ($('compilacionBascula') && estado.compilacion) {
+            const build = estado.compilacion || {};
+            $('compilacionBascula').textContent = build.identificador || 'compilación antigua sin identificación';
+        }
+        if ($('cierreAnterior') && estado.cierreAnterior) {
+            const cierre = estado.cierreAnterior;
+            $('cierreAnterior').textContent = cierre
+                ? ((cierre.ok ? 'limpio' : 'con incidencia') + ' · PID ' + (cierre.procesoId || '—') + ' · ' + (cierre.ts ? new Date(cierre.ts).toLocaleString() : 'sin fecha'))
+                : 'sin registro previo';
+        }
 
         if (estado.ultimaTrama) pintarTrama(estado.ultimaTrama);
         if (estado.ultimoPeso) pintarPeso(estado.ultimoPeso);
@@ -262,6 +275,9 @@ require_once ROOT_PATH . '/Config/Config.php';
         if (!paginaActiva || !d) return;
         ultimoDiagnostico = d;
         pintarEstado(d);
+        if (!d.compilacion || !d.compilacion.recuperacionPnP) {
+            mostrarAviso($('avisoAccion'), 'Esta instalación es antigua y no contiene la recuperación automática del CH340. Instale ESTRELLA 1.0.11.', true);
+        }
         const filas = (d.puertos || []).map((p) =>
             '<tr><td>' + (p.path || '') + '</td><td>' + (p.manufacturer || '') + '</td><td>' + (p.vendorId || '') + '</td><td>' + (p.productId || '') + '</td></tr>'
         ).join('');

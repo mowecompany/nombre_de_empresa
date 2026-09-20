@@ -159,6 +159,41 @@ const puertoBasculaForzado = (() => {
 })();
 
 let ultimoDiagnosticoPermisos = null;
+const RECUPERACION_BASCULA_VERSION = 'ch340-pnp-v2';
+
+function identidadCompilacion() {
+  let fechaArchivo = null;
+  try { fechaArchivo = fs.statSync(__filename).mtime.toISOString(); } catch (_) {}
+  return {
+    version: app.getVersion(),
+    identificador: `${app.getVersion()}-${RECUPERACION_BASCULA_VERSION}`,
+    fechaArchivo,
+    empaquetada: app.isPackaged,
+    recuperacionPnP: true,
+    recuperacionAutomatica: true
+  };
+}
+
+function leerUltimoCierreBascula() {
+  try {
+    const archivo = path.join(app.getPath('userData'), 'bascula-ultimo-cierre.json');
+    return JSON.parse(fs.readFileSync(archivo, 'utf8'));
+  } catch (_) {
+    return null;
+  }
+}
+
+function guardarUltimoCierreBascula(resultado) {
+  const entrada = { ts: new Date().toISOString(), procesoId: process.pid, ...resultado };
+  try {
+    const archivo = path.join(app.getPath('userData'), 'bascula-ultimo-cierre.json');
+    fs.mkdirSync(path.dirname(archivo), { recursive: true });
+    fs.writeFileSync(archivo, `${JSON.stringify(entrada, null, 2)}\n`, 'utf8');
+  } catch (error) {
+    console.warn('No se pudo guardar el resultado del cierre de báscula:', error.message);
+  }
+  return entrada;
+}
 
 function guardarDiagnosticoBascula(tipo, resultado) {
   const entrada = { ts: new Date().toISOString(), tipo, procesoId: process.pid, ...resultado };
@@ -199,7 +234,35 @@ function consultarPermisosBascula() {
   return ultimoDiagnosticoPermisos;
 }
 
-function recuperarCh340(controlador = {}) {
+function ejecutarPowerShellElevado(lanzador, timeout = 120000) {
+  return new Promise((resolve) => {
+    const inicio = Date.now();
+    const proceso = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', lanzador], {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    let stdout = '';
+    let stderr = '';
+    let terminado = false;
+    let timer = null;
+    proceso.stdout.on('data', (dato) => { stdout += dato.toString(); });
+    proceso.stderr.on('data', (dato) => { stderr += dato.toString(); });
+    const finalizar = (resultado) => {
+      if (terminado) return;
+      terminado = true;
+      clearTimeout(timer);
+      resolve({ ...resultado, stdout, stderr, duracionMs: Date.now() - inicio });
+    };
+    proceso.once('error', (error) => finalizar({ status: null, error }));
+    proceso.once('exit', (codigo) => finalizar({ status: codigo, error: null }));
+    timer = setTimeout(() => {
+      try { proceso.kill(); } catch (_) {}
+      finalizar({ status: null, error: new Error('La autorización de Windows excedió el tiempo permitido.') });
+    }, timeout);
+  });
+}
+
+async function recuperarCh340(controlador = {}) {
   if (process.platform !== 'win32') return { ok: false, mensaje: 'El reinicio PnP solo está disponible en Windows.' };
   const instanciaId = String(controlador.instanciaId || '').trim();
   if (!/^USB\\VID_1A86&PID_7523\\[^\r\n]+$/i.test(instanciaId)) {
@@ -225,17 +288,15 @@ function recuperarCh340(controlador = {}) {
   ].join('; ');
   const codificado = Buffer.from(script, 'utf16le').toString('base64');
   const lanzador = `$p = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-NonInteractive','-EncodedCommand','${codificado}') -Verb RunAs -Wait -PassThru; exit $p.ExitCode`;
-  const resultado = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', lanzador], {
-    windowsHide: true,
-    encoding: 'utf8',
-    timeout: 120000
-  });
+  const resultado = await ejecutarPowerShellElevado(lanzador);
   const cancelado = resultado.status !== 0 && /cancel|cancelad|1223/i.test(`${resultado.stderr || ''} ${resultado.error?.message || ''}`);
   return guardarDiagnosticoBascula('reinicio-ch340', {
     ok: resultado.status === 0,
     cancelado,
     instanciaId,
+    comando: 'pnputil /restart-device (fallback disable-device/enable-device)',
     codigoSalida: resultado.status,
+    duracionMs: resultado.duracionMs,
     mensaje: resultado.status === 0
       ? 'Windows reinició exclusivamente el adaptador CH340 autorizado.'
       : (cancelado ? 'El usuario canceló la autorización de Windows.' : 'Windows no pudo reiniciar el adaptador CH340.')
@@ -920,6 +981,10 @@ app.on('second-instance', () => {
 
 app.whenReady().then(async () => {
   try {
+    guardarDiagnosticoBascula('inicio', {
+      compilacion: identidadCompilacion(),
+      cierreAnterior: leerUltimoCierreBascula()
+    });
     connectionConfig = readConnectionConfig();
     const serverMode = connectionConfig.mode === 'server';
     activeBindHost = serverMode ? LAN_BIND_HOST : SERVER_HOST;
@@ -950,8 +1015,16 @@ app.whenReady().then(async () => {
 async function solicitarCierreAplicacion({ reiniciar = false } = {}) {
   if (cierreEnCurso) return cierreEnCurso;
   cierreEnCurso = (async () => {
+    const inicioCierre = Date.now();
     basculaService.registrar('info', reiniciar ? 'Reinicio seguro de ESTRELLA solicitado' : 'Cierre seguro de ESTRELLA solicitado');
-    await basculaService.detener();
+    const resultadoBascula = await basculaService.detener();
+    const cierreRegistrado = guardarUltimoCierreBascula({
+      ok: Boolean(resultadoBascula?.cerrado),
+      reiniciar,
+      duracionMs: Date.now() - inicioCierre,
+      resultado: resultadoBascula
+    });
+    guardarDiagnosticoBascula('cierre', cierreRegistrado);
     if (ventanaDiagnosticoBascula && !ventanaDiagnosticoBascula.isDestroyed()) {
       ventanaDiagnosticoBascula.destroy();
       ventanaDiagnosticoBascula = null;
@@ -993,7 +1066,12 @@ app.on('activate', () => {
 ipcMain.handle('bascula:estado', async () => basculaService.estado());
 
 ipcMain.handle('bascula:diagnostico', async () => {
-  return { ...(await basculaService.diagnostico()), diagnosticoPermisos: ultimoDiagnosticoPermisos };
+  return {
+    ...(await basculaService.diagnostico()),
+    diagnosticoPermisos: ultimoDiagnosticoPermisos,
+    compilacion: identidadCompilacion(),
+    cierreAnterior: leerUltimoCierreBascula()
+  };
 });
 
 ipcMain.handle('bascula:comando', async (_event, comando) => {

@@ -34,6 +34,8 @@
   <div class="card"><b>Modo de conexión</b><span id="modo-bascula">—</span></div>
   <div class="card"><b>Controlador CH340</b><span id="controlador">—</span></div>
   <div class="card"><b>Fase</b><span id="fase">—</span></div>
+  <div class="card"><b>Versión instalada</b><span id="compilacion">—</span></div>
+  <div class="card"><b>Cierre anterior</b><span id="cierre-anterior">—</span></div>
   <div class="card"><b>Permisos</b><span id="permisos">Sin comprobar</span></div>
   <div class="card"><b>Peso interpretado</b><span class="peso" id="peso">—</span></div>
   <div class="card"><b>Última trama recibida</b><span id="trama">—</span></div>
@@ -78,6 +80,8 @@
     const driver = estado.controlador || {};
     $('controlador').textContent = driver.version ? `${driver.proveedor || 'Proveedor desconocido'} · ${driver.version}` : '—';
     $('fase').textContent = String(estado.fase || '—').replace(/-/g, ' ');
+    if (estado.compilacion) $('compilacion').textContent = estado.compilacion.identificador || 'compilación antigua';
+    if (estado.cierreAnterior) $('cierre-anterior').textContent = `${estado.cierreAnterior.ok ? 'limpio' : 'con incidencia'} · PID ${estado.cierreAnterior.procesoId || '—'}`;
     if (estado.diagnosticoPermisos) $('permisos').textContent = estado.diagnosticoPermisos.administrador ? 'Administrador' : 'Modo normal';
     if (estado.ultimaTrama) {
       $('trama').textContent = JSON.stringify(estado.ultimaTrama.texto);

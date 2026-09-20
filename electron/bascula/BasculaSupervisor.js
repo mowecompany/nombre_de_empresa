@@ -7,6 +7,8 @@ const path = require('path');
 const TIEMPO_RESPUESTA_MS = 5000;
 const TIEMPO_SALIDA_MS = 4000;
 const TIEMPO_RECONEXION_MS = 20000;
+const INTENTOS_ERROR_31_ANTES_RECUPERAR = 3;
+const ESPERA_REENUMERACION_MS = 5000;
 
 class BasculaSupervisor extends EventEmitter {
   constructor(opciones = {}) {
@@ -21,6 +23,9 @@ class BasculaSupervisor extends EventEmitter {
     this.detenido = true;
     this.reiniciando = null;
     this.secuencia = 0;
+    this.intentosError31 = 0;
+    this.recuperacionAutomaticaIntentada = false;
+    this.temporizadorRecuperacion = null;
     this.pendientes = new Map();
     this.ultimoEstado = {
       procesoId: this.procesoId,
@@ -115,6 +120,14 @@ class BasculaSupervisor extends EventEmitter {
         ultimaRecuperacion: recuperacion
       };
       this.emit('estado', this.estado());
+      if (estadoWorker.conectado) {
+        this.intentosError31 = 0;
+      } else if (estadoWorker.ultimoError?.codigo === 'dispositivo-no-listo') {
+        this.intentosError31 += 1;
+        this.programarRecuperacionAutomatica();
+      } else {
+        this.intentosError31 = 0;
+      }
       return;
     }
     if (mensaje.tipo === 'respuesta') {
@@ -208,35 +221,77 @@ class BasculaSupervisor extends EventEmitter {
 
   async detener() {
     this.detenido = true;
+    if (this.temporizadorRecuperacion) clearTimeout(this.temporizadorRecuperacion);
+    this.temporizadorRecuperacion = null;
     const resultado = await this.terminarWorker();
     this.ultimoEstado = { ...this.ultimoEstado, fase: 'detenido', procesoAuxiliarId: null, conectado: false, puerto: null };
     this.emit('estado', this.estado());
     return resultado;
   }
 
-  async reconectar() {
+  programarRecuperacionAutomatica() {
+    if (this.detenido || this.reiniciando || this.recuperacionAutomaticaIntentada
+      || this.temporizadorRecuperacion || !this.recuperarDispositivo
+      || this.intentosError31 < INTENTOS_ERROR_31_ANTES_RECUPERAR) return;
+    this.recuperacionAutomaticaIntentada = true;
+    this.registrar('warn', 'El código 31 persistió; se iniciará una recuperación única del CH340.', { intentos: this.intentosError31 });
+    this.temporizadorRecuperacion = setTimeout(() => {
+      this.temporizadorRecuperacion = null;
+      this.reconectar({ forzarRecuperacion: true, automatico: true }).catch((error) => {
+        this.registrar('error', 'La recuperación automática del CH340 no pudo completarse.', error.message);
+      });
+    }, 500);
+  }
+
+  async esperarIdentidadControlador(timeout = 6000) {
+    if (this.ultimoEstado.controlador?.instanciaId) return this.ultimoEstado.controlador;
+    return new Promise((resolve) => {
+      let terminado = false;
+      const finalizar = () => {
+        if (terminado) return;
+        terminado = true;
+        clearTimeout(timer);
+        this.removeListener('estado', alCambiar);
+        resolve(this.ultimoEstado.controlador || null);
+      };
+      const alCambiar = (estado) => {
+        if (estado?.controlador?.instanciaId) finalizar();
+      };
+      const timer = setTimeout(finalizar, timeout);
+      this.on('estado', alCambiar);
+    });
+  }
+
+  async reconectar(opciones = {}) {
     if (this.reiniciando) return this.reiniciando;
     // Marcar el reinicio antes del primer await evita que el evento exit del
     // lector programe otro proceso en paralelo.
     this.reiniciando = Promise.resolve();
     const operacion = (async () => {
       this.detenido = false;
+      const controladorAntesDelCierre = await this.esperarIdentidadControlador();
       const anterior = await this.terminarWorker();
-      this.actualizarFase('esperando-liberacion');
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      this.crearWorker();
-      await this.esperarConexion(TIEMPO_RECONEXION_MS);
       let recuperacionDispositivo = null;
-      if (!this.ultimoEstado.conectado
+      if (!opciones.forzarRecuperacion) {
+        this.actualizarFase('esperando-liberacion');
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        this.crearWorker();
+        await this.esperarConexion(TIEMPO_RECONEXION_MS);
+      }
+      if ((opciones.forzarRecuperacion || !this.ultimoEstado.conectado)
         && this.ultimoEstado.ultimoError?.codigo === 'dispositivo-no-listo'
         && this.recuperarDispositivo) {
         await this.terminarWorker();
         this.actualizarFase('reiniciando-dispositivo-ch340');
-        recuperacionDispositivo = await this.recuperarDispositivo(this.ultimoEstado.controlador || {});
+        recuperacionDispositivo = await this.recuperarDispositivo(controladorAntesDelCierre || this.ultimoEstado.controlador || {});
         this.actualizarFase('esperando-com3');
-        await new Promise((resolve) => setTimeout(resolve, 1800));
+        if (recuperacionDispositivo?.ok) {
+          await new Promise((resolve) => setTimeout(resolve, ESPERA_REENUMERACION_MS));
+        }
         this.crearWorker();
         await this.esperarLecturaValida(TIEMPO_RECONEXION_MS);
+      } else if (!this.worker) {
+        this.crearWorker();
       }
       const ok = Boolean(this.ultimoEstado.conectado && this.ultimoEstado.ultimoPeso);
       const recuperacion = {
@@ -245,6 +300,7 @@ class BasculaSupervisor extends EventEmitter {
         cierreForzado: anterior.forzado,
         pidNuevo: this.worker?.pid || null,
         reinicioDispositivo: recuperacionDispositivo,
+        automatica: Boolean(opciones.automatico),
         mensaje: ok
           ? (recuperacionDispositivo
               ? 'Windows reinició el CH340, COM3 volvió a abrirse y se recibió una lectura válida.'

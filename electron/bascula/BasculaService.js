@@ -56,6 +56,7 @@ class BasculaService extends EventEmitter {
     this.errorLibreria = errorCargaSerial ? (errorCargaSerial.message || String(errorCargaSerial)) : null;
     this.controlador = null;
     this.consultaControladorIniciada = false;
+    this.ultimoIntentoControlador = 0;
     this.ultimaTramaInvalida = null;
     this.tramasInvalidasRepetidas = 0;
   }
@@ -135,8 +136,10 @@ class BasculaService extends EventEmitter {
   }
 
   consultarControladorCh340() {
-    if (this.consultaControladorIniciada) return;
+    const ahora = Date.now();
+    if (this.consultaControladorIniciada || ahora - this.ultimoIntentoControlador < 3000) return;
     this.consultaControladorIniciada = true;
+    this.ultimoIntentoControlador = ahora;
     const comando = [
       "$d = Get-CimInstance Win32_PnPSignedDriver | Where-Object { $_.DeviceID -match 'VID_1A86&PID_7523' } | Select-Object -First 1 DeviceName,DriverProviderName,DriverVersion,DriverDate,DeviceID",
       'if ($d) { $d | ConvertTo-Json -Compress }'
@@ -146,7 +149,11 @@ class BasculaService extends EventEmitter {
       timeout: 5000,
       encoding: 'utf8'
     }, (error, stdout) => {
-      if (error || !String(stdout || '').trim()) return;
+      this.consultaControladorIniciada = false;
+      if (error || !String(stdout || '').trim()) {
+        this.registrar('warn', 'No se pudo consultar todavía la identidad del controlador CH340', error?.message || 'respuesta vacía');
+        return;
+      }
       try {
         const datos = JSON.parse(String(stdout).trim());
         this.controlador = {
@@ -158,7 +165,9 @@ class BasculaService extends EventEmitter {
           incompatibleConocido: /^3\.9\.2024\.9$/i.test(String(datos.DriverVersion || ''))
         };
         this.emitirEstado();
-      } catch (_) {}
+      } catch (errorParseo) {
+        this.registrar('warn', 'Windows devolvió datos no válidos del controlador CH340', errorParseo.message);
+      }
     });
   }
 
