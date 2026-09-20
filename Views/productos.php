@@ -2036,8 +2036,8 @@ try {
                             <input type="checkbox" class="venta-kilo-input" id="ventaPorKiloEdit" name="venta_por_kilo" value="1" style="width:18px; height:18px; margin:0; cursor:pointer;">
                             <span class="producto-kilo-text">X KILOS</span>
                         </label>
-                        <label for="manejaPresentacionesEdit" class="producto-kilo-option" title="Marcar producto con presentaciones" style="grid-column:4; grid-row:1; justify-self:end;">
-                            <input type="checkbox" class="venta-kilo-input" id="manejaPresentacionesEdit" name="maneja_presentaciones" value="1" style="width:18px; height:18px; margin:0; cursor:pointer;">
+                        <label for="manejaPresentacionesEdit" id="labelPresentacionesEdit" class="producto-kilo-option" title="Marcar producto con presentaciones" style="grid-column:4; grid-row:1; justify-self:end;">
+                            <input type="checkbox" class="venta-kilo-input" id="manejaPresentacionesEdit" name="maneja_presentaciones" value="1" onchange="alternarPresentaciones()" style="width:18px; height:18px; margin:0; cursor:pointer;">
                             <span class="producto-kilo-text">PRESENTACIÓN</span>
                         </label>
                     </div>
@@ -2062,6 +2062,20 @@ try {
                     <div class="form-group">
                         <label for="editProdPorcentaje"><i class="fas fa-percent"></i> PORCENTAJE DE GANANCIA</label>
                         <input type="number" id="editProdPorcentaje" name="porcentaje_ganancia" min="0" step="0.01" autocomplete="off" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:12px;">
+                    <div id="presentacionesContenido" style="display:none; background:#f8fafc; border:1px solid #e6e9ee; border-radius:8px; padding:14px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+                            <strong style="color:#2f4a5a;"><i class="fas fa-boxes"></i> PRESENTACIONES DEL PRODUCTO</strong>
+                        </div>
+                        <div id="presentacionesResumen" style="display:none; margin-bottom:10px; padding:8px 10px; background:#eef4ff; border:1px solid #d3e0fd; border-radius:6px; color:#1d4ed8; font-weight:600;"></div>
+                        <div id="presentacionesFilas" style="display:flex; flex-direction:column; gap:8px;"></div>
+                        <small style="display:block; margin-top:8px; color:#667085;">La UNIDAD se rellena sola con el precio de compra, el precio de venta y el stock que el producto ya tiene. Define la presentación PAQUETE y pulsa GUARDAR PRESENTACIÓN; después puedes pulsar ACTUALIZAR PRODUCTO.</small>
+                        <div style="display:flex; justify-content:flex-start; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                            <button type="button" onclick="guardarPresentacionesProducto({ mantenerPanel: true })" style="padding:8px 12px; border:1px solid #1d4ed8; background:#1d4ed8; color:#ffffff; border-radius:6px; cursor:pointer; font-weight:600;"><i class="fas fa-save"></i> GUARDAR PRESENTACIÓN</button>
+                        </div>
                     </div>
                 </div>
 
@@ -4037,7 +4051,9 @@ try {
                         formData.append('categoria_id', document.getElementById('categoriaEdit').value);
                         formData.append('codigo_barras', document.getElementById('editProdCodigoBarras').value.trim());
                         formData.append('venta_por_kilo', document.getElementById('ventaPorKiloEdit').checked ? '1' : '0');
-                        formData.append('maneja_presentaciones', document.getElementById('manejaPresentacionesEdit').checked ? '1' : '0');
+                        const labelPresEditar = document.getElementById('labelPresentacionesEdit');
+                        const presentacionesYaActivas = labelPresEditar && labelPresEditar.style.display === 'none';
+                        formData.append('maneja_presentaciones', (presentacionesYaActivas || document.getElementById('manejaPresentacionesEdit').checked) ? '1' : '0');
                         formData.append('precio_compra', document.getElementById('editProdPrecioCompra').value);
                         formData.append('precio', document.getElementById('editProdPrecio').value);
                         formData.append('stock', document.getElementById('editProdStock').value);
@@ -4054,16 +4070,40 @@ try {
                         })
                         .then(response => response.json())
                         .then(data => {
-                            if (data.success) {
+                            if (!data.success) {
+                                mostrarAlerta('error', data.message || 'Error al actualizar');
+                                return;
+                            }
+                            const finalizarActualizacion = () => {
                                 cerrarEditModal();
                                 mostrarAlerta('success', '¡EL PRODUCTO HA SIDO ACTUALIZADO!');
                                 notificarCambioDashboard();
                                 setTimeout(() => {
                                     refrescarProductosManteniendoScroll();
                                 }, 1500);
-                            } else {
-                                mostrarAlerta('error', data.message || 'Error al actualizar');
+                            };
+                            const checkPres = document.getElementById('manejaPresentacionesEdit');
+                            const labelPres = document.getElementById('labelPresentacionesEdit');
+                            const panelVisible = labelPres && labelPres.style.display !== 'none';
+                            const contenidoPres = document.getElementById('presentacionesContenido');
+                            const btnActualizar = document.getElementById('btnSaveEdit');
+                            const debeGuardarPresentaciones = !!(checkPres && checkPres.checked && panelVisible && contenidoPres && contenidoPres.style.display === 'block' && btnActualizar && btnActualizar.disabled);
+                            if (!debeGuardarPresentaciones || typeof guardarPresentacionesProducto !== 'function') {
+                                finalizarActualizacion();
+                                return;
                             }
+                            // No guardar automáticamente las presentaciones - el usuario debe guardarlas manualmente primero
+                            if (window.Swal) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Guarda las presentaciones',
+                                    text: 'Debes guardar las presentaciones primero antes de actualizar el producto',
+                                    confirmButtonColor: '#1d4ed8'
+                                });
+                            } else {
+                                mostrarAlerta('error', 'Debes guardar las presentaciones primero antes de actualizar el producto');
+                            }
+                            return;
                         })
                         .catch(error => {
                             console.error('Error:', error);
@@ -4130,16 +4170,42 @@ try {
         let presentacionesActuales = [];
 
         function alternarPresentaciones() {
-            const activo = document.getElementById('manejaPresentaciones').checked;
+            const check = document.getElementById('manejaPresentacionesEdit');
+            const activo = !!(check && check.checked);
             document.getElementById('presentacionesContenido').style.display = activo ? 'block' : 'none';
             if (activo && document.querySelectorAll('#presentacionesFilas .fila-presentacion').length === 0) {
-                agregarFilaPresentacion({ nombre: 'UNIDAD', factor_padre: 1 });
+                agregarFilaPresentacion({
+                    nombre: 'UNIDAD',
+                    factor_padre: 1,
+                    precio_compra: parseFloat(document.getElementById('editProdPrecioCompra').value || '0') || 0,
+                    precio_venta: parseFloat(document.getElementById('editProdPrecio').value || '0') || 0
+                });
                 agregarFilaPresentacion({ nombre: 'PAQUETE', factor_padre: 12 });
+            }
+            if (activo && !presentacionesActuales.length) {
+                const resumen = document.getElementById('presentacionesResumen');
+                const stockActual = document.getElementById('editProdStock').value || '0';
+                if (resumen) {
+                    resumen.style.display = 'block';
+                    resumen.innerHTML = '<i class="fas fa-warehouse"></i> STOCK ACTUAL DEL PRODUCTO: ' + stockActual + ' UNIDADES (pasa automáticamente a la presentación UNIDAD).';
+                }
+            }
+            // Bloquear botón ACTUALIZAR PRODUCTO cuando se activan presentaciones si hay filas
+            const btnActualizar = document.getElementById('btnSaveEdit');
+            const hayFilas = document.querySelectorAll('#presentacionesFilas .fila-presentacion').length > 0;
+            if (btnActualizar && activo && hayFilas) {
+                btnActualizar.disabled = true;
+                btnActualizar.style.opacity = '0.5';
+                btnActualizar.style.cursor = 'not-allowed';
+            } else if (btnActualizar && !activo) {
+                btnActualizar.disabled = false;
+                btnActualizar.style.opacity = '1';
+                btnActualizar.style.cursor = 'pointer';
             }
         }
 
         function abrirPanelPresentaciones() {
-            const check = document.getElementById('manejaPresentaciones');
+            const check = document.getElementById('manejaPresentacionesEdit');
             if (check) check.checked = true;
             alternarPresentaciones();
         }
@@ -4178,12 +4244,15 @@ try {
         }
 
         function cargarPresentacionesProducto(productoId) {
-            const check = document.getElementById('manejaPresentaciones');
+            const check = document.getElementById('manejaPresentacionesEdit');
+            const labelPres = document.getElementById('labelPresentacionesEdit');
             const cont = document.getElementById('presentacionesFilas');
             const resumen = document.getElementById('presentacionesResumen');
             if (!check || !cont) return;
             cont.innerHTML = '';
             check.checked = false;
+            presentacionesActuales = [];
+            if (labelPres) labelPres.style.display = '';
             document.getElementById('presentacionesContenido').style.display = 'none';
             if (resumen) resumen.style.display = 'none';
 
@@ -4193,13 +4262,10 @@ try {
                     if (!res.success) return;
                     presentacionesActuales = res.presentaciones || [];
                     if (res.maneja_presentaciones && presentacionesActuales.length) {
-                        check.checked = true;
-                        document.getElementById('presentacionesContenido').style.display = 'block';
-                        presentacionesActuales.forEach(p => agregarFilaPresentacion(p));
-                        if (resumen && res.texto) {
-                            resumen.style.display = 'block';
-                            resumen.innerHTML = '<i class="fas fa-warehouse"></i> STOCK FÍSICO: ' + res.texto;
-                        }
+                        // El producto ya tiene presentaciones activas: no se muestran en editar, solo en entrada de inventario.
+                        if (labelPres) labelPres.style.display = 'none';
+                        check.checked = false;
+                        document.getElementById('presentacionesContenido').style.display = 'none';
                     }
                 })
                 .catch(() => {});
@@ -4218,32 +4284,119 @@ try {
             }));
         }
 
-        function guardarPresentacionesProducto() {
+        function repintarPresentacionesGuardadas(productoId) {
+            return fetch(`${urlInventarioPres}?action=obtenerPresentaciones&producto_id=${productoId}`, { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success) return;
+                    presentacionesActuales = res.presentaciones || [];
+                    const cont = document.getElementById('presentacionesFilas');
+                    if (!cont) return;
+                    cont.innerHTML = '';
+                    presentacionesActuales.forEach(p => agregarFilaPresentacion({
+                        id: p.id,
+                        nombre: p.nombre,
+                        factor_padre: p.factor_padre,
+                        precio_compra: p.precio_compra,
+                        precio_venta: p.precio_venta
+                    }));
+                })
+                .catch(() => {});
+        }
+
+        function guardarPresentacionesProducto(opciones = {}) {
+            const silencioso = !!opciones.silencioso;
+            const mantenerPanel = !!opciones.mantenerPanel;
             const productoId = document.getElementById('productoId').value;
-            const maneja = document.getElementById('manejaPresentaciones').checked ? '1' : '0';
+            const maneja = document.getElementById('manejaPresentacionesEdit').checked ? '1' : '0';
             const filas = recolectarPresentaciones();
             if (maneja === '1') {
                 if (filas.length < 2) {
-                    alert('Agrega al menos dos presentaciones (por ejemplo UNIDAD y PAQUETE).');
-                    return;
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Faltan presentaciones',
+                            text: 'Agrega al menos dos presentaciones (por ejemplo UNIDAD y PAQUETE).',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        alert('Agrega al menos dos presentaciones (por ejemplo UNIDAD y PAQUETE).');
+                    }
+                    return Promise.resolve(false);
                 }
                 if (filas.some(f => !f.nombre)) {
-                    alert('Todas las presentaciones necesitan un nombre.');
-                    return;
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Faltan nombres',
+                            text: 'Todas las presentaciones necesitan un nombre.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        alert('Todas las presentaciones necesitan un nombre.');
+                    }
+                    return Promise.resolve(false);
                 }
             }
             const body = new FormData();
+            body.append('action', 'guardarPresentaciones');
             body.append('producto_id', productoId);
             body.append('maneja_presentaciones', maneja);
             body.append('presentaciones', JSON.stringify(filas));
 
-            fetch(`${urlInventarioPres}?action=guardarPresentaciones`, { method: 'POST', body })
+            return fetch(`${urlInventarioPres}?action=guardarPresentaciones`, { method: 'POST', body })
                 .then(r => r.json())
                 .then(res => {
-                    alert(res.message || (res.success ? 'Presentaciones guardadas' : 'No se pudo guardar'));
-                    if (res.success) cargarPresentacionesProducto(productoId);
+                    if (!res.success || !silencioso) {
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: res.success ? 'success' : 'error',
+                                title: res.success ? '¡Guardado!' : 'Error',
+                                text: res.message || (res.success ? 'Presentaciones guardadas' : 'No se pudo guardar'),
+                                confirmButtonColor: '#1d4ed8'
+                            });
+                        } else {
+                            alert(res.message || (res.success ? 'Presentaciones guardadas' : 'No se pudo guardar'));
+                        }
+                    }
+                    if (res.success) {
+                        if (mantenerPanel) {
+                            repintarPresentacionesGuardadas(productoId);
+                        } else {
+                            cargarPresentacionesProducto(productoId);
+                        }
+                        // Habilitar botón ACTUALIZAR PRODUCTO cuando se guardan las presentaciones
+                        const btnActualizar = document.getElementById('btnSaveEdit');
+                        if (btnActualizar) {
+                            btnActualizar.disabled = false;
+                            btnActualizar.style.opacity = '1';
+                            btnActualizar.style.cursor = 'pointer';
+                        }
+                        // Mostrar indicador visual de que las presentaciones están guardadas
+                        const resumen = document.getElementById('presentacionesResumen');
+                        if (resumen) {
+                            resumen.style.display = 'block';
+                            resumen.style.background = '#eefcf3';
+                            resumen.style.borderColor = '#b8e4c7';
+                            resumen.style.color = '#18794e';
+                            resumen.innerHTML = '<i class="fas fa-check-circle"></i> PRESENTACIONES GUARDADAS CORRECTAMENTE';
+                        }
+                    }
+                    return !!res.success;
                 })
-                .catch(() => alert('No se pudo guardar las presentaciones.'));
+                .catch(() => {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo guardar las presentaciones.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        alert('No se pudo guardar las presentaciones.');
+                    }
+                    return false;
+                });
         }
 
         function abrirPresentacionManual(boton) {
@@ -4252,22 +4405,72 @@ try {
             const productoId = document.getElementById('productoId').value;
             const nombre = fila.querySelector('.pres-nombre').value || 'PRESENTACIÓN';
             if (!presentacionId) {
-                alert('Guarda primero las presentaciones para poder abrirlas.');
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Guarda primero',
+                        text: 'Guarda primero las presentaciones para poder abrirlas.',
+                        confirmButtonColor: '#1d4ed8'
+                    });
+                } else {
+                    alert('Guarda primero las presentaciones para poder abrirlas.');
+                }
                 return;
             }
-            if (!confirm(`¿Abrir 1 ${nombre}? Se convertirá en su equivalente de la presentación menor.`)) return;
+            if (window.Swal) {
+                Swal.fire({
+                    title: `¿Abrir 1 ${nombre}?`,
+                    text: 'Se convertirá en su equivalente de la presentación menor.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1d4ed8',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Sí, abrir',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        realizarAperturaPresentacion(productoId, presentacionId);
+                    }
+                });
+            } else {
+                if (!confirm(`¿Abrir 1 ${nombre}? Se convertirá en su equivalente de la presentación menor.`)) return;
+                realizarAperturaPresentacion(productoId, presentacionId);
+            }
+        }
 
+        function realizarAperturaPresentacion(productoId, presentacionId) {
             const body = new FormData();
+            body.append('action', 'abrirPresentacion');
             body.append('producto_id', productoId);
             body.append('presentacion_id', presentacionId);
             body.append('cantidad', '1');
             fetch(`${urlInventarioPres}?action=abrirPresentacion`, { method: 'POST', body })
                 .then(r => r.json())
                 .then(res => {
-                    alert(res.message || (res.success ? 'Presentación abierta' : 'No se pudo abrir'));
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: res.success ? 'success' : 'error',
+                            title: res.success ? '¡Abierta!' : 'Error',
+                            text: res.message || (res.success ? 'Presentación abierta' : 'No se pudo abrir'),
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        alert(res.message || (res.success ? 'Presentación abierta' : 'No se pudo abrir'));
+                    }
                     if (res.success) cargarPresentacionesProducto(productoId);
                 })
-                .catch(() => alert('No se pudo abrir la presentación.'));
+                .catch(() => {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo abrir la presentación.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        alert('No se pudo abrir la presentación.');
+                    }
+                });
         }
     </script>
 

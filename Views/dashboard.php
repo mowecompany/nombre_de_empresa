@@ -9214,10 +9214,13 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                         </a>
                     <?php endif; ?>
 
-                    <a href="bascula.php" class="menu-item">
-                        <i class="fas fa-balance-scale"></i>
-                        <span class="menu-item-text">BÁSCULA</span>
-                    </a>
+                    <?php if ($esSuperAdminGlobalSesion && !$modoMenuPortable): ?>
+                        <a href="bascula.php" class="menu-item">
+                            <i class="fas fa-balance-scale"></i>
+                            <span class="menu-item-text">BÁSCULA</span>
+                        </a>
+                    <?php endif; ?>
+
 
                     <a href="conexion.php" class="menu-item">
                         <i class="fas fa-plug"></i>
@@ -11534,12 +11537,10 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             let moduleLoadTimer = null;
             const moduleSkeleton = document.getElementById('moduleSkeleton');
 
-            const showModuleSkeleton = () => {
-                if (!moduleSkeleton || !window.EstrellaSkeleton) return;
-                moduleSkeleton.style.display = 'flex';
-                moduleSkeleton.classList.add('is-active');
-                window.EstrellaSkeleton.show(moduleSkeleton, 'page');
-            };
+            // El esqueleto de pagina completa se retiro: cada pantalla dibuja su
+            // propio esqueleto en su tabla, tarjetas o panel.
+            const showModuleSkeleton = () => {};
+
 
             const hideModuleSkeleton = () => {
                 if (!moduleSkeleton) return;

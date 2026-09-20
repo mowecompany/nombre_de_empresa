@@ -98,6 +98,11 @@ $baseUrl = rtrim((string)base_url(), '/');
         .pagination { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:16px; }
         .pagination button { border:1px solid #2f4a5a; background:#2f4a5a; color:#fff; border-radius:8px; padding:5px 7px; min-height:28px; min-width:28px; font-size:11px; cursor:pointer; }
         .pagination button:disabled { opacity:.45; cursor:not-allowed; }
+        .inventory-list-search { flex:1; padding:12px 14px; border:1px solid var(--border); border-radius:7px; background:#fff; outline:none; }
+        .inventory-page-size { width:auto; padding:5px 7px; font-size:11px; border:1px solid #2f4a5a; border-radius:8px; background:#fff; color:#2f4a5a; }
+        .inventory-pagination { display:flex; gap:6px; }
+        .inventory-page-prev, .inventory-page-next { border:1px solid #2f4a5a !important; background:#2f4a5a !important; color:#fff !important; border-radius:8px; padding:4px 7px; min-height:26px; width:28px; font-size:10px; cursor:pointer; }
+        .inventory-page-prev:disabled, .inventory-page-next:disabled { opacity:0.45 !important; cursor:not-allowed !important; }
 
         .btn-save {
             display: inline-flex;
@@ -150,12 +155,12 @@ $baseUrl = rtrim((string)base_url(), '/');
                 <button type="button" class="button" style="background:#64748b;" onclick="confirmarDeshacerReinicioCreditos()"><i class="fas fa-undo"></i> DESHACER</button>
             </div>
         </header>
-        <div class="toolbar">
-            <input class="search" id="buscarCredito" type="search" placeholder="BUSCAR CLIENTE, DOCUMENTO, CÓDIGO O REFERENCIA" oninput="renderizarCreditos()">
-            <select id="creditosPorPagina" class="search" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;color:#2f4a5a;background:#fff;">
+        <div class="toolbar" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <input type="search" id="buscarCredito" placeholder="BUSCAR CLIENTE, DOCUMENTO, CÓDIGO O REFERENCIA" style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;" oninput="renderizarCreditos()">
+            <select id="creditosPorPagina" class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;">
                     <option value="25">25</option><option value="50" selected>50</option><option value="100">100</option><option value="200">200</option>
             </select>
-            <div id="creditosPaginacion" class="pagination" style="margin:0;"></div>
+            <div id="creditosPaginacion" class="inventory-pagination" style="display:flex;gap:6px;"></div>
         </div>
         <section class="layout">
             <div class="panel">
@@ -367,13 +372,40 @@ $baseUrl = rtrim((string)base_url(), '/');
                 : '<span class="credit-state-chip paid"><span class="status-dot"></span>PAGADO</span>';
             return `<button type="button" class="credit-row ${claseEstado}" data-credito-id="${creditoId}" onclick="mostrarPerfilCredito(${creditoId}, this)"><div class="row-top"><div class="client-name-wrap"><div class="client-name">${escapar(nombreSplit.nombre || 'CLIENTE')}</div><div class="client-lastname">${escapar(nombreSplit.apellido || '')}</div><div class="client-meta">DOC: ${escapar(credito.documento || 'N/D')}</div></div><div class="credit-side"><div class="credit-code">${escapar(String(credito.codigo || 'N/D').toUpperCase())}</div></div></div><div class="row-footer"><div class="credit-total-box"><strong>${totalCompacto}</strong><span>TOTAL</span></div><div class="credit-status-wrap">${badgeEstado}</div></div></button>`;
         }).join('') : '<div class="empty">No hay créditos para mostrar.</div>';
-        document.getElementById('creditosPaginacion').innerHTML = filtrados.length > porPagina ? `<button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - (paginaActual - 1)} / ${totalPaginas}</span><button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>` : '';
+        document.getElementById('creditosPaginacion').innerHTML = `<button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - (paginaActual - 1)} / ${totalPaginas}</span><button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
     }
 
     function cambiarPagina(direccion) {
         paginaActual += direccion;
         renderizarCreditos();
     }
+
+    // Event listeners para las flechas del paginador
+    document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.inventory-page-prev')) {
+                e.preventDefault();
+                if (paginaActual > 1) {
+                    paginaActual--;
+                    renderizarCreditos();
+                }
+            }
+            if (e.target.closest('.inventory-page-next')) {
+                e.preventDefault();
+                const lista = document.getElementById('creditosLista');
+                const filtro = document.getElementById('buscarCredito').value || '';
+                const filtrados = creditos.filter(credito => {
+                    const productos = (credito.detalles || []).map(item => `${item.producto_nombre || ''} ${item.producto_codigo || ''} ${item.producto_codigo_barras || ''}`).join(' ');
+                    return coincideBusquedaCredito(`${nombreCliente(credito)} ${credito.documento || ''} ${credito.codigo || ''} ${credito.referencia || ''} ${productos}`, filtro);
+                });
+                const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
+                if (paginaActual < totalPaginas) {
+                    paginaActual++;
+                    renderizarCreditos();
+                }
+            }
+        });
+    });
 
     document.getElementById('creditosPorPagina').addEventListener('change', (event) => {
         const tamanoAnterior = porPagina;

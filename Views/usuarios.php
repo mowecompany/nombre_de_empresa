@@ -62,8 +62,7 @@ if ($usuariosPagina === $usuariosTotalPaginas && $usuariosTotal > $usuariosTaman
     $usuariosOffset = max(0, $usuariosTotal - $usuariosTamanoPagina);
 }
 $usuarios = $controller->listarUsuarios($usuariosTamanoPagina, $usuariosOffset);
-// Mostrar la página en orden descendente: el usuario con mayor id del chunk arriba.
-if (is_array($usuarios)) { $usuarios = array_reverse($usuarios); }
+// La consulta ya viene ORDER BY u.id DESC: el usuario con mayor id queda arriba.
 
 $existeColumna = function(string $tabla, string $columna) use ($db): bool {
     try {

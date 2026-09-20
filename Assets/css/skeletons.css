@@ -82,3 +82,13 @@
     .skeleton-card-grid { grid-template-columns: 1fr; }
     .skeleton-table-row:nth-child(n+6) { display: none; }
 }
+
+/* Paginadores: flechas en gris y no pulsables al llegar al limite */
+.inventory-page-prev:disabled,
+.inventory-page-next:disabled,
+.chart-list-btn:disabled,
+.pagination button:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
