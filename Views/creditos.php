@@ -138,6 +138,7 @@ $baseUrl = rtrim((string)base_url(), '/');
     </style>
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/redondeo-precio-venta.js"></script>
 </head>
 <body>
@@ -348,7 +349,7 @@ $baseUrl = rtrim((string)base_url(), '/');
         });
         const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
         paginaActual = Math.min(paginaActual, totalPaginas);
-        const inicio = (paginaActual - 1) * porPagina;
+        const inicio = window.EstrellaPaginacion.inicioBloque(filtrados.length, paginaActual - 1, porPagina);
         const pagina = filtrados.slice(inicio, inicio + porPagina).slice().reverse();
         lista.innerHTML = pagina.length ? pagina.map(credito => {
             const estadoTexto = formatoEstadoCredito(credito);
@@ -376,9 +377,13 @@ $baseUrl = rtrim((string)base_url(), '/');
 
     document.getElementById('creditosPorPagina').addEventListener('change', (event) => {
         const tamanoAnterior = porPagina;
-        const indiceCreditoAncla = (paginaActual - 1) * tamanoAnterior;
+        const filtroCreditoActual = document.getElementById('buscarCredito')?.value || '';
+        const totalCreditosFiltrados = creditos.filter(credito => {
+            const productosCredito = (credito.detalles || []).map(item => `${item.producto_nombre || ''} ${item.producto_codigo || ''} ${item.producto_codigo_barras || ''}`).join(' ');
+            return coincideBusquedaCredito(`${nombreCliente(credito)} ${credito.documento || ''} ${credito.codigo || ''} ${credito.referencia || ''} ${productosCredito}`, filtroCreditoActual);
+        }).length;
         porPagina = Number(event.target.value) || 8;
-        paginaActual = Math.floor(indiceCreditoAncla / porPagina) + 1;
+        paginaActual = window.EstrellaPaginacion.paginaAlCambiarTamano(totalCreditosFiltrados, paginaActual - 1, tamanoAnterior, porPagina) + 1;
         renderizarCreditos();
     });
 

@@ -251,6 +251,7 @@ $baseUrl = rtrim((string)base_url(), '/');
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/redondeo-precio-venta.js"></script>
 </head>
 <body class="page-codigos">
@@ -368,9 +369,10 @@ $baseUrl = rtrim((string)base_url(), '/');
                 const textoProducto = `${product.id || ''} ${product.nombre || ''} ${product.codigo || ''} ${product.codigo_barras || ''} ${product.categoria_nombre || ''}`;
                 return coincideBusquedaProducto(textoProducto, query);
             });
-            const totalPaginas = Math.max(1, Math.ceil(visibleAll.length / codesPageSize));
+            const totalPaginas = window.EstrellaPaginacion.totalPaginas(visibleAll.length, codesPageSize);
             codesPage = Math.min(codesPage, totalPaginas - 1);
-            const visible = visibleAll.slice(codesPage * codesPageSize, (codesPage + 1) * codesPageSize);
+            const inicioCodigos = window.EstrellaPaginacion.inicioBloque(visibleAll.length, codesPage, codesPageSize);
+            const visible = visibleAll.slice(inicioCodigos, inicioCodigos + codesPageSize);
 
             // Generar paginador dinámico
             const paginationDiv = document.getElementById('codes-pagination');
@@ -378,7 +380,7 @@ $baseUrl = rtrim((string)base_url(), '/');
                 paginationDiv.innerHTML = `
                     <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${codesPage === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
                     <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - codesPage} / ${totalPaginas}</span>
-                    <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${(codesPage + 1) * codesPageSize >= visibleAll.length ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
+                    <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${codesPage >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
                 `;
             }
             if (!visibleAll.length) {
@@ -493,7 +495,7 @@ $baseUrl = rtrim((string)base_url(), '/');
                 const productsData = await productsResponse.json();
                 const categoriesData = await categoriesResponse.json();
                 if (!productsData.success || !Array.isArray(productsData.data)) throw new Error('Respuesta inválida');
-                products = productsData.data;
+                products = window.EstrellaPaginacion.recientesPrimero(productsData.data, ['id']);
                 categoryImages = {};
                 if (categoriesData.success && Array.isArray(categoriesData.data)) {
                     categoriesData.data.forEach(category => {
@@ -516,9 +518,9 @@ $baseUrl = rtrim((string)base_url(), '/');
         });
         document.getElementById('codes-page-size').addEventListener('change', (event) => {
             const tamanoAnterior = codesPageSize;
-            const indiceCodeAncla = codesPage * tamanoAnterior;
+            const totalCodigosFiltrados = products.filter(product => coincideBusquedaProducto(`${product.id || ''} ${product.nombre || ''} ${product.codigo || ''} ${product.codigo_barras || ''} ${product.categoria_nombre || ''}`, codesSearch.value)).length;
             codesPageSize = Number(event.target.value) || 50;
-            codesPage = Math.floor(indiceCodeAncla / codesPageSize);
+            codesPage = window.EstrellaPaginacion.paginaAlCambiarTamano(totalCodigosFiltrados, codesPage, tamanoAnterior, codesPageSize);
             renderProducts();
         });
         // Event listeners para paginador dinámico
