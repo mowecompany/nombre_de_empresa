@@ -158,8 +158,64 @@ const puertoBasculaForzado = (() => {
   return process.env.BASCULA_PUERTO || null;
 })();
 
-const basculaService = new BasculaService({ puertoForzado: puertoBasculaForzado });
+const basculaService = new BasculaService({ puertoForzado: puertoBasculaForzado, procesoId: process.pid });
 let ventanaDiagnosticoBascula = null;
+let cierreEnCurso = null;
+let salidaAutorizada = false;
+
+function listarCopiasPropiasDeEstrella() {
+  if (process.platform !== 'win32' || !app.isPackaged) return [];
+  const script = [
+    "$actual = " + process.pid,
+    "$rutaActual = [System.IO.Path]::GetFullPath('" + String(process.execPath).replace(/'/g, "''") + "')",
+    "$nombreValido = '^AUTOSERVICIO MI ESTRELLA(?: PORTABLE)?(?: v[0-9.]+)?\\.exe$'",
+    'Get-CimInstance Win32_Process | Where-Object {',
+    "  $_.ProcessId -ne $actual -and $_.Name -match $nombreValido -and $_.ExecutablePath -and $_.CommandLine -notmatch '--type=(renderer|gpu-process|utility|crashpad-handler)'",
+    '} | ForEach-Object {',
+    '  [PSCustomObject]@{ pid = $_.ProcessId; name = $_.Name; path = $_.ExecutablePath; samePath = ([System.IO.Path]::GetFullPath($_.ExecutablePath) -eq $rutaActual) }',
+    '} | ConvertTo-Json -Compress'
+  ].join('\n');
+  const consulta = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], {
+    windowsHide: true,
+    encoding: 'utf8',
+    timeout: 8000
+  });
+  if (consulta.status !== 0 || !String(consulta.stdout || '').trim()) return [];
+  try {
+    const parsed = JSON.parse(consulta.stdout);
+    // Solo una raíz anterior del mismo ejecutable puede ser un resto huérfano.
+    // La instalada y la portable tienen rutas distintas y nunca se cierran entre sí.
+    return (Array.isArray(parsed) ? parsed : [parsed]).filter((item) => Number(item.pid) > 0 && item.samePath === true);
+  } catch (_) {
+    return [];
+  }
+}
+
+async function recuperarPuertoDeCopiaAnterior() {
+  const copias = listarCopiasPropiasDeEstrella();
+  if (!copias.length) {
+    const resultado = {
+      ok: false,
+      pids: [],
+      mensaje: 'COM3 sigue ocupado, pero no pertenece a otra copia identificable de ESTRELLA. No se cerró ningún programa ajeno.'
+    };
+    basculaService.registrarRecuperacion(resultado);
+    return resultado;
+  }
+
+  basculaService.registrar('info', 'Cerrando una copia anterior de ESTRELLA que puede conservar el puerto', copias.map((item) => item.pid));
+  for (const copia of copias) {
+    spawnSync('taskkill', ['/PID', String(copia.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore', timeout: 8000 });
+  }
+  await new Promise((resolve) => setTimeout(resolve, 1200));
+  const resultado = {
+    ok: true,
+    pids: copias.map((item) => item.pid),
+    mensaje: `Se cerró ${copias.length === 1 ? 'la copia anterior' : 'las copias anteriores'} de ESTRELLA. Esperando que Windows libere COM3.`
+  };
+  basculaService.registrarRecuperacion(resultado);
+  return resultado;
+}
 
 function enviarABascula(canal, payload) {
   const ventanas = [mainWindow, ventanaDiagnosticoBascula].filter((v) => v && !v.isDestroyed());
@@ -658,8 +714,10 @@ function createMainWindow(serverUrl) {
     mainWindow.show();
   });
 
-  mainWindow.on('close', () => {
-    stopPhpServer();
+  mainWindow.on('close', (event) => {
+    if (salidaAutorizada) return;
+    event.preventDefault();
+    solicitarCierreAplicacion().catch(() => {});
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -840,22 +898,50 @@ app.whenReady().then(async () => {
     createMainWindow(serverUrl);
     // La báscula se conecta sola al arrancar y se mantiene abierta toda la sesión.
     basculaService.iniciar();
+    // Una versión anterior que quedó invisible puede conservar COM3. Damos
+    // tiempo al primer intento y recuperamos solamente procesos de ESTRELLA.
+    setTimeout(async () => {
+      if (basculaService.estado().ultimoError?.codigo !== 'puerto-ocupado') return;
+      const recuperacion = await recuperarPuertoDeCopiaAnterior();
+      if (recuperacion.ok) await basculaService.reconectar();
+    }, 1200);
   } catch (error) {
     showFatalError('No se pudo iniciar la aplicación.', error.message);
     app.quit();
   }
 });
 
-app.on('before-quit', () => {
-  basculaService.detener().catch(() => {});
-  stopPhpServer();
+async function solicitarCierreAplicacion({ reiniciar = false } = {}) {
+  if (cierreEnCurso) return cierreEnCurso;
+  cierreEnCurso = (async () => {
+    basculaService.registrar('info', reiniciar ? 'Reinicio seguro de ESTRELLA solicitado' : 'Cierre seguro de ESTRELLA solicitado');
+    await basculaService.detener();
+    if (ventanaDiagnosticoBascula && !ventanaDiagnosticoBascula.isDestroyed()) {
+      ventanaDiagnosticoBascula.destroy();
+      ventanaDiagnosticoBascula = null;
+    }
+    await stopPhpServerAndWait();
+    salidaAutorizada = true;
+    if (reiniciar) app.relaunch();
+    for (const ventana of BrowserWindow.getAllWindows()) {
+      if (!ventana.isDestroyed()) ventana.destroy();
+    }
+    app.exit(0);
+  })();
+  return cierreEnCurso;
+}
+
+app.on('before-quit', (event) => {
+  if (salidaAutorizada) return;
+  event.preventDefault();
+  solicitarCierreAplicacion().catch(() => {
+    salidaAutorizada = true;
+    app.exit(1);
+  });
 });
 
 app.on('window-all-closed', () => {
-  stopPhpServer();
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  if (process.platform !== 'darwin' && !salidaAutorizada) solicitarCierreAplicacion().catch(() => {});
 });
 
 app.on('activate', () => {
@@ -878,6 +964,9 @@ ipcMain.handle('bascula:diagnostico', async () => {
 ipcMain.handle('bascula:comando', async (_event, comando) => {
   switch (String(comando || '')) {
     case 'reconectar':
+      if (basculaService.estado().ultimoError?.codigo === 'puerto-ocupado') {
+        await recuperarPuertoDeCopiaAnterior();
+      }
       return basculaService.reconectar();
     case 'tarar':
       return basculaService.tarar();
@@ -1027,10 +1116,7 @@ ipcMain.handle('stop-main-server', async () => {
     ? { intentado: false, ok: false, mensaje: `Servidor apagado. Puerto ${puertoServidor} liberado.` }
     : firewall;
 
-  setTimeout(() => {
-    app.relaunch();
-    app.exit(0);
-  }, 700);
+  setTimeout(() => solicitarCierreAplicacion({ reiniciar: true }).catch(() => {}), 700);
 
   return {
     ok: true,
@@ -1044,9 +1130,8 @@ ipcMain.handle('stop-main-server', async () => {
 });
 
 ipcMain.handle('restart-app', async () => {
-  await stopPhpServerAndWait();
-  app.relaunch();
-  app.exit(0);
+  setImmediate(() => solicitarCierreAplicacion({ reiniciar: true }).catch(() => {}));
+  return { ok: true, restarting: true };
 });
 
 ipcMain.handle('check-remote-server', async (_, rawUrl) => {

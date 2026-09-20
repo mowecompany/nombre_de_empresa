@@ -208,7 +208,7 @@ require_once ROOT_PATH . '/Config/Config.php';
         } else if (estado.ultimoError) {
             chip.className = 'estado-chip mal';
             $('estadoTexto').textContent = 'Sin conexión con la báscula';
-            mostrarAviso($('avisoCaja'), estado.ultimoError.mensaje + '\n\nPulse "Reconectar báscula" cuando lo haya resuelto.', true);
+            mostrarAviso($('avisoCaja'), estado.ultimoError.mensaje + '\n\nPulse "Reconectar báscula": ESTRELLA buscará y cerrará únicamente una copia anterior propia. Nunca cerrará otros programas.', true);
         } else {
             chip.className = 'estado-chip aviso';
             $('estadoTexto').textContent = 'Báscula no detectada';
@@ -272,12 +272,14 @@ require_once ROOT_PATH . '/Config/Config.php';
         boton.innerHTML = '<i class="fas fa-rotate"></i> Reiniciando el puerto…';
         mostrarAviso($('avisoAccion'), 'Reiniciando el puerto de la báscula…', false);
         try {
+            mostrarAviso($('avisoAccion'), 'Buscando una copia anterior de ESTRELLA y liberando COM3…', false);
             const r = await api.reconectar();
             if (r && r.estado) pintarEstado(r.estado);
             if (r && r.ok) {
                 mostrarAviso($('avisoAccion'), 'Báscula reconectada en ' + (r.puerto || 'el puerto detectado') + '.', false);
             } else {
-                mostrarAviso($('avisoAccion'), (r && r.error ? r.error : 'No se pudo reconectar con la báscula.') + ' La aplicación sigue intentándolo sola: en cuanto la detecte se conecta automáticamente.', true);
+                const recuperacion = r && r.estado && r.estado.ultimaRecuperacion ? r.estado.ultimaRecuperacion.mensaje + ' ' : '';
+                mostrarAviso($('avisoAccion'), recuperacion + (r && r.error ? r.error : 'No se pudo reconectar con la báscula.') + ' La aplicación sigue intentándolo sola: en cuanto COM3 quede libre, se conecta automáticamente.', true);
             }
         } catch (error) {
             mostrarAviso($('avisoAccion'), 'No se pudo reconectar: ' + (error && error.message ? error.message : error), true);

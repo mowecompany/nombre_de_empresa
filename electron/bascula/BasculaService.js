@@ -35,6 +35,7 @@ class BasculaService extends EventEmitter {
     super();
     this.config = { ...CONFIG_POR_DEFECTO, ...(opciones.config || {}) };
     this.puertoForzado = opciones.puertoForzado || null;
+    this.procesoId = opciones.procesoId || process.pid;
     this.port = null;
     this.parser = null;
     this.abriendo = false;
@@ -47,6 +48,7 @@ class BasculaService extends EventEmitter {
     this.ultimoPeso = null;
     this.registros = [];
     this.ultimoError = null;
+    this.ultimaRecuperacion = null;
     this.tara = 0;
     this.disponible = Boolean(SerialPort);
     this.errorLibreria = errorCargaSerial ? (errorCargaSerial.message || String(errorCargaSerial)) : null;
@@ -82,11 +84,16 @@ class BasculaService extends EventEmitter {
 
   async detener() {
     this.detenido = true;
+    this.reiniciando = false;
+    this.abriendo = false;
     if (this.temporizador) {
       clearInterval(this.temporizador);
       this.temporizador = null;
     }
-    await this.cerrarPuerto('servicio detenido');
+    await this.forzarCierre('servicio detenido');
+    this.abriendo = false;
+    this.reiniciando = false;
+    this.emitirEstado();
   }
 
   async bucle() {
@@ -182,6 +189,14 @@ class BasculaService extends EventEmitter {
         });
       });
 
+      // Si el cierre de ESTRELLA comenzó mientras Windows abría el COM,
+      // no publicar el manejador: cerrarlo antes de que el proceso termine.
+      if (this.detenido) {
+        await new Promise((resolve) => port.close(() => resolve()));
+        this.registrar('info', `Apertura de ${elegido.path} cancelada por cierre de la aplicación`);
+        return;
+      }
+
       this.port = port;
       this.parser = port.pipe(new ReadlineParser({ delimiter: '\n', includeDelimiter: false }));
       this.parser.on('data', (linea) => this.procesarTrama(linea));
@@ -249,7 +264,11 @@ class BasculaService extends EventEmitter {
     if (!port) return;
     try {
       if (port.isOpen) {
-        await new Promise((resolve) => port.close(() => resolve()));
+        await Promise.race([
+          new Promise((resolve) => port.close(() => resolve())),
+          this.esperar(2000)
+        ]);
+        if (port.isOpen && typeof port.destroy === 'function') port.destroy();
       }
     } catch (error) {
       this.registrar('warn', 'Cierre de puerto con incidencia', error.message);
@@ -263,12 +282,17 @@ esperar(ms) {
   }
 
   /** Cierra el puerto pase lo que pase y suelta el manejador. */
-  async forzarCierre() {
+  async forzarCierre(motivo = 'reinicio solicitado') {
     const port = this.port;
     this.port = null;
+    const parser = this.parser;
     this.parser = null;
-    if (!port) return;
+    if (!port) {
+      this.registrar('info', `No había un puerto propio que liberar (${motivo})`);
+      return { cerrado: true, teniaPuerto: false };
+    }
     try {
+      if (parser && typeof parser.removeAllListeners === 'function') parser.removeAllListeners();
       port.removeAllListeners('data');
       port.removeAllListeners('close');
       port.removeAllListeners('error');
@@ -282,10 +306,13 @@ esperar(ms) {
       if (port.isOpen && typeof port.destroy === 'function') {
         port.destroy();
       }
+      if (port.isOpen) throw new Error('Windows no confirmó el cierre del puerto dentro del tiempo esperado.');
     } catch (error) {
       this.registrar('warn', 'Cierre forzado con incidencia', error.message);
+      return { cerrado: false, teniaPuerto: true, error: error.message };
     }
-    this.registrar('info', 'Puerto liberado (reinicio solicitado)');
+    this.registrar('info', `Puerto liberado (${motivo})`);
+    return { cerrado: true, teniaPuerto: true };
   }
 
   /** Espera a que Windows libere realmente el COM antes de reabrirlo. */
@@ -338,7 +365,7 @@ esperar(ms) {
 
     try {
       // 3. Cierre forzado.
-      await this.forzarCierre();
+      await this.forzarCierre('reinicio solicitado');
       // 4. Esperar a que el sistema lo libere de verdad.
       await this.esperarPuertoLibre(rutaAnterior, 3000);
       // 5. Empezar de cero: sin error viejo ni adaptador cacheado.
@@ -385,6 +412,14 @@ esperar(ms) {
     return this.reiniciarPuerto();
   }
 
+  registrarRecuperacion(resultado) {
+    this.ultimaRecuperacion = resultado || null;
+    if (resultado?.mensaje) {
+      this.registrar(resultado.ok === false ? 'warn' : 'info', resultado.mensaje, resultado.pids || null);
+    }
+    this.emitirEstado();
+  }
+
   procesarTrama(tramaCruda) {
     const texto = String(tramaCruda).replace(/\r/g, '');
     this.ultimaTrama = { texto, hex: Buffer.from(texto, 'latin1').toString('hex'), ts: Date.now() };
@@ -428,6 +463,7 @@ esperar(ms) {
 
   estado() {
     return {
+      procesoId: this.procesoId,
       disponible: this.disponible,
       errorLibreria: this.errorLibreria,
       conectado: this.estaConectada(),
@@ -436,6 +472,7 @@ esperar(ms) {
       config: this.config,
       tara: this.tara,
       ultimoError: this.estaConectada() ? null : this.ultimoError,
+      ultimaRecuperacion: this.ultimaRecuperacion,
       ultimoPeso: this.ultimoPeso,
       ultimaTrama: this.ultimaTrama
     };

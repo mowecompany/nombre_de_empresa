@@ -94,3 +94,10 @@ para recompilarlo contra Electron 26. Sin ese paso el puerto no abre.
   o un monitor serial abierto. Ciérralo y pulsa Reintentar.
 - *La librería serial no está instalada*: falta `npm install` en `ESTRELLA`.
 - *Llega trama pero no peso*: copia la trama desde el diagnóstico para ajustar el parser.
+
+### Prueba de cierre y recuperación de COM3
+1. Abra ESTRELLA y confirme en F9 que la báscula está conectada.
+2. Cierre la ventana con la X y confirme en el Administrador de tareas que ESTRELLA desaparece.
+3. Abra ESTRELLA otra vez: debe detectar el CH340 y abrir COM3 automáticamente.
+4. Cierre sesión y vuelva a iniciarla: COM3 debe seguir abierto por la misma aplicación, sin desconectarse.
+5. Si una copia anterior de ESTRELLA quedó congelada, pulse **Reconectar báscula**. La copia actual solo cerrará procesos identificados con el nombre de ESTRELLA; nunca cerrará software de la balanza ni monitores seriales ajenos.
