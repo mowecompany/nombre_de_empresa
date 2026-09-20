@@ -838,6 +838,9 @@ try {
         if ($presentacion && $precio <= 0 && isset($presentacion['precio_compra']) && (float)$presentacion['precio_compra'] > 0) {
             $precio = max(0, (float)$presentacion['precio_compra']);
         }
+        if (function_exists('redondearPrecioVenta')) {
+            $precio = redondearPrecioVenta($precio);
+        }
 
         $clave = $productoId . ':' . $presentacionId;
         if (!isset($itemsAgrupados[$clave])) {
@@ -955,6 +958,9 @@ try {
             $cantidadPresentacion = isset($item['presentacion_id']) && (int)$item['presentacion_id'] > 0 ? max(0, (float)($item['cantidad_presentacion'] ?? 0)) : null;
             $presentacionId = (int)($item['presentacion_id'] ?? 0);
             $precio = max(0, (float)($item['precio_venta'] ?? 0));
+            if (function_exists('redondearPrecioVenta')) {
+                $precio = redondearPrecioVenta($precio);
+            }
             if ($productoId <= 0) {
                 continue;
             }

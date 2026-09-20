@@ -66,6 +66,8 @@ if ($esSuperAdmin) {
 // Obtener productos para los selectores
 try {
     $db = Database::connect();
+    require_once __DIR__ . '/../Models/Producto.php';
+    new Producto($db);
 
     $empresaIdSesion = isset($_SESSION['empresa_id']) ? (int)$_SESSION['empresa_id'] : (int)($_SESSION['userData']['empresa_id'] ?? 0);
     $usuarioIdSesion = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : (int)($_SESSION['userData']['idusuario'] ?? ($_SESSION['userData']['id'] ?? 0));
@@ -2741,7 +2743,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                     <div class="form-group">
                         <label for="precioVentaMostrado"><i class="fas fa-dollar-sign"></i> PRECIO VENTA (CALCULADO)</label>
-                        <input type="number" id="precioVentaMostrado" step="0.01" min="0" readonly autocomplete="off" style="background: #f8f9fa; cursor: not-allowed;">
+                        <input type="number" id="precioVentaMostrado" step="50" min="0" readonly autocomplete="off" style="background: #f8f9fa; cursor: not-allowed;">
                     </div>
                 </div>
 
@@ -3364,7 +3366,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                     <div class="form-group">
                         <label for="editProdPrecio"><i class="fas fa-dollar-sign"></i> PRECIO DE VENTA *</label>
-                        <input type="number" step="0.01" id="editProdPrecio" name="precio" autocomplete="off" required>
+                        <input type="number" step="50" id="editProdPrecio" name="precio" autocomplete="off" required>
                     </div>
                     <div class="form-group">
                         <label for="editProdStock"><i class="fas fa-cubes"></i> STOCK *</label>
@@ -8119,9 +8121,13 @@ if (is_file($logoPdfPath)) {
                         const codigo = String(item.codigo_producto || item.codigo || '').trim();
                         const nombre = String(item.nombre || 'PRODUCTO').trim();
                         const imagen = String(item.imagen || '');
-                        const precioBase = Number(item.precio ?? item.precio_venta ?? item.precio_original ?? 0) || 0;
+                        const precioBase = typeof redondearPrecioVenta === 'function'
+                            ? redondearPrecioVenta(Number(item.precio ?? item.precio_venta ?? item.precio_original ?? 0) || 0)
+                            : (Number(item.precio ?? item.precio_venta ?? item.precio_original ?? 0) || 0);
                         const descuento = Number(item.descuento_porcentaje ?? 0) || 0;
-                        const precioFinal = Number(item.precio_venta ?? 0) || 0;
+                        const precioFinal = typeof redondearPrecioVenta === 'function'
+                            ? redondearPrecioVenta(Number(item.precio_venta ?? precioBase) || 0)
+                            : (Number(item.precio_venta ?? 0) || 0);
                         const stock = Number(item.stock ?? 0) || 0;
                         const stockDisponible = Math.max(0, stock);
                         const codigoLabel = codigo ? ` [${codigo}]` : '';
@@ -8206,7 +8212,9 @@ if (is_file($logoPdfPath)) {
                         productos.forEach(item => {
                             let stock = Number(item.stock);
                             if (isNaN(stock)) stock = 0;
-                            const precioVenta = stock <= 0 ? 0 : parseFloat(item.precio_venta) || 0;
+                            const precioVenta = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                                ? redondearPrecioVenta(parseFloat(item.precio_venta) || 0)
+                                : (parseFloat(item.precio_venta) || 0));
                             stockTotal += stock;
                             valorTotal += stock * precioVenta;
                             if (item.categoria_nombre) {
@@ -8385,7 +8393,9 @@ if (is_file($logoPdfPath)) {
                         const precioCompra = stock <= 0 ? 0 : (parseFloat(p.ultimo_precio_compra ?? 0) || 0);
                         const precioOriginal = stock <= 0 ? 0 : (parseFloat(p.precio_original ?? p.precio ?? 0) || parseFloat(p.precio ?? 0) || 0);
                         const descuentoPct = stock <= 0 ? 0 : (parseFloat(p.descuento_porcentaje ?? 0) || 0);
-                        const precioVenta = stock <= 0 ? 0 : (parseFloat(p.precio_final ?? 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock));
+                        const precioVenta = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                            ? redondearPrecioVenta(parseFloat(p.precio_final ?? p.precio ?? 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock))
+                            : (parseFloat(p.precio_final ?? 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock)));
                         const porcentajeGanancia = stock <= 0 ? 0 : calcularPorcentajeGananciaInventario(precioVenta, precioCompra, p.porcentaje_ganancia);
                         const valorTotal = formatoMonedaInventario(precioVenta * stock);
                         const estado = p.estado == 1 ? 'ACTIVO' : 'INACTIVO';
@@ -8753,7 +8763,9 @@ if (is_file($logoPdfPath)) {
                             
                             // Calcular valores
                             const stockValue = parseFloat(item.stock || 0) || 0;
-                            const precioVenta = stockValue <= 0 ? 0 : parseFloat(item.precio_venta) || 0;
+                            const precioVenta = stockValue <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                                ? redondearPrecioVenta(parseFloat(item.precio_venta) || 0)
+                                : (parseFloat(item.precio_venta) || 0));
                             
                             // Determinar estado del stock
                             let stockBadge = 'badge-success';
@@ -10289,7 +10301,9 @@ if (is_file($logoPdfPath)) {
                 nombre: String(fila.querySelector('.entrada-pres-nombre')?.value || '').trim().toUpperCase(),
                 factor_padre: indice === 0 ? 1 : numero(fila.querySelector('.entrada-pres-factor')?.value, 12),
                 precio_compra: numero(fila.querySelector('.entrada-pres-compra')?.value, 0),
-                precio_venta: numero(fila.querySelector('.entrada-pres-venta')?.value, 0)
+                precio_venta: typeof redondearPrecioVenta === 'function'
+                    ? redondearPrecioVenta(numero(fila.querySelector('.entrada-pres-venta')?.value, 0))
+                    : numero(fila.querySelector('.entrada-pres-venta')?.value, 0)
             }));
             const body = new FormData();
             body.append('action', 'guardarPresentaciones');

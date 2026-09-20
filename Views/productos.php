@@ -2049,7 +2049,7 @@ try {
                     </div>
                     <div class="form-group">
                         <label for="editProdPrecio"><i class="fas fa-dollar-sign"></i> PRECIO DE VENTA</label>
-                        <input type="number" id="editProdPrecio" name="precio" min="0" step="0.01" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdPrecio" name="precio" min="0" step="50" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
                     </div>
                 </div>
 
@@ -4166,7 +4166,7 @@ try {
                 </div>
                 <div>
                     <small style="display:block;color:#667085;font-weight:600;">PRECIO VENTA</small>
-                    <input type="number" class="pres-venta" min="0" step="0.01" value="${d.precio_venta || 0}" style="width:100%;padding:9px;border:1px solid #e6e9ee;border-radius:6px;">
+                    <input type="number" class="pres-venta" min="0" step="50" value="${typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(d.precio_venta || 0) : (d.precio_venta || 0)}" style="width:100%;padding:9px;border:1px solid #e6e9ee;border-radius:6px;">
                 </div>
                 <div style="display:flex; gap:6px;">
                     ${esBase ? '' : `<button type="button" title="Abrir una unidad de esta presentación" onclick="abrirPresentacionManual(this)" style="padding:9px 10px;border:1px solid #027a48;background:#ffffff;color:#027a48;border-radius:6px;cursor:pointer;"><i class="fas fa-box-open"></i></button>
@@ -4209,7 +4209,9 @@ try {
                 nombre: fila.querySelector('.pres-nombre').value.trim().toUpperCase(),
                 factor_padre: idx === 0 ? 1 : parseFloat(fila.querySelector('.pres-factor').value || '1'),
                 precio_compra: parseFloat(fila.querySelector('.pres-compra').value || '0'),
-                precio_venta: parseFloat(fila.querySelector('.pres-venta').value || '0'),
+                precio_venta: typeof redondearPrecioVenta === 'function'
+                    ? redondearPrecioVenta(parseFloat(fila.querySelector('.pres-venta').value || '0'))
+                    : parseFloat(fila.querySelector('.pres-venta').value || '0'),
                 es_base: idx === 0 ? 1 : 0
             }));
         }

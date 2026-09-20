@@ -1442,9 +1442,11 @@ class Inventario {
                 $precioPresentacion = isset($datos['precio_venta']) && (float)$datos['precio_venta'] > 0
                     ? (float)$datos['precio_venta']
                     : $precioVentaPresentacion;
-                $precioVentaPresentacion = $precioPresentacion;
-                if ($precioPresentacion > 0) {
-                    $datos['precio_venta'] = $precioPresentacion / $factorSalida;
+                $precioVentaPresentacion = function_exists('redondearPrecioVenta')
+                    ? redondearPrecioVenta($precioPresentacion)
+                    : $precioPresentacion;
+                if ($precioVentaPresentacion > 0) {
+                    $datos['precio_venta'] = $precioVentaPresentacion / $factorSalida;
                 }
             }
 
@@ -1537,10 +1539,13 @@ class Inventario {
                     ? $precioVentaPresentacion * $cantidadPresentacionSalida
                     : $precioVentaUnitario * floatval($datos['cantidad']))
                 : 0.0;
+            if ($esVenta && function_exists('redondearPrecioVenta')) {
+                $totalVenta = redondearPrecioVenta($totalVenta);
+            }
             $totalGanancia = $esVenta
-                ? ($presentacionSalida
-                    ? ($precioVentaPresentacion - $costoPresentacion) * $cantidadPresentacionSalida
-                    : $gananciaUnitaria * floatval($datos['cantidad']))
+                ? ($totalVenta - ($presentacionSalida
+                    ? $costoPresentacion * $cantidadPresentacionSalida
+                    : $costoUnitario * floatval($datos['cantidad'])))
                 : 0.0;
             
             // Verificar si la columna 'notas' existe en la tabla

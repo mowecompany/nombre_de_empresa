@@ -568,7 +568,9 @@ $baseUrl = rtrim((string)base_url(), '/');
                 const detalleId = Number(cantidadInput.dataset.detalleId || 0);
                 const precioInput = precios.find(input => Number(input.dataset.detalleId || 0) === detalleId);
                 const cantidad = Number(cantidadInput.value || 0);
-                const precio = Number(precioInput?.value || 0);
+                const precio = typeof redondearPrecioVenta === 'function'
+                    ? redondearPrecioVenta(Number(precioInput?.value || 0))
+                    : Number(precioInput?.value || 0);
                 if (detalleId <= 0 || !(cantidad > 0) || precio < 0) {
                     throw new Error('Revisa las cantidades y precios de los productos.');
                 }
