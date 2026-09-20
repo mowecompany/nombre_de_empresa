@@ -266,10 +266,27 @@ require_once ROOT_PATH . '/Config/Config.php';
     api.onTrama(pintarTrama);
 
     $('btnReconectar').addEventListener('click', async () => {
-        mostrarAviso($('avisoAccion'), 'Reconectando…', false);
-        try { await api.reconectar(); mostrarAviso($('avisoAccion'), '', false); }
-        catch (error) { mostrarAviso($('avisoAccion'), 'No se pudo reconectar: ' + (error && error.message ? error.message : error), true); }
+        const boton = $('btnReconectar');
+        const textoOriginal = boton.innerHTML;
+        boton.disabled = true;
+        boton.innerHTML = '<i class="fas fa-rotate"></i> Reiniciando el puerto…';
+        mostrarAviso($('avisoAccion'), 'Reiniciando el puerto de la báscula…', false);
+        try {
+            const r = await api.reconectar();
+            if (r && r.estado) pintarEstado(r.estado);
+            if (r && r.ok) {
+                mostrarAviso($('avisoAccion'), 'Báscula reconectada en ' + (r.puerto || 'el puerto detectado') + '.', false);
+            } else {
+                mostrarAviso($('avisoAccion'), (r && r.error ? r.error : 'No se pudo reconectar con la báscula.') + ' La aplicación sigue intentándolo sola: en cuanto la detecte se conecta automáticamente.', true);
+            }
+        } catch (error) {
+            mostrarAviso($('avisoAccion'), 'No se pudo reconectar: ' + (error && error.message ? error.message : error), true);
+        } finally {
+            boton.disabled = false;
+            boton.innerHTML = textoOriginal;
+        }
         refrescar();
+        setTimeout(refrescar, 1500);
     });
     $('btnTarar').addEventListener('click', async () => { await api.tarar(); refrescar(); });
     $('btnQuitarTara').addEventListener('click', async () => { await api.quitarTara(); refrescar(); });

@@ -38,6 +38,7 @@ class BasculaService extends EventEmitter {
     this.port = null;
     this.parser = null;
     this.abriendo = false;
+    this.reiniciando = false;
     this.detenido = true;
     this.temporizador = null;
     this.puertosDetectados = [];
@@ -257,11 +258,131 @@ class BasculaService extends EventEmitter {
     this.emitirEstado();
   }
 
+esperar(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /** Cierra el puerto pase lo que pase y suelta el manejador. */
+  async forzarCierre() {
+    const port = this.port;
+    this.port = null;
+    this.parser = null;
+    if (!port) return;
+    try {
+      port.removeAllListeners('data');
+      port.removeAllListeners('close');
+      port.removeAllListeners('error');
+      port.on('error', () => {});
+      if (port.isOpen) {
+        await Promise.race([
+          new Promise((resolve) => port.close(() => resolve())),
+          this.esperar(1500)
+        ]);
+      }
+      if (port.isOpen && typeof port.destroy === 'function') {
+        port.destroy();
+      }
+    } catch (error) {
+      this.registrar('warn', 'Cierre forzado con incidencia', error.message);
+    }
+    this.registrar('info', 'Puerto liberado (reinicio solicitado)');
+  }
+
+  /** Espera a que Windows libere realmente el COM antes de reabrirlo. */
+  async esperarPuertoLibre(ruta, msMax = 3000) {
+    const limite = Date.now() + msMax;
+    while (Date.now() < limite) {
+      await this.esperar(250);
+      const puertos = await this.listarPuertos();
+      if (!ruta) return true;
+      const sigue = puertos.some((p) => p.path.toUpperCase() === String(ruta).toUpperCase());
+      if (sigue) return true;
+    }
+    return false;
+  }
+
+  /**
+   * Reinicio completo del puerto: cierra a la fuerza, espera la liberación real
+   * del sistema, vuelve a escanear y reintenta abrir varias veces.
+   */
+  async reiniciarPuerto() {
+    if (!this.disponible) {
+      return {
+        ok: false,
+        puerto: null,
+        intentos: 0,
+        error: 'La librería serial no está instalada. Ejecute npm install dentro de ESTRELLA.',
+        estado: this.estado()
+      };
+    }
+
+    if (this.reiniciando) {
+      return { ok: this.estaConectada(), puerto: this.port ? this.port.path : null, intentos: 0, error: 'Ya hay un reinicio en curso.', estado: this.estado() };
+    }
+    this.reiniciando = true;
+
+    // 1. Detener el ciclo automático para que no compita por el puerto.
+    if (this.temporizador) {
+      clearInterval(this.temporizador);
+      this.temporizador = null;
+    }
+    this.detenido = true;
+    // 2. Liberar una bandera de apertura que haya quedado trabada.
+    this.abriendo = false;
+
+    const rutaAnterior = this.port ? this.port.path : (this.adaptadorDetectado ? this.adaptadorDetectado.path : null);
+    this.registrar('info', `Reinicio de puerto solicitado${rutaAnterior ? ` (${rutaAnterior})` : ''}`);
+
+    let intentos = 0;
+    let ultimoFallo = null;
+
+    try {
+      // 3. Cierre forzado.
+      await this.forzarCierre();
+      // 4. Esperar a que el sistema lo libere de verdad.
+      await this.esperarPuertoLibre(rutaAnterior, 3000);
+      // 5. Empezar de cero: sin error viejo ni adaptador cacheado.
+      this.ultimoError = null;
+      this.adaptadorDetectado = null;
+      this.emitirEstado();
+
+      // 6 y 7. Reescanear y reintentar con esperas crecientes.
+      for (let i = 1; i <= 5; i += 1) {
+        intentos = i;
+        try {
+          await this.conectar();
+          if (this.estaConectada()) {
+            this.registrar('info', `Báscula reconectada en ${this.port.path} (intento ${i})`);
+            break;
+          }
+          ultimoFallo = 'No se detecta el adaptador de la báscula.';
+          this.registrar('warn', `Intento ${i}: adaptador no detectado`);
+        } catch (error) {
+          ultimoFallo = this.ultimoError?.mensaje || String(error?.message || error);
+          this.registrar('warn', `Intento ${i} fallido`, ultimoFallo);
+        }
+        if (i < 5) await this.esperar(300 * i);
+      }
+    } finally {
+      this.reiniciando = false;
+      this.abriendo = false;
+      // 8. El ciclo automático queda siempre activo: si aparece después, entra sola.
+      this.detenido = true;
+      this.iniciar();
+    }
+
+    const ok = this.estaConectada();
+    return {
+      ok,
+      puerto: ok ? this.port.path : null,
+      intentos,
+      error: ok ? null : (ultimoFallo || 'No se pudo reconectar con la báscula.'),
+      estado: this.estado()
+    };
+  }
+
   async reconectar() {
-    await this.cerrarPuerto('reconexión solicitada');
-    this.adaptadorDetectado = null;
-    await this.conectar().catch(() => {});
-    return this.estado();
+    return this.reiniciarPuerto();
   }
 
   procesarTrama(tramaCruda) {
