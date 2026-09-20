@@ -119,6 +119,9 @@ require_once ROOT_PATH . '/Config/Config.php';
         <div class="dato"><b>Adaptador</b><span id="adaptador">—</span></div>
         <div class="dato"><b>Configuración de lectura</b><span id="config">—</span></div>
         <div class="dato"><b>Tara aplicada</b><span id="tara">—</span></div>
+        <div class="dato"><b>Proceso principal</b><span id="procesoPrincipal">—</span></div>
+        <div class="dato"><b>Lector de báscula</b><span id="procesoAuxiliar">—</span></div>
+        <div class="dato"><b>Fase actual</b><span id="faseConexion">—</span></div>
     </div>
 </div>
 
@@ -162,8 +165,11 @@ require_once ROOT_PATH . '/Config/Config.php';
     const api = window.basculaAPI;
     let ultimoDiagnostico = {};
     let primeraCarga = true;
+    let paginaActiva = true;
+    const cancelaciones = [];
 
     const mostrarAviso = (elemento, texto, esError) => {
+        if (!elemento) return;
         if (!texto) { elemento.hidden = true; elemento.textContent = ''; return; }
         elemento.hidden = false;
         elemento.textContent = texto;
@@ -177,44 +183,51 @@ require_once ROOT_PATH . '/Config/Config.php';
     }
 
     function pintarPeso(p) {
-        if (!p) return;
+        const peso = $('peso');
+        const detalle = $('pesoDetalle');
+        if (!paginaActiva || !p || !peso || !detalle) return;
         const valor = Number(p.peso || 0);
-        $('peso').textContent = valor.toFixed(3) + ' kg';
-        $('peso').className = 'peso-valor ' + (p.estable === false ? 'aviso' : 'ok');
+        peso.textContent = valor.toFixed(3) + ' kg';
+        peso.className = 'peso-valor ' + (p.estable === false ? 'aviso' : 'ok');
         const partes = [];
         partes.push(p.estable === false ? 'Lectura aún inestable' : 'Lectura estable');
         if (p.tara) partes.push('tara ' + Number(p.tara).toFixed(3) + ' kg (bruto ' + Number(p.pesoBruto || 0).toFixed(3) + ' kg)');
         if (p.ts) partes.push('actualizado ' + new Date(p.ts).toLocaleTimeString());
-        $('pesoDetalle').textContent = partes.join(' · ');
+        detalle.textContent = partes.join(' · ');
     }
 
     function pintarTrama(t) {
-        if (!t) return;
-        $('trama').textContent = JSON.stringify(t.texto);
-        $('hex').textContent = t.hex || '—';
+        const trama = $('trama');
+        const hex = $('hex');
+        if (!paginaActiva || !t || !trama || !hex) return;
+        trama.textContent = JSON.stringify(t.texto);
+        hex.textContent = t.hex || '—';
     }
 
     function pintarEstado(estado) {
-        if (!estado) return;
+        if (!paginaActiva || !estado) return;
         const chip = $('estadoChip');
+        const estadoTexto = $('estadoTexto');
+        if (!chip || !estadoTexto) return;
         if (estado.disponible === false) {
             chip.className = 'estado-chip mal';
-            $('estadoTexto').textContent = 'Librería de lectura no instalada';
+            estadoTexto.textContent = 'Librería de lectura no instalada';
             mostrarAviso($('avisoCaja'), 'Falta instalar la librería serial. En la carpeta ESTRELLA ejecute "npm install" y vuelva a abrir la aplicación.' + (estado.errorLibreria ? '\n\nDetalle: ' + estado.errorLibreria : ''), true);
         } else if (estado.conectado) {
             chip.className = 'estado-chip';
-            $('estadoTexto').textContent = 'Báscula conectada y leyendo';
+            estadoTexto.textContent = 'Báscula conectada y leyendo';
             mostrarAviso($('avisoCaja'), '', false);
         } else if (estado.ultimoError) {
             chip.className = 'estado-chip mal';
-            $('estadoTexto').textContent = 'Sin conexión con la báscula';
+            estadoTexto.textContent = 'Sin conexión con la báscula';
             mostrarAviso($('avisoCaja'), estado.ultimoError.mensaje + '\n\nPulse "Reconectar báscula": ESTRELLA buscará y cerrará únicamente una copia anterior propia. Nunca cerrará otros programas.', true);
         } else {
             chip.className = 'estado-chip aviso';
-            $('estadoTexto').textContent = 'Báscula no detectada';
+            estadoTexto.textContent = 'Báscula no detectada';
             mostrarAviso($('avisoCaja'), 'No se detecta el adaptador CH340. Revise que la balanza esté encendida y el cable USB conectado; la aplicación reintenta sola cada pocos segundos.', false);
         }
 
+        if (!$('puerto') || !$('adaptador') || !$('config') || !$('tara')) return;
         $('puerto').textContent = estado.puerto || 'sin puerto abierto';
         $('adaptador').textContent = estado.adaptador
             ? ((estado.adaptador.manufacturer || 'adaptador desconocido') + ' — ' + (estado.adaptador.motivo || ''))
@@ -222,18 +235,22 @@ require_once ROOT_PATH . '/Config/Config.php';
         const c = estado.config || {};
         $('config').textContent = [c.baudRate, c.dataBits, c.parity, c.stopBits].filter((v) => v !== undefined).join(' · ') || '—';
         $('tara').textContent = Number(estado.tara || 0).toFixed(3) + ' kg';
+        if ($('procesoPrincipal')) $('procesoPrincipal').textContent = estado.procesoId || '—';
+        if ($('procesoAuxiliar')) $('procesoAuxiliar').textContent = estado.procesoAuxiliarId || '—';
+        if ($('faseConexion')) $('faseConexion').textContent = String(estado.fase || '—').replace(/-/g, ' ');
 
         if (estado.ultimaTrama) pintarTrama(estado.ultimaTrama);
         if (estado.ultimoPeso) pintarPeso(estado.ultimoPeso);
     }
 
     function pintarDiagnostico(d) {
-        if (!d) return;
+        if (!paginaActiva || !d) return;
         ultimoDiagnostico = d;
         pintarEstado(d);
         const filas = (d.puertos || []).map((p) =>
             '<tr><td>' + (p.path || '') + '</td><td>' + (p.manufacturer || '') + '</td><td>' + (p.vendorId || '') + '</td><td>' + (p.productId || '') + '</td></tr>'
         ).join('');
+        if (!$('puertos') || !$('log')) return;
         $('puertos').innerHTML = filas || '<tr><td colspan="4">No se detectaron puertos serie</td></tr>';
         const log = (d.registros || []).map((r) =>
             r.ts + ' [' + r.nivel + '] ' + r.mensaje + (r.extra ? ' :: ' + (typeof r.extra === 'string' ? r.extra : JSON.stringify(r.extra)) : '')
@@ -245,7 +262,6 @@ require_once ROOT_PATH . '/Config/Config.php';
 
     async function refrescar() {
         if (primeraCarga) {
-            window.EstrellaSkeleton?.show(document.querySelector('.panel'), 'panel');
             window.EstrellaSkeleton?.show($('puertos'), 'table', { rows: 4 });
         }
         try {
@@ -255,15 +271,14 @@ require_once ROOT_PATH . '/Config/Config.php';
         } finally {
             if (primeraCarga) {
                 primeraCarga = false;
-                window.EstrellaSkeleton?.hide(document.querySelector('.panel'), true);
                 window.EstrellaSkeleton?.hide($('puertos'), true);
             }
         }
     }
 
-    api.onPeso(pintarPeso);
-    api.onEstado(pintarEstado);
-    api.onTrama(pintarTrama);
+    cancelaciones.push(api.onPeso(pintarPeso));
+    cancelaciones.push(api.onEstado(pintarEstado));
+    cancelaciones.push(api.onTrama(pintarTrama));
 
     $('btnReconectar').addEventListener('click', async () => {
         const boton = $('btnReconectar');
@@ -304,7 +319,12 @@ require_once ROOT_PATH . '/Config/Config.php';
     });
 
     refrescar();
-    setInterval(refrescar, 2000);
+    const intervalo = setInterval(refrescar, 2000);
+    window.addEventListener('pagehide', () => {
+        paginaActiva = false;
+        clearInterval(intervalo);
+        cancelaciones.forEach((cancelar) => { try { cancelar(); } catch (_) {} });
+    }, { once: true });
 })();
 </script>
 </body>

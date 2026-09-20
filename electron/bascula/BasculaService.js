@@ -37,6 +37,7 @@ class BasculaService extends EventEmitter {
     this.puertoForzado = opciones.puertoForzado || null;
     this.procesoId = opciones.procesoId || process.pid;
     this.port = null;
+    this.portCandidato = null;
     this.parser = null;
     this.abriendo = false;
     this.reiniciando = false;
@@ -97,7 +98,7 @@ class BasculaService extends EventEmitter {
   }
 
   async bucle() {
-    if (this.detenido || this.abriendo || this.estaConectada()) return;
+    if (this.detenido || this.reiniciando || this.abriendo || this.estaConectada()) return;
     try {
       await this.conectar();
     } catch (error) {
@@ -175,6 +176,9 @@ class BasculaService extends EventEmitter {
         parity: String(this.config.parity || 'none'),
         autoOpen: false
       });
+      // Se conserva desde antes de open(): Windows puede crear el manejador y
+      // fallar después en SetCommState. Así también podemos destruir ese intento.
+      this.portCandidato = port;
 
       await new Promise((resolve, reject) => {
         const alFallar = (error) => {
@@ -198,6 +202,7 @@ class BasculaService extends EventEmitter {
       }
 
       this.port = port;
+      this.portCandidato = null;
       this.parser = port.pipe(new ReadlineParser({ delimiter: '\n', includeDelimiter: false }));
       this.parser.on('data', (linea) => this.procesarTrama(linea));
       // Algunas balanzas envían sin salto de línea: el buffer crudo es el respaldo.
@@ -232,6 +237,20 @@ class BasculaService extends EventEmitter {
       this.registrar('info', `Puerto abierto correctamente en ${elegido.path}`);
       this.emitirEstado();
     } catch (error) {
+      const candidato = this.portCandidato;
+      this.portCandidato = null;
+      if (candidato) {
+        try {
+          candidato.removeAllListeners();
+          candidato.on('error', () => {});
+          if (candidato.isOpen) {
+            await new Promise((resolve) => candidato.close(() => resolve()));
+          }
+          if (typeof candidato.destroy === 'function') candidato.destroy();
+        } catch (_) {
+          try { if (typeof candidato.destroy === 'function') candidato.destroy(); } catch (_) {}
+        }
+      }
       this.port = null;
       this.parser = null;
       const mensaje = String(error?.message || error);
@@ -283,8 +302,9 @@ esperar(ms) {
 
   /** Cierra el puerto pase lo que pase y suelta el manejador. */
   async forzarCierre(motivo = 'reinicio solicitado') {
-    const port = this.port;
+    const port = this.port || this.portCandidato;
     this.port = null;
+    this.portCandidato = null;
     const parser = this.parser;
     this.parser = null;
     if (!port) {
@@ -317,15 +337,10 @@ esperar(ms) {
 
   /** Espera a que Windows libere realmente el COM antes de reabrirlo. */
   async esperarPuertoLibre(ruta, msMax = 3000) {
-    const limite = Date.now() + msMax;
-    while (Date.now() < limite) {
-      await this.esperar(250);
-      const puertos = await this.listarPuertos();
-      if (!ruta) return true;
-      const sigue = puertos.some((p) => p.path.toUpperCase() === String(ruta).toUpperCase());
-      if (sigue) return true;
-    }
-    return false;
+    // SerialPort.list() solo confirma que el dispositivo existe; no puede decir
+    // si otro manejador lo conserva. La apertura posterior es la prueba real.
+    await this.esperar(Math.min(Math.max(msMax, 0), 900));
+    return Boolean(ruta);
   }
 
   /**
@@ -354,9 +369,6 @@ esperar(ms) {
       this.temporizador = null;
     }
     this.detenido = true;
-    // 2. Liberar una bandera de apertura que haya quedado trabada.
-    this.abriendo = false;
-
     const rutaAnterior = this.port ? this.port.path : (this.adaptadorDetectado ? this.adaptadorDetectado.path : null);
     this.registrar('info', `Reinicio de puerto solicitado${rutaAnterior ? ` (${rutaAnterior})` : ''}`);
 
