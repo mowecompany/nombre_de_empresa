@@ -158,7 +158,95 @@ const puertoBasculaForzado = (() => {
   return process.env.BASCULA_PUERTO || null;
 })();
 
-const basculaService = new BasculaCoordinator({ puertoForzado: puertoBasculaForzado, procesoId: process.pid });
+let ultimoDiagnosticoPermisos = null;
+
+function guardarDiagnosticoBascula(tipo, resultado) {
+  const entrada = { ts: new Date().toISOString(), tipo, procesoId: process.pid, ...resultado };
+  try {
+    const archivo = path.join(app.getPath('userData'), 'bascula-recuperacion.jsonl');
+    fs.mkdirSync(path.dirname(archivo), { recursive: true });
+    fs.appendFileSync(archivo, `${JSON.stringify(entrada)}\n`, 'utf8');
+  } catch (error) {
+    console.warn('No se pudo guardar el diagnóstico persistente de báscula:', error.message);
+  }
+  return entrada;
+}
+
+function consultarPermisosBascula() {
+  if (process.platform !== 'win32') {
+    ultimoDiagnosticoPermisos = guardarDiagnosticoBascula('permisos', {
+      administrador: typeof process.getuid === 'function' ? process.getuid() === 0 : false,
+      plataforma: process.platform,
+      conclusion: 'La prueba de elevación solo aplica a Windows.'
+    });
+    return ultimoDiagnosticoPermisos;
+  }
+  const script = '[Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent() | ForEach-Object { $_.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) }';
+  const prueba = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], {
+    windowsHide: true,
+    encoding: 'utf8',
+    timeout: 10000
+  });
+  const administrador = /^true$/i.test(String(prueba.stdout || '').trim());
+  ultimoDiagnosticoPermisos = guardarDiagnosticoBascula('permisos', {
+    administrador,
+    plataforma: process.platform,
+    codigoSalida: prueba.status,
+    conclusion: administrador
+      ? 'ESTRELLA está elevada. Si SetCommState sigue devolviendo código 31, la falta de permisos queda descartada.'
+      : 'ESTRELLA se ejecuta con permisos normales. El código 31 no equivale a Acceso denegado; el reinicio puntual solicitará UAC.'
+  });
+  return ultimoDiagnosticoPermisos;
+}
+
+function recuperarCh340(controlador = {}) {
+  if (process.platform !== 'win32') return { ok: false, mensaje: 'El reinicio PnP solo está disponible en Windows.' };
+  const instanciaId = String(controlador.instanciaId || '').trim();
+  if (!/^USB\\VID_1A86&PID_7523\\[^\r\n]+$/i.test(instanciaId)) {
+    return guardarDiagnosticoBascula('reinicio-ch340', {
+      ok: false,
+      mensaje: 'No se reinició ningún dispositivo: no se pudo validar la instancia exacta CH340 VID_1A86/PID_7523.'
+    });
+  }
+
+  const idPowerShell = instanciaId.replace(/'/g, "''");
+  const script = [
+    `$id = '${idPowerShell}'`,
+    "$pnputil = Join-Path $env:SystemRoot 'System32\\pnputil.exe'",
+    "$p = Start-Process -FilePath $pnputil -ArgumentList @('/restart-device', ('\"' + $id + '\"')) -Wait -PassThru -WindowStyle Hidden",
+    "if ($p.ExitCode -ne 0) {",
+    "  $d = Start-Process -FilePath $pnputil -ArgumentList @('/disable-device', ('\"' + $id + '\"')) -Wait -PassThru -WindowStyle Hidden",
+    "  if ($d.ExitCode -ne 0) { exit $d.ExitCode }",
+    "  Start-Sleep -Milliseconds 900",
+    "  $e = Start-Process -FilePath $pnputil -ArgumentList @('/enable-device', ('\"' + $id + '\"')) -Wait -PassThru -WindowStyle Hidden",
+    "  exit $e.ExitCode",
+    "}",
+    'exit 0'
+  ].join('; ');
+  const codificado = Buffer.from(script, 'utf16le').toString('base64');
+  const lanzador = `$p = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-NonInteractive','-EncodedCommand','${codificado}') -Verb RunAs -Wait -PassThru; exit $p.ExitCode`;
+  const resultado = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', lanzador], {
+    windowsHide: true,
+    encoding: 'utf8',
+    timeout: 120000
+  });
+  const cancelado = resultado.status !== 0 && /cancel|cancelad|1223/i.test(`${resultado.stderr || ''} ${resultado.error?.message || ''}`);
+  return guardarDiagnosticoBascula('reinicio-ch340', {
+    ok: resultado.status === 0,
+    cancelado,
+    instanciaId,
+    codigoSalida: resultado.status,
+    mensaje: resultado.status === 0
+      ? 'Windows reinició exclusivamente el adaptador CH340 autorizado.'
+      : (cancelado ? 'El usuario canceló la autorización de Windows.' : 'Windows no pudo reiniciar el adaptador CH340.')
+  });
+}
+
+const basculaService = new BasculaCoordinator({
+  puertoForzado: puertoBasculaForzado,
+  procesoId: process.pid,
+  recuperarDispositivo: recuperarCh340
+});
 let ventanaDiagnosticoBascula = null;
 let cierreEnCurso = null;
 let salidaAutorizada = false;
@@ -905,13 +993,15 @@ app.on('activate', () => {
 ipcMain.handle('bascula:estado', async () => basculaService.estado());
 
 ipcMain.handle('bascula:diagnostico', async () => {
-  return await basculaService.diagnostico();
+  return { ...(await basculaService.diagnostico()), diagnosticoPermisos: ultimoDiagnosticoPermisos };
 });
 
 ipcMain.handle('bascula:comando', async (_event, comando) => {
   switch (String(comando || '')) {
     case 'reconectar':
       return basculaService.reconectar();
+    case 'probar-permisos':
+      return consultarPermisosBascula();
     case 'tarar':
       return basculaService.tarar();
     case 'quitar-tara':

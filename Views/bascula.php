@@ -132,6 +132,7 @@ require_once ROOT_PATH . '/Config/Config.php';
     <h2>Acciones</h2>
     <div class="botones">
         <button type="button" class="principal" id="btnReconectar"><i class="fas fa-rotate"></i> Reconectar báscula</button>
+        <button type="button" id="btnPermisos"><i class="fas fa-shield-halved"></i> Comprobar permisos</button>
         <button type="button" id="btnTarar"><i class="fas fa-scale-balanced"></i> Tarar</button>
         <button type="button" id="btnQuitarTara"><i class="fas fa-eraser"></i> Quitar tara</button>
         <button type="button" id="btnCopiar"><i class="fas fa-copy"></i> Copiar diagnóstico</button>
@@ -224,7 +225,7 @@ require_once ROOT_PATH . '/Config/Config.php';
             chip.className = 'estado-chip mal';
             estadoTexto.textContent = 'Sin conexión con la báscula';
             const ayuda = estado.ultimoError.codigo === 'dispositivo-no-listo'
-                ? '\n\nNo necesita ejecutar ESTRELLA como administrador. Si continúa, revise o reinstale el controlador CH340 de Windows.'
+                ? '\n\nEl código 31 apunta al controlador CH340, no a Acceso denegado. Reconectar puede solicitar autorización para reiniciar únicamente ese dispositivo.'
                 : '\n\nPulse "Reconectar báscula". ESTRELLA nunca cerrará otros programas.';
             mostrarAviso($('avisoCaja'), estado.ultimoError.mensaje + ayuda, true);
         } else {
@@ -248,7 +249,7 @@ require_once ROOT_PATH . '/Config/Config.php';
         if ($('controladorBascula')) {
             const driver = estado.controlador || {};
             $('controladorBascula').textContent = driver.version
-                ? ((driver.proveedor || 'Proveedor desconocido') + ' · ' + driver.version)
+                ? ((driver.proveedor || 'Proveedor desconocido') + ' · ' + driver.version + (driver.incompatibleConocido ? ' · versión problemática' : ''))
                 : 'no disponible';
         }
         if ($('faseConexion')) $('faseConexion').textContent = String(estado.fase || '—').replace(/-/g, ' ');
@@ -301,7 +302,7 @@ require_once ROOT_PATH . '/Config/Config.php';
         boton.innerHTML = '<i class="fas fa-rotate"></i> Reiniciando el puerto…';
         mostrarAviso($('avisoAccion'), 'Reiniciando el puerto de la báscula…', false);
         try {
-            mostrarAviso($('avisoAccion'), 'Cerrando el lector anterior y esperando que Windows libere COM3…', false);
+            mostrarAviso($('avisoAccion'), 'Cerrando el lector anterior. Si persiste el código 31, Windows pedirá autorización para reiniciar únicamente el CH340…', false);
             const r = await api.reconectar();
             if (r && r.estado) pintarEstado(r.estado);
             if (r && r.ok) {
@@ -318,6 +319,15 @@ require_once ROOT_PATH . '/Config/Config.php';
         }
         refrescar();
         setTimeout(refrescar, 1500);
+    });
+    $('btnPermisos').addEventListener('click', async () => {
+        try {
+            const r = await api.probarPermisos();
+            mostrarAviso($('avisoAccion'), (r.administrador ? 'Modo administrador. ' : 'Modo normal. ') + r.conclusion, false);
+            refrescar();
+        } catch (error) {
+            mostrarAviso($('avisoAccion'), 'No se pudo comprobar el nivel de permisos: ' + error.message, true);
+        }
     });
     $('btnTarar').addEventListener('click', async () => { await api.tarar(); refrescar(); });
     $('btnQuitarTara').addEventListener('click', async () => { await api.quitarTara(); refrescar(); });

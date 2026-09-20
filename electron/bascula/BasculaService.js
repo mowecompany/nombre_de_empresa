@@ -56,6 +56,8 @@ class BasculaService extends EventEmitter {
     this.errorLibreria = errorCargaSerial ? (errorCargaSerial.message || String(errorCargaSerial)) : null;
     this.controlador = null;
     this.consultaControladorIniciada = false;
+    this.ultimaTramaInvalida = null;
+    this.tramasInvalidasRepetidas = 0;
   }
 
   registrar(nivel, mensaje, extra = null) {
@@ -136,7 +138,7 @@ class BasculaService extends EventEmitter {
     if (this.consultaControladorIniciada) return;
     this.consultaControladorIniciada = true;
     const comando = [
-      "$d = Get-CimInstance Win32_PnPSignedDriver | Where-Object { $_.DeviceID -match 'VID_1A86' } | Select-Object -First 1 DeviceName,DriverProviderName,DriverVersion,DriverDate",
+      "$d = Get-CimInstance Win32_PnPSignedDriver | Where-Object { $_.DeviceID -match 'VID_1A86&PID_7523' } | Select-Object -First 1 DeviceName,DriverProviderName,DriverVersion,DriverDate,DeviceID",
       'if ($d) { $d | ConvertTo-Json -Compress }'
     ].join('; ');
     execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', comando], {
@@ -151,7 +153,9 @@ class BasculaService extends EventEmitter {
           nombre: datos.DeviceName || '',
           proveedor: datos.DriverProviderName || '',
           version: datos.DriverVersion || '',
-          fecha: datos.DriverDate || ''
+          fecha: datos.DriverDate || '',
+          instanciaId: datos.DeviceID || '',
+          incompatibleConocido: /^3\.9\.2024\.9$/i.test(String(datos.DriverVersion || ''))
         };
         this.emitirEstado();
       } catch (_) {}
@@ -478,9 +482,22 @@ esperar(ms) {
     this.emit('trama', { ...this.ultimaTrama, resultado });
 
     if (!resultado.reconocido) {
-      this.registrar('warn', 'Trama no reconocida', texto);
+      const firma = Buffer.from(texto, 'latin1').toString('hex');
+      if (firma === this.ultimaTramaInvalida) this.tramasInvalidasRepetidas += 1;
+      else {
+        this.ultimaTramaInvalida = firma;
+        this.tramasInvalidasRepetidas = 1;
+      }
+      if (this.tramasInvalidasRepetidas === 1 || this.tramasInvalidasRepetidas % 30 === 0) {
+        this.registrar('warn', this.tramasInvalidasRepetidas === 1
+          ? 'Trama no reconocida'
+          : `Trama no reconocida repetida ${this.tramasInvalidasRepetidas} veces`, texto);
+      }
       return;
     }
+
+    this.ultimaTramaInvalida = null;
+    this.tramasInvalidasRepetidas = 0;
 
     const pesoNeto = Math.round((resultado.peso - this.tara) * 1000) / 1000;
     this.ultimoPeso = {

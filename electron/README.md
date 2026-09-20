@@ -99,8 +99,12 @@ para recompilarlo contra Electron 26. Sin ese paso el puerto no abre.
 - *Acceso denegado / puerto ocupado*: el software de la balanza o un monitor serial ajeno tiene COM3.
   Ciérralo y pulsa Reintentar. Las copias de ESTRELLA comparten un solo lector y no deben competir.
 - *SetCommState / código 31*: Windows ve el CH340 pero el dispositivo o su controlador aún no responde.
-  ESTRELLA reintenta durante al menos 20 segundos. No requiere ejecutar como administrador. Si persiste
-  con una sola copia abierta, revise la versión del controlador CH340 y pruebe una versión estable anterior.
+  ESTRELLA reintenta durante 20 segundos y, al pulsar Reconectar, puede solicitar UAC para reiniciar
+  exclusivamente `VID_1A86&PID_7523` mediante `pnputil`. La aplicación completa no queda elevada.
+  La versión WCH `3.9.2024.9` está marcada como problemática; pruebe `3.7.2022.01` o `3.5.2019.1`.
+- *Prueba de permisos*: el botón **Comprobar permisos** registra si la ejecución actual está elevada.
+  Si el código 31 también ocurre elevada, queda descartada la falta de privilegios. Un bloqueo real se
+  reporta como `Acceso denegado`/`puerto ocupado`, que es un error distinto.
 - *La librería serial no está instalada*: falta `npm install` en `ESTRELLA`.
 - *Llega trama pero no peso*: copia la trama desde el diagnóstico para ajustar el parser.
 
@@ -112,3 +116,11 @@ para recompilarlo contra Electron 26. Sin ese paso el puerto no abre.
 5. Pulse **Reconectar báscula** sin desconectar el USB: ESTRELLA debe cerrar únicamente su lector auxiliar, iniciar uno limpio y recuperar COM3.
 6. Si un monitor serial ajeno ocupa COM3, ESTRELLA debe informar el bloqueo sin cerrar ese programa.
 7. Abra instalada y portable al mismo tiempo: ambas deben mostrar el mismo PID propietario y el mismo peso.
+8. Para comparar permisos, ejecute una vez normalmente y otra con **Ejecutar como administrador**, pulse
+   **Comprobar permisos** y repita la apertura sin desconectar el USB. Los resultados quedan guardados en
+   `bascula-recuperacion.jsonl` dentro de la carpeta de datos de la aplicación.
+
+### Integraciones universales
+Productos comerciales como PV-COM usan patrones conocidos: agente local, puerto serial y salida como
+teclado/COM virtual. ESTRELLA mantiene una implementación propia más segura: lector auxiliar exclusivo e
+IPC de Electron, sin copiar software propietario, sin depender del foco del teclado y sin exponer COM al navegador.

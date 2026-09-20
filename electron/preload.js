@@ -84,6 +84,7 @@ contextBridge.exposeInMainWorld('basculaAPI', {
   estado: () => ipcRenderer.invoke('bascula:estado'),
   diagnostico: () => ipcRenderer.invoke('bascula:diagnostico'),
   reconectar: () => ipcRenderer.invoke('bascula:comando', 'reconectar'),
+  probarPermisos: () => ipcRenderer.invoke('bascula:comando', 'probar-permisos'),
   tarar: () => ipcRenderer.invoke('bascula:comando', 'tarar'),
   quitarTara: () => ipcRenderer.invoke('bascula:comando', 'quitar-tara'),
   abrirDiagnostico: () => ipcRenderer.invoke('bascula:comando', 'abrir-diagnostico'),

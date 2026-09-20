@@ -95,7 +95,8 @@ class BasculaCoordinator extends EventEmitter {
     this.registrarCoordinacion('info', `Esta copia tomó el control exclusivo de la báscula (PID ${this.procesoId}).`);
     const supervisor = new BasculaSupervisor({
       puertoForzado: this.opciones.puertoForzado || null,
-      procesoId: this.procesoId
+      procesoId: this.procesoId,
+      recuperarDispositivo: this.opciones.recuperarDispositivo
     });
     this.supervisor = supervisor;
     supervisor.on('peso', (payload) => this.publicar('peso', payload));

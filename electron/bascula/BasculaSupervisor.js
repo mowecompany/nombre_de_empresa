@@ -13,6 +13,9 @@ class BasculaSupervisor extends EventEmitter {
     super();
     this.puertoForzado = opciones.puertoForzado || null;
     this.procesoId = opciones.procesoId || process.pid;
+    this.recuperarDispositivo = typeof opciones.recuperarDispositivo === 'function'
+      ? opciones.recuperarDispositivo
+      : null;
     this.worker = null;
     this.workerListo = false;
     this.detenido = true;
@@ -223,15 +226,32 @@ class BasculaSupervisor extends EventEmitter {
       await new Promise((resolve) => setTimeout(resolve, 1200));
       this.crearWorker();
       await this.esperarConexion(TIEMPO_RECONEXION_MS);
-      const ok = Boolean(this.ultimoEstado.conectado);
+      let recuperacionDispositivo = null;
+      if (!this.ultimoEstado.conectado
+        && this.ultimoEstado.ultimoError?.codigo === 'dispositivo-no-listo'
+        && this.recuperarDispositivo) {
+        await this.terminarWorker();
+        this.actualizarFase('reiniciando-dispositivo-ch340');
+        recuperacionDispositivo = await this.recuperarDispositivo(this.ultimoEstado.controlador || {});
+        this.actualizarFase('esperando-com3');
+        await new Promise((resolve) => setTimeout(resolve, 1800));
+        this.crearWorker();
+        await this.esperarLecturaValida(TIEMPO_RECONEXION_MS);
+      }
+      const ok = Boolean(this.ultimoEstado.conectado && this.ultimoEstado.ultimoPeso);
       const recuperacion = {
         ok,
         pidAnterior: anterior.pid,
         cierreForzado: anterior.forzado,
         pidNuevo: this.worker?.pid || null,
+        reinicioDispositivo: recuperacionDispositivo,
         mensaje: ok
-          ? 'El lector anterior terminó, Windows liberó COM3 y la báscula volvió a conectarse.'
-          : 'El lector anterior terminó y fue reemplazado, pero Windows todavía rechazó la apertura de COM3.'
+          ? (recuperacionDispositivo
+              ? 'Windows reinició el CH340, COM3 volvió a abrirse y se recibió una lectura válida.'
+              : 'El lector anterior terminó, COM3 volvió a abrirse y se recibió una lectura válida.')
+          : (recuperacionDispositivo?.cancelado
+              ? 'La autorización de Windows fue cancelada; ESTRELLA seguirá intentando automáticamente.'
+              : 'El lector fue reemplazado, pero Windows todavía rechazó la apertura o no llegó una lectura válida de COM3.')
       };
       this.ultimoEstado = { ...this.ultimoEstado, ultimaRecuperacion: recuperacion };
       this.emit('estado', this.estado());
@@ -268,6 +288,28 @@ class BasculaSupervisor extends EventEmitter {
       };
       const timer = setTimeout(() => finalizar(Boolean(this.ultimoEstado.conectado)), timeout);
       this.on('estado', alCambiarEstado);
+    });
+  }
+
+  esperarLecturaValida(timeout = TIEMPO_RECONEXION_MS) {
+    if (this.ultimoEstado.conectado && this.ultimoEstado.ultimoPeso) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      let terminado = false;
+      const finalizar = (ok) => {
+        if (terminado) return;
+        terminado = true;
+        clearTimeout(timer);
+        this.removeListener('estado', alCambiarEstado);
+        this.removeListener('peso', alRecibirPeso);
+        resolve(ok);
+      };
+      const alCambiarEstado = (estado) => {
+        if (estado?.ultimoError?.codigo === 'libreria-no-disponible') finalizar(false);
+      };
+      const alRecibirPeso = () => finalizar(true);
+      const timer = setTimeout(() => finalizar(false), timeout);
+      this.on('estado', alCambiarEstado);
+      this.on('peso', alRecibirPeso);
     });
   }
 
