@@ -3005,6 +3005,7 @@ if (is_file($logoPdfPath)) {
         <div class="modal-content" style="max-width:1250px; width:calc(100% - 28px);">
             <div class="modal-header">
                 <h2 id="productosCategoriaSalidaTitulo"><i class="fas fa-store"></i> PRODUCTOS</h2>
+                <span id="pesoVivoCategoriaModal" style="display:none; align-items:center; gap:7px; margin-left:14px; padding:6px 14px; border-radius:999px; font-size:15px; font-weight:800; letter-spacing:.3px; white-space:nowrap;"></span>
                 <div style="display:flex; align-items:center; gap:10px; min-width:0; margin-left:auto;">
                     <div style="display:flex; align-items:center; width:20%; min-width:150px; max-width:220px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; overflow:hidden;">
                         <input type="search" id="buscarProductosCategoriaSalida" placeholder="BUSCAR..." autocomplete="off" style="width:100%; min-width:0; border:0; outline:0; padding:8px 10px; font-size:12px; text-transform:uppercase;">
@@ -4541,7 +4542,8 @@ if (is_file($logoPdfPath)) {
                     const stock = parseFloat(option.dataset.stock || 0) || 0;
                     tarjeta.disabled = stock <= 0;
                     tarjeta.style.opacity = stock > 0 ? '1' : '0.55';
-                    tarjeta.innerHTML = `<span style="min-height:18px; color:#2563eb; font-size:11px; font-weight:800; letter-spacing:.3px;">${escapeHtmlInventario(codigo)}</span><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)} / KG</span>`;
+                    tarjeta.dataset.precioKg = String(precio);
+                    tarjeta.innerHTML = `<span style="min-height:18px; color:#2563eb; font-size:11px; font-weight:800; letter-spacing:.3px;">${escapeHtmlInventario(codigo)}</span><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)} / KG</span><span class="valor-estimado-peso" style="min-height:15px; font-size:12px; color:#16a34a; font-weight:800;"></span>`;
                     tarjeta.addEventListener('click', () => {
                         select.value = option.value;
                         productoSalidaSeleccionadoPorCategoria = {
@@ -4566,6 +4568,15 @@ if (is_file($logoPdfPath)) {
                             if (ventaPorPesoCategoriaActiva) cantidad.value = '0.001';
                         }
                         select.dispatchEvent(new Event('change', { bubbles: true }));
+                        // Con báscula conectada y peso válido en vivo: agregar directo al
+                        // carrito con ese peso y cerrar el modal. Sin báscula, flujo actual.
+                        const pesoVivo = esPorKiloTarjeta ? pesoVivoCategoriaValido() : null;
+                        if (pesoVivo !== null) {
+                            if (cantidad) cantidad.value = pesoVivo.toFixed(3);
+                            cerrarModal('productosCategoriaSalidaModal');
+                            agregarProductoSalida();
+                            return;
+                        }
                         cerrarModal('productosCategoriaSalidaModal');
                     });
                     grid.appendChild(tarjeta);
@@ -4586,6 +4597,7 @@ if (is_file($logoPdfPath)) {
                 };
             }
             abrirModal('productosCategoriaSalidaModal');
+            actualizarPesoVivoCategoriaModal();
             setTimeout(() => buscador?.focus(), 80);
         }
 
@@ -4654,6 +4666,53 @@ if (is_file($logoPdfPath)) {
             if (etiqueta) etiqueta.textContent = `${pesoKg.toFixed(3)} kg`;
             const resumen = document.getElementById('pesoSalidaResumen');
             if (resumen) resumen.textContent = `PESO: ${pesoKg.toFixed(3)} KG`;
+            actualizarPesoVivoCategoriaModal();
+        }
+
+        // Peso en vivo dentro del modal de FRUTAS / VERDURAS / CÁRNICOS.
+        // Solo lee lo que ya entrega basculaAPI; no abre ni toca el puerto.
+        function pesoVivoCategoriaValido() {
+            return basculaNativaConectada && Number.isFinite(ultimoPesoBalanzaSalida) && ultimoPesoBalanzaSalida > 0
+                ? Math.round(ultimoPesoBalanzaSalida * 1000) / 1000
+                : null;
+        }
+
+        function actualizarPesoVivoCategoriaModal() {
+            const modal = document.getElementById('productosCategoriaSalidaModal');
+            const insignia = document.getElementById('pesoVivoCategoriaModal');
+            if (!modal || !insignia) return;
+            if (!modal.classList.contains('active')) {
+                insignia.style.display = 'none';
+                return;
+            }
+            insignia.style.display = 'inline-flex';
+            const peso = pesoVivoCategoriaValido();
+            if (peso !== null) {
+                insignia.style.background = '#dcfce7';
+                insignia.style.color = '#15803d';
+                insignia.innerHTML = `<i class="fas fa-weight-hanging"></i> ${peso.toFixed(3)} KG EN VIVO`;
+            } else if (basculaNativaConectada) {
+                insignia.style.background = '#f1f5f9';
+                insignia.style.color = '#475569';
+                insignia.innerHTML = '<i class="fas fa-weight-hanging"></i> 0.000 KG EN VIVO';
+            } else {
+                insignia.style.background = '#fee2e2';
+                insignia.style.color = '#b91c1c';
+                insignia.innerHTML = '<i class="fas fa-circle-xmark"></i> BÁSCULA NO CONECTADA';
+            }
+            // Valor estimado en vivo bajo cada tarjeta (precio por kg x peso actual).
+            const grid = document.getElementById('productosCategoriaSalidaGrid');
+            if (!grid) return;
+            grid.querySelectorAll('button[data-search-text]').forEach((tarjeta) => {
+                const estimado = tarjeta.querySelector('.valor-estimado-peso');
+                if (!estimado) return;
+                const precioKg = parseFloat(tarjeta.dataset.precioKg || '0') || 0;
+                if (peso !== null && precioKg > 0) {
+                    estimado.textContent = `≈ ${formatoMonedaInventario(precioKg * peso)}`;
+                } else {
+                    estimado.textContent = '';
+                }
+            });
         }
 
         function procesarDatosBalanzaSalida(recibido) {
@@ -4681,6 +4740,7 @@ if (is_file($logoPdfPath)) {
             basculaNativaConectada = conectada;
             puertoBalanzaSalida = estado?.puerto || null;
             actualizarEstadoBalanzaSalida(conectada ? 'conectada' : 'desconectada');
+            actualizarPesoVivoCategoriaModal();
             if (conectada) {
                 mostrarDiagnosticoBalanzaSalida(`PUERTO ABIERTO: ${puertoBalanzaSalida || 'COM'}\nLEYENDO PESO REAL...`);
             } else if (estado && estado.disponible === false) {
