@@ -5,8 +5,8 @@ const { fork } = require('child_process');
 const path = require('path');
 
 const TIEMPO_RESPUESTA_MS = 5000;
-const TIEMPO_SALIDA_MS = 2500;
-const TIEMPO_RECONEXION_MS = 8000;
+const TIEMPO_SALIDA_MS = 4000;
+const TIEMPO_RECONEXION_MS = 20000;
 
 class BasculaSupervisor extends EventEmitter {
   constructor(opciones = {}) {
@@ -94,12 +94,22 @@ class BasculaSupervisor extends EventEmitter {
       const fase = estadoWorker.conectado
         ? 'conectado'
         : (estadoWorker.ultimoError ? 'reintentando' : 'detectando-bascula');
+      const recuperacionAnterior = this.ultimoEstado.ultimaRecuperacion || null;
+      const recuperacion = estadoWorker.conectado && recuperacionAnterior && !recuperacionAnterior.ok
+        ? {
+            ...recuperacionAnterior,
+            ok: true,
+            pidNuevo: worker.pid || null,
+            completadaEn: new Date().toISOString(),
+            mensaje: `Windows liberó ${estadoWorker.puerto || 'el puerto'} y la báscula volvió a conectarse automáticamente.`
+          }
+        : recuperacionAnterior;
       this.ultimoEstado = {
         ...estadoWorker,
         procesoId: this.procesoId,
         procesoAuxiliarId: worker.pid || null,
         fase,
-        ultimaRecuperacion: this.ultimoEstado.ultimaRecuperacion || null
+        ultimaRecuperacion: recuperacion
       };
       this.emit('estado', this.estado());
       return;
@@ -210,13 +220,9 @@ class BasculaSupervisor extends EventEmitter {
       this.detenido = false;
       const anterior = await this.terminarWorker();
       this.actualizarFase('esperando-liberacion');
-      await new Promise((resolve) => setTimeout(resolve, 900));
+      await new Promise((resolve) => setTimeout(resolve, 1200));
       this.crearWorker();
-      const limite = Date.now() + TIEMPO_RECONEXION_MS;
-      while (Date.now() < limite) {
-        if (this.ultimoEstado.conectado) break;
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
+      await this.esperarConexion(TIEMPO_RECONEXION_MS);
       const ok = Boolean(this.ultimoEstado.conectado);
       const recuperacion = {
         ok,
@@ -243,6 +249,26 @@ class BasculaSupervisor extends EventEmitter {
     } finally {
       this.reiniciando = null;
     }
+  }
+
+  esperarConexion(timeout = TIEMPO_RECONEXION_MS) {
+    if (this.ultimoEstado.conectado) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      let terminado = false;
+      const finalizar = (ok) => {
+        if (terminado) return;
+        terminado = true;
+        clearTimeout(timer);
+        this.removeListener('estado', alCambiarEstado);
+        resolve(ok);
+      };
+      const alCambiarEstado = (estado) => {
+        if (estado?.conectado) finalizar(true);
+        else if (estado?.ultimoError?.codigo === 'libreria-no-disponible') finalizar(false);
+      };
+      const timer = setTimeout(() => finalizar(Boolean(this.ultimoEstado.conectado)), timeout);
+      this.on('estado', alCambiarEstado);
+    });
   }
 
   async listarPuertos() {

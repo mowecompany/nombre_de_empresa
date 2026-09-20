@@ -1,6 +1,7 @@
 'use strict';
 
 const { EventEmitter } = require('events');
+const { execFile } = require('child_process');
 const { parsearTramaAcs30 } = require('./parserAcs30');
 
 let SerialPort = null;
@@ -53,6 +54,8 @@ class BasculaService extends EventEmitter {
     this.tara = 0;
     this.disponible = Boolean(SerialPort);
     this.errorLibreria = errorCargaSerial ? (errorCargaSerial.message || String(errorCargaSerial)) : null;
+    this.controlador = null;
+    this.consultaControladorIniciada = false;
   }
 
   registrar(nivel, mensaje, extra = null) {
@@ -123,7 +126,36 @@ class BasculaService extends EventEmitter {
       productId: (item.productId || '').toLowerCase(),
       serialNumber: item.serialNumber || ''
     }));
+    if (process.platform === 'win32' && this.puertosDetectados.some((item) => item.vendorId === '1a86')) {
+      this.consultarControladorCh340();
+    }
     return this.puertosDetectados;
+  }
+
+  consultarControladorCh340() {
+    if (this.consultaControladorIniciada) return;
+    this.consultaControladorIniciada = true;
+    const comando = [
+      "$d = Get-CimInstance Win32_PnPSignedDriver | Where-Object { $_.DeviceID -match 'VID_1A86' } | Select-Object -First 1 DeviceName,DriverProviderName,DriverVersion,DriverDate",
+      'if ($d) { $d | ConvertTo-Json -Compress }'
+    ].join('; ');
+    execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', comando], {
+      windowsHide: true,
+      timeout: 5000,
+      encoding: 'utf8'
+    }, (error, stdout) => {
+      if (error || !String(stdout || '').trim()) return;
+      try {
+        const datos = JSON.parse(String(stdout).trim());
+        this.controlador = {
+          nombre: datos.DeviceName || '',
+          proveedor: datos.DriverProviderName || '',
+          version: datos.DriverVersion || '',
+          fecha: datos.DriverDate || ''
+        };
+        this.emitirEstado();
+      } catch (_) {}
+    });
   }
 
   /** Selecciona el adaptador CH340. COM1 nunca se usa. */
@@ -254,7 +286,14 @@ class BasculaService extends EventEmitter {
       this.port = null;
       this.parser = null;
       const mensaje = String(error?.message || error);
-      if (/Access denied|Unknown error code 31|already open|Resource busy/i.test(mensaje)) {
+      if (/Unknown error code 31|SetCommState.*(?:31|not functioning)|device attached.*not functioning/i.test(mensaje)) {
+        this.ultimoError = {
+          codigo: 'dispositivo-no-listo',
+          mensaje: 'Windows detectó el adaptador CH340, pero todavía no pudo configurarlo. ESTRELLA seguirá intentando automáticamente; si persiste, revise el controlador CH340.',
+          detalle: mensaje
+        };
+        this.registrar('warn', this.ultimoError.mensaje, mensaje);
+      } else if (/Access denied|already open|Resource busy|sharing violation/i.test(mensaje)) {
         this.ultimoError = {
           codigo: 'puerto-ocupado',
           mensaje: 'El puerto de la báscula está ocupado por otro programa (otra copia de ESTRELLA, el software de la balanza o un monitor serial). Ciérrelo y pulse Reintentar.',
@@ -486,7 +525,8 @@ esperar(ms) {
       ultimoError: this.estaConectada() ? null : this.ultimoError,
       ultimaRecuperacion: this.ultimaRecuperacion,
       ultimoPeso: this.ultimoPeso,
-      ultimaTrama: this.ultimaTrama
+      ultimaTrama: this.ultimaTrama,
+      controlador: this.controlador
     };
   }
 

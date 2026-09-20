@@ -62,7 +62,9 @@ Esta integración permite ejecutar el proyecto PHP dentro de una aplicación de 
 ## Báscula ACS-30 (lectura de peso real)
 
 ### Regla principal
-El puerto COM lo abre **solo** el lector auxiliar propio de ESTRELLA (`electron/bascula/BasculaWorker.js`).
+El puerto COM lo abre **solo** un lector auxiliar propio de ESTRELLA (`electron/bascula/BasculaWorker.js`).
+`BasculaCoordinator.js` elige una única copia propietaria en todo el equipo. Si están abiertas la
+instalada y la portable, la segunda recibe el peso desde la propietaria y nunca compite por COM3.
 El proceso principal lo supervisa y puede reiniciarlo para que Windows libere todos sus manejadores.
 La pantalla de ventas nunca abre el puerto: únicamente escucha `window.basculaAPI.onPeso()`.
 Un puerto serial admite una sola aplicación a la vez; por eso cualquier apertura desde el
@@ -79,6 +81,7 @@ navegador (Web Serial) provoca `Failed to execute 'open' on 'SerialPort'` al rec
   `COM1` nunca), apertura 9600-8-N-1, lectura continua, reconexión automática y tara.
 - `electron/bascula/BasculaWorker.js`: proceso aislado que posee el puerto y muere completamente al reconectar.
 - `electron/bascula/BasculaSupervisor.js`: reinicia el lector y conserva la API usada por las pantallas.
+- `electron/bascula/BasculaCoordinator.js`: comparte un único lector entre todas las copias locales.
 - `electron/bascula/parserAcs30.js`: interpretación de la trama.
 - `electron/bascula/diagnostico.html`: ventana de diagnóstico (tecla **F9**).
 - `electron/preload.js`: expone `window.basculaAPI`.
@@ -93,8 +96,11 @@ para recompilarlo contra Electron 26. Sin ese paso el puerto no abre.
 3. Recarga la pantalla de ventas y cambia de módulo varias veces: el peso debe seguir llegando.
 
 ### Errores frecuentes
-- *El puerto está ocupado por otro programa*: hay otra copia de ESTRELLA, el software de la balanza
-  o un monitor serial abierto. Ciérralo y pulsa Reintentar.
+- *Acceso denegado / puerto ocupado*: el software de la balanza o un monitor serial ajeno tiene COM3.
+  Ciérralo y pulsa Reintentar. Las copias de ESTRELLA comparten un solo lector y no deben competir.
+- *SetCommState / código 31*: Windows ve el CH340 pero el dispositivo o su controlador aún no responde.
+  ESTRELLA reintenta durante al menos 20 segundos. No requiere ejecutar como administrador. Si persiste
+  con una sola copia abierta, revise la versión del controlador CH340 y pruebe una versión estable anterior.
 - *La librería serial no está instalada*: falta `npm install` en `ESTRELLA`.
 - *Llega trama pero no peso*: copia la trama desde el diagnóstico para ajustar el parser.
 
@@ -105,3 +111,4 @@ para recompilarlo contra Electron 26. Sin ese paso el puerto no abre.
 4. Cierre sesión y vuelva a iniciarla: COM3 debe seguir abierto por la misma aplicación, sin desconectarse.
 5. Pulse **Reconectar báscula** sin desconectar el USB: ESTRELLA debe cerrar únicamente su lector auxiliar, iniciar uno limpio y recuperar COM3.
 6. Si un monitor serial ajeno ocupa COM3, ESTRELLA debe informar el bloqueo sin cerrar ese programa.
+7. Abra instalada y portable al mismo tiempo: ambas deben mostrar el mismo PID propietario y el mismo peso.

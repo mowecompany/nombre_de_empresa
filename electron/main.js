@@ -150,7 +150,7 @@ let connectionConfig = {
 // Báscula ACS-30 (RS-232 -> CH340 -> COM): un único servicio en el proceso
 // principal. Ni las vistas ni ningún puente HTTP abren el puerto.
 // ---------------------------------------------------------------------------
-const { BasculaSupervisor } = require('./bascula/BasculaSupervisor');
+const { BasculaCoordinator } = require('./bascula/BasculaCoordinator');
 
 const puertoBasculaForzado = (() => {
   const argumento = process.argv.find((arg) => /^--bascula-puerto=/i.test(arg));
@@ -158,7 +158,7 @@ const puertoBasculaForzado = (() => {
   return process.env.BASCULA_PUERTO || null;
 })();
 
-const basculaService = new BasculaSupervisor({ puertoForzado: puertoBasculaForzado, procesoId: process.pid });
+const basculaService = new BasculaCoordinator({ puertoForzado: puertoBasculaForzado, procesoId: process.pid });
 let ventanaDiagnosticoBascula = null;
 let cierreEnCurso = null;
 let salidaAutorizada = false;

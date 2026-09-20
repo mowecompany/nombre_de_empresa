@@ -120,7 +120,10 @@ require_once ROOT_PATH . '/Config/Config.php';
         <div class="dato"><b>Configuración de lectura</b><span id="config">—</span></div>
         <div class="dato"><b>Tara aplicada</b><span id="tara">—</span></div>
         <div class="dato"><b>Proceso principal</b><span id="procesoPrincipal">—</span></div>
+        <div class="dato"><b>Propietario de la báscula</b><span id="procesoPropietario">—</span></div>
         <div class="dato"><b>Lector de báscula</b><span id="procesoAuxiliar">—</span></div>
+        <div class="dato"><b>Modo de conexión</b><span id="modoBascula">—</span></div>
+        <div class="dato"><b>Controlador CH340</b><span id="controladorBascula">—</span></div>
         <div class="dato"><b>Fase actual</b><span id="faseConexion">—</span></div>
     </div>
 </div>
@@ -220,7 +223,10 @@ require_once ROOT_PATH . '/Config/Config.php';
         } else if (estado.ultimoError) {
             chip.className = 'estado-chip mal';
             estadoTexto.textContent = 'Sin conexión con la báscula';
-            mostrarAviso($('avisoCaja'), estado.ultimoError.mensaje + '\n\nPulse "Reconectar báscula": ESTRELLA buscará y cerrará únicamente una copia anterior propia. Nunca cerrará otros programas.', true);
+            const ayuda = estado.ultimoError.codigo === 'dispositivo-no-listo'
+                ? '\n\nNo necesita ejecutar ESTRELLA como administrador. Si continúa, revise o reinstale el controlador CH340 de Windows.'
+                : '\n\nPulse "Reconectar báscula". ESTRELLA nunca cerrará otros programas.';
+            mostrarAviso($('avisoCaja'), estado.ultimoError.mensaje + ayuda, true);
         } else {
             chip.className = 'estado-chip aviso';
             estadoTexto.textContent = 'Báscula no detectada';
@@ -236,7 +242,15 @@ require_once ROOT_PATH . '/Config/Config.php';
         $('config').textContent = [c.baudRate, c.dataBits, c.parity, c.stopBits].filter((v) => v !== undefined).join(' · ') || '—';
         $('tara').textContent = Number(estado.tara || 0).toFixed(3) + ' kg';
         if ($('procesoPrincipal')) $('procesoPrincipal').textContent = estado.procesoId || '—';
+        if ($('procesoPropietario')) $('procesoPropietario').textContent = estado.procesoPropietarioId || '—';
         if ($('procesoAuxiliar')) $('procesoAuxiliar').textContent = estado.procesoAuxiliarId || '—';
+        if ($('modoBascula')) $('modoBascula').textContent = estado.modoBascula === 'cliente-compartido' ? 'lector compartido' : (estado.modoBascula || '—');
+        if ($('controladorBascula')) {
+            const driver = estado.controlador || {};
+            $('controladorBascula').textContent = driver.version
+                ? ((driver.proveedor || 'Proveedor desconocido') + ' · ' + driver.version)
+                : 'no disponible';
+        }
         if ($('faseConexion')) $('faseConexion').textContent = String(estado.fase || '—').replace(/-/g, ' ');
 
         if (estado.ultimaTrama) pintarTrama(estado.ultimaTrama);
@@ -287,7 +301,7 @@ require_once ROOT_PATH . '/Config/Config.php';
         boton.innerHTML = '<i class="fas fa-rotate"></i> Reiniciando el puerto…';
         mostrarAviso($('avisoAccion'), 'Reiniciando el puerto de la báscula…', false);
         try {
-            mostrarAviso($('avisoAccion'), 'Buscando una copia anterior de ESTRELLA y liberando COM3…', false);
+            mostrarAviso($('avisoAccion'), 'Cerrando el lector anterior y esperando que Windows libere COM3…', false);
             const r = await api.reconectar();
             if (r && r.estado) pintarEstado(r.estado);
             if (r && r.ok) {
