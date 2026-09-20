@@ -4004,6 +4004,10 @@ if (is_file($logoPdfPath)) {
         // Cerrar modal
         function cerrarModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'productosCategoriaSalidaModal') {
+                detenerRefrescoPesoVivoCategoria();
+                registrarDiagnosticoPesoSalida('modal-cerrado', { origen: 'inventarios' });
+            }
             if (!document.querySelector('.modal.active')) {
                 document.body.classList.remove('modal-open');
             }
@@ -4064,6 +4068,9 @@ if (is_file($logoPdfPath)) {
         // onPeso traen el ts del servicio; el sondeo de estado solo puede
         // sobrescribir el peso si su lectura es más reciente que esta marca.
         let ultimaLecturaBasculaTs = 0;
+        let ultimoPesoBalanzaTsAplicado = 0;
+        let puentePesoDashboardRegistrado = false;
+        let ultimaPinturaPesoDiagnostico = '';
 
         function escapeHtml(str) {
             return String(str ?? '')
@@ -4601,7 +4608,17 @@ if (is_file($logoPdfPath)) {
                     }
                 };
             }
+            // Cada apertura crea una sesión visual nueva. Se reinicia solamente
+            // la deduplicación; el estado actual se consulta justo después.
+            ultimaLecturaBasculaTs = 0;
+            ultimoPesoBalanzaTsAplicado = 0;
+            ultimaPinturaPesoDiagnostico = '';
             abrirModal('productosCategoriaSalidaModal');
+            registrarDiagnosticoPesoSalida('modal-abierto', {
+                origen: categoria,
+                modalActivo: true,
+                elementoExiste: Boolean(document.getElementById('pesoVivoCategoriaModal'))
+            });
             actualizarPesoVivoCategoriaModal();
             sincronizarEstadoBalanzaSalida();
             iniciarRefrescoPesoVivoCategoria();
@@ -4637,6 +4654,14 @@ if (is_file($logoPdfPath)) {
             console.info('[BASCULA]', mensaje);
         }
 
+        function registrarDiagnosticoPesoSalida(etapa, detalle = {}) {
+            const registro = { ...detalle, etapa };
+            console.info('[PESO-INVENTARIO]', registro);
+            try {
+                window.basculaAPI?.registrarDiagnosticoPeso?.(etapa, detalle)?.catch?.(() => {});
+            } catch (_) { /* el diagnóstico nunca interrumpe la venta */ }
+        }
+
         function extraerPesoBalanza(texto) {
             const textoNormalizado = String(texto || '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ' ');
             const coincidencias = textoNormalizado.match(/(?:^|[^\d])([+-]?\s*\d+(?:[.,]\d+)?)\s*(kg|kgs|g|gr)?\b/gi);
@@ -4647,18 +4672,29 @@ if (is_file($logoPdfPath)) {
             return /^(g|gr)$/i.test(coincidencia[2] || '') ? valor / 1000 : valor;
         }
 
-        function aplicarPesoBalanzaSalida(pesoKg, tsLectura) {
+        function aplicarPesoBalanzaSalida(pesoKg, tsLectura, origen = 'desconocido') {
             if (pesoKg === null || !Number.isFinite(pesoKg) || pesoKg < 0) {
+                registrarDiagnosticoPesoSalida('lectura-descartada', { origen, peso: pesoKg, ts: tsLectura, motivo: 'peso-invalido' });
                 return;
             }
             // Si llega una marca de tiempo, solo gana la lectura más reciente:
             // así el sondeo de estado nunca pisa un peso nuevo con uno viejo.
             const ts = Number(tsLectura);
             if (Number.isFinite(ts) && ts > 0) {
-                if (ts < ultimaLecturaBasculaTs) return;
+                if (ts < ultimaLecturaBasculaTs) {
+                    registrarDiagnosticoPesoSalida('lectura-descartada', { origen, peso: pesoKg, ts, motivo: 'timestamp-anterior' });
+                    return;
+                }
+                if (ts === ultimoPesoBalanzaTsAplicado && pesoKg === ultimoPesoBalanzaSalida) {
+                    registrarDiagnosticoPesoSalida('lectura-duplicada', { origen, peso: pesoKg, ts, motivo: 'mismo-evento-por-dos-canales' });
+                    return;
+                }
                 ultimaLecturaBasculaTs = ts;
+                ultimoPesoBalanzaTsAplicado = ts;
             }
             ultimoPesoBalanzaSalida = pesoKg;
+            basculaNativaConectada = true;
+            registrarDiagnosticoPesoSalida('lectura-recibida-inventarios', { origen, peso: pesoKg, ts });
             actualizarPesoVivoCategoriaModal();
 
             const select = document.getElementById('productoSalida');
@@ -4697,13 +4733,17 @@ if (is_file($logoPdfPath)) {
         // para que al retirar o cambiar el producto la cifra vuelva a 0.000 al instante.
         let intervaloPesoVivoCategoria = null;
 
+        function detenerRefrescoPesoVivoCategoria() {
+            if (intervaloPesoVivoCategoria) clearInterval(intervaloPesoVivoCategoria);
+            intervaloPesoVivoCategoria = null;
+        }
+
         function iniciarRefrescoPesoVivoCategoria() {
-            if (intervaloPesoVivoCategoria) return;
+            detenerRefrescoPesoVivoCategoria();
             intervaloPesoVivoCategoria = setInterval(async () => {
                 const modal = document.getElementById('productosCategoriaSalidaModal');
                 if (!modal || !modal.classList.contains('active')) {
-                    clearInterval(intervaloPesoVivoCategoria);
-                    intervaloPesoVivoCategoria = null;
+                    detenerRefrescoPesoVivoCategoria();
                     return;
                 }
                 try {
@@ -4716,7 +4756,7 @@ if (is_file($logoPdfPath)) {
                         // únicamente si es más reciente que la última lectura
                         // recibida por evento; nunca pisa un peso nuevo con uno viejo.
                         if (basculaNativaConectada && Number.isFinite(valor) && valor >= 0 && tsEstado > ultimaLecturaBasculaTs) {
-                            aplicarPesoBalanzaSalida(valor, tsEstado);
+                            aplicarPesoBalanzaSalida(valor, tsEstado, 'estado-respaldo');
                         }
                     }
                 } catch (error) { /* sin báscula: se muestra el estado actual */ }
@@ -4747,6 +4787,18 @@ if (is_file($logoPdfPath)) {
                 insignia.style.color = '#b91c1c';
                 insignia.innerHTML = '<i class="fas fa-circle-xmark"></i> BÁSCULA NO CONECTADA';
             }
+            const clavePintura = `${ultimoPesoBalanzaTsAplicado}|${insignia.textContent}`;
+            if (clavePintura !== ultimaPinturaPesoDiagnostico) {
+                ultimaPinturaPesoDiagnostico = clavePintura;
+                registrarDiagnosticoPesoSalida('texto-mostrado', {
+                    origen: 'inventarios',
+                    peso: Number.isFinite(ultimoPesoBalanzaSalida) ? ultimoPesoBalanzaSalida : null,
+                    ts: ultimoPesoBalanzaTsAplicado,
+                    modalActivo: true,
+                    elementoExiste: true,
+                    texto: insignia.textContent
+                });
+            }
         }
 
         function procesarDatosBalanzaSalida(recibido) {
@@ -4776,7 +4828,7 @@ if (is_file($logoPdfPath)) {
             const ultimoPesoEstado = Number(estado?.ultimoPeso?.peso);
             const tsPesoEstado = Number(estado?.ultimoPeso?.ts) || 0;
             if (conectada && Number.isFinite(ultimoPesoEstado) && ultimoPesoEstado >= 0) {
-                aplicarPesoBalanzaSalida(ultimoPesoEstado, tsPesoEstado);
+                aplicarPesoBalanzaSalida(ultimoPesoEstado, tsPesoEstado, 'estado-inicial');
             }
             actualizarEstadoBalanzaSalida(conectada ? 'conectada' : 'desconectada');
             actualizarPesoVivoCategoriaModal();
@@ -4794,6 +4846,18 @@ if (is_file($logoPdfPath)) {
         function iniciarPuenteBasculaEscritorio() {
             if (basculaNativaListenerRegistrado) return true;
             const api = window.basculaAPI;
+            if (!puentePesoDashboardRegistrado) {
+                puentePesoDashboardRegistrado = true;
+                window.addEventListener('message', (evento) => {
+                    if (evento.origin !== window.location.origin || evento.source !== window.parent) return;
+                    if (evento.data?.tipo !== 'bascula-peso-vivo') return;
+                    const peso = evento.data.peso;
+                    const valorPeso = Number(peso?.peso);
+                    if (!Number.isFinite(valorPeso)) return;
+                    ultimoDatoBalanzaSalida = Date.now();
+                    aplicarPesoBalanzaSalida(valorPeso, Number(peso?.ts) || Date.now(), 'dashboard-reenvio');
+                });
+            }
             if (!api) {
                 actualizarEstadoBalanzaSalida('desconectada');
                 mostrarDiagnosticoBalanzaSalida('La báscula solo está disponible dentro de la aplicación de escritorio.');
@@ -4804,7 +4868,7 @@ if (is_file($logoPdfPath)) {
                 const valorPeso = Number(peso?.peso);
                 if (!peso || !Number.isFinite(valorPeso)) return;
                 ultimoDatoBalanzaSalida = Date.now();
-                aplicarPesoBalanzaSalida(valorPeso, Number(peso?.ts) || Date.now());
+                aplicarPesoBalanzaSalida(valorPeso, Number(peso?.ts) || Date.now(), 'evento-directo');
             });
             api.onEstado(aplicarEstadoBasculaEscritorio);
             api.estado().then(aplicarEstadoBasculaEscritorio).catch(() => {});

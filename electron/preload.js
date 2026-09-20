@@ -84,6 +84,7 @@ const suscribir = (canal, callback) => {
 contextBridge.exposeInMainWorld('basculaAPI', {
   estado: () => ipcRenderer.invoke('bascula:estado'),
   diagnostico: () => ipcRenderer.invoke('bascula:diagnostico'),
+  registrarDiagnosticoPeso: (etapa, detalle = {}) => ipcRenderer.invoke('bascula:diagnostico-peso-inventario', etapa, detalle),
   reconectar: () => ipcRenderer.invoke('bascula:comando', 'reconectar'),
   probarPermisos: () => ipcRenderer.invoke('bascula:comando', 'probar-permisos'),
   tarar: () => ipcRenderer.invoke('bascula:comando', 'tarar'),

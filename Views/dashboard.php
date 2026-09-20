@@ -11548,6 +11548,33 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 window.setTimeout(() => { moduleSkeleton.style.display = 'none'; }, 130);
             };
 
+            // Respaldo para las vistas cargadas dentro de moduleFrame: Electron
+            // entrega el evento al panel y el panel replica cada lectura al marco.
+            // Inventarios deduplica por ts si también recibió el evento directo.
+            let cancelarPesoVivoDashboard = null;
+            if (window.basculaAPI && typeof window.basculaAPI.onPeso === 'function') {
+                cancelarPesoVivoDashboard = window.basculaAPI.onPeso((peso) => {
+                    const valor = Number(peso?.peso);
+                    const ts = Number(peso?.ts) || Date.now();
+                    if (!Number.isFinite(valor)) return;
+                    console.info('[PESO-INVENTARIO][dashboard-reenvio]', { peso: valor, ts });
+                    const registroDiagnostico = window.basculaAPI.registrarDiagnosticoPeso?.('dashboard-reenvio', {
+                        origen: 'dashboard', peso: valor, ts
+                    });
+                    registroDiagnostico?.catch?.(() => {});
+                    try {
+                        moduleFrame?.contentWindow?.postMessage({
+                            tipo: 'bascula-peso-vivo',
+                            peso: { ...peso, peso: valor, ts }
+                        }, window.location.origin);
+                    } catch (_) { /* el marco puede estar cambiando de página */ }
+                });
+                window.addEventListener('pagehide', () => {
+                    try { cancelarPesoVivoDashboard?.(); } catch (_) {}
+                    cancelarPesoVivoDashboard = null;
+                }, { once: true });
+            }
+
             // Puente de respaldo: si una vista dentro del marco no recibe el API de escritorio,
             // puede pedirnos la operación por mensajes y nosotros la ejecutamos aquí.
             window.addEventListener('message', async (evento) => {

@@ -160,6 +160,62 @@ const puertoBasculaForzado = (() => {
 
 let ultimoDiagnosticoPermisos = null;
 const RECUPERACION_BASCULA_VERSION = 'ch340-pnp-v2';
+const MAX_DIAGNOSTICO_PESO_BYTES = 1024 * 1024;
+let colaDiagnosticoPeso = Promise.resolve();
+let diagnosticoPesoInventarioActivo = false;
+
+function rutaDiagnosticoPesoInventario() {
+  let carpeta;
+  try {
+    carpeta = app.getPath('desktop');
+  } catch (_) {
+    carpeta = app.getPath('userData');
+  }
+  return path.join(carpeta, 'ESTRELLA-diagnostico-peso-inventario.log');
+}
+
+function normalizarDetalleDiagnosticoPeso(detalle) {
+  if (!detalle || typeof detalle !== 'object') return { detalle: String(detalle || '') };
+  return {
+    origen: String(detalle.origen || '').slice(0, 60),
+    peso: Number.isFinite(Number(detalle.peso)) ? Number(detalle.peso) : null,
+    ts: Number.isFinite(Number(detalle.ts)) ? Number(detalle.ts) : null,
+    modalActivo: Boolean(detalle.modalActivo),
+    elementoExiste: Boolean(detalle.elementoExiste),
+    texto: String(detalle.texto || '').slice(0, 120),
+    motivo: String(detalle.motivo || '').slice(0, 160)
+  };
+}
+
+function registrarDiagnosticoPesoInventario(etapa, detalle = {}) {
+  const nombreEtapa = String(etapa || 'sin-etapa').slice(0, 80);
+  if (nombreEtapa === 'modal-abierto') diagnosticoPesoInventarioActivo = true;
+  if (!diagnosticoPesoInventarioActivo) return { guardado: false };
+  const registro = {
+    hora: new Date().toISOString(),
+    etapa: nombreEtapa,
+    ...normalizarDetalleDiagnosticoPeso(detalle)
+  };
+  console.info('[PESO-INVENTARIO]', registro);
+  colaDiagnosticoPeso = colaDiagnosticoPeso.then(async () => {
+    try {
+      const ruta = rutaDiagnosticoPesoInventario();
+      try {
+        const estado = await fs.promises.stat(ruta);
+        if (estado.size >= MAX_DIAGNOSTICO_PESO_BYTES) {
+          await fs.promises.rename(ruta, `${ruta}.anterior`).catch(async () => {
+            await fs.promises.truncate(ruta, 0);
+          });
+        }
+      } catch (_) { /* el archivo todavía no existe */ }
+      await fs.promises.appendFile(ruta, `${JSON.stringify(registro)}\n`, 'utf8');
+    } catch (_) {
+      // El diagnóstico nunca debe interrumpir la lectura ni una venta.
+    }
+  });
+  if (nombreEtapa === 'modal-cerrado') diagnosticoPesoInventarioActivo = false;
+  return { guardado: true, archivo: rutaDiagnosticoPesoInventario() };
+}
 
 function identidadCompilacion() {
   let fechaArchivo = null;
@@ -327,7 +383,23 @@ function enviarABascula(canal, payload) {
   }
 }
 
-basculaService.on('peso', (peso) => enviarABascula('bascula:peso', peso));
+basculaService.on('peso', (peso) => {
+  if (diagnosticoPesoInventarioActivo) {
+    registrarDiagnosticoPesoInventario('lectura-emitida', {
+      origen: 'proceso-principal',
+      peso: peso?.peso,
+      ts: peso?.ts
+    });
+  }
+  enviarABascula('bascula:peso', peso);
+  if (diagnosticoPesoInventarioActivo) {
+    registrarDiagnosticoPesoInventario('lectura-enviada', {
+      origen: 'proceso-principal',
+      peso: peso?.peso,
+      ts: peso?.ts
+    });
+  }
+});
 basculaService.on('estado', (estado) => enviarABascula('bascula:estado-cambio', estado));
 basculaService.on('trama', (trama) => enviarABascula('bascula:trama', trama));
 
@@ -1064,6 +1136,10 @@ app.on('activate', () => {
 // Báscula ACS-30: canales IPC (única vía de comunicación con el frontend)
 // ---------------------------------------------------------------------------
 ipcMain.handle('bascula:estado', async () => basculaService.estado());
+
+ipcMain.handle('bascula:diagnostico-peso-inventario', async (_event, etapa, detalle = {}) => {
+  return registrarDiagnosticoPesoInventario(etapa, detalle);
+});
 
 ipcMain.handle('bascula:diagnostico', async () => {
   return {
