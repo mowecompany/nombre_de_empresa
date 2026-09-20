@@ -4504,8 +4504,9 @@ if (is_file($logoPdfPath)) {
             const pesoBarra = document.getElementById('pesoCategoriaSalidaBarra');
             if (!select || !grid) return;
 
-            ventaPorPesoCategoriaActiva = categoria === 'frutas' || categoria === 'verduras';
-            select.dataset.categoriaPeso = categoria === 'frutas' || categoria === 'verduras' ? categoria : '';
+            const categoriaConPeso = ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoria);
+            ventaPorPesoCategoriaActiva = categoriaConPeso;
+            select.dataset.categoriaPeso = categoriaConPeso ? categoria : '';
             actualizarEstadoBalanzaSalida('oculta');
             if (pesoBarra) pesoBarra.style.display = 'block';
             if (pesoBarra) {
@@ -4598,6 +4599,7 @@ if (is_file($logoPdfPath)) {
             }
             abrirModal('productosCategoriaSalidaModal');
             actualizarPesoVivoCategoriaModal();
+            sincronizarEstadoBalanzaSalida();
             setTimeout(() => buscador?.focus(), 80);
         }
 
@@ -4641,7 +4643,7 @@ if (is_file($logoPdfPath)) {
         }
 
         function aplicarPesoBalanzaSalida(pesoKg) {
-            if (pesoKg === null || !Number.isFinite(pesoKg) || pesoKg <= 0) {
+            if (pesoKg === null || !Number.isFinite(pesoKg) || pesoKg < 0) {
                 return;
             }
             ultimoPesoBalanzaSalida = pesoKg;
@@ -4658,7 +4660,7 @@ if (is_file($logoPdfPath)) {
 
             const cantidad = document.getElementById('cantidadSalida');
             const etiqueta = document.getElementById('pesoCategoriaSalidaValor');
-            if (cantidad && ventaPorPesoCategoriaActiva) {
+            if (cantidad && ventaPorPesoCategoriaActiva && pesoKg > 0) {
                 cantidad.value = Math.round(pesoKg * 1000) / 1000;
                 cantidad.dispatchEvent(new Event('input', { bubbles: true }));
                 cantidad.dispatchEvent(new Event('change', { bubbles: true }));
@@ -4690,11 +4692,11 @@ if (is_file($logoPdfPath)) {
             if (peso !== null) {
                 insignia.style.background = '#dcfce7';
                 insignia.style.color = '#15803d';
-                insignia.innerHTML = `<i class="fas fa-weight-hanging"></i> ${peso.toFixed(3)} KG EN VIVO`;
+                insignia.innerHTML = `<i class="fas fa-weight-hanging"></i> ${peso.toFixed(3)} KG`;
             } else if (basculaNativaConectada) {
                 insignia.style.background = '#f1f5f9';
                 insignia.style.color = '#475569';
-                insignia.innerHTML = '<i class="fas fa-weight-hanging"></i> 0.000 KG EN VIVO';
+                insignia.innerHTML = '<i class="fas fa-weight-hanging"></i> 0.000 KG';
             } else {
                 insignia.style.background = '#fee2e2';
                 insignia.style.color = '#b91c1c';
@@ -4739,6 +4741,10 @@ if (is_file($logoPdfPath)) {
             const conectada = Boolean(estado?.conectado);
             basculaNativaConectada = conectada;
             puertoBalanzaSalida = estado?.puerto || null;
+            const ultimoPesoEstado = Number(estado?.ultimoPeso?.peso);
+            if (conectada && Number.isFinite(ultimoPesoEstado) && ultimoPesoEstado >= 0) {
+                aplicarPesoBalanzaSalida(ultimoPesoEstado);
+            }
             actualizarEstadoBalanzaSalida(conectada ? 'conectada' : 'desconectada');
             actualizarPesoVivoCategoriaModal();
             if (conectada) {
@@ -4762,9 +4768,10 @@ if (is_file($logoPdfPath)) {
             }
             basculaNativaListenerRegistrado = true;
             api.onPeso(peso => {
-                if (!peso || !Number.isFinite(peso.peso)) return;
+                const valorPeso = Number(peso?.peso);
+                if (!peso || !Number.isFinite(valorPeso)) return;
                 ultimoDatoBalanzaSalida = Date.now();
-                aplicarPesoBalanzaSalida(peso.peso);
+                aplicarPesoBalanzaSalida(valorPeso);
             });
             api.onEstado(aplicarEstadoBasculaEscritorio);
             api.estado().then(aplicarEstadoBasculaEscritorio).catch(() => {});
