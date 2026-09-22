@@ -931,9 +931,12 @@ class UsuarioController {
             $datos['documento'] = trim(strval($datos['documento']));
             $codigoExistente = trim((string)($usuarioExistente['data']['codigo'] ?? ''));
             $codigoSolicitado = $esSuperAdminActual ? trim((string)($datos['codigo'] ?? '')) : '';
+            // Si el rol cambió, reasignar código acorde al nuevo rol (el antiguo queda libre)
+            $rolAnteriorNorm = $this->normalizarRolTexto((string)($usuarioExistente['data']['rol'] ?? ''));
+            $rolCambio = $rolAnteriorNorm !== $rolNuevoNorm;
             $datos['codigo'] = $codigoSolicitado !== ''
                 ? $this->generarCodigoUsuario((string)$datos['rol'], $codigoSolicitado)
-                : ($codigoExistente !== '' ? $codigoExistente : $this->generarCodigoUsuario((string)$datos['rol']));
+                : ($codigoExistente !== '' && !$rolCambio ? $codigoExistente : $this->generarCodigoUsuario((string)$datos['rol']));
 
             if (!ctype_digit($datos['documento'])) {
                 throw new Exception('El número de documento solo debe contener dígitos');

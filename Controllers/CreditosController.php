@@ -977,18 +977,19 @@ try {
     if ($creditoActivo) {
         $creditoId = (int)($creditoActivo['id'] ?? 0);
         $referencia = trim((string)($creditoActivo['referencia'] ?? '')) !== '' ? (string)$creditoActivo['referencia'] : '';
-        $stmt = $db->prepare("UPDATE creditos SET estado = :estado, notas = :notas, fecha_creacion = CURRENT_TIMESTAMP, referencia = :referencia WHERE id = :id AND (empresa_id = :empresa_id OR empresa_id = 0 OR :empresa_id = 0)");
+        $stmt = $db->prepare("UPDATE creditos SET estado = :estado, notas = :notas, fecha_creacion = :fecha_creacion, referencia = :referencia WHERE id = :id AND (empresa_id = :empresa_id OR empresa_id = 0 OR :empresa_id = 0)");
         $stmt->execute([
             ':estado' => $estado,
             ':notas' => $notas ?: ($creditoActivo['notas'] ?? null),
             ':referencia' => $referencia,
             ':id' => $creditoId,
-            ':empresa_id' => $empresaId
+            ':empresa_id' => $empresaId,
+            ':fecha_creacion' => date('Y-m-d H:i:s')
         ]);
     } else {
         $stmt = $db->prepare("INSERT INTO creditos
-            (empresa_id, cliente_id, referencia, total, saldo, estado, notas, usuario_id)
-            VALUES (:empresa_id, :cliente_id, :referencia, :total, :saldo, :estado, :notas, :usuario_id)");
+            (empresa_id, cliente_id, referencia, total, saldo, estado, notas, usuario_id, fecha_creacion)
+            VALUES (:empresa_id, :cliente_id, :referencia, :total, :saldo, :estado, :notas, :usuario_id, :fecha_creacion)");
         $stmt->execute([
             ':empresa_id' => $empresaId,
             ':cliente_id' => $clienteId,
@@ -997,7 +998,8 @@ try {
             ':saldo' => $total,
             ':estado' => $estado,
             ':notas' => $notas ?: null,
-            ':usuario_id' => $usuarioId ?: null
+            ':usuario_id' => $usuarioId ?: null,
+            ':fecha_creacion' => date('Y-m-d H:i:s')
         ]);
         $creditoId = (int)$db->lastInsertId();
     }

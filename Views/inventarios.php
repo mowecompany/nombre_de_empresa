@@ -467,10 +467,12 @@ if (is_file($logoPdfPath)) {
         .productos-categoria-salida-grid {
             display: grid;
             grid-template-columns: repeat(8, minmax(0, 1fr));
+            grid-auto-rows: 1fr;
             gap: 14px;
             padding: 18px;
             max-height: 65vh;
             overflow-y: auto;
+            align-items: stretch;
         }
 
         .categoria-salida-option {
@@ -4696,7 +4698,7 @@ if (is_file($logoPdfPath)) {
                 opciones.forEach(option => {
                     const tarjeta = document.createElement('button');
                     tarjeta.type = 'button';
-                    tarjeta.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:9px; min-height:190px; padding:14px 10px; border:1px solid #dbe4ec; border-radius:10px; background:#fff; color:#1e293b; cursor:pointer; box-shadow:0 3px 10px rgba(15,23,42,.07); text-align:center;';
+                    tarjeta.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:0; min-height:190px; padding:14px 10px; border:1px solid #dbe4ec; border-radius:10px; background:#fff; color:#1e293b; cursor:pointer; box-shadow:0 3px 10px rgba(15,23,42,.07); text-align:center;';
                     const imagen = resolverImagenProductoInventario(option.dataset.imagen || '');
                     const nombre = (option.dataset.nombre || option.textContent || '').trim();
                     const codigo = String(option.dataset.codigo || '').replace(/[/*()]/g, '').trim();
@@ -4715,7 +4717,7 @@ if (is_file($logoPdfPath)) {
                     const stockVisible = esPorKiloTarjeta
                         ? `${formatoStockVisible(stock, option.dataset.categoriaNombre || '', 1)} KG`
                         : formatoStockVisible(stock, option.dataset.categoriaNombre || '', 0);
-                    tarjeta.innerHTML = `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:18px; font-size:11px; font-weight:800; letter-spacing:.3px;"><span style="color:#15803d; white-space:nowrap;">${escapeHtmlInventario(stockVisible)}</span><span style="color:#2563eb; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlInventario(codigo)}</span></div><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)}${esPorKiloTarjeta ? ' / KG' : ' / UNIDAD'}</span>`;
+                    tarjeta.innerHTML = `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:18px; font-size:11px; font-weight:800; letter-spacing:.3px; margin-bottom:9px;"><span style="color:#15803d; white-space:nowrap;">${escapeHtmlInventario(stockVisible)}</span><span style="color:#2563eb; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlInventario(codigo)}</span></div><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc; flex-shrink:0;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2; margin-top:9px; flex:1; display:flex; align-items:center; justify-content:center;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700; margin-top:auto; padding-top:6px;">${formatoMonedaInventario(precio)}${esPorKiloTarjeta ? ' / KG' : ' / UNIDAD'}</span>`;
                     tarjeta.addEventListener('click', () => {
                         select.value = option.value;
                         productoSalidaSeleccionadoPorCategoria = {
