@@ -367,10 +367,16 @@ $baseUrl = rtrim((string)base_url(), '/');
                 : `<div class="credit-side"><div class="credit-state-chip paid">PAGADO</div><div class="credits-total-zero">TOTAL: ${moneda(0)}</div></div>`;
             const totalCompacto = estado === 'pendiente' ? moneda(credito.total) : moneda(0);
             const claseEstado = estado === 'pendiente' ? 'pending' : 'paid';
+            const creditIds = Array.isArray(credito.credit_ids) && credito.credit_ids.length
+                ? credito.credit_ids.map(Number).filter(id => id > 0)
+                : [creditoId];
             const badgeEstado = estado === 'pendiente'
                 ? '<span class="credit-state-chip pending"><span class="status-dot"></span>PENDIENTE</span>'
                 : '<span class="credit-state-chip paid"><span class="status-dot"></span>PAGADO</span>';
-            return `<button type="button" class="credit-row ${claseEstado}" data-credito-id="${creditoId}" onclick="mostrarPerfilCredito(${creditoId}, this)"><div class="row-top"><div class="client-name-wrap"><div class="client-name">${escapar(nombreSplit.nombre || 'CLIENTE')}</div><div class="client-lastname">${escapar(nombreSplit.apellido || '')}</div><div class="client-meta">DOC: ${escapar(credito.documento || 'N/D')}</div></div><div class="credit-side"><div class="credit-code">${escapar(String(credito.codigo || 'N/D').toUpperCase())}</div></div></div><div class="row-footer"><div class="credit-total-box"><strong>${totalCompacto}</strong><span>TOTAL</span></div><div class="credit-status-wrap">${badgeEstado}</div></div></button>`;
+            const botonEliminar = estado === 'pagado'
+                ? `<button type="button" onclick="event.stopPropagation(); eliminarCreditoPagado(${creditoId}, ${escapar(JSON.stringify(creditIds))})" title="Eliminar crédito pagado" aria-label="Eliminar crédito pagado" style="width:28px;height:28px;padding:0;border:0;border-radius:6px;background:#dc2626;color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-trash"></i></button>`
+                : '';
+            return `<div class="credit-row ${claseEstado}" data-credito-id="${creditoId}" role="button" tabindex="0" onclick="mostrarPerfilCredito(${creditoId}, this)" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); mostrarPerfilCredito(${creditoId}, this); }"><div class="row-top"><div class="client-name-wrap"><div class="client-name">${escapar(nombreSplit.nombre || 'CLIENTE')}</div><div class="client-lastname">${escapar(nombreSplit.apellido || '')}</div><div class="client-meta">DOC: ${escapar(credito.documento || 'N/D')}</div></div><div class="credit-side"><div class="credit-code">${escapar(String(credito.codigo || 'N/D').toUpperCase())}</div></div></div><div class="row-footer"><div class="credit-total-box"><strong>${totalCompacto}</strong><span>TOTAL</span></div><div class="credit-status-wrap" style="display:flex;align-items:center;gap:8px;">${badgeEstado}${botonEliminar}</div></div></div>`;
         }).join('') : '<div class="empty">No hay créditos para mostrar.</div>';
         document.getElementById('creditosPaginacion').innerHTML = `<button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - (paginaActual - 1)} / ${totalPaginas}</span><button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
     }
@@ -546,6 +552,40 @@ $baseUrl = rtrim((string)base_url(), '/');
         document.getElementById('modalPagoCredito').style.display = 'none';
         await cargarCreditos();
         cerrarPerfilCredito();
+    }
+
+    async function eliminarCreditoPagado(creditoId, creditIds = []) {
+        const id = Number(creditoId || 0);
+        const credito = creditos.find(item => Number(item.id || 0) === id);
+        if (!credito || String(credito.estado || '').trim().toLowerCase() !== 'pagado') {
+            Swal.fire({ icon: 'warning', title: 'NO PERMITIDO', text: 'Solo se pueden eliminar créditos pagados.' });
+            return;
+        }
+        const confirmacion = await Swal.fire({
+            icon: 'warning',
+            title: '¿ELIMINAR CRÉDITO PAGADO?',
+            text: 'Esta acción eliminará el registro del crédito y no se puede deshacer.',
+            showCancelButton: true,
+            confirmButtonText: 'SÍ, ELIMINAR',
+            cancelButtonText: 'CANCELAR',
+            confirmButtonColor: '#dc2626'
+        });
+        if (!confirmacion.isConfirmed) return;
+
+        const datos = new FormData();
+        datos.append('action', 'eliminarCredito');
+        datos.append('credito_id', String(id));
+        datos.append('credito_ids', JSON.stringify(Array.isArray(creditIds) && creditIds.length ? creditIds : [id]));
+        try {
+            const respuesta = await fetch(creditosUrl, { method: 'POST', body: datos, credentials: 'same-origin' });
+            const resultado = await respuesta.json();
+            if (!respuesta.ok || !resultado.success) throw new Error(resultado.message || 'No se pudo eliminar el crédito');
+            await Swal.fire({ icon: 'success', title: 'CRÉDITO ELIMINADO', text: 'El crédito pagado fue eliminado.', timer: 1800, showConfirmButton: false });
+            cerrarPerfilCredito();
+            await cargarCreditos();
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudo eliminar el crédito' });
+        }
     }
 
     let creditoEdicionActual = null;
