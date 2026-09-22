@@ -83,6 +83,30 @@
     .skeleton-table-row:nth-child(n+6) { display: none; }
 }
 
+/* ── Skeletons ocultos visualmente ───────────────────────────────────────────
+   El sistema de skeletons permanece funcional en JS pero no debe ser visible.
+   Estas reglas suprimen únicamente la apariencia; toda la lógica sigue activa.
+   ──────────────────────────────────────────────────────────────────────────── */
+.skeleton-line,
+.skeleton-circle,
+.skeleton-block,
+.skeleton-card-placeholder,
+.skeleton-card-grid,
+.skeleton-panel-placeholder,
+.skeleton-page-shell,
+.skeleton-chart-placeholder,
+.skeleton-chart-placeholder span,
+.skeleton-table-row,
+#divLoading.skeleton-global-overlay,
+#moduleSkeleton.skeleton-global-overlay {
+    visibility: hidden !important;
+    animation: none !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 /* Paginadores: flechas en gris y no pulsables al llegar al limite */
 .inventory-page-prev:disabled,
 .inventory-page-next:disabled,

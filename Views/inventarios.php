@@ -2724,10 +2724,14 @@ if (is_file($logoPdfPath)) {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="cantidadEntrada"><i class="fas fa-cubes"></i> <span id="unidadEntradaLabel">CANTIDAD</span> *</label>
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <button type="button" onclick="decrementarCantidad('cantidadEntrada')" style="padding: 6px 12px; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">−</button>
                             <input type="number" id="cantidadEntrada" min="1" step="1" value="1" autocomplete="off" required style="width: 80px; text-align: center; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                             <button type="button" onclick="incrementarCantidad('cantidadEntrada')" style="padding: 6px 12px; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">+</button>
+                            <span id="basculaEntradaPesoDisplay" style="display:none; align-items:center; justify-content:center; min-width:86px; padding:4px 10px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; font-weight:800; color:#475569; font-variant-numeric:tabular-nums; white-space:nowrap;">0.000 kg</span>
+                            <button type="button" id="basculaEntradaWidget" class="bascula-led-btn rojo" style="display:none; padding:6px 10px; min-width:0;" disabled>
+                                <span class="bascula-led-punto"></span>
+                            </button>
                         </div>
                     </div>
                     <div class="form-group">
@@ -4036,6 +4040,20 @@ if (is_file($logoPdfPath)) {
             if (form) form.reset();
             if (modalId === 'entradaModal') {
                 resetEntradaModalFields();
+                detenerRefrescoPesoVivoEntrada();
+                // Ocultar widget de báscula al cerrar
+                const widget = document.getElementById('basculaEntradaWidget');
+                if (widget) widget.style.display = 'none';
+                const display = document.getElementById('basculaEntradaPesoDisplay');
+                if (display) {
+                    display.style.display = 'none';
+                    display.textContent = '0.000 kg';
+                    display.style.background = '#f1f5f9';
+                    display.style.borderColor = '#cbd5e1';
+                    display.style.color = '#475569';
+                }
+                _basculaEntradaUltimoPeso = null;
+                _basculaEntradaUltimoTs = 0;
             }
             if (modalId === 'salidaModal') {
                 ventaPorPesoCategoriaActiva = false;
@@ -8347,6 +8365,144 @@ if (is_file($logoPdfPath)) {
                 cantidad.step = esPorKilo ? '0.001' : '1';
                 cantidad.value = esPorKilo ? '0.001' : '1';
             }
+            // ── BÁSCULA ENTRADA ──────────────────────────────────────────────
+            const widget = document.getElementById('basculaEntradaWidget');
+            const display = document.getElementById('basculaEntradaPesoDisplay');
+            if (widget) widget.style.display = esPorKilo ? 'inline-flex' : 'none';
+            if (display) display.style.display = esPorKilo ? 'inline-flex' : 'none';
+            if (esPorKilo) {
+                conectarBasculaEntrada();
+            } else {
+                detenerRefrescoPesoVivoEntrada();
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // BÁSCULA ENTRADA — lógica paralela a la de salida, sin tocar nada de
+        // salida. Solo escucha basculaAPI (proceso Electron); nunca abre COM.
+        // ─────────────────────────────────────────────────────────────────────
+        let _basculaEntradaConectada = false;
+        let _basculaEntradaUltimoPeso = null;
+        let _basculaEntradaUltimoTs = 0;
+        let _basculaEntradaListenerRegistrado = false;
+        let _basculaEntradaIntervalo = null;
+
+        function actualizarLedBasculaEntrada(conectada) {
+            const widget = document.getElementById('basculaEntradaWidget');
+            if (!widget) return;
+            // Usa las mismas clases que el LED de salida (bascula-led-btn rojo/verde)
+            widget.classList.toggle('verde', conectada);
+            widget.classList.toggle('rojo', !conectada);
+        }
+
+        function aplicarPesoBasculaEntrada(pesoKg, tsLectura) {
+            if (pesoKg === null || !Number.isFinite(pesoKg) || pesoKg < 0) return;
+            const ts = Number(tsLectura);
+            // Descartar lecturas antiguas para no pisar un peso nuevo con uno viejo
+            if (Number.isFinite(ts) && ts > 0 && ts < _basculaEntradaUltimoTs) return;
+            if (Number.isFinite(ts) && ts > 0) _basculaEntradaUltimoTs = ts;
+            _basculaEntradaUltimoPeso = pesoKg;
+            _basculaEntradaConectada = true;
+
+            // Actualizar display: verde con peso > 0, gris en 0
+            const display = document.getElementById('basculaEntradaPesoDisplay');
+            if (display) {
+                display.textContent = pesoKg.toFixed(3) + ' kg';
+                if (pesoKg > 0) {
+                    display.style.background = '#dcfce7';
+                    display.style.borderColor = '#86efac';
+                    display.style.color = '#15803d';
+                } else {
+                    display.style.background = '#f1f5f9';
+                    display.style.borderColor = '#cbd5e1';
+                    display.style.color = '#475569';
+                }
+            }
+
+            // Aplicar al campo solo si el producto activo es por kilos
+            const select = document.getElementById('productoEntrada');
+            const option = select?.options[select.selectedIndex];
+            const porVentaPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option?.dataset.ventaPorKilo || '0').trim().toLowerCase());
+            const porCategoria = esCategoriaGramosInventario(option?.dataset.categoriaNombre || '');
+            const esPorKilo = porVentaPorKilo || porCategoria;
+            if (!esPorKilo || !select?.value) return;
+
+            const cantidad = document.getElementById('cantidadEntrada');
+            if (cantidad) {
+                cantidad.value = (Math.round(pesoKg * 1000) / 1000).toFixed(3);
+                cantidad.dispatchEvent(new Event('input', { bubbles: true }));
+                cantidad.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
+        function detenerRefrescoPesoVivoEntrada() {
+            if (_basculaEntradaIntervalo) {
+                clearInterval(_basculaEntradaIntervalo);
+                _basculaEntradaIntervalo = null;
+            }
+        }
+
+        function iniciarRefrescoPesoVivoEntrada() {
+            detenerRefrescoPesoVivoEntrada();
+            _basculaEntradaIntervalo = setInterval(async () => {
+                const modal = document.getElementById('entradaModal');
+                // Detener si el modal está cerrado
+                if (!modal || !modal.classList.contains('active')) {
+                    detenerRefrescoPesoVivoEntrada();
+                    return;
+                }
+                try {
+                    const estado = await window.basculaAPI?.estado();
+                    if (estado) {
+                        _basculaEntradaConectada = Boolean(estado.conectado);
+                        actualizarLedBasculaEntrada(_basculaEntradaConectada);
+                        const valor = Number(estado?.ultimoPeso?.peso);
+                        const tsEstado = Number(estado?.ultimoPeso?.ts) || 0;
+                        if (_basculaEntradaConectada && Number.isFinite(valor) && valor >= 0 && tsEstado > _basculaEntradaUltimoTs) {
+                            aplicarPesoBasculaEntrada(valor, tsEstado);
+                        }
+                    }
+                } catch (_) { /* sin báscula disponible */ }
+            }, 400);
+        }
+
+        function conectarBasculaEntrada() {
+            const api = window.basculaAPI;
+            if (!api) {
+                actualizarLedBasculaEntrada(false);
+                iniciarRefrescoPesoVivoEntrada();
+                return;
+            }
+            // Registrar listener de eventos una sola vez
+            if (!_basculaEntradaListenerRegistrado) {
+                _basculaEntradaListenerRegistrado = true;
+                api.onPeso(peso => {
+                    const val = Number(peso?.peso);
+                    if (!peso || !Number.isFinite(val)) return;
+                    aplicarPesoBasculaEntrada(val, Number(peso?.ts) || Date.now());
+                    actualizarLedBasculaEntrada(true);
+                });
+                api.onEstado(estado => {
+                    _basculaEntradaConectada = Boolean(estado?.conectado);
+                    actualizarLedBasculaEntrada(_basculaEntradaConectada);
+                    if (_basculaEntradaConectada) {
+                        const val = Number(estado?.ultimoPeso?.peso);
+                        const ts = Number(estado?.ultimoPeso?.ts) || 0;
+                        if (Number.isFinite(val) && val >= 0) aplicarPesoBasculaEntrada(val, ts);
+                    }
+                });
+            }
+            // Consulta estado inmediato
+            api.estado().then(estado => {
+                _basculaEntradaConectada = Boolean(estado?.conectado);
+                actualizarLedBasculaEntrada(_basculaEntradaConectada);
+                if (_basculaEntradaConectada) {
+                    const val = Number(estado?.ultimoPeso?.peso);
+                    const ts = Number(estado?.ultimoPeso?.ts) || 0;
+                    if (Number.isFinite(val) && val >= 0) aplicarPesoBasculaEntrada(val, ts);
+                }
+            }).catch(() => actualizarLedBasculaEntrada(false));
+            iniciarRefrescoPesoVivoEntrada();
         }
 
         function configurarLectorEntradaGlobal() {
