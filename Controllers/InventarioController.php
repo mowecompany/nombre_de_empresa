@@ -370,6 +370,74 @@ try {
             }
         }
     
+        // Eliminar entrada (POST) — solo superadmin
+        public function eliminarEntrada() {
+            try {
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    throw new Exception('Método no permitido');
+                }
+                if (!$this->esSuperAdminSesion()) {
+                    throw new Exception('No tienes permisos para eliminar entradas.');
+                }
+
+                $entradaId = isset($_POST['entrada_id']) ? (int)$_POST['entrada_id'] : 0;
+                if ($entradaId <= 0) {
+                    throw new Exception('ID de entrada inválido.');
+                }
+
+                $db = $this->inventario->getDb();
+
+                // Obtener la entrada antes de borrarla para revertir el stock
+                $stmt = $db->prepare("SELECT producto_id, cantidad FROM entradas_inventario WHERE id = :id LIMIT 1");
+                $stmt->execute([':id' => $entradaId]);
+                $entrada = $stmt->fetch(PDO::FETCH_OBJ);
+
+                if (!$entrada) {
+                    throw new Exception('No se encontró la entrada con ID ' . $entradaId . '.');
+                }
+
+                $productoId = (int)$entrada->producto_id;
+                $cantidad   = (float)$entrada->cantidad;
+
+                // Eliminar el registro de entrada
+                $stmtDel = $db->prepare("DELETE FROM entradas_inventario WHERE id = :id");
+                $stmtDel->execute([':id' => $entradaId]);
+
+                if ($stmtDel->rowCount() === 0) {
+                    throw new Exception('No se pudo eliminar la entrada.');
+                }
+
+                // Descontar la cantidad del stock del producto
+                $stmtStock = $db->prepare("UPDATE productos SET stock = MAX(0, COALESCE(stock, 0) - :cantidad) WHERE id = :producto_id");
+                $stmtStock->execute([':cantidad' => $cantidad, ':producto_id' => $productoId]);
+
+                // Registrar movimiento de auditoría si existe la tabla
+                try {
+                    $tieneMovimientos = $this->columnaExiste('movimientos_inventario', 'tipo_movimiento');
+                    if ($tieneMovimientos) {
+                        $usuarioId = $this->getUsuarioIdSesion() ?: null;
+                        $stmtMov = $db->prepare(
+                            "INSERT INTO movimientos_inventario (producto_id, tipo_movimiento, cantidad, usuario_id, notas)
+                             VALUES (:producto_id, 'eliminacion_entrada', :cantidad, :usuario_id, :notas)"
+                        );
+                        $stmtMov->execute([
+                            ':producto_id' => $productoId,
+                            ':cantidad'    => $cantidad,
+                            ':usuario_id'  => $usuarioId,
+                            ':notas'       => 'Eliminación de entrada #' . $entradaId . ' por superadmin'
+                        ]);
+                    }
+                } catch (Exception $ignorar) { /* el movimiento de auditoría es opcional */ }
+
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Entrada #' . $entradaId . ' eliminada y stock actualizado correctamente.'
+                ]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            }
+        }
+
         // Registrar salida (POST)
         public function registrarSalida() {
             try {

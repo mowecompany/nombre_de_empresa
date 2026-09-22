@@ -2529,10 +2529,11 @@ if (is_file($logoPdfPath)) {
                                 <th><i class="fas fa-calendar-check"></i> FECHA VENCIMIENTO</th>
                                 <th><i class="fas fa-calendar-alt"></i> FECHA/HORA</th>
                                 <th><i class="fas fa-user"></i> USUARIO</th>
+                                <?php if ($esSuperAdminGlobalInventario): ?><th style="width:80px;"><i class="fas fa-cogs"></i> ACCIONES</th><?php endif; ?>
                             </tr>
                         </thead>
                         <tbody id="entradasTableBody">
-                            <tr><td colspan="<?= $puedeVerID ? 10 : 9 ?>" style="text-align: center; padding: 20px;">Cargando...</td></tr>
+                            <tr><td colspan="<?= $puedeVerID ? ($esSuperAdminGlobalInventario ? 11 : 10) : ($esSuperAdminGlobalInventario ? 10 : 9) ?>" style="text-align: center; padding: 20px;">Cargando...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -3845,6 +3846,7 @@ if (is_file($logoPdfPath)) {
         const permisoEditar = <?= json_encode((bool)$tienePermisoEditar) ?>;
         const permisoCrear = <?= json_encode((bool)$tienePermisoCrear) ?>;
         const puedeVerID  = <?= json_encode((bool)$puedeVerID) ?>;
+        const esSuperAdminGlobal = <?= json_encode((bool)$esSuperAdminGlobalInventario) ?>;
         const phpSessionId = (new URLSearchParams(window.location.search)).get('PHPSESSID') || '';
         const accionInventarioDesdeUrl = (new URLSearchParams(window.location.search)).get('accion') || '';
 
@@ -3924,7 +3926,9 @@ if (is_file($logoPdfPath)) {
         }
 
         function obtenerColspanEntradas() {
-            return puedeVerID ? 10 : 9;
+            return puedeVerID
+                ? (esSuperAdminGlobal ? 11 : 10)
+                : (esSuperAdminGlobal ? 10 : 9);
         }
 
         function actualizarSugerenciasResumen(items) {
@@ -6215,6 +6219,7 @@ if (is_file($logoPdfPath)) {
                                         <td>${escapeHtmlInventario(fechaVencimientoTexto)}</td>
                                         <td>${datos.fechaTexto}</td>
                                         <td>${datos.usuarioCompleto}</td>
+                                        ${esSuperAdminGlobal ? `<td style="text-align:center;"><button type="button" class="btn-delete btn-action" title="Eliminar entrada" onclick="eliminarEntrada(${Number(item.id)})"><i class="fas fa-trash"></i></button></td>` : ''}
                                     `;
                                     tbody.appendChild(row);
                                 });
@@ -6224,6 +6229,42 @@ if (is_file($logoPdfPath)) {
                     }
                 })
                 .catch(e => console.error('Error:', e));
+        }
+
+        async function eliminarEntrada(entradaId) {
+            if (!esSuperAdminGlobal) return;
+            const id = Number(entradaId);
+            if (!id || id <= 0) return;
+
+            const confirmacion = await Swal.fire({
+                icon: 'warning',
+                title: '¿ELIMINAR ENTRADA?',
+                html: `<p>Esta acción eliminará el registro de entrada <strong>#${id}</strong> y <strong>descontará la cantidad del stock</strong> del producto correspondiente.</p><p style="margin-top:8px;color:#b91c1c;font-weight:700;">Esta operación no se puede deshacer.</p>`,
+                showCancelButton: true,
+                confirmButtonText: 'SÍ, ELIMINAR',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#dc2626'
+            });
+            if (!confirmacion.isConfirmed) return;
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'eliminarEntrada');
+                formData.append('entrada_id', id);
+
+                const respuesta = await fetch(inventarioControllerUrl, { method: 'POST', body: formData });
+                const resultado = await respuesta.json();
+
+                if (!resultado.success) throw new Error(resultado.message || 'No se pudo eliminar la entrada.');
+
+                Swal.fire({ icon: 'success', title: 'ENTRADA ELIMINADA', text: resultado.message || 'La entrada fue eliminada correctamente.', timer: 2000, showConfirmButton: false });
+                cargarEntradas();
+                cargarResumen();
+                cargarEstadisticas();
+                dispararRefreshInventarioGlobal?.();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudo eliminar la entrada.' });
+            }
         }
 
         // Cargar salidas

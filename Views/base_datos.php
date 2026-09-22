@@ -70,32 +70,88 @@ $baseUrl = rtrim((string)base_url(), '/');
         const fileName = document.getElementById('fileName');
         exportLink.addEventListener('click', async event => {
             event.preventDefault();
-            window.EstrellaSkeleton?.show(document.querySelector('.actions'), 'cards', { cards: 2 });
+
+            // Mostrar Swal con barra de progreso — igual que importar
+            Swal.fire({
+                title: 'Exportando base de datos...',
+                html: '<div style="margin-top:20px;"><div style="width:100%;height:20px;background:#e9ecef;border-radius:10px;overflow:hidden;"><div id="exportProgressBar" style="width:0%;height:100%;background:#2f4a5a;transition:width 0.3s ease;"></div></div><div id="exportProgressText" style="text-align:center;margin-top:8px;font-size:12px;color:#667085;">Preparando exportación…</div></div>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false
+            });
+
+            const setProgreso = (pct, texto) => {
+                const bar  = document.getElementById('exportProgressBar');
+                const txt  = document.getElementById('exportProgressText');
+                if (bar) bar.style.width = pct + '%';
+                if (txt) txt.textContent = texto || pct + '%';
+            };
+
             try {
-                const response = await fetch(exportLink.href);
-                if (!response.ok) throw new Error(await response.text() || 'No se pudo exportar la base de datos.');
-                const blob = await response.blob();
-                const contentDisposition = response.headers.get('Content-Disposition') || '';
-                const match = contentDisposition.match(/filename="?([^";]+)"?/i);
-                const filename = match ? match[1] : `base_datos_AUTOSERVICIO MI ESTRELLA
-_${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
-                if (window.electronAPI?.saveExportedDatabase) {
-                    const saveResult = await window.electronAPI.saveExportedDatabase(filename, await blob.arrayBuffer());
-                    if (!saveResult?.saved) return;
-                    await Swal.fire('Exportación completada', 'La base de datos se guardó correctamente.', 'success');
-                    return;
-                }
-                const downloadUrl = URL.createObjectURL(blob);
-                const download = document.createElement('a');
-                download.href = downloadUrl;
-                download.download = filename;
-                download.click();
-                URL.revokeObjectURL(downloadUrl);
-                await Swal.fire('Exportación completada', 'La base de datos se exportó correctamente.', 'success');
+                await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', exportLink.href, true);
+                    xhr.responseType = 'blob';
+
+                    // Progreso de descarga del ZIP generado por el servidor
+                    xhr.onprogress = (event) => {
+                        if (event.lengthComputable && event.total > 0) {
+                            const pct = Math.round((event.loaded / event.total) * 100);
+                            setProgreso(pct, pct + '%');
+                        } else {
+                            // Sin Content-Length: animación indeterminada cíclica
+                            const bar = document.getElementById('exportProgressBar');
+                            if (bar) {
+                                const actual = parseFloat(bar.style.width) || 0;
+                                const next = actual < 90 ? Math.min(90, actual + 5) : actual;
+                                setProgreso(next, 'Descargando…');
+                            }
+                        }
+                    };
+
+                    xhr.onload = async () => {
+                        try {
+                            if (xhr.status !== 200) {
+                                const text = await xhr.response.text?.() || 'No se pudo exportar la base de datos.';
+                                throw new Error(text);
+                            }
+                            setProgreso(100, '100%');
+
+                            const blob = xhr.response;
+                            const disposition = xhr.getResponseHeader('Content-Disposition') || '';
+                            const match = disposition.match(/filename="?([^";]+)"?/i);
+                            const filename = match
+                                ? match[1].replace(/\n/g, '').trim()
+                                : `base_datos_${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
+
+                            if (window.electronAPI?.saveExportedDatabase) {
+                                const buffer = await blob.arrayBuffer();
+                                const saveResult = await window.electronAPI.saveExportedDatabase(filename, buffer);
+                                if (!saveResult?.saved) { resolve(); return; }
+                                await Swal.fire('Exportación completada', 'La base de datos se guardó correctamente.', 'success');
+                                resolve();
+                                return;
+                            }
+
+                            const downloadUrl = URL.createObjectURL(blob);
+                            const download = document.createElement('a');
+                            download.href = downloadUrl;
+                            download.download = filename;
+                            download.click();
+                            URL.revokeObjectURL(downloadUrl);
+                            await Swal.fire('Exportación completada', 'La base de datos se exportó correctamente.', 'success');
+                            resolve();
+                        } catch (err) { reject(err); }
+                    };
+
+                    xhr.onerror = () => reject(new Error('Error de conexión al exportar la base de datos.'));
+
+                    // Fase inicial: el servidor prepara el ZIP (progreso indeterminado hasta que empiece la descarga)
+                    setProgreso(0, 'Preparando exportación…');
+                    xhr.send();
+                });
             } catch (error) {
                 Swal.fire('Error', error.message || 'No se pudo exportar la base de datos.', 'error');
-            } finally {
-                window.EstrellaSkeleton?.hide(document.querySelector('.actions'), true);
             }
         });
         fileInput.addEventListener('change', () => { fileName.textContent = fileInput.files[0]?.name || 'Ningún archivo seleccionado'; });

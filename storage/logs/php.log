@@ -1924,3 +1924,6 @@ Stack trace:
 #2 {main}
   thrown in C:\xampp\htdocs\nombre_de_empresa\tests\test_rendimiento_20k.php on line 91
 [19-Sep-2026 18:20:34 America/Bogota] No hay rol definido en la sesión
+[21-Sep-2026 23:02:55 America/Bogota] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php on line 124
+[21-Sep-2026 23:05:49 America/Bogota] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php on line 124
+[21-Sep-2026 23:06:06 America/Bogota] PHP Warning:  Header may not contain more than a single header, new line detected in C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php on line 124
