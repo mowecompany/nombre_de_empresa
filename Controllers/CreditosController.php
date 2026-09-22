@@ -4,6 +4,8 @@ header('Content-Type: application/json; charset=UTF-8');
 error_reporting(E_ERROR | E_WARNING | E_PARSE);
 session_start();
 
+date_default_timezone_set('America/Bogota');
+
 require_once __DIR__ . '/../Helpers/Helpers.php';
 require_once __DIR__ . '/../Config/database.php';
 require_once __DIR__ . '/../Models/Inventario.php';
@@ -567,62 +569,6 @@ try {
         exit;
     }
 
-    if ($accion === 'eliminarCredito') {
-        $creditoId = (int)($_POST['credito_id'] ?? 0);
-        $idsSolicitados = $_POST['credito_ids'] ?? '';
-        if (is_string($idsSolicitados)) {
-            $idsSolicitados = json_decode($idsSolicitados, true);
-        }
-        $ids = is_array($idsSolicitados)
-            ? array_values(array_filter(array_unique(array_map('intval', $idsSolicitados))))
-            : [];
-        if ($creditoId > 0) $ids[] = $creditoId;
-        $ids = array_values(array_filter(array_unique($ids)));
-        if (!$ids) {
-            throw new Exception('No se pudo identificar el crédito');
-        }
-
-        $marcadores = implode(',', array_fill(0, count($ids), '?'));
-        $sqlCredito = "SELECT id, estado FROM creditos WHERE id IN ({$marcadores})
-            AND (:empresa_id = 0 OR empresa_id = :empresa_id)";
-        $stmtCredito = $db->prepare($sqlCredito);
-        $stmtCredito->execute(array_merge($ids, [':empresa_id' => $empresaId > 0 ? $empresaId : 0]));
-        $creditosEliminar = $stmtCredito->fetchAll(PDO::FETCH_ASSOC);
-        if (count($creditosEliminar) !== count($ids)) {
-            throw new Exception('No se encontraron todos los créditos de la tarjeta');
-        }
-        if (array_filter($creditosEliminar, static fn(array $credito): bool => strtolower(trim((string)($credito['estado'] ?? ''))) !== 'pagado')) {
-            throw new Exception('Solo se pueden eliminar créditos pagados');
-        }
-
-        $enTransaccion = false;
-        try {
-            if ($driver === 'sqlite') {
-                $db->exec('BEGIN IMMEDIATE');
-            } else {
-                $db->beginTransaction();
-            }
-            $enTransaccion = true;
-            $db->prepare("DELETE FROM abonos_creditos WHERE credito_id IN ({$marcadores})")->execute($ids);
-            $db->prepare("DELETE FROM detalle_creditos WHERE credito_id IN ({$marcadores})")->execute($ids);
-            $db->prepare("DELETE FROM creditos WHERE id IN ({$marcadores})")->execute($ids);
-            if ($driver === 'sqlite') {
-                $db->exec('COMMIT');
-            } else {
-                $db->commit();
-            }
-            $enTransaccion = false;
-        } catch (Throwable $e) {
-            if ($enTransaccion) {
-                try { $driver === 'sqlite' ? $db->exec('ROLLBACK') : $db->rollBack(); } catch (Throwable $rollbackError) {}
-            }
-            throw $e;
-        }
-
-        echo json_encode(['success' => true, 'message' => 'Crédito pagado eliminado correctamente']);
-        exit;
-    }
-
     if ($accion === 'obtenerClientes') {
         $usuarios = $usuarioModel->obtenerUsuarios();
         $clientes = array_values(array_filter($usuarios, static function (array $usuario): bool {
@@ -668,9 +614,6 @@ try {
             }
 
             $actual = $creditosPorCliente[$clienteId];
-            $idsActuales = array_values(array_unique(array_map('intval', $actual['credit_ids'] ?? [])));
-            $idsActuales[] = (int)($credito['id'] ?? 0);
-            $actual['credit_ids'] = array_values(array_filter(array_unique($idsActuales)));
             $estadoActual = strtolower(trim((string)($actual['estado'] ?? 'pendiente')));
             $estadoNuevo = strtolower(trim((string)($credito['estado'] ?? 'pendiente')));
             $fechaActual = (string)($actual['fecha_creacion'] ?? '1970-01-01 00:00:00');
@@ -684,10 +627,7 @@ try {
             }
 
             if ($debeReemplazar) {
-                $credito['credit_ids'] = $actual['credit_ids'];
                 $creditosPorCliente[$clienteId] = $credito;
-            } else {
-                $creditosPorCliente[$clienteId] = $actual;
             }
         }
 
