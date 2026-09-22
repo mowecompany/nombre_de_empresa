@@ -2046,24 +2046,25 @@ try {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="editProdPrecioCompra"><i class="fas fa-cart-arrow-down"></i> PRECIO DE COMPRA</label>
-                        <input type="number" id="editProdPrecioCompra" name="precio_compra" min="0" step="0.01" autocomplete="off" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdPrecioCompra" name="precio_compra" min="0" step="0.01" autocomplete="off" readonly tabindex="-1" title="Este valor solo se modifica desde Entradas o Inventario" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;background:#f2f4f7;color:#667085;cursor:not-allowed;">
                     </div>
                     <div class="form-group">
                         <label for="editProdPrecio"><i class="fas fa-dollar-sign"></i> PRECIO DE VENTA</label>
-                        <input type="number" id="editProdPrecio" name="precio" min="0" step="1" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdPrecio" name="precio" min="0" step="1" autocomplete="off" required readonly tabindex="-1" title="Este valor solo se modifica desde Entradas o Inventario" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;background:#f2f4f7;color:#667085;cursor:not-allowed;">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="editProdStock"><i class="fas fa-cubes"></i> STOCK</label>
-                        <input type="number" id="editProdStock" name="stock" min="0" step="1" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdStock" name="stock" min="0" step="1" autocomplete="off" required readonly tabindex="-1" title="Este valor solo se modifica desde Entradas o Inventario" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;background:#f2f4f7;color:#667085;cursor:not-allowed;">
                     </div>
                     <div class="form-group">
                         <label for="editProdPorcentaje"><i class="fas fa-percent"></i> PORCENTAJE DE GANANCIA</label>
-                        <input type="number" id="editProdPorcentaje" name="porcentaje_ganancia" min="0" step="0.01" autocomplete="off" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdPorcentaje" name="porcentaje_ganancia" min="0" step="0.01" autocomplete="off" readonly tabindex="-1" title="Este valor solo se modifica desde Entradas o Inventario" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;background:#f2f4f7;color:#667085;cursor:not-allowed;">
                     </div>
                 </div>
+                <small style="display:block; margin-top:6px; color:#667085;"><i class="fas fa-lock"></i> El precio de compra, el precio de venta, el stock y el porcentaje de ganancia solo se modifican desde Entradas o desde Inventario &gt; Total de productos.</small>
 
                 <div class="form-group" style="margin-top:12px;">
                     <div id="presentacionesContenido" style="display:none; background:#f8fafc; border:1px solid #e6e9ee; border-radius:8px; padding:14px;">
@@ -4067,6 +4068,7 @@ try {
                         formData.append('precio', document.getElementById('editProdPrecio').value);
                         formData.append('stock', document.getElementById('editProdStock').value);
                         formData.append('porcentaje_ganancia', document.getElementById('editProdPorcentaje').value);
+                        formData.append('origen', 'productos');
                         
                         const imagenFile = document.getElementById('imagenEdit').files[0];
                         if (imagenFile) {

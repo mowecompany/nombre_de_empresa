@@ -2815,7 +2815,7 @@ if (is_file($logoPdfPath)) {
                 </div>
                 <div class="form-group">
                     <label for="cantidadProductoDanado"><i class="fas fa-scale-balanced"></i> CANTIDAD DAÑADA *</label>
-                    <input type="number" id="cantidadProductoDanado" min="1" step="1" required>
+                    <input type="number" id="cantidadProductoDanado" min="0" step="any" inputmode="decimal" required>
                     <small id="stockProductoDanado" style="display:block;margin-top:6px;color:#64748b;font-weight:700;"></small>
                 </div>
                 <div class="form-group">
@@ -2835,7 +2835,7 @@ if (is_file($logoPdfPath)) {
                 <button class="close-btn" onclick="cerrarModal('salidaModal')">&times;</button>
             </div>
             <div id="paginasSalidaPanel" style="display:flex; align-items:center; gap:6px; overflow-x:auto; margin:0 0 12px; padding:2px 0 6px; border-bottom:1px solid #e2e8f0;"></div>
-            <form autocomplete="off" onsubmit="registrarSalida(event)">
+            <form autocomplete="off" novalidate onsubmit="registrarSalida(event)">
                 <div class="form-group">
                     <div style="display:grid; grid-template-columns:minmax(0,450px) minmax(0,1fr); align-items:start; gap:10px; width:100%; margin:0 0 8px;">
                         <label for="productoSalida" style="display:flex; align-items:center; flex:0 0 auto; margin:0;"><i class="fas fa-box"></i> PRODUCTO *</label>
@@ -2903,7 +2903,7 @@ if (is_file($logoPdfPath)) {
                                 <label for="cantidadSalida" style="margin-bottom:5px;"><i class="fas fa-scale-balanced"></i> <span id="unidadSalidaLabel">CANTIDAD</span> *</label>
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <button type="button" onclick="decrementarCantidad('cantidadSalida')" style="width:32px; height:28px; padding:0; background:#26384d; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">−</button>
-                                    <input type="number" id="cantidadSalida" min="1" step="1" value="1" autocomplete="off" required style="width:80px; height:28px; text-align:center; padding:4px; border:1px solid #cbd5e1; border-radius:4px;">
+                                    <input type="number" id="cantidadSalida" min="0" step="any" value="1" autocomplete="off" inputmode="decimal" style="width:80px; height:28px; text-align:center; padding:4px; border:1px solid #cbd5e1; border-radius:4px;">
                                     <button type="button" onclick="incrementarCantidad('cantidadSalida')" style="width:32px; height:28px; padding:0; background:#26384d; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">+</button>
                                 </div>
                                 <small id="pesoSalidaResumen" style="display:none;"> </small>
@@ -3008,6 +3008,18 @@ if (is_file($logoPdfPath)) {
             <div class="modal-header">
                 <h2 id="productosCategoriaSalidaTitulo"><i class="fas fa-store"></i> PRODUCTOS</h2>
                 <span id="pesoVivoCategoriaModal" style="display:none; align-items:center; gap:7px; margin-left:14px; padding:6px 14px; border-radius:999px; font-size:15px; font-weight:800; letter-spacing:.3px; white-space:nowrap;"></span>
+                <style>
+                    @keyframes basculaLedParpadeo { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+                    .bascula-led-btn { display:inline-flex; align-items:center; gap:6px; margin-left:8px; padding:5px 12px 5px 9px; border:0; border-radius:999px; font-size:13px; font-weight:800; letter-spacing:.3px; white-space:nowrap; cursor:default; }
+                    .bascula-led-btn .bascula-led-punto { width:11px; height:11px; border-radius:50%; display:inline-block; animation: basculaLedParpadeo 1s ease-in-out infinite; }
+                    .bascula-led-btn.rojo { background:#fee2e2; color:#b91c1c; }
+                    .bascula-led-btn.rojo .bascula-led-punto { background:#dc2626; }
+                    .bascula-led-btn.verde { background:#dcfce7; color:#15803d; }
+                    .bascula-led-btn.verde .bascula-led-punto { background:#16a34a; }
+                </style>
+                <button type="button" id="basculaLedEstado" class="bascula-led-btn rojo" style="display:none;" disabled>
+                    <span class="bascula-led-punto"></span>
+                </button>
                 <div style="display:flex; align-items:center; gap:10px; min-width:0; margin-left:auto;">
                     <div style="display:flex; align-items:center; width:20%; min-width:150px; max-width:220px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; overflow:hidden;">
                         <input type="search" id="buscarProductosCategoriaSalida" placeholder="BUSCAR..." autocomplete="off" style="width:100%; min-width:0; border:0; outline:0; padding:8px 10px; font-size:12px; text-transform:uppercase;">
@@ -4513,8 +4525,9 @@ if (is_file($logoPdfPath)) {
             const precioBase = parseFloat(option?.getAttribute('data-precio') || 0) || 0;
             const descuentoPct = parseFloat(option?.getAttribute('data-descuento') || 0) || 0;
             const stockActual = parseFloat(option?.getAttribute('data-stock') || 0) || 0;
-            const categoriaPeso = String(select.dataset.categoriaPeso || '').toLowerCase();
-            const esPorKilo = esProductoPorKilosSalida(option) || ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoriaPeso);
+            // La unidad la define unicamente la casilla "vendido por kilos" del producto.
+            const esPorKilo = esProductoPorKilosSalida(option);
+
             const cantidadSeleccionada = normalizarCantidadSalida(document.getElementById('cantidadSalida')?.value || '1', esPorKilo);
             const precioFinalAtributo = parseFloat(option?.getAttribute('data-precio-final') || 0) || 0;
             const precioCerrado = typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(precioBase) : precioBase;
@@ -4546,12 +4559,11 @@ if (is_file($logoPdfPath)) {
         }
 
         function esProductoPorKilosSalida(option) {
+            // Solo la casilla "vendido por kilos" define si el producto se pesa.
             const valor = option?.dataset?.ventaPorKilo ?? option?.getAttribute?.('data-venta-por-kilo') ?? '0';
-            const porVentaPorKilo = ['1', 'true', 'si', 'sí'].includes(String(valor).trim().toLowerCase());
-            const categoria = normalizarTextoBusquedaInventario(option?.dataset?.categoriaNombre || '');
-            const porCategoria = ['frutas', 'verduras', 'carnicos y refrigerados'].includes(categoria);
-            return porVentaPorKilo || porCategoria;
+            return ['1', 'true', 'si', 'sí'].includes(String(valor).trim().toLowerCase());
         }
+
 
         function esCategoriaEspecialSalida(option) {
             const categoria = normalizarTextoBusquedaInventario(option?.dataset?.categoriaNombre || '');
@@ -4580,8 +4592,9 @@ if (is_file($logoPdfPath)) {
         function actualizarModoBalanzaPorProducto() {
             const select = document.getElementById('productoSalida');
             const opcion = select?.options[select.selectedIndex];
-            const categoriaPeso = String(select?.dataset.categoriaPeso || '').toLowerCase();
-            const esPorKilo = esProductoPorKilosSalida(opcion) || ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoriaPeso);
+            // La unidad depende del producto, no de la categoria abierta.
+            const esPorKilo = esProductoPorKilosSalida(opcion);
+
             const pesoBarra = document.getElementById('pesoCategoriaSalidaBarra');
             const cantidad = document.getElementById('cantidadSalida');
             const etiqueta = document.getElementById('unidadSalidaLabel');
@@ -4628,8 +4641,10 @@ if (is_file($logoPdfPath)) {
             if (!select || !grid) return;
 
             const categoriaConPeso = ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoria);
-            ventaPorPesoCategoriaActiva = categoriaConPeso;
+            // El peso se activa al elegir un producto marcado por kilos, no por la categoria.
+            ventaPorPesoCategoriaActiva = false;
             select.dataset.categoriaPeso = categoriaConPeso ? categoria : '';
+
             actualizarEstadoBalanzaSalida('oculta');
             if (pesoBarra) pesoBarra.style.display = 'block';
             if (pesoBarra) {
@@ -4669,7 +4684,7 @@ if (is_file($logoPdfPath)) {
                     tarjeta.dataset.barcode = codigoBarras;
                     tarjeta.dataset.nombre = nombre;
                     tarjeta.dataset.categoriaNombre = option.dataset.categoriaNombre || '';
-                    const esPorKiloTarjeta = esProductoPorKilosSalida(option) || ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoria);
+                    const esPorKiloTarjeta = esProductoPorKilosSalida(option);
                     const precio = parseFloat(option.dataset.precio || 0) || 0;
                     const stock = parseFloat(option.dataset.stock || 0) || 0;
                     tarjeta.disabled = stock <= 0;
@@ -4678,7 +4693,7 @@ if (is_file($logoPdfPath)) {
                     const stockVisible = esPorKiloTarjeta
                         ? `${formatoStockVisible(stock, option.dataset.categoriaNombre || '', 1)} KG`
                         : formatoStockVisible(stock, option.dataset.categoriaNombre || '', 0);
-                    tarjeta.innerHTML = `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:18px; font-size:11px; font-weight:800; letter-spacing:.3px;"><span style="color:#15803d; white-space:nowrap;">${escapeHtmlInventario(stockVisible)}</span><span style="color:#2563eb; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlInventario(codigo)}</span></div><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)} / KG</span>`;
+                    tarjeta.innerHTML = `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:18px; font-size:11px; font-weight:800; letter-spacing:.3px;"><span style="color:#15803d; white-space:nowrap;">${escapeHtmlInventario(stockVisible)}</span><span style="color:#2563eb; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlInventario(codigo)}</span></div><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)}${esPorKiloTarjeta ? ' / KG' : ' / UNIDAD'}</span>`;
                     tarjeta.addEventListener('click', () => {
                         select.value = option.value;
                         productoSalidaSeleccionadoPorCategoria = {
@@ -4691,17 +4706,19 @@ if (is_file($logoPdfPath)) {
                             descuento_porcentaje: parseFloat(option.dataset.descuento || 0) || 0,
                             stock: parseFloat(option.dataset.stock || 0) || 0,
                             venta_por_kilo: esPorKiloTarjeta,
-                            cantidad: ventaPorPesoCategoriaActiva ? 0.001 : 1,
+                            cantidad: esPorKiloTarjeta ? 0.001 : 1,
                             referencia: (option.dataset.codigo || '').trim()
                         };
+                        ventaPorPesoCategoriaActiva = esPorKiloTarjeta;
                         const buscar = document.getElementById('buscarProductoSalida');
                         if (buscar) buscar.value = nombre;
                         const cantidad = document.getElementById('cantidadSalida');
                         if (cantidad) {
-                            cantidad.min = ventaPorPesoCategoriaActiva ? '0.001' : '1';
-                            cantidad.step = ventaPorPesoCategoriaActiva ? '0.001' : '1';
-                            if (ventaPorPesoCategoriaActiva) cantidad.value = '0.001';
+                            cantidad.min = esPorKiloTarjeta ? '0.001' : '1';
+                            cantidad.step = esPorKiloTarjeta ? '0.001' : '1';
+                            cantidad.value = esPorKiloTarjeta ? '0.001' : '1';
                         }
+
                         select.dispatchEvent(new Event('change', { bubbles: true }));
                         // Con báscula conectada y peso válido en vivo: agregar directo al
                         // carrito con ese peso y cerrar el modal. Sin báscula, flujo actual.
@@ -4922,7 +4939,16 @@ if (is_file($logoPdfPath)) {
         function actualizarPesoVivoCategoriaModal() {
             const modal = document.getElementById('productosCategoriaSalidaModal');
             const insignia = document.getElementById('pesoVivoCategoriaModal');
+            const led = document.getElementById('basculaLedEstado');
+            const ledTexto = document.getElementById('basculaLedTexto');
             if (!modal || !insignia) return;
+            if (led) {
+                const visible = modal.classList.contains('active');
+                led.style.display = visible ? 'inline-flex' : 'none';
+                if (ledTexto) ledTexto.textContent = basculaNativaConectada ? 'CONECTADA' : 'SIN CONEXIÓN';
+                led.classList.toggle('verde', basculaNativaConectada);
+                led.classList.toggle('rojo', !basculaNativaConectada);
+            }
             if (!modal.classList.contains('active')) {
                 insignia.style.display = 'none';
                 return;
@@ -9476,29 +9502,53 @@ if (is_file($logoPdfPath)) {
             const stock = Number(opcion?.dataset?.stock || 0);
             const porKilo = String(opcion?.dataset?.kilo || '0') === '1';
             if (cantidad) {
-                cantidad.step = porKilo ? '0.001' : '1';
-                cantidad.min = porKilo ? '0.001' : '1';
-                cantidad.max = stock > 0 ? String(stock) : '';
+                // El campo siempre acepta decimales para no bloquear gramos;
+                // la validación por unidad o por kilos se hace al guardar.
+                cantidad.step = 'any';
+                cantidad.min = '0';
+                cantidad.removeAttribute('max');
+                cantidad.placeholder = porKilo ? 'EJEMPLO: 0.250 (KG)' : 'EJEMPLO: 2 (UNIDADES)';
+                const valorActual = Number(cantidad.value || 0);
+                if (!porKilo && valorActual > 0 && !Number.isInteger(valorActual)) cantidad.value = '';
             }
-            if (ayuda) ayuda.textContent = stock > 0 ? `STOCK DISPONIBLE: ${stock}${porKilo ? ' KG' : ''}` : '';
+            if (ayuda) {
+                ayuda.textContent = stock > 0
+                    ? (porKilo
+                        ? `STOCK DISPONIBLE: ${stock.toFixed(3)} KG (PUEDE USAR GRAMOS, EJEMPLO 0.250)`
+                        : `STOCK DISPONIBLE: ${Math.floor(stock)} UNIDADES (SOLO CANTIDADES ENTERAS)`)
+                    : '';
+            }
         }
+
 
         async function registrarProductoDanado(evento) {
             evento.preventDefault();
             const form = evento.currentTarget;
             if (!form.reportValidity()) return;
             const select = document.getElementById('productoDanado');
-            const cantidad = Number(document.getElementById('cantidadProductoDanado')?.value || 0);
+            const cantidad = Number(String(document.getElementById('cantidadProductoDanado')?.value || '0').replace(',', '.'));
             const opcion = select?.options?.[select.selectedIndex];
             const stock = Number(opcion?.dataset?.stock || 0);
-            if (cantidad <= 0 || cantidad > stock) {
-                Swal.fire({ icon: 'warning', title: 'CANTIDAD NO VÁLIDA', text: `La cantidad debe estar entre 0 y ${stock}.` });
+            const porKilo = String(opcion?.dataset?.kilo || '0') === '1';
+            const unidad = porKilo ? 'KG' : 'UNIDADES';
+            if (!Number.isFinite(cantidad) || cantidad <= 0) {
+                Swal.fire({ icon: 'warning', title: 'CANTIDAD NO VÁLIDA', text: porKilo ? 'Indique el peso dañado, por ejemplo 0.250 KG.' : 'Indique cuántas unidades están dañadas.' });
                 return;
             }
+            if (!porKilo && !Number.isInteger(cantidad)) {
+                Swal.fire({ icon: 'warning', title: 'CANTIDAD NO VÁLIDA', text: 'Este producto se descuenta por unidades enteras.' });
+                return;
+            }
+            if (cantidad > stock + 0.0005) {
+                Swal.fire({ icon: 'warning', title: 'CANTIDAD NO VÁLIDA', text: `La cantidad no puede pasar del stock disponible: ${porKilo ? stock.toFixed(3) : Math.floor(stock)} ${unidad}.` });
+                return;
+            }
+            const cantidadTexto = porKilo ? `${cantidad.toFixed(3)} KG` : `${cantidad} UNIDADES`;
             const confirmacion = await Swal.fire({
                 icon: 'warning',
                 title: '¿DESCONTAR PRODUCTO DAÑADO?',
-                text: `Se descontarán ${cantidad} del inventario y quedará registrado como DAÑADO.`,
+                text: `Se descontarán ${cantidadTexto} del inventario y quedará registrado como DAÑADO.`,
+
                 showCancelButton: true,
                 confirmButtonText: 'SÍ, DESCONTAR',
                 cancelButtonText: 'CANCELAR',
@@ -10665,8 +10715,10 @@ if (is_file($logoPdfPath)) {
     }
 
     function esProductoPorKiloInventario(ventaPorKilo = false, categoria = '') {
-        return esFlagVentaPorKiloInventario(ventaPorKilo) || esCategoriaGramosInventario(categoria);
+        // Solo la casilla "vendido por kilos" define kilos/gramos; la categoria no.
+        return esFlagVentaPorKiloInventario(ventaPorKilo);
     }
+
 
     function formatoCantidad(valor, esPorKilo = false) {
         const n = Math.round(numero(valor, 0) * 1000) / 1000;

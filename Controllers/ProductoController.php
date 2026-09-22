@@ -427,7 +427,9 @@ try {
                     $cambioStock = $stockNuevo - $stockAnterior;
                     $cambioPrecio = $precioNuevo - $precioAnterior;
                     $cambioPrecioCompra = $precioCompraNuevo !== null && $productoAntes !== null ? $precioCompraNuevo - (float)($productoAntes->precio ?? 0) : 0;
-                    $debeRegistrarEntradaEdicion = $cambioStock > 0 || ($precioCompraNuevo !== null && $precioCompraNuevo > 0) || abs($cambioPrecio) > 0;
+                    $origenEdicion = trim((string)($_POST['origen'] ?? ''));
+                    $debeRegistrarEntradaEdicion = $origenEdicion !== 'productos'
+                        && ($cambioStock > 0 || ($precioCompraNuevo !== null && $precioCompraNuevo > 0) || abs($cambioPrecio) > 0);
 
                     if ($debeRegistrarEntradaEdicion) {
                         try {
