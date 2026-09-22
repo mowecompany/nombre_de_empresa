@@ -2743,7 +2743,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                     <div class="form-group">
                         <label for="precioVentaMostrado"><i class="fas fa-dollar-sign"></i> PRECIO VENTA (CALCULADO)</label>
-                        <input type="number" id="precioVentaMostrado" step="50" min="0" readonly autocomplete="off" style="background: #f8f9fa; cursor: not-allowed;">
+                        <input type="number" id="precioVentaMostrado" step="0.01" min="0" readonly autocomplete="off" style="background: #f8f9fa; cursor: not-allowed;">
                     </div>
                 </div>
 
@@ -2834,6 +2834,7 @@ if (is_file($logoPdfPath)) {
                 <h2><i class="fas fa-box-open"></i> NUEVA SALIDA DE INVENTARIO</h2>
                 <button class="close-btn" onclick="cerrarModal('salidaModal')">&times;</button>
             </div>
+            <div id="paginasSalidaPanel" style="display:flex; align-items:center; gap:6px; overflow-x:auto; margin:0 0 12px; padding:2px 0 6px; border-bottom:1px solid #e2e8f0;"></div>
             <form autocomplete="off" onsubmit="registrarSalida(event)">
                 <div class="form-group">
                     <div style="display:grid; grid-template-columns:minmax(0,450px) minmax(0,1fr); align-items:start; gap:10px; width:100%; margin:0 0 8px;">
@@ -2887,6 +2888,7 @@ if (is_file($logoPdfPath)) {
                         <button type="button" class="categoria-salida-option" data-categoria-id="frutas" onclick="abrirProductosCategoriaSalida('frutas', 'FRUTAS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-apple-whole"></i> FRUTAS</button>
                         <button type="button" class="categoria-salida-option" data-categoria-id="verduras" onclick="abrirProductosCategoriaSalida('verduras', 'VERDURAS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-carrot"></i> VERDURAS</button>
                         <button type="button" class="categoria-salida-option" data-categoria-id="carnicos-refrigerados" onclick="abrirProductosCategoriaSalida('carnicos-refrigerados', 'CÁRNICOS Y REFRIGERADOS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-drumstick-bite"></i> CÁRNICOS Y REFRIGERADOS</button>
+                        <button type="button" class="categoria-salida-option" data-categoria-id="otros" onclick="abrirProductosCategoriaSalida('otros', 'OTROS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-tag"></i> OTROS</button>
                     </div>
                     </div>
                     <input type="hidden" id="codigoProductoSalida">
@@ -3367,7 +3369,7 @@ if (is_file($logoPdfPath)) {
                     </div>
                     <div class="form-group">
                         <label for="editProdPrecio"><i class="fas fa-dollar-sign"></i> PRECIO DE VENTA *</label>
-                        <input type="number" step="50" id="editProdPrecio" name="precio" autocomplete="off" required>
+                        <input type="number" step="0.01" id="editProdPrecio" name="precio" autocomplete="off" required>
                     </div>
                     <div class="form-group">
                         <label for="editProdStock"><i class="fas fa-cubes"></i> STOCK *</label>
@@ -3672,7 +3674,7 @@ if (is_file($logoPdfPath)) {
             const esSeparador = (fila) => fila.classList.contains('group-date');
             const filasDatos = todasLasFilas.filter(fila => !esSeparador(fila));
             const filas = filasDatos.filter((fila) => {
-                const contenido = normalizarFiltroInventario(fila.textContent);
+                const contenido = normalizarFiltroInventario(`${fila.textContent} ${fila.dataset.busquedaInventario || ''}`);
                 return (!textoBusqueda || contenido.includes(textoBusqueda))
                     && (!textoBusquedaGeneral || contenido.includes(textoBusquedaGeneral));
             });
@@ -3720,7 +3722,7 @@ if (is_file($logoPdfPath)) {
                     const textoBusquedaGeneral = normalizarFiltroInventario(document.getElementById('filtroResumen')?.value);
                     const totalRegistros = estadoFilas.filas.filter((fila) => {
                         if (fila.classList.contains('group-date')) return false;
-                        const contenido = normalizarFiltroInventario(fila.textContent);
+                        const contenido = normalizarFiltroInventario(`${fila.textContent} ${fila.dataset.busquedaInventario || ''}`);
                         return (!textoBusqueda || contenido.includes(textoBusqueda))
                             && (!textoBusquedaGeneral || contenido.includes(textoBusquedaGeneral));
                     }).length;
@@ -3914,6 +3916,7 @@ if (is_file($logoPdfPath)) {
             (items || []).forEach(item => {
                 if (item && item.nombre) valores.set(String(item.nombre).trim(), String(item.nombre).trim());
                 if (item && item.codigo) valores.set(String(item.codigo).trim(), String(item.codigo).trim());
+                if (item && item.codigo_barras) valores.set(String(item.codigo_barras).trim(), String(item.codigo_barras).trim());
             });
             window.opcionesFiltroInventario = Array.from(valores.values()).filter(Boolean);
             renderResultadosFiltroInventario();
@@ -3978,12 +3981,14 @@ if (is_file($logoPdfPath)) {
             modal.classList.add('active');
             document.body.classList.add('modal-open');
             if (modalId === 'salidaModal') {
+                restaurarPaginasSalidaPersistidas();
                 if (!yaEstabaActivo) {
                     const referenciaField = document.getElementById('referenciaSalida');
                     if (referenciaField) referenciaField.value = '';
                     inicializarReferenciaSalida();
                 }
                 inicializarCategoriasSalida();
+                renderPaginasSalida();
                 try { attachSalidaListeners(); } catch (e) {}
             }
             if (modalId === 'entradaModal' || modalId === 'salidaModal') {
@@ -4021,9 +4026,9 @@ if (is_file($logoPdfPath)) {
                 resetEntradaModalFields();
             }
             if (modalId === 'salidaModal') {
-                carritoSalida = [];
                 ventaPorPesoCategoriaActiva = false;
-                renderCarritoSalida();
+                guardarPaginaSalidaActiva();
+                persistirPaginasSalida();
                 const cantidad = document.getElementById('cantidadSalida');
                 if (cantidad) {
                     cantidad.value = 1;
@@ -4052,6 +4057,10 @@ if (is_file($logoPdfPath)) {
         }
 
         let carritoSalida = [];
+        let paginasSalida = [{ items: [] }];
+        let paginaSalidaActiva = 0;
+        let paginasSalidaPersistidasCargadas = false;
+        const clavePaginasSalida = 'caja1_paginas_salida_pendientes';
         let productoSalidaSeleccionadoPorCategoria = null;
         let salidasAgrupadasCache = {};
         let movimientosAgrupadosCache = {};
@@ -4062,6 +4071,108 @@ if (is_file($logoPdfPath)) {
         let bufferBalanzaSalida = '';
         let basculaNativaConectada = false;
         let basculaNativaListenerRegistrado = false;
+
+        function persistirPaginasSalida() {
+            if (!paginasSalidaPersistidasCargadas) return;
+            try {
+                const hayProductos = paginasSalida.some(pagina => (pagina.items || []).length > 0);
+                if (!hayProductos) {
+                    localStorage.removeItem(clavePaginasSalida);
+                    return;
+                }
+                localStorage.setItem(clavePaginasSalida, JSON.stringify({
+                    paginas: paginasSalida,
+                    activa: paginaSalidaActiva
+                }));
+            } catch (error) {
+                console.warn('No se pudieron conservar las páginas de salida:', error);
+            }
+        }
+
+        function restaurarPaginasSalidaPersistidas() {
+            if (paginasSalidaPersistidasCargadas) return;
+            paginasSalidaPersistidasCargadas = true;
+            try {
+                const guardado = JSON.parse(localStorage.getItem(clavePaginasSalida) || 'null');
+                const paginasGuardadas = Array.isArray(guardado?.paginas) ? guardado.paginas : [];
+                if (paginasGuardadas.length > 0) {
+                    paginasSalida = paginasGuardadas.map(pagina => ({
+                        items: Array.isArray(pagina?.items) ? pagina.items : []
+                    }));
+                    paginaSalidaActiva = Math.max(0, Math.min(Number(guardado.activa) || 0, paginasSalida.length - 1));
+                    carritoSalida = paginasSalida[paginaSalidaActiva].items || [];
+                }
+            } catch (error) {
+                localStorage.removeItem(clavePaginasSalida);
+            }
+            renderCarritoSalida();
+            renderPaginasSalida();
+        }
+
+        function guardarPaginaSalidaActiva() {
+            if (!paginasSalida[paginaSalidaActiva]) paginasSalida[paginaSalidaActiva] = { items: [] };
+            paginasSalida[paginaSalidaActiva].items = carritoSalida;
+            persistirPaginasSalida();
+        }
+
+        function cargarPaginaSalida(indice) {
+            guardarPaginaSalidaActiva();
+            paginaSalidaActiva = Math.max(0, Math.min(indice, paginasSalida.length - 1));
+            carritoSalida = paginasSalida[paginaSalidaActiva].items || [];
+            limpiarSeleccionSalidaUI();
+            renderCarritoSalida();
+            renderPaginasSalida();
+        }
+
+        function agregarPaginaSalida() {
+            guardarPaginaSalidaActiva();
+            paginasSalida.push({ items: [] });
+            cargarPaginaSalida(paginasSalida.length - 1);
+        }
+
+        async function cerrarPaginaSalida(indice) {
+            if (indice <= 0 || indice >= paginasSalida.length) return;
+            guardarPaginaSalidaActiva();
+            const pagina = paginasSalida[indice];
+            if ((pagina.items || []).length > 0) {
+                const confirmacion = await Swal.fire({
+                    icon: 'warning',
+                    title: '¿Cerrar esta página?',
+                    text: 'Los productos de esta página se quitarán de la salida actual.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, cerrar',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!confirmacion.isConfirmed) return;
+            }
+
+            const eraActiva = indice === paginaSalidaActiva;
+            paginasSalida.splice(indice, 1);
+            if (eraActiva) {
+                paginaSalidaActiva = Math.min(indice - 1, paginasSalida.length - 1);
+                carritoSalida = paginasSalida[paginaSalidaActiva].items || [];
+                limpiarSeleccionSalidaUI();
+                renderCarritoSalida();
+            } else if (indice < paginaSalidaActiva) {
+                paginaSalidaActiva -= 1;
+            }
+            renderPaginasSalida();
+            persistirPaginasSalida();
+            persistirPaginasSalida();
+        }
+
+        function renderPaginasSalida() {
+            const panel = document.getElementById('paginasSalidaPanel');
+            if (!panel) return;
+            panel.innerHTML = paginasSalida.map((pagina, indice) => {
+                const activa = indice === paginaSalidaActiva;
+                const cantidad = (pagina.items || []).length;
+                const cerrar = indice > 0
+                    ? `<button type="button" onclick="event.stopPropagation(); cerrarPaginaSalida(${indice})" title="Cerrar página ${indice + 1}" aria-label="Cerrar página ${indice + 1}" style="width:22px; height:22px; padding:0; border:0; border-radius:50%; background:transparent; color:${activa ? '#1d4ed8' : '#64748b'}; cursor:pointer; font-size:16px; font-weight:900; line-height:20px;">&times;</button>`
+                    : '';
+                return `<div style="display:flex; align-items:center; gap:2px; flex:0 0 auto; height:34px; padding:0 4px 0 12px; border:1px solid ${activa ? '#2563eb' : '#cbd5e1'}; border-radius:6px; background:${activa ? '#eff6ff' : '#fff'};"><button type="button" onclick="cargarPaginaSalida(${indice})" style="min-width:80px; height:32px; padding:6px 4px; border:0; background:transparent; color:${activa ? '#1d4ed8' : '#475569'}; cursor:pointer; font-size:12px; font-weight:800; text-transform:uppercase;">PÁGINA ${indice + 1}${cantidad ? ` (${cantidad})` : ''}</button>${cerrar}</div>`;
+            }).join('') + '<button type="button" onclick="agregarPaginaSalida()" style="flex:0 0 auto; height:34px; padding:6px 14px; border:1px solid #2563eb; border-radius:6px; background:#2563eb; color:#fff; cursor:pointer; font-size:12px; font-weight:800; text-transform:uppercase;"><i class="fas fa-plus"></i> MÁS</button>';
+        }
         let ultimoDatoBalanzaSalida = 0;
         let ultimoPesoBalanzaSalida = null;
         // Marca de tiempo (ts) de la última lectura aplicada. Los eventos
@@ -4462,6 +4573,7 @@ if (is_file($logoPdfPath)) {
             if (grupo === 'frutas') return categoria === 'frutas';
             if (grupo === 'verduras') return categoria === 'verduras';
             if (grupo === 'carnicos' || grupo === 'carnicos-refrigerados') return categoria === 'carnicos y refrigerados';
+            if (grupo === 'otros') return categoria === 'otros';
             return false;
         }
 
@@ -4507,7 +4619,7 @@ if (is_file($logoPdfPath)) {
             select.addEventListener('change', actualizarModoBalanzaPorProducto);
         }
 
-        function abrirProductosCategoriaSalida(categoria, titulo) {
+        function abrirProductosCategoriaSalida(categoria, titulo, terminoInicial = '') {
             const select = document.getElementById('productoSalida');
             const grid = document.getElementById('productosCategoriaSalidaGrid');
             const tituloEl = document.getElementById('productosCategoriaSalidaTitulo');
@@ -4528,15 +4640,18 @@ if (is_file($logoPdfPath)) {
             const opciones = Array.from(select.options).filter(option => {
                 if (!option.value) return false;
                 if ((parseFloat(option.dataset.stock || '0') || 0) <= 0) return false;
-                return perteneceGrupoCategoriaSalida(option.dataset.categoriaNombre || '', categoria);
+                const codigoBuscado = normalizarCodigoBarrasInventario(terminoInicial);
+                const coincidePorBarras = /^\d{6,14}$/.test(codigoBuscado)
+                    && normalizarCodigoBarrasInventario(option.dataset.barcode || '') === codigoBuscado;
+                return coincidePorBarras || perteneceGrupoCategoriaSalida(option.dataset.categoriaNombre || '', categoria);
             });
             opciones.sort((a, b) => (parseInt(b.value, 10) || 0) - (parseInt(a.value, 10) || 0));
 
             const iconoTitulo = categoria === 'frutas'
                 ? 'fa-apple-whole'
-                : (categoria === 'verduras' ? 'fa-carrot' : 'fa-drumstick-bite');
+                : (categoria === 'verduras' ? 'fa-carrot' : (categoria === 'otros' ? 'fa-tag' : 'fa-drumstick-bite'));
             if (tituloEl) tituloEl.innerHTML = `<i class="fas ${iconoTitulo}"></i> ${titulo}`;
-            if (buscador) buscador.value = '';
+            if (buscador) buscador.value = terminoInicial;
             grid.innerHTML = '';
             if (!opciones.length) {
                 grid.innerHTML = '<div style="grid-column:1/-1; padding:32px; text-align:center; color:#64748b; font-weight:700;">NO HAY PRODUCTOS DISPONIBLES EN ESTA CATEGORÍA</div>';
@@ -4548,14 +4663,22 @@ if (is_file($logoPdfPath)) {
                     const imagen = resolverImagenProductoInventario(option.dataset.imagen || '');
                     const nombre = (option.dataset.nombre || option.textContent || '').trim();
                     const codigo = String(option.dataset.codigo || '').replace(/[/*()]/g, '').trim();
+                    const codigoBarras = String(option.dataset.barcode || '').trim();
                     tarjeta.dataset.searchText = normalizarTextoBusquedaInventario(`${nombre} ${codigo} ${option.dataset.barcode || ''}`);
+                    tarjeta.dataset.codigo = codigo;
+                    tarjeta.dataset.barcode = codigoBarras;
+                    tarjeta.dataset.nombre = nombre;
+                    tarjeta.dataset.categoriaNombre = option.dataset.categoriaNombre || '';
                     const esPorKiloTarjeta = esProductoPorKilosSalida(option) || ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoria);
                     const precio = parseFloat(option.dataset.precio || 0) || 0;
                     const stock = parseFloat(option.dataset.stock || 0) || 0;
                     tarjeta.disabled = stock <= 0;
                     tarjeta.style.opacity = stock > 0 ? '1' : '0.55';
                     tarjeta.dataset.precioKg = String(precio);
-                    tarjeta.innerHTML = `<span style="min-height:18px; color:#2563eb; font-size:11px; font-weight:800; letter-spacing:.3px;">${escapeHtmlInventario(codigo)}</span><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)} / KG</span>`;
+                    const stockVisible = esPorKiloTarjeta
+                        ? `${formatoStockVisible(stock, option.dataset.categoriaNombre || '', 1)} KG`
+                        : formatoStockVisible(stock, option.dataset.categoriaNombre || '', 0);
+                    tarjeta.innerHTML = `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:18px; font-size:11px; font-weight:800; letter-spacing:.3px;"><span style="color:#15803d; white-space:nowrap;">${escapeHtmlInventario(stockVisible)}</span><span style="color:#2563eb; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlInventario(codigo)}</span></div><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)} / KG</span>`;
                     tarjeta.addEventListener('click', () => {
                         select.value = option.value;
                         productoSalidaSeleccionadoPorCategoria = {
@@ -4597,9 +4720,35 @@ if (is_file($logoPdfPath)) {
             if (buscador) {
                 buscador.oninput = () => {
                     const termino = normalizarTextoBusquedaInventario(buscador.value);
+                    const codigoBuscado = normalizarCodigoBarrasInventario(buscador.value);
+                    let coincidencias = 0;
                     grid.querySelectorAll('button[data-search-text]').forEach((tarjeta) => {
-                        tarjeta.style.display = coincideBusquedaInventario(tarjeta.dataset.searchText, termino) ? 'flex' : 'none';
+                        const coincide = coincideProductoBusquedaInventario(tarjeta, termino);
+                        tarjeta.style.display = coincide ? 'flex' : 'none';
+                        if (coincide) coincidencias++;
                     });
+                    let sinResultados = grid.querySelector('.categoria-salida-sin-resultados');
+                    if (!coincidencias && termino) {
+                        if (!sinResultados) {
+                            sinResultados = document.createElement('div');
+                            sinResultados.className = 'categoria-salida-sin-resultados';
+                            sinResultados.style.cssText = 'grid-column:1/-1; padding:32px; text-align:center; color:#64748b; font-weight:700;';
+                            grid.appendChild(sinResultados);
+                        }
+                        sinResultados.textContent = 'NO HAY PRODUCTOS PARA EL CÓDIGO O TEXTO BUSCADO';
+                        sinResultados.style.display = 'block';
+                    } else if (sinResultados) {
+                        sinResultados.style.display = 'none';
+                    }
+                    if (!coincidencias && /^\d{6,14}$/.test(codigoBuscado)) {
+                        const opcionPorBarras = Array.from(select.options).find(option =>
+                            (parseFloat(option.dataset.stock || '0') || 0) > 0
+                            && normalizarCodigoBarrasInventario(option.dataset.barcode || '') === codigoBuscado
+                        );
+                        if (opcionPorBarras) {
+                            abrirProductosCategoriaSalida(categoria, titulo, buscador.value);
+                        }
+                    }
                 };
                 buscador.onkeydown = (event) => {
                     if (event.key === 'Escape') {
@@ -4607,6 +4756,7 @@ if (is_file($logoPdfPath)) {
                         buscador.dispatchEvent(new Event('input'));
                     }
                 };
+                if (terminoInicial) buscador.dispatchEvent(new Event('input'));
             }
             // Cada apertura crea una sesión visual nueva. Se reinicia solamente
             // la deduplicación; el estado actual se consulta justo después.
@@ -4710,6 +4860,11 @@ if (is_file($logoPdfPath)) {
             const cantidad = document.getElementById('cantidadSalida');
             const etiqueta = document.getElementById('pesoCategoriaSalidaValor');
             if (cantidad && ventaPorPesoCategoriaActiva) {
+                const tieneProductoActivo = Boolean(select?.value);
+                if (!tieneProductoActivo) {
+                    if (etiqueta) etiqueta.textContent = '0.000 kg';
+                    return;
+                }
                 // Peso 0 (producto retirado) también se aplica: la cantidad
                 // vuelve a 0.000 para que un peso nuevo nunca herede el anterior.
                 cantidad.value = (Math.round(pesoKg * 1000) / 1000).toFixed(3);
@@ -4965,6 +5120,7 @@ if (is_file($logoPdfPath)) {
                 delete select.dataset.categoriaPeso;
                 select.style.backgroundImage = '';
             }
+            ultimoPesoBalanzaSalida = null;
             if (buscar) {
                 buscar.value = '';
                 buscar.dataset.lectorPreparado = '0';
@@ -5160,6 +5316,10 @@ if (is_file($logoPdfPath)) {
             }
 
             const validacionInicial = validarCantidadStock(producto, producto.cantidad);
+            if (validacionInicial.cantidad <= 0) {
+                aseguraryMostrarSwalEstilizado('Coloca el producto en la báscula e indica un peso mayor que 0 kg.');
+                return;
+            }
             if (!validacionInicial.valido) {
                 aseguraryMostrarSwalEstilizado(validacionInicial.mensaje || 'Stock insuficiente');
                 return;
@@ -5237,24 +5397,30 @@ if (is_file($logoPdfPath)) {
 
         function eliminarProductoSalida(productoId) {
             carritoSalida = carritoSalida.filter(item => item.producto_id !== productoId);
+            const select = document.getElementById('productoSalida');
+            if (select && Number(select.value) === Number(productoId)) {
+                limpiarSeleccionSalidaUI();
+            }
             renderCarritoSalida();
         }
 
         function redondearTotalSalida(valor) {
-            if (typeof redondearPrecioVenta === 'function') {
-                return redondearPrecioVenta(valor);
-            }
             const total = Math.max(0, Number(valor) || 0);
+            if (typeof redondearPrecioVenta === 'function') {
+                return redondearPrecioVenta(total);
+            }
             const base = Math.floor(total / 100) * 100;
             const resto = total - base;
-            if (resto < 25) return base;
-            if (resto <= 50) return base + 50;
+            if (resto <= 40) return base;
             return base + 100;
         }
 
         function calcularTotalItemsSalida(items) {
             return items.reduce((total, item) => {
-                return total + ((Number(item.precio_venta) || 0) * (Number(item.cantidad) || 0));
+                const precio = typeof redondearPrecioVenta === 'function'
+                    ? redondearPrecioVenta(Number(item.precio_venta) || 0)
+                    : (Number(item.precio_venta) || 0);
+                return total + (precio * (Number(item.cantidad) || 0));
             }, 0);
         }
 
@@ -5262,6 +5428,8 @@ if (is_file($logoPdfPath)) {
             const tbody = document.getElementById('carritoSalidaBody');
             const totalEl = document.getElementById('totalCarritoSalida');
             if (!tbody) return;
+            guardarPaginaSalidaActiva();
+            renderPaginasSalida();
 
             if (!carritoSalida.length) {
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 14px;">Sin productos agregados</td></tr>';
@@ -5427,27 +5595,37 @@ if (is_file($logoPdfPath)) {
         }
 
         function formatoMonedaCompleta(valor) {
-            const normalizado = normalizarValorMonedaVenta(valor);
+            const normalizado = typeof redondearPrecioVenta === 'function'
+                ? redondearPrecioVenta(normalizarValorMonedaVenta(valor))
+                : normalizarValorMonedaVenta(valor);
             return '$' + normalizado.toLocaleString('es-CO', {
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 2
+                maximumFractionDigits: 0
             });
         }
 
         function formatoMonedaInventario(valor) {
-            const numero = parseFloat(valor) || 0;
+            const numeroBase = parseFloat(valor) || 0;
+            const numero = typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(numeroBase) : numeroBase;
             return '$' + numero.toLocaleString('es-CO', {
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 2
+                maximumFractionDigits: 0
             });
         }
 
         function formatoPrecioUnitarioInventario(valor) {
-            const numero = parseFloat(valor) || 0;
+            const numeroBase = parseFloat(valor) || 0;
+            const numero = typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(numeroBase) : numeroBase;
             return '$' + numero.toLocaleString('es-CO', {
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 2
+                maximumFractionDigits: 0
             });
+        }
+
+        function normalizarDineroRecibidoSalida(valor) {
+            let texto = String(valor ?? '').trim().replace(/\s/g, '');
+            if (!/^\d+(?:\.\d{3})*$/.test(texto)) return NaN;
+            return Number(texto.replace(/\./g, ''));
         }
 
         function escapeHtmlInventario(valor) {
@@ -5786,6 +5964,13 @@ if (is_file($logoPdfPath)) {
 
                         productosOrdenados.forEach((item) => {
                             const row = document.createElement('tr');
+                            row.dataset.busquedaInventario = [
+                                item.id,
+                                item.nombre,
+                                item.codigo,
+                                item.codigo_barras,
+                                item.categoria
+                            ].filter(Boolean).join(' ');
                             
                             // Preparar imagen del producto
                             const imgSrc = resolverImagenProductoInventario(item.imagen);
@@ -5981,7 +6166,7 @@ if (is_file($logoPdfPath)) {
                                         <td>${(item.codigo || 'N/A').toUpperCase()}</td>
                                         <td>${(item.producto_nombre || '').toUpperCase()}</td>
                                         <td>${datos.cantidad.toLocaleString('es-CO')}</td>
-                                        <td>$${datos.precioCompra.toLocaleString('es-CO', {maximumFractionDigits: 2})}</td>
+                                        <td>${formatoMonedaInventario(datos.precioCompra)}</td>
                                         <td>${(item.proveedor_nombre || 'N/A').toUpperCase()}</td>
                                         <td>${escapeHtmlInventario(fechaVencimientoTexto)}</td>
                                         <td>${datos.fechaTexto}</td>
@@ -6105,7 +6290,7 @@ if (is_file($logoPdfPath)) {
             }
             const mesesNombre = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
             const encabezados = '<tr><th>FECHA</th><th>IMAGEN</th><th>REFERENCIA</th><th>CÓDIGO</th><th>PRODUCTO</th><th>CANTIDAD</th><th>PRECIO</th><th>SUBTOTAL</th></tr>';
-            const formatoImporteReporte = valor => '$' + (parseFloat(valor) || 0).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            const formatoImporteReporte = valor => formatoMonedaInventario(valor);
             const grupos = {};
             ventasFiltradas.forEach(item => {
                 const fecha = String(item.fecha_salida || '');
@@ -6421,6 +6606,10 @@ if (is_file($logoPdfPath)) {
             const filas = grupo.items.map(item => {
                 const cantidad = parseFloat(item.cantidad || 0) || 0;
                 const id = Number(item.id || 0);
+                const esPorKilo = typeof window.esProductoPorKiloInventario === 'function'
+                    ? window.esProductoPorKiloInventario(item.venta_por_kilo, item.categoria_nombre || item.categoria)
+                    : Number(item.venta_por_kilo) === 1;
+                const pasoCantidad = esPorKilo ? 0.001 : 1;
                 const precio = obtenerPrecioUnitarioSalidaItem(item);
                 const subtotal = obtenerSubtotalSalidaItem(item);
                 const imagen = item.producto_imagen ? `<img src="${resolveAppUrl('/Assets/images/productos/' + item.producto_imagen)}" style="max-width: 50px; max-height: 50px; object-fit: contain;">` : '<div style="width: 50px; height: 50px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">S/img</div>';
@@ -6432,9 +6621,9 @@ if (is_file($logoPdfPath)) {
                         <td style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">${(item.codigo || 'N/A').toUpperCase()}</td>
                         <td style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">
                             <div class="factura-cantidad-editor" style="display: inline-flex; align-items: center; gap: 4px; justify-content: center;">
-                                <button type="button" class="btn-action" data-step="-1" onclick="cambiarCantidadFacturaControl(this, -1)" title="Quitar 1" style="width: 30px; height: 30px; padding: 0; background: var(--primary-blue); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">−</button>
-                                <input type="number" name="itemEditarFactura" value="${cantidad}" min="0" max="${cantidad}" step="1" data-id="${id}" data-original="${cantidad}" style="width: 56px; text-align: center; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; font-weight: 600; background: #fff; box-sizing: border-box;" oninput="validarCantidadFacturaControl(this)" onchange="validarCantidadFacturaControl(this)" />
-                                <button type="button" class="btn-action" data-step="1" onclick="cambiarCantidadFacturaControl(this, 1)" title="Agregar 1" style="width: 30px; height: 30px; padding: 0; background: var(--primary-blue); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">+</button>
+                                <button type="button" class="btn-action" data-step="-${pasoCantidad}" onclick="cambiarCantidadFacturaControl(this, -${pasoCantidad})" title="Quitar ${esPorKilo ? '0.001 kg' : '1'}" style="width: 30px; height: 30px; padding: 0; background: var(--primary-blue); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">−</button>
+                                <input type="number" name="itemEditarFactura" value="${cantidad}" min="0" max="${cantidad}" step="${pasoCantidad}" data-id="${id}" data-original="${cantidad}" data-por-kilo="${esPorKilo ? '1' : '0'}" style="width: 56px; text-align: center; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; font-weight: 600; background: #fff; box-sizing: border-box;" oninput="validarCantidadFacturaControl(this)" onchange="validarCantidadFacturaControl(this)" />
+                                <button type="button" class="btn-action" data-step="${pasoCantidad}" onclick="cambiarCantidadFacturaControl(this, ${pasoCantidad})" title="Agregar ${esPorKilo ? '0.001 kg' : '1'}" style="width: 30px; height: 30px; padding: 0; background: var(--primary-blue); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">+</button>
                             </div>
                         </td>
                         <td class="factura-precio-unitario" style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">${formatoMonedaInventario(precio)}</td>
@@ -6493,7 +6682,10 @@ if (is_file($logoPdfPath)) {
 
             const original = Math.max(0, parseFloat(input.dataset.original || input.value || 0) || 0);
             let nuevoValor = Math.max(0, parseFloat(input.value || 0) || 0);
+            const paso = Number(input.dataset.porKilo) === 1 ? 0.001 : 1;
             nuevoValor = Math.min(Math.max(nuevoValor + delta, 0), original);
+            nuevoValor = Math.round(nuevoValor / paso) * paso;
+            nuevoValor = Math.round(nuevoValor * 1000) / 1000;
             input.value = String(nuevoValor);
             input.setAttribute('max', String(original));
             input.dataset.nuevoValor = String(nuevoValor);
@@ -6501,7 +6693,9 @@ if (is_file($logoPdfPath)) {
 
         function validarCantidadFacturaControl(input) {
             const original = Math.max(0, parseFloat(input.dataset.original || input.value || 0) || 0);
-            const valor = Math.max(0, Math.min(parseFloat(input.value || 0) || 0, original));
+            const paso = Number(input.dataset.porKilo) === 1 ? 0.001 : 1;
+            const valorIngresado = parseFloat(String(input.value || 0).replace(',', '.')) || 0;
+            const valor = Math.round(Math.max(0, Math.min(valorIngresado, original)) / paso) * paso;
             input.value = String(valor);
 
             const fila = input.closest('tr');
@@ -6519,7 +6713,9 @@ if (is_file($logoPdfPath)) {
             const items = Array.from(document.querySelectorAll('input[name="itemEditarFactura"]'))
                 .map(input => {
                     const id = Number(input.dataset.id || 0);
-                    const cantidad = Math.max(0, Math.min(parseFloat(input.value || 0) || 0, parseFloat(input.dataset.original || 0) || 0));
+                    const paso = Number(input.dataset.porKilo) === 1 ? 0.001 : 1;
+                    const original = parseFloat(input.dataset.original || 0) || 0;
+                    const cantidad = Math.round(Math.max(0, Math.min(parseFloat(input.value || 0) || 0, original)) / paso) * paso;
                     return {
                         id,
                         cantidad
@@ -7435,9 +7631,9 @@ if (is_file($logoPdfPath)) {
                         
                         // Actualizar encabezados
                         totalProductosDetalleEl.textContent = inventario.cantidad_productos || 0;
-                        valorTotalDetalleEl.textContent = '$' + parseFloat(inventario.valor_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
-                        valorCompraDetalleEl.textContent = '$' + parseFloat(inventario.valor_compra_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
-                        valorGananciaDetalleEl.textContent = '$' + parseFloat(inventario.valor_ganancia_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
+                        valorTotalDetalleEl.textContent = formatoMonedaInventario(inventario.valor_total);
+                        valorCompraDetalleEl.textContent = formatoMonedaInventario(inventario.valor_compra_total);
+                        valorGananciaDetalleEl.textContent = formatoMonedaInventario(inventario.valor_ganancia_total);
 
                         ajustarTamanoTextoStat('valorTotalDetalle');
                         ajustarTamanoTextoStat('valorCompraDetalle');
@@ -7467,8 +7663,8 @@ if (is_file($logoPdfPath)) {
                         productosOrdenados.forEach(prod => {
                             const row = document.createElement('tr');
                             const imgSrc = resolverImagenProductoInventario(prod.imagen);
-                            const precioUnit = parseFloat(prod.precio || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
-                            const valorTotalProd = parseFloat(prod.valor_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
+                            const precioUnit = formatoMonedaInventario(prod.precio);
+                            const valorTotalProd = formatoMonedaInventario(prod.valor_total);
                             const porcentaje = ((parseFloat(prod.valor_total) / parseFloat(inventario.valor_total)) * 100).toFixed(1);
                             
                             row.innerHTML = `
@@ -7828,6 +8024,25 @@ if (is_file($logoPdfPath)) {
             return tokens.every(token => texto.includes(token)) || texto.replace(/\s/g, '').includes(tokens.join(''));
         }
 
+        function coincideProductoBusquedaInventario(option, consulta) {
+            const termino = String(consulta || '').trim();
+            if (!termino) return true;
+            const codigoBarras = normalizarCodigoBarrasInventario(option?.dataset?.barcode || option?.getAttribute?.('data-barcode') || '');
+            const codigo = normalizarTextoBusquedaInventario(option?.dataset?.codigo || option?.getAttribute?.('data-codigo') || '');
+            const consultaBarras = normalizarCodigoBarrasInventario(termino);
+            if (/^\d{6,14}$/.test(consultaBarras) && codigoBarras) {
+                return codigoBarras === consultaBarras || codigoBarras.includes(consultaBarras);
+            }
+            const texto = [
+                option?.textContent || '',
+                option?.dataset?.nombre || '',
+                codigo,
+                option?.dataset?.barcode || option?.getAttribute?.('data-barcode') || '',
+                option?.dataset?.categoriaNombre || option?.getAttribute?.('data-categoria-nombre') || ''
+            ].join(' ');
+            return coincideBusquedaInventario(texto, termino);
+        }
+
             function esCategoriaGramosInventario(nombre) {
                 return ['frutas', 'verduras', 'carnicos y refrigerados'].includes(normalizarTextoBusquedaInventario(nombre));
             }
@@ -7869,14 +8084,16 @@ if (is_file($logoPdfPath)) {
                     const categoriaNombre = normalizarTextoBusquedaInventario(option.dataset.categoriaNombre || '');
                     const perteneceCategoria = !categoriaFiltro
                         || perteneceGrupoCategoriaSalida(categoriaNombre, categoriaFiltro);
-                    const coincideBusqueda = coincideBusquedaInventario(nombre, texto);
+                    const coincideBusqueda = coincideProductoBusquedaInventario(option, texto);
                     return perteneceCategoria && coincideBusqueda;
                 });
 
                 results.innerHTML = coincidencias.map((option) => `
-                    <button type="button" class="inventario-search-option" data-select-id="${selectId}" data-id="${option.value}" data-name="${(option.textContent || '').trim()}" data-imagen="${option.getAttribute('data-imagen') || ''}" data-codigo="${option.getAttribute('data-codigo') || ''}" data-barcode="${option.getAttribute('data-barcode') || ''}" data-stock="${option.getAttribute('data-stock') || '0'}" data-venta-por-kilo="${option.getAttribute('data-venta-por-kilo') || '0'}" data-requiere-vencimiento="${option.getAttribute('data-requiere-vencimiento') || '0'}" data-categoria-nombre="${option.getAttribute('data-categoria-nombre') || ''}" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9;">
-                        ${option.textContent || ''}
-                    </button>
+                    ${(() => {
+                        const codigo = String(option.dataset.codigo || '').trim();
+                        const barras = String(option.dataset.barcode || '').trim();
+                        return `<button type="button" class="inventario-search-option" data-select-id="${selectId}" data-id="${option.value}" data-name="${escapeHtml(option.textContent || '')}" data-imagen="${escapeHtml(option.getAttribute('data-imagen') || '')}" data-codigo="${escapeHtml(codigo)}" data-barcode="${escapeHtml(barras)}" data-stock="${option.getAttribute('data-stock') || '0'}" data-venta-por-kilo="${option.getAttribute('data-venta-por-kilo') || '0'}" data-requiere-vencimiento="${option.getAttribute('data-requiere-vencimiento') || '0'}" data-categoria-nombre="${escapeHtml(option.getAttribute('data-categoria-nombre') || '')}" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9; text-transform:uppercase;"><strong>${escapeHtml(option.textContent || '')}</strong></button>`;
+                    })()}
                 `).join('');
 
                 results.style.display = coincidencias.length > 0 && (input.value || '').trim() ? 'block' : 'none';
@@ -8015,6 +8232,12 @@ if (is_file($logoPdfPath)) {
         function seleccionarProductoDesdeLector(select, input, results, option) {
             const productoId = option.value || option.dataset.id || '';
             select.value = productoId;
+            if (select.id === 'productoSalida') {
+                // La búsqueda general debe calcular la unidad del producto nuevo;
+                // no puede heredar el modo por kilos de una categoría anterior.
+                delete select.dataset.categoriaPeso;
+                productoSalidaSeleccionadoPorCategoria = null;
+            }
             input.value = (option.textContent || '').trim();
             input.dataset.lectorPreparado = '1';
             input.dataset.selectedValue = productoId;
@@ -8399,7 +8622,7 @@ if (is_file($logoPdfPath)) {
 
                         modalTotalProductosEl.textContent = productos.length;
                         modalStockTotalEl.textContent = formatoStockTotalVisible(stockTotal);
-                        modalValorTotalEl.textContent = '$' + valorTotal.toLocaleString('es-CO', {maximumFractionDigits: 2});
+                        modalValorTotalEl.textContent = formatoMonedaInventario(valorTotal);
                         modalTotalCategoriasEl.textContent = categorias.size;
                         
                         // Actualizar tabla
@@ -8412,6 +8635,15 @@ if (is_file($logoPdfPath)) {
                         
                         productos.forEach(item => {
                             const row = document.createElement('tr');
+                            row.dataset.busquedaTodosProductos = [
+                                item.id,
+                                item.nombre,
+                                item.codigo_producto,
+                                item.codigo,
+                                item.codigo_barras,
+                                item.categoria_nombre
+                            ].filter(Boolean).join(' ');
+                            row.dataset.codigoBarras = String(item.codigo_barras || item.codigoBarras || '');
                             const imgSrc = resolverImagenProductoInventario(item.imagen);
                             const stock = parseFloat(item.stock || 0) || 0;
                             const precioCompra = stock <= 0 ? 0 : (parseFloat(item.ultimo_precio_compra || item.precio_compra_promedio || 0) || 0);
@@ -8505,7 +8737,14 @@ if (is_file($logoPdfPath)) {
             if (!input || !resultados) return;
             const texto = normalizarBusquedaTodosProductosModal(input.value);
             const productos = Array.isArray(window.todosProductosModalCache) ? window.todosProductosModalCache : [];
-            const coincidencias = productos.filter(item => normalizarBusquedaTodosProductosModal(`${item.id || ''} ${item.nombre || ''} ${item.codigo_producto || ''}`).includes(texto));
+            const coincidencias = productos.filter(item => {
+                const codigoBarras = String(item.codigo_barras || item.codigoBarras || '').replace(/\D/g, '');
+                const consultaBarras = String(input.value || '').replace(/\D/g, '');
+                if (/^\d{6,14}$/.test(consultaBarras) && codigoBarras) {
+                    return codigoBarras === consultaBarras || codigoBarras.includes(consultaBarras);
+                }
+                return normalizarBusquedaTodosProductosModal(`${item.id || ''} ${item.nombre || ''} ${item.codigo_producto || item.codigo || ''} ${item.codigo_barras || ''}`).includes(texto);
+            });
             resultados.innerHTML = coincidencias.map(item => `<button type="button" data-valor="${escapeHtmlInventario(String(item.nombre || ''))}" style="display:block;width:100%;padding:9px 12px;border:0;border-bottom:1px solid #f1f5f9;background:#fff;text-align:left;cursor:pointer;text-transform:uppercase;">${escapeHtmlInventario(String(item.nombre || ''))}</button>`).join('');
             resultados.style.display = coincidencias.length && texto ? 'block' : 'none';
         }
@@ -8515,8 +8754,14 @@ if (is_file($logoPdfPath)) {
             const tbody = document.getElementById('todosProductosBody');
             if (!input || !tbody) return;
             const texto = normalizarBusquedaTodosProductosModal(input.value);
+            const consultaBarras = String(input.value || '').replace(/\D/g, '');
             Array.from(tbody.querySelectorAll('tr')).forEach(row => {
-                row.style.display = !texto || normalizarBusquedaTodosProductosModal(row.textContent).includes(texto) ? '' : 'none';
+                const textoFila = normalizarBusquedaTodosProductosModal(`${row.textContent} ${row.dataset.busquedaTodosProductos || ''}`);
+                const codigoBarras = String(row.dataset.codigoBarras || '').replace(/\D/g, '');
+                const coincideBarras = /^\d{6,14}$/.test(consultaBarras) && codigoBarras
+                    ? codigoBarras === consultaBarras || codigoBarras.includes(consultaBarras)
+                    : false;
+                row.style.display = !texto || coincideBarras || textoFila.includes(texto) ? '' : 'none';
             });
             renderResultadosTodosProductosModal();
         }
@@ -8633,7 +8878,7 @@ if (is_file($logoPdfPath)) {
                     }).sort((a, b) => (b.valorTotalCompra || 0) - (a.valorTotalCompra || 0));
 
                     totalProductosDetalleEl.textContent = productosConValores.length;
-                    valorTotalDetalleEl.textContent = '$' + valorCompraTotal.toLocaleString('es-CO', { maximumFractionDigits: 2 });
+                    valorTotalDetalleEl.textContent = formatoMonedaInventario(valorCompraTotal);
                     unidadesTotalesDetalleEl.textContent = totalUnidades;
                     tbody.innerHTML = '';
 
@@ -8658,8 +8903,8 @@ if (is_file($logoPdfPath)) {
                             <td>${escapeHtmlInventario(prod.nombre || 'PRODUCTO')}</td>
                             <td>${escapeHtmlInventario(prod.categoria_nombre || 'Sin categoría')}</td>
                             <td><span class="badge badge-info">${formatoStockVisible(prod.stock, prod.categoria_nombre || prod.categoria, prod.venta_por_kilo)}</span></td>
-                            <td>$${(prod.precioCompra || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 })}</td>
-                            <td><strong style="color: #b42318;">$${(prod.valorTotalCompra || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 })}</strong></td>
+                            <td>${formatoMonedaInventario(prod.precioCompra)}</td>
+                            <td><strong style="color: #b42318;">${formatoMonedaInventario(prod.valorTotalCompra)}</strong></td>
                             <td><span class="badge badge-primary">${porcentaje}%</span></td>
                         `;
                         tbody.appendChild(row);
@@ -8906,7 +9151,7 @@ if (is_file($logoPdfPath)) {
                         document.getElementById('modalStockTotalUnidades').textContent = formatoStockTotalVisible(stockTotal);
                         document.getElementById('modalStockProductos').textContent = productos.filter(p => p.estado == 1 && (parseFloat(p.stock) || 0) > 0).length;
                         document.getElementById('modalStockCategorias').textContent = categorias.size;
-                        document.getElementById('modalStockValor').textContent = '$' + valorTotal.toLocaleString('es-CO', {maximumFractionDigits: 2});
+                        document.getElementById('modalStockValor').textContent = formatoMonedaInventario(valorTotal);
                         
                         // Actualizar tabla
                         const tbody = document.getElementById('stockTotalBody');
@@ -8963,7 +9208,7 @@ if (is_file($logoPdfPath)) {
                                 <td><strong>${item.nombre}</strong></td>
                                 <td>${item.categoria_nombre || 'SIN CATEGORÍA'}</td>
                                 <td><span class="badge ${stockBadge}" style="font-size: 16px; padding: 8px 12px;">${formatoStockVisible(item.stock, item.categoria_nombre, item.venta_por_kilo)}</span></td>
-                                <td style="color: #27ae60; font-weight: bold;">$${precioVenta.toLocaleString('es-CO', {maximumFractionDigits: 2})}</td>
+                                <td style="color: #27ae60; font-weight: bold;">${formatoMonedaInventario(precioVenta)}</td>
                             `;
                             tbody.appendChild(row);
                         });
@@ -8982,9 +9227,7 @@ if (is_file($logoPdfPath)) {
             const porcentaje = parseFloat(document.getElementById('porcentajeGanancia').value) || 0;
             
             const precioCalculado = precioCompra + (precioCompra * (porcentaje / 100));
-            const precioVenta = typeof redondearPrecioVenta === 'function'
-                ? redondearPrecioVenta(precioCalculado)
-                : precioCalculado;
+            const precioVenta = precioCalculado;
             
             document.getElementById('precioVentaMostrado').value = precioVenta > 0 ? String(precioVenta) : '';
             sincronizarPrecioPresentacionUnidad(precioCompra, precioVenta);
@@ -9302,6 +9545,10 @@ if (is_file($logoPdfPath)) {
             // Refresco inmediato de la vista sin recargar la página completa.
             // Se actualizan solo las secciones activas para reducir el parpadeo y evitar
             // que la vista actual se salga del contexto del usuario.
+            document.body.dataset.silenciarSkeleton = '1';
+            window.setTimeout(() => {
+                delete document.body.dataset.silenciarSkeleton;
+            }, 4000);
             invalidarCacheProductosConGanancia();
             const modalTodosProductosAbierto = document.getElementById('todosProductosModal')?.classList.contains('active');
             const tabResumenActivo = document.getElementById('resumen')?.classList.contains('active');
@@ -9488,6 +9735,27 @@ if (is_file($logoPdfPath)) {
         // Registrar salida
         let salidaEnProceso = false;
 
+        function finalizarPaginaSalidaRegistrada() {
+            if (!paginasSalida[paginaSalidaActiva]) return false;
+            const paginaRegistrada = paginaSalidaActiva;
+            if (paginaRegistrada > 0) {
+                paginasSalida.splice(paginaRegistrada, 1);
+                paginaSalidaActiva = Math.min(paginaRegistrada, paginasSalida.length - 1);
+            } else {
+                paginasSalida[0].items = [];
+                paginaSalidaActiva = 0;
+            }
+            carritoSalida = paginasSalida[paginaSalidaActiva]?.items || [];
+            limpiarSeleccionSalidaUI();
+            renderCarritoSalida();
+            const referencia = document.getElementById('referenciaSalida');
+            if (referencia) {
+                referencia.value = '';
+                inicializarReferenciaSalida();
+            }
+            return paginasSalida.some(pagina => (pagina.items || []).length > 0);
+        }
+
         async function registrarSalida(e) {
             e.preventDefault();
             if (salidaEnProceso) return;
@@ -9517,9 +9785,11 @@ if (is_file($logoPdfPath)) {
             const referenciaVenta = (document.getElementById('referenciaSalida')?.value || '').trim() || generarReferenciaVenta();
             const cantidadUnica = normalizarCantidadSalida(document.getElementById('cantidadSalida').value);
             const seleccionActual = productoSalidaSeleccionado();
+            guardarPaginaSalidaActiva();
+            const itemsDePaginaActiva = paginasSalida[paginaSalidaActiva]?.items || [];
 
-            let items = carritoSalida.length > 0
-                ? carritoSalida.map(item => ({
+            let items = itemsDePaginaActiva.length > 0
+                ? itemsDePaginaActiva.map(item => ({
                     producto_id: item.producto_id,
                     nombre: item.nombre,
                     presentacion_id: Number(item.presentacion_id || 0),
@@ -9533,7 +9803,9 @@ if (is_file($logoPdfPath)) {
                     presentacion_id: Number(seleccionActual.presentacion_id || 0),
                     cantidad: normalizarCantidadSalida(cantidadUnica, seleccionActual.venta_por_kilo),
                     stock: parseFloat(seleccionActual.stock || 0) || 0,
-                    precio_venta: parseFloat(seleccionActual.precio) || 0
+                    precio_venta: typeof redondearPrecioVenta === 'function'
+                        ? redondearPrecioVenta(parseFloat(seleccionActual.precio) || 0)
+                        : (parseFloat(seleccionActual.precio) || 0)
                 }] : []);
 
             const itemsUnicos = new Map();
@@ -9547,6 +9819,17 @@ if (is_file($logoPdfPath)) {
                 itemsUnicos.set(clave, { ...item });
             });
             items = Array.from(itemsUnicos.values());
+
+            const itemSinCantidad = items.find(item => !(Number(item.cantidad) > 0));
+            if (itemSinCantidad) {
+                liberarEnvioSalida();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peso requerido',
+                    text: `Indica un peso mayor que 0 kg para ${itemSinCantidad.nombre || 'el producto'}.`
+                });
+                return;
+            }
 
             if (!items.length) {
                 liberarEnvioSalida();
@@ -9577,6 +9860,70 @@ if (is_file($logoPdfPath)) {
                     text: `No se puede registrar la salida. La cantidad solicitada de ${stockInvalido.nombre || 'este producto'} supera el stock disponible (${stockInvalido.stock}).`
                 });
                 return;
+            }
+
+            if (metodoPagoSalida !== 'credito') {
+                const totalVenta = redondearTotalSalida(calcularTotalItemsSalida(items));
+                const confirmacionVenta = await Swal.fire({
+                    icon: 'question',
+                    title: 'CONFIRMAR SALIDA',
+                    html: `
+                        <div style="text-align:left;line-height:1.7;">
+                            <div style="display:flex;justify-content:space-between;gap:18px;"><strong>TOTAL DE LA VENTA:</strong><strong>${formatoMonedaInventario(totalVenta)}</strong></div>
+                            <label for="dineroRecibidoSalida" style="display:block;margin-top:12px;font-weight:700;">DINERO RECIBIDO DEL CLIENTE</label>
+                            <input id="dineroRecibidoSalida" class="swal2-input" type="text" inputmode="numeric" autocomplete="off" placeholder="Ejemplo: 100.000" value="" style="width:100%;margin:6px 0 4px;box-sizing:border-box;">
+                            <div id="cambioSalidaResumen" style="margin-top:8px;padding:8px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;color:#166534;font-weight:700;">CAMBIO: ${formatoMonedaInventario(0)}</div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'CONFIRMAR Y GUARDAR',
+                    cancelButtonText: 'REVISAR',
+                    allowOutsideClick: false,
+                    focusConfirm: false,
+                    didOpen: () => {
+                        const input = document.getElementById('dineroRecibidoSalida');
+                        const cambio = document.getElementById('cambioSalidaResumen');
+                        input?.focus();
+                        input?.select();
+                        input?.addEventListener('keydown', (event) => event.stopPropagation());
+                        const actualizarCambio = () => {
+                            const recibido = normalizarDineroRecibidoSalida(input?.value);
+                            const diferencia = Math.max(0, recibido - totalVenta);
+                            if (cambio) cambio.textContent = `CAMBIO: ${formatoMonedaInventario(diferencia)}`;
+                        };
+                        input?.addEventListener('input', () => {
+                            const digitos = String(input.value || '').replace(/\D/g, '');
+                            input.value = digitos
+                                ? Number(digitos).toLocaleString('es-CO', { maximumFractionDigits: 0 })
+                                : '';
+                            actualizarCambio();
+                        });
+                        input?.addEventListener('blur', () => {
+                            const recibido = normalizarDineroRecibidoSalida(input.value);
+                            if (Number.isFinite(recibido) && recibido >= 0) {
+                                input.value = recibido.toLocaleString('es-CO', { maximumFractionDigits: 0 });
+                            }
+                        });
+                        actualizarCambio();
+                    },
+                    preConfirm: () => {
+                        const valorDigitado = String(document.getElementById('dineroRecibidoSalida')?.value || '').trim();
+                        const recibido = normalizarDineroRecibidoSalida(valorDigitado);
+                        if (!valorDigitado || !Number.isFinite(recibido)) {
+                            Swal.showValidationMessage('Digite el dinero recibido por el cliente.');
+                            return false;
+                        }
+                        if (recibido < totalVenta) {
+                            Swal.showValidationMessage(`El dinero recibido debe ser igual o mayor que ${formatoMonedaInventario(totalVenta)}.`);
+                            return false;
+                        }
+                        return { total: totalVenta, recibido, cambio: recibido - totalVenta };
+                    }
+                });
+                if (!confirmacionVenta.isConfirmed) {
+                    liberarEnvioSalida();
+                    return;
+                }
             }
 
             if (metodoPagoSalida === 'credito') {
@@ -9611,10 +9958,9 @@ if (is_file($logoPdfPath)) {
                     const buscarCliente = document.getElementById('buscarClienteCreditoSalida');
                     if (clienteCredito) clienteCredito.value = '';
                     if (buscarCliente) buscarCliente.value = '';
-                    carritoSalida = [];
-                    renderCarritoSalida();
+                    const quedanPaginasPendientes = finalizarPaginaSalidaRegistrada();
                     liberarEnvioSalida();
-                    cerrarModal('salidaModal', false);
+                    if (!quedanPaginasPendientes) cerrarModal('salidaModal', false);
                     dispararRefreshInventarioGlobal();
                     refrescarInventarioInmediato();
                     return;
@@ -9628,22 +9974,6 @@ if (is_file($logoPdfPath)) {
                     return;
                 }
 
-                const totalSalidaSinRedondear = calcularTotalItemsSalida(items);
-                const totalSalidaRedondeado = redondearTotalSalida(totalSalidaSinRedondear);
-                if (Math.abs(totalSalidaRedondeado - totalSalidaSinRedondear) > 0.001) {
-                    const confirmacionTotal = await Swal.fire({
-                        icon: 'info',
-                        title: 'TOTAL AJUSTADO',
-                        text: `El total de la salida es ${formatoMonedaInventario(totalSalidaSinRedondear)} y se ajustará a ${formatoMonedaInventario(totalSalidaRedondeado)}.`,
-                        showCancelButton: true,
-                        confirmButtonText: 'CONTINUAR',
-                        cancelButtonText: 'REVISAR'
-                    });
-                    if (!confirmacionTotal.isConfirmed) {
-                        liberarEnvioSalida();
-                        return;
-                    }
-                }
             }
 
             let procesados = 0;
@@ -9695,7 +10025,8 @@ if (is_file($logoPdfPath)) {
             });
 
             liberarEnvioSalida();
-            cerrarModal('salidaModal', false);
+            const quedanPaginasPendientes = finalizarPaginaSalidaRegistrada();
+            if (!quedanPaginasPendientes) cerrarModal('salidaModal', false);
             dispararRefreshInventarioGlobal();
             refrescarInventarioInmediato();
         }
@@ -10444,7 +10775,7 @@ if (is_file($logoPdfPath)) {
                     <div><small style="display:block;color:#667085;font-weight:700;">${base ? 'NOMBRE BASE' : 'NOMBRE'}</small><input type="text" class="entrada-pres-nombre" value="${escapeHtmlInventario(String(pres.nombre || (base ? 'UNIDAD' : 'PAQUETE')).toUpperCase())}" ${base ? 'readonly' : ''} style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;text-transform:uppercase;"></div>
                     <div><small style="display:block;color:#667085;font-weight:700;">${base ? 'EQUIVALENCIA' : 'CONTIENE'}</small>${base ? '<input class="entrada-pres-factor" value="1" readonly style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;background:#f1f5f9;">' : `<select class="entrada-pres-factor" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;">${opciones}</select>`}</div>
                     <div><small style="display:block;color:#667085;font-weight:700;">PRECIO COMPRA</small><input type="number" class="entrada-pres-compra" min="0" step="0.01" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_compra, 0) > 0 ? numero(pres.precio_compra, 0).toFixed(2) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
-                    <div><small style="display:block;color:#667085;font-weight:700;">PRECIO VENTA</small><input type="number" class="entrada-pres-venta" min="0" step="50" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_venta, 0) > 0 ? (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(numero(pres.precio_venta, 0)) : numero(pres.precio_venta, 0)) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
+                    <div><small style="display:block;color:#667085;font-weight:700;">PRECIO VENTA</small><input type="number" class="entrada-pres-venta" min="0" step="0.01" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_venta, 0) > 0 ? numero(pres.precio_venta, 0) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
                 </div>`;
             }).join('');
             editor.style.display = 'block';
@@ -10465,9 +10796,7 @@ if (is_file($logoPdfPath)) {
                 nombre: String(fila.querySelector('.entrada-pres-nombre')?.value || '').trim().toUpperCase(),
                 factor_padre: indice === 0 ? 1 : numero(fila.querySelector('.entrada-pres-factor')?.value, 12),
                 precio_compra: numero(fila.querySelector('.entrada-pres-compra')?.value, 0),
-                precio_venta: typeof redondearPrecioVenta === 'function'
-                    ? redondearPrecioVenta(numero(fila.querySelector('.entrada-pres-venta')?.value, 0))
-                    : numero(fila.querySelector('.entrada-pres-venta')?.value, 0)
+                precio_venta: numero(fila.querySelector('.entrada-pres-venta')?.value, 0),
             }));
             const body = new FormData();
             body.append('action', 'guardarPresentaciones');

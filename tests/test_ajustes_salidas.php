@@ -34,6 +34,10 @@ verificarAjuste('movimientos reciben tipo_salida', strpos($inventario, 'AS tipo_
 verificarAjuste('tabla de salidas oculta tipo de pago en daños', strpos($vista, 'metodoPagoVisible(tipo, grupo.metodoPago)') !== false);
 verificarAjuste('tabla de movimientos oculta tipo de pago en daños', strpos($vista, 'metodoPagoVisible(grupo.tipoSalida, grupo.metodoPago)') !== false);
 verificarAjuste('movimientos muestran DAÑADO', strpos($vista, 'tipoSinCobro(tipoSalidaMov)') !== false);
+verificarAjuste('salidas incluyen la categoría OTROS', strpos($vista, "abrirProductosCategoriaSalida('otros', 'OTROS')") !== false);
+verificarAjuste('categoría OTROS filtra sus productos', strpos($vista, "if (grupo === 'otros') return categoria === 'otros';") !== false);
+verificarAjuste('edición de kilos usa paso de milésimas', strpos($vista, "const pasoCantidad = esPorKilo ? 0.001 : 1;") !== false);
+verificarAjuste('servidor normaliza kilos a tres decimales', strpos($inventario, '$cantidadNueva = $esProductoPorKilo ? round($cantidadNueva, 3) : floor($cantidadNueva);') !== false);
 
 echo PHP_EOL . ($fallos === 0 ? 'TODAS LAS PRUEBAS PASARON' : "{$fallos} PRUEBA(S) FALLARON") . PHP_EOL;
 exit($fallos === 0 ? 0 : 1);

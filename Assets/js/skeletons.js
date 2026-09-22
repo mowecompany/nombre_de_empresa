@@ -86,6 +86,15 @@
         const text = `${raw} ${init?.body instanceof FormData ? String(init.body.get('action') || '') : ''}`.toLowerCase();
         const body = document.body;
         if (!body) return [];
+        if (body.dataset.silenciarSkeleton === '1') return [];
+        const method = String(init?.method || 'GET').toUpperCase();
+        if (method !== 'GET') {
+            body.dataset.silenciarSkeleton = '1';
+            window.setTimeout(() => {
+                delete body.dataset.silenciarSkeleton;
+            }, 4000);
+            return [];
+        }
         const result = [];
         const add = (selector, variant, options) => {
             const target = document.querySelector(selector);

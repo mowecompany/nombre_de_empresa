@@ -519,41 +519,38 @@ class Inventario {
         return $filtro;
     }
 
+    private function exprPrecioVentaRedondeado(string $expr): string {
+        $tipoEntero = $this->esSqlite() ? 'INTEGER' : 'SIGNED';
+        $base = "CAST(({$expr}) / 100 AS {$tipoEntero}) * 100";
+        $resto = "({$expr}) - ({$base})";
+        return "CASE
+            WHEN ({$expr}) <= 0 THEN 0
+            WHEN {$resto} <= 40 THEN {$base}
+            ELSE ({$base} + 100)
+        END";
+    }
+
     private function exprTotalVenta(string $aliasSalida = 'si', string $aliasProducto = 'p'): string {
-        if ($this->columnaExiste('salidas_inventario', 'total_venta')) {
-            return "COALESCE({$aliasSalida}.total_venta, {$aliasSalida}.cantidad * {$aliasProducto}.precio)";
-        }
-        return "({$aliasSalida}.cantidad * {$aliasProducto}.precio)";
+        $precioVenta = $this->columnaExiste('salidas_inventario', 'precio_venta_unitario')
+            ? "COALESCE({$aliasSalida}.precio_venta_unitario, {$aliasProducto}.precio)"
+            : "{$aliasProducto}.precio";
+        return "({$aliasSalida}.cantidad * " . $this->exprPrecioVentaRedondeado($precioVenta) . ")";
     }
 
     private function exprGananciaUnitaria(string $aliasSalida = 'si', string $aliasProducto = 'p'): string {
         $costoFallback = "COALESCE((SELECT precio_compra FROM entradas_inventario WHERE producto_id = {$aliasSalida}.producto_id ORDER BY fecha_entrada DESC LIMIT 1), 0)";
-        $precioVentaExpr = $this->columnaExiste('salidas_inventario', 'precio_venta_unitario')
+        $precioVentaExprBase = $this->columnaExiste('salidas_inventario', 'precio_venta_unitario')
             ? "COALESCE({$aliasSalida}.precio_venta_unitario, {$aliasProducto}.precio)"
             : "{$aliasProducto}.precio";
+        $precioVentaExpr = $this->exprPrecioVentaRedondeado($precioVentaExprBase);
         $costoExpr = $this->columnaExiste('salidas_inventario', 'costo_unitario')
             ? "COALESCE({$aliasSalida}.costo_unitario, {$costoFallback})"
             : $costoFallback;
 
-        if ($this->columnaExiste('salidas_inventario', 'total_ganancia')) {
-            return "CASE WHEN COALESCE({$aliasSalida}.total_ganancia, 0) <> 0 AND COALESCE({$aliasSalida}.cantidad, 0) > 0 THEN {$aliasSalida}.total_ganancia / {$aliasSalida}.cantidad ELSE ({$precioVentaExpr} - {$costoExpr}) END";
-        }
-
-        if ($this->columnaExiste('salidas_inventario', 'ganancia_unitaria')) {
-            return "COALESCE({$aliasSalida}.ganancia_unitaria, ({$precioVentaExpr} - {$costoExpr}))";
-        }
-
-        if ($this->columnaExiste('salidas_inventario', 'precio_venta_unitario') || $this->columnaExiste('salidas_inventario', 'costo_unitario')) {
-            return "({$precioVentaExpr} - {$costoExpr})";
-        }
-
-        return "({$aliasProducto}.precio - {$costoFallback})";
+        return "({$precioVentaExpr} - {$costoExpr})";
     }
 
     private function exprTotalGanancia(string $aliasSalida = 'si', string $aliasProducto = 'p'): string {
-        if ($this->columnaExiste('salidas_inventario', 'total_ganancia')) {
-            return "COALESCE({$aliasSalida}.total_ganancia, {$aliasSalida}.cantidad * " . $this->exprGananciaUnitaria($aliasSalida, $aliasProducto) . ")";
-        }
         return "({$aliasSalida}.cantidad * " . $this->exprGananciaUnitaria($aliasSalida, $aliasProducto) . ")";
     }
 
@@ -1280,9 +1277,7 @@ class Inventario {
             $precio_compra = $precio_compra_presentacion / $factorEntrada;
             $porcentaje_ganancia = floatval($datos['porcentaje_ganancia'] ?? 0);
             $precio_calculado = $precio_compra + ($precio_compra * ($porcentaje_ganancia / 100));
-            $precio_venta = function_exists('redondearPrecioVenta')
-                ? redondearPrecioVenta($precio_calculado)
-                : $precio_calculado;
+            $precio_venta = $precio_calculado;
             
             // Verificar si la columna 'notas' existe en la tabla
             $tiene_notas = $this->columnaExiste('entradas_inventario', 'notas');
@@ -1848,6 +1843,15 @@ class Inventario {
                 }
 
                 $cantidadOriginal = floatval($fila['cantidad'] ?? 0);
+                $stmtTipoProducto = $this->db->prepare("SELECT COALESCE(p.venta_por_kilo, 0), COALESCE(c.nombre, '')
+                    FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id WHERE p.id = :producto_id LIMIT 1");
+                $stmtTipoProducto->execute([':producto_id' => (int)($fila['producto_id'] ?? 0)]);
+                $tipoProducto = $stmtTipoProducto->fetch(PDO::FETCH_NUM) ?: [0, ''];
+                $categoriaProducto = mb_strtolower(trim((string)($tipoProducto[1] ?? '')), 'UTF-8');
+                $categoriaProducto = strtr($categoriaProducto, ['á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u', 'ñ'=>'n']);
+                $esProductoPorKilo = (int)($tipoProducto[0] ?? 0) === 1
+                    || in_array($categoriaProducto, ['frutas', 'verduras', 'carnicos y refrigerados'], true);
+                $cantidadNueva = $esProductoPorKilo ? round($cantidadNueva, 3) : floor($cantidadNueva);
                 if ($cantidadNueva > $cantidadOriginal + 0.000001) {
                     throw new Exception('No puedes aumentar una cantidad de una venta ya registrada. Solo puedes reducirla o quitarla.');
                 }
@@ -2177,6 +2181,7 @@ class Inventario {
                 $sql = "SELECT 
                         p.id, 
                         p.codigo as codigo,
+                        p.codigo_barras as codigo_barras,
                         p.nombre, 
                         p.imagen,
                         p.color,
@@ -2199,6 +2204,7 @@ class Inventario {
                 $sql = "SELECT 
                         p.id, 
                         p.codigo as codigo,
+                        p.codigo_barras as codigo_barras,
                         p.nombre, 
                         p.imagen,
                         p.color,
@@ -2328,11 +2334,20 @@ class Inventario {
             $query->execute();
             $estadisticas['stock_total'] = $query->fetch(PDO::FETCH_OBJ)->total ?? 0;
             
-            // Valor total del inventario solo para productos con stock mayor a cero
-            $sql = "SELECT COALESCE(SUM(COALESCE(stock, 0) * COALESCE(precio, 0)), 0) as total FROM productos WHERE estado = 1 AND COALESCE(stock, 0) > 0" . $filtroProductos;
+            // Calcular el valor por producto para aplicar el redondeo de venta antes de sumar.
+            $sql = "SELECT COALESCE(stock, 0) AS stock, COALESCE(precio, 0) AS precio
+                    FROM productos
+                    WHERE estado = 1 AND COALESCE(stock, 0) > 0" . $filtroProductos;
             $query = $this->db->prepare($sql);
             $query->execute();
-            $estadisticas['valor_total'] = $query->fetch(PDO::FETCH_OBJ)->total ?? 0;
+            $valorTotal = 0.0;
+            while ($producto = $query->fetch(PDO::FETCH_OBJ)) {
+                $precioRedondeado = function_exists('redondearPrecioVenta')
+                    ? redondearPrecioVenta((float)($producto->precio ?? 0))
+                    : (float)($producto->precio ?? 0);
+                $valorTotal += (float)($producto->stock ?? 0) * $precioRedondeado;
+            }
+            $estadisticas['valor_total'] = $valorTotal;
 
             // Valor total de compra del inventario actual, sin tocar el valor del inventario
             $sql = "SELECT COALESCE(SUM(
@@ -2418,6 +2433,11 @@ class Inventario {
                 $stmtUltimoPrecioCompra->execute([':producto_id' => (int)($prod->id ?? 0)]);
                 $precioCompra = floatval($stmtUltimoPrecioCompra->fetchColumn() ?: 0);
                 $prod->precio_compra = $precioCompra;
+                $precioVentaRedondeado = function_exists('redondearPrecioVenta')
+                    ? redondearPrecioVenta((float)($prod->precio ?? 0))
+                    : (float)($prod->precio ?? 0);
+                $prod->precio_redondeado = $precioVentaRedondeado;
+                $prod->valor_total = $stock * $precioVentaRedondeado;
                 $prod->valor_compra_total = $stock * $precioCompra;
             }
             
@@ -2428,7 +2448,10 @@ class Inventario {
             foreach ($productos as $prod) {
                 $valor_total += floatval($prod->valor_total);
                 $valor_compra_total += floatval($prod->valor_compra_total ?? 0);
-                $valor_ganancia_total += (floatval($prod->precio ?? 0) - floatval($prod->precio_compra ?? 0)) * floatval($prod->stock ?? 0);
+                $precioVenta = function_exists('redondearPrecioVenta')
+                    ? redondearPrecioVenta((float)($prod->precio ?? 0))
+                    : (float)($prod->precio ?? 0);
+                $valor_ganancia_total += ($precioVenta - floatval($prod->precio_compra ?? 0)) * floatval($prod->stock ?? 0);
             }
             
             return [
@@ -2523,8 +2546,12 @@ class Inventario {
             
             $ganancia_total = 0;
             foreach ($productos as $prod) {
-                if (!is_null($prod->ganancia_unitaria)) {
-                    $ganancia_total += (floatval($prod->ganancia_unitaria) * intval($prod->stock));
+                if (!is_null($prod->costo_promedio)) {
+                    $precioVentaRedondeado = function_exists('redondearPrecioVenta')
+                        ? redondearPrecioVenta((float)($prod->precio ?? 0))
+                        : (float)($prod->precio ?? 0);
+                    $gananciaUnitaria = $precioVentaRedondeado - (float)$prod->costo_promedio;
+                    $ganancia_total += $gananciaUnitaria * (float)($prod->stock ?? 0);
                 }
             }
             

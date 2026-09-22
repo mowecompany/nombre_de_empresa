@@ -4,8 +4,7 @@
         if (n <= 0) return 0;
         const base = Math.floor(n / 100) * 100;
         const resto = n - base;
-        if (resto < 25) return base;
-        if (resto <= 50) return base + 50;
+        if (resto <= 40) return base;
         return base + 100;
     }
 

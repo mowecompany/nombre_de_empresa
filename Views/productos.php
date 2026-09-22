@@ -2050,7 +2050,7 @@ try {
                     </div>
                     <div class="form-group">
                         <label for="editProdPrecio"><i class="fas fa-dollar-sign"></i> PRECIO DE VENTA</label>
-                        <input type="number" id="editProdPrecio" name="precio" min="0" step="50" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdPrecio" name="precio" min="0" step="1" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
                     </div>
                 </div>
 
@@ -2452,7 +2452,7 @@ try {
                 style: 'currency',
                 currency: 'COP',
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 0
+                maximumFractionDigits: 2
             }).format(cantidad);
         }
 
@@ -2562,7 +2562,8 @@ try {
             const tableWrapper = document.querySelector('.table-wrapper');
             return {
                 windowY: window.scrollY || 0,
-                tableY: tableWrapper ? tableWrapper.scrollTop : 0
+                tableY: tableWrapper ? tableWrapper.scrollTop : 0,
+                pagina: productosPaginaActual
             };
         }
 
@@ -2599,6 +2600,14 @@ try {
             const inputBusqueda = document.getElementById('buscarTablaProductos');
             window.EstrellaSkeleton?.show(document.getElementById('productos-tbody'), 'table', { rows: 7 });
             const busqueda = normalizarBusquedaTablaProductos(inputBusqueda?.value || '');
+            try {
+                const posicionGuardada = JSON.parse(sessionStorage.getItem(productosScrollStorageKey) || 'null');
+                if (posicionGuardada && Number.isInteger(Number(posicionGuardada.pagina))) {
+                    productosPaginaActual = Math.max(0, Number(posicionGuardada.pagina));
+                }
+            } catch (error) {
+                console.warn('No se pudo restaurar la página de productos:', error);
+            }
             const parametros = new URLSearchParams({
                 action: 'getAll'
             });
@@ -2613,8 +2622,8 @@ try {
                         const tbody = document.getElementById('productos-tbody');
                         tbody.innerHTML = '';
                         // Filtrar y paginar client-side
-                        const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
-                        const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
+                        const texto = String(inputBusqueda?.value || '').trim();
+                        const filtradas = productosTablaCache.filter(producto => coincideBusquedaTablaProductos(textoProductoTabla(producto), texto));
                         const inicio = window.EstrellaPaginacion.inicioBloque(filtradas.length, productosPaginaActual, productosTamanoPagina);
                         
                         if (filtradas.length === 0) {
@@ -2649,8 +2658,8 @@ try {
             if (!tbody) return;
             tbody.innerHTML = '';
             
-            const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
-            const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
+            const texto = String(inputBusqueda?.value || '').trim();
+            const filtradas = productosTablaCache.filter(producto => coincideBusquedaTablaProductos(textoProductoTabla(producto), texto));
             const inicio = window.EstrellaPaginacion.inicioBloque(filtradas.length, productosPaginaActual, productosTamanoPagina);
             
             if (filtradas.length === 0) {
@@ -2672,8 +2681,8 @@ try {
                 const paginationDiv = document.getElementById('productosPagination');
                 if (!paginationDiv) return;
                 const inputBusqueda = document.getElementById('buscarTablaProductos');
-                const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
-                const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
+                const texto = String(inputBusqueda?.value || '').trim();
+                const filtradas = productosTablaCache.filter(producto => coincideBusquedaTablaProductos(textoProductoTabla(producto), texto));
                 const totalPaginas = window.EstrellaPaginacion.totalPaginas(filtradas.length, productosTamanoPagina);
                 paginationDiv.innerHTML = `
                     <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${productosPaginaActual === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
@@ -3772,7 +3781,7 @@ try {
                 if (precioVentaEdit) {
                     precioVentaEdit.value = (typeof redondearPrecioVenta === 'function'
                         ? redondearPrecioVenta(Number(producto.precio ?? 0))
-                        : Number(producto.precio ?? 0)).toFixed(0);
+                        : Number(producto.precio ?? 0)).toFixed(2);
                 }
                 const stockEdit = document.getElementById('editProdStock');
                 if (stockEdit) {
@@ -4234,7 +4243,7 @@ try {
                 </div>
                 <div>
                     <small style="display:block;color:#667085;font-weight:600;">PRECIO VENTA</small>
-                    <input type="number" class="pres-venta" min="0" step="50" value="${typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(d.precio_venta || 0) : (d.precio_venta || 0)}" style="width:100%;padding:9px;border:1px solid #e6e9ee;border-radius:6px;">
+                    <input type="number" class="pres-venta" min="0" step="1" value="${typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(d.precio_venta || 0) : (d.precio_venta || 0)}" style="width:100%;padding:9px;border:1px solid #e6e9ee;border-radius:6px;">
                 </div>
                 <div style="display:flex; gap:6px;">
                     ${esBase ? '' : `<button type="button" title="Abrir una unidad de esta presentación" onclick="abrirPresentacionManual(this)" style="padding:9px 10px;border:1px solid #027a48;background:#ffffff;color:#027a48;border-radius:6px;cursor:pointer;"><i class="fas fa-box-open"></i></button>

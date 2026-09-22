@@ -1,7 +1,7 @@
 {
   "name": "autoservicio-la-estrella-desktop",
   "productName": "AUTOSERVICIO MI ESTRELLA",
-  "version": "1.0.11",
+  "version": "1.0.10",
   "description": "Aplicación de escritorio para la gestión de AUTOSERVICIO MI ESTRELLA.",
   "author": "AUTOSERVICIO MI ESTRELLA",
   "private": true,
@@ -13,11 +13,11 @@
     "build": "cross-env APP_ENV=production CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --windows nsis",
     "build:installer": "npm run build",
     "prebuild:portable": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-win-icon.ps1",
-    "build:portable": "cross-env APP_ENV=production CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --windows portable --config.directories.output=dist/portable --config.artifactName=\"AUTOSERVICIO MI ESTRELLA Portable v1.0.11.exe\"",
+    "build:portable": "cross-env APP_ENV=production CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --windows portable --config.directories.output=dist/portable --config.artifactName=\"AUTOSERVICIO MI ESTRELLA Portable v1.0.10.exe\"",
     "start:main": "cross-env APP_PORT=8000 electron . -- --main",
     "start:portable": "cross-env APP_PORT=8001 electron . -- --portable",
     "start:custom": "cross-env APP_PORT=8002 electron . -- --port=8002",
-    "build:main": "cross-env APP_ENV=production electron-builder --windows nsis --config.appId=com.autoservicio.laestrella.desktop.main --config.productName=\"AUTOSERVICIO MI ESTRELLA MAIN\" --config.artifactName=\"AUTOSERVICIO MI ESTRELLA Main v1.0.11.exe\"",
+    "build:main": "cross-env APP_ENV=production electron-builder --windows nsis --config.appId=com.autoservicio.laestrella.desktop.main --config.productName=\"AUTOSERVICIO MI ESTRELLA MAIN\" --config.artifactName=\"AUTOSERVICIO MI ESTRELLA Main v1.0.10.exe\"",
     "build:all": "npm run build && npm run build:portable",
     "dist": "npm run build",
     "postinstall": "electron-rebuild -f -w serialport || electron-builder install-app-deps"
@@ -39,7 +39,7 @@
   "build": {
     "appId": "com.autoservicio.miestrella.desktop",
     "productName": "AUTOSERVICIO MI ESTRELLA",
-    "artifactName": "AUTOSERVICIO MI ESTRELLA Setup v1.0.11.exe",
+    "artifactName": "AUTOSERVICIO MI ESTRELLA Setup v1.0.10.exe",
     "icon": "logo.ico",
     "directories": {
       "output": "dist",

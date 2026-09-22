@@ -1864,15 +1864,24 @@ $categorias = [];
         let categoriasTamanoPagina = 50;
 
         const SCROLL_SAVE_KEY = 'categorias-scroll-position';
-        let restoredScrollY = null;
+        let restoredScroll = null;
         const savedScrollPosition = sessionStorage.getItem(SCROLL_SAVE_KEY);
         if (savedScrollPosition !== null) {
-            restoredScrollY = Number(savedScrollPosition) || 0;
+            try {
+                restoredScroll = JSON.parse(savedScrollPosition);
+            } catch (error) {
+                restoredScroll = { windowY: Number(savedScrollPosition) || 0 };
+            }
             sessionStorage.removeItem(SCROLL_SAVE_KEY);
         }
 
         window.addEventListener('beforeunload', () => {
-            sessionStorage.setItem(SCROLL_SAVE_KEY, String(window.scrollY || 0));
+            const tableWrapper = document.querySelector('.table-wrapper');
+            sessionStorage.setItem(SCROLL_SAVE_KEY, JSON.stringify({
+                windowY: window.scrollY || 0,
+                tableY: tableWrapper ? tableWrapper.scrollTop : 0,
+                pagina: categoriasPaginaActual
+            }));
         });
 
         function formatBytesToKb(bytes) {
@@ -2178,15 +2187,21 @@ $categorias = [];
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
                         categoriasTablaCache = window.EstrellaPaginacion.recientesPrimero(data.data, ['id']);
-                        categoriasPaginaActual = 0;
+                        if (restoredScroll && Number.isInteger(Number(restoredScroll.pagina))) {
+                            categoriasPaginaActual = Math.max(0, Number(restoredScroll.pagina));
+                        }
                         renderResultadosTablaCategorias();
                         renderPaginaCategorias();
                         if (typeof callback === 'function') {
                             callback();
                         }
-                        if (restoredScrollY !== null) {
-                            window.scrollTo({ top: restoredScrollY, behavior: 'auto' });
-                            restoredScrollY = null;
+                        if (restoredScroll !== null) {
+                            window.scrollTo({ top: Number(restoredScroll.windowY) || 0, behavior: 'auto' });
+                            const tableWrapper = document.querySelector('.table-wrapper');
+                            if (tableWrapper) {
+                                tableWrapper.scrollTop = Number(restoredScroll.tableY) || 0;
+                            }
+                            restoredScroll = null;
                         }
                     } else {
                         console.error('Error al cargar CATEGORÍAs:', data);
