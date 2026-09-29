@@ -197,6 +197,69 @@ if (!isset($db)) {
     $db = Database::connect();
 }
 
+// ========== MIGRACIÓN AUTOMÁTICA DE PRECIO_COMPRA (SE EJECUTA EN TODAS LAS PÁGINAS) ==========
+try {
+    $lockFile = __DIR__ . '/../.precio_compra_ok';
+    
+    // Solo migrar si no está bloqueado
+    if (!file_exists($lockFile)) {
+        error_log("PRECIO_COMPRA: No hay lock - Verificando productos...");
+        
+        // Verificar cuántos productos tienen precio_compra en 0 Y tienen entradas
+        $stmt = $db->query("
+            SELECT COUNT(*) as pendientes 
+            FROM productos 
+            WHERE (precio_compra IS NULL OR precio_compra = 0) 
+            AND id IN (
+                SELECT DISTINCT producto_id 
+                FROM entradas_inventario 
+                WHERE estado = 1
+            )
+        ");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $pendientes = $result['pendientes'];
+        
+        error_log("PRECIO_COMPRA: Productos con precio 0 que tienen entradas: " . $pendientes);
+        
+        if ($pendientes > 0) {
+            error_log("PRECIO_COMPRA: Migrando precios desde entradas...");
+            
+            // Migrar SOLO los que tienen precio en 0 Y tienen entradas
+            $affected = $db->exec("
+                UPDATE productos 
+                SET precio_compra = (
+                    SELECT AVG(precio_compra) 
+                    FROM entradas_inventario 
+                    WHERE producto_id = productos.id 
+                    AND estado = 1
+                )
+                WHERE (precio_compra IS NULL OR precio_compra = 0)
+                AND EXISTS (
+                    SELECT 1 FROM entradas_inventario 
+                    WHERE producto_id = productos.id 
+                    AND estado = 1
+                )
+            ");
+            
+            error_log("PRECIO_COMPRA: ✅ Migrados: " . $affected . " productos");
+        } else {
+            error_log("PRECIO_COMPRA: ✅ No hay productos pendientes de migrar");
+        }
+        
+        // Crear archivo de bloqueo SIEMPRE (aunque no haya migrado nada)
+        // Esto evita que siga intentando migrar cuando no hay entradas
+        file_put_contents($lockFile, date('Y-m-d H:i:s'));
+        error_log("PRECIO_COMPRA: Lock creado");
+    } else {
+        error_log("PRECIO_COMPRA: Lock existe - No se requiere migración");
+    }
+    
+} catch (Exception $e) {
+    error_log("PRECIO_COMPRA ERROR: " . $e->getMessage());
+}
+// ===============================================================================================
+
+
 // EJECUTAR AUTOMÁTICAMENTE: Crear columna precio_compra y migrar datos
 require_once __DIR__ . '/setup_precio_compra.php';
 ?>

@@ -280,6 +280,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'impo
         }
         @unlink($databasePath . '-wal');
         @unlink($databasePath . '-shm');
+        
+        // IMPORTANTE: Eliminar el lock de migración para que vuelva a copiar los precios
+        $lockFile = dirname(__DIR__) . '/.precio_compra_ok';
+        if (file_exists($lockFile)) {
+            @unlink($lockFile);
+        }
+        
         echo json_encode(['success' => true, 'message' => 'Base de datos e imágenes importadas correctamente.']);
     } catch (Throwable $e) {
         @unlink($temporaryPath);

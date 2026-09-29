@@ -779,6 +779,12 @@ class Inventario {
 
             $this->db->commit();
 
+            // IMPORTANTE: Borrar el lock de migración para que vuelva a migrar los precios
+            $lockFile = dirname(__DIR__) . '/.precio_compra_ok';
+            if (file_exists($lockFile)) {
+                @unlink($lockFile);
+            }
+
             return [
                 'success' => true,
                 'message' => 'Inventario reiniciado correctamente',
