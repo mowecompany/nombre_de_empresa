@@ -38,6 +38,8 @@ $baseUrl = rtrim((string)base_url(), '/');
         @media (max-width: 650px) { body { padding: 12px; } .database-panel { padding: 20px; } .actions { grid-template-columns: 1fr; } }
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body class="page-basedatos">
     <main class="database-panel">
@@ -68,27 +70,92 @@ $baseUrl = rtrim((string)base_url(), '/');
         const fileName = document.getElementById('fileName');
         exportLink.addEventListener('click', async event => {
             event.preventDefault();
+
+            // Mostrar Swal con barra de progreso — igual que importar
+            Swal.fire({
+                title: 'Exportando base de datos...',
+                html: '<div style="margin-top:20px;"><div style="width:100%;height:20px;background:#e9ecef;border-radius:10px;overflow:hidden;"><div id="exportProgressBar" style="width:0%;height:100%;background:#2f4a5a;transition:width 0.3s ease;"></div></div><div id="exportProgressText" style="text-align:center;margin-top:8px;font-size:12px;color:#667085;">Preparando exportación…</div></div>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false
+            });
+
+            const setProgreso = (pct, texto) => {
+                const bar  = document.getElementById('exportProgressBar');
+                const txt  = document.getElementById('exportProgressText');
+                if (bar) bar.style.width = pct + '%';
+                if (txt) txt.textContent = texto || pct + '%';
+            };
+
             try {
-                const response = await fetch(exportLink.href);
-                if (!response.ok) throw new Error(await response.text() || 'No se pudo exportar la base de datos.');
-                const blob = await response.blob();
-                const contentDisposition = response.headers.get('Content-Disposition') || '';
-                const match = contentDisposition.match(/filename="?([^";]+)"?/i);
-                const filename = match ? match[1] : `base_datos_AUTOSERVICIO MI ESTRELLA
-_${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
-                if (window.electronAPI?.saveExportedDatabase) {
-                    const saveResult = await window.electronAPI.saveExportedDatabase(filename, await blob.arrayBuffer());
-                    if (!saveResult?.saved) return;
-                    await Swal.fire('Exportación completada', 'La base de datos se guardó correctamente.', 'success');
-                    return;
-                }
-                const downloadUrl = URL.createObjectURL(blob);
-                const download = document.createElement('a');
-                download.href = downloadUrl;
-                download.download = filename;
-                download.click();
-                URL.revokeObjectURL(downloadUrl);
-                await Swal.fire('Exportación completada', 'La base de datos se exportó correctamente.', 'success');
+                await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', exportLink.href, true);
+                    xhr.responseType = 'blob';
+                    xhr.timeout = 120000;
+
+                    // Progreso de descarga del ZIP generado por el servidor
+                    xhr.onprogress = (event) => {
+                        if (event.lengthComputable && event.total > 0) {
+                            const pct = Math.round((event.loaded / event.total) * 100);
+                            setProgreso(pct, pct + '%');
+                        } else {
+                            // Sin Content-Length: animación indeterminada cíclica
+                            const bar = document.getElementById('exportProgressBar');
+                            if (bar) {
+                                const actual = parseFloat(bar.style.width) || 0;
+                                const next = actual < 90 ? Math.min(90, actual + 5) : actual;
+                                setProgreso(next, 'Descargando…');
+                            }
+                        }
+                    };
+
+                    xhr.onload = async () => {
+                        try {
+                            if (xhr.status !== 200) {
+                                const text = await xhr.response.text?.() || 'No se pudo exportar la base de datos.';
+                                throw new Error(text);
+                            }
+                            setProgreso(100, '100%');
+
+                            const blob = xhr.response;
+                            const disposition = xhr.getResponseHeader('Content-Disposition') || '';
+                            const match = disposition.match(/filename="?([^";]+)"?/i);
+                            const filename = match
+                                ? match[1].replace(/\n/g, '').trim()
+                                : `base_datos_${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
+
+                            if (window.electronAPI?.saveExportedDatabase) {
+                                const buffer = await blob.arrayBuffer();
+                                const saveResult = await window.electronAPI.saveExportedDatabase(filename, buffer);
+                                if (!saveResult?.saved) { resolve(); return; }
+                                await Swal.fire('Exportación completada', 'La base de datos se guardó correctamente.', 'success');
+                                resolve();
+                                return;
+                            }
+
+                            const downloadUrl = URL.createObjectURL(blob);
+                            const download = document.createElement('a');
+                            download.href = downloadUrl;
+                            download.download = filename;
+                            download.click();
+                            URL.revokeObjectURL(downloadUrl);
+                            await Swal.fire('Exportación completada', 'La base de datos se exportó correctamente.', 'success');
+                            resolve();
+                        } catch (err) { reject(err); }
+                    };
+
+                    xhr.onerror = () => reject(new Error(
+                        xhr.status
+                            ? `El servidor rechazó la exportación (HTTP ${xhr.status}).`
+                            : 'La descarga del ZIP fue interrumpida por la aplicación. Vuelve a intentarlo.'
+                    ));
+                    xhr.ontimeout = () => reject(new Error('La exportación tardó demasiado. Verifica que la base de datos no esté bloqueada e inténtalo de nuevo.'));
+
+                    // Fase inicial: el servidor prepara el ZIP (progreso indeterminado hasta que empiece la descarga)
+                    setProgreso(0, 'Preparando exportación…');
+                    xhr.send();
+                });
             } catch (error) {
                 Swal.fire('Error', error.message || 'No se pudo exportar la base de datos.', 'error');
             }
@@ -101,14 +168,47 @@ _${new Date().toISOString().replace(/[:.]/g, '-')}.zip`;
             if (!confirmation.isConfirmed) return;
             const formData = new FormData(event.target);
             formData.append('action', 'importar');
+            
+            // Mostrar SweetAlert con barra de carga en tiempo real
+            Swal.fire({
+                title: 'Importando base de datos...',
+                html: '<div style="margin-top:20px;"><div style="width:100%;height:20px;background:#e9ecef;border-radius:10px;overflow:hidden;"><div id="progressBar" style="width:0%;height:100%;background:#2f4a5a;transition:width 0.3s ease;"></div></div><div id="progressText" style="text-align:center;margin-top:8px;font-size:12px;color:#667085;">0%</div></div>',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false
+            });
+            
             try {
-                const response = await fetch(`${baseUrl}/Controllers/BaseDatosController.php?action=importar`, { method: 'POST', body: formData });
-                const responseText = await response.text();
-                let result;
-                try { result = JSON.parse(responseText); } catch (parseError) { throw new Error(responseText || 'No se pudo importar la base de datos.'); }
-                if (!response.ok || !result.success) throw new Error(result.message || 'No se pudo importar.');
-                await Swal.fire('Importación completada', result.message, 'success');
-                window.top.location.href = `${baseUrl}/Views/dashboard.php`;
+                // Usar XMLHttpRequest para monitorear progreso
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `${baseUrl}/Controllers/BaseDatosController.php?action=importar`, true);
+                
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percentComplete = Math.round((event.loaded / event.total) * 100);
+                        const progressBar = document.getElementById('progressBar');
+                        const progressText = document.getElementById('progressText');
+                        if (progressBar) progressBar.style.width = percentComplete + '%';
+                        if (progressText) progressText.textContent = percentComplete + '%';
+                    }
+                };
+                
+                xhr.onload = async () => {
+                    try {
+                        const responseText = xhr.responseText;
+                        let result;
+                        try { result = JSON.parse(responseText); } catch (parseError) { throw new Error(responseText || 'No se pudo importar la base de datos.'); }
+                        if (xhr.status !== 200 || !result.success) throw new Error(result.message || 'No se pudo importar.');
+                        await Swal.fire('Importación completada', result.message, 'success');
+                        window.top.location.href = `${baseUrl}/Views/dashboard.php`;
+                    } catch (error) { Swal.fire('Error', error.message, 'error'); }
+                };
+                
+                xhr.onerror = () => {
+                    Swal.fire('Error', 'Error de conexión al importar la base de datos.', 'error');
+                };
+                
+                xhr.send(formData);
             } catch (error) { Swal.fire('Error', error.message, 'error'); }
         });
     </script>

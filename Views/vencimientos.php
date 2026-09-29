@@ -67,12 +67,12 @@ $baseUrl = rtrim((string)base_url(), '/');
         .venc-card.naranja { border-left-color: var(--naranja); } .venc-card.naranja strong { color: var(--naranja); }
         .venc-card.verde { border-left-color: var(--verde); } .venc-card.verde strong { color: var(--verde); }
 
-        .venc-toolbar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+        .venc-toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: flex-end; margin-bottom: 16px; }
         .venc-toolbar input, .venc-toolbar select {
             padding: 11px 14px; border: 1px solid var(--line); border-radius: 8px; font-family: inherit;
             text-transform: uppercase; font-size: 14px; background: #fff; color: var(--ink);
         }
-        .venc-toolbar input { flex: 1; min-width: 240px; }
+        .venc-toolbar input { flex: 0 1 300px; min-width: 240px; }
 
         .venc-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
         .venc-tabs .btn.activo { background: var(--navy); color: #fff; }
@@ -108,7 +108,37 @@ $baseUrl = rtrim((string)base_url(), '/');
             .venc-title { font-size: 1.6rem; }
             thead th, tbody td { padding: 8px 6px; }
         }
+
+        .btn-save {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #2f4a5a;
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-save:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
+        }
     </style>
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
 </head>
 <body>
     <div class="venc-shell">
@@ -127,17 +157,11 @@ $baseUrl = rtrim((string)base_url(), '/');
         <div class="venc-cards" id="tarjetas"></div>
 
         <div class="venc-toolbar">
-            <input type="text" id="buscador" placeholder="BUSCAR POR PRODUCTO, CÓDIGO O CATEGORÍA" autocomplete="off">
-            <select id="filtroEstado">
-                <option value="todos">TODOS LOS LOTES</option>
-                <option value="vencido">VENCIDOS</option>
-                <option value="critico">CRÍTICOS</option>
-                <option value="proximo">PRÓXIMOS</option>
-                <option value="vigente">VIGENTES</option>
-            </select>
             <button class="btn ghost" id="btnRefrescar"><i class="fas fa-sync"></i> ACTUALIZAR</button>
-            <button class="btn rojo" id="btnArchivarTodos"><i class="fas fa-box-archive"></i> ARCHIVAR TODOS LOS VENCIDOS</button>
             <button class="btn ghost" id="btnVerArchivados" type="button" onclick="cambiarVista(vistaActiva === 'archivados' ? 'vencidos' : 'archivados')"><i class="fas fa-box-archive"></i> PRODUCTOS ARCHIVADOS</button>
+            <input type="text" id="buscador" placeholder="BUSCAR POR PRODUCTO, CÓDIGO O CATEGORÍA" autocomplete="off" style="border-color:#2f4a5a;border-radius:8px;">
+            <select id="vencimientosPorPagina" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+            <div id="vencimientosPaginacion" style="display:inline-flex;align-items:center;gap:6px;"></div>
         </div>
 
         <div class="venc-table-wrap">
@@ -170,6 +194,8 @@ $baseUrl = rtrim((string)base_url(), '/');
         let resumen = {};
         let danados = [];
         let archivados = [];
+        let vencimientosPagina = 0;
+        let vencimientosPorPagina = 50;
         let vistaActiva = new URLSearchParams(window.location.search).get('vista') === 'danados'
             ? 'danados'
             : new URLSearchParams(window.location.search).get('vista') === 'archivados'
@@ -251,8 +277,6 @@ $baseUrl = rtrim((string)base_url(), '/');
             document.title = 'Productos vencidos y dañados - <?= htmlspecialchars((string)NOMBRE_EMPRESA, ENT_QUOTES, 'UTF-8') ?>';
             document.getElementById('btnVistaVencidos').classList.toggle('activo', !esDanados);
             document.getElementById('btnVistaDanados').classList.toggle('activo', esDanados);
-            document.getElementById('filtroEstado').style.display = esDanados || esArchivados ? 'none' : '';
-            document.getElementById('btnArchivarTodos').style.display = esDanados || esArchivados ? 'none' : '';
             const botonArchivados = document.getElementById('btnVerArchivados');
             botonArchivados.style.display = esDanados ? 'none' : '';
             botonArchivados.innerHTML = esArchivados
@@ -342,7 +366,7 @@ $baseUrl = rtrim((string)base_url(), '/');
             if (vistaActiva === 'archivados') return pintarTablaArchivados();
             const cuerpo = document.getElementById('cuerpo');
             const texto = document.getElementById('buscador').value || '';
-            const estadoFiltro = document.getElementById('filtroEstado').value;
+            const estadoFiltro = 'todos';
 
             const visibles = lotes.filter((lote) => {
                 if (estadoFiltro !== 'todos' && lote.estado !== estadoFiltro) return false;
@@ -355,7 +379,12 @@ $baseUrl = rtrim((string)base_url(), '/');
                 return;
             }
 
-            cuerpo.innerHTML = visibles.map((lote) => `
+            const totalPaginas = window.EstrellaPaginacion.totalPaginas(visibles.length, vencimientosPorPagina);
+            vencimientosPagina = Math.min(vencimientosPagina, totalPaginas - 1);
+            const inicioVencimientos = window.EstrellaPaginacion.inicioBloque(visibles.length, vencimientosPagina, vencimientosPorPagina);
+            const paginaVisible = visibles.slice(inicioVencimientos, inicioVencimientos + vencimientosPorPagina);
+            document.getElementById('vencimientosPaginacion').innerHTML = `<button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - vencimientosPagina} / ${totalPaginas}</span><button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${vencimientosPagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+            cuerpo.innerHTML = paginaVisible.map((lote) => `
                 <tr>
                     <td><img class="prod-img" loading="lazy" src="${imagenUrl(lote.imagen)}" alt="${escapar(lote.producto)}" onerror="this.src='${baseUrl}/favicon.ico'"></td>
                     <td>${escapar(lote.codigo || 'N/D')}</td>
@@ -376,6 +405,8 @@ $baseUrl = rtrim((string)base_url(), '/');
         async function cargar() {
             const boton = document.getElementById('btnRefrescar');
             boton.disabled = true;
+            window.EstrellaSkeleton?.show(document.getElementById('tarjetas'), 'cards', { cards: 4 });
+            window.EstrellaSkeleton?.show(document.getElementById('cuerpo'), 'table', { rows: 7 });
             try {
                 const [respuestaLotes, respuestaDanados, respuestaArchivados] = await Promise.all([
                     fetch(CONTROLADOR + '?action=lotesPorVencer', { headers: { 'X-Requested-With': 'XMLHttpRequest' } }),
@@ -386,17 +417,22 @@ $baseUrl = rtrim((string)base_url(), '/');
                 const datosDanados = await respuestaDanados.json();
                 const datosArchivados = await respuestaArchivados.json();
                 if (!datos.success) throw new Error(datos.message || 'No se pudieron cargar los lotes');
-                lotes = Array.isArray(datos.data) ? datos.data : [];
+                lotes = window.EstrellaPaginacion.recientesPrimero(Array.isArray(datos.data) ? datos.data : [], ['entrada_id', 'id']);
                 resumen = datos.resumen || {};
-                danados = Array.isArray(datosDanados?.data)
-                    ? datosDanados.data.filter(item => String(item.tipo_salida || '').trim().toLowerCase() === 'dañado' && !String(item.referencia || '').toUpperCase().startsWith('VENCIDO-'))
-                    : [];
-                archivados = Array.isArray(datosArchivados?.data) ? datosArchivados.data : [];
+                danados = window.EstrellaPaginacion.recientesPrimero(
+                    Array.isArray(datosDanados?.data)
+                        ? datosDanados.data.filter(item => String(item.tipo_salida || '').trim().toLowerCase() === 'dañado' && !String(item.referencia || '').toUpperCase().startsWith('VENCIDO-'))
+                        : [],
+                    ['fecha_salida', 'id']
+                );
+                archivados = window.EstrellaPaginacion.recientesPrimero(Array.isArray(datosArchivados?.data) ? datosArchivados.data : [], ['fecha_archivado', 'id']);
                 actualizarVista();
             } catch (error) {
                 document.getElementById('cuerpo').innerHTML = `<tr><td colspan="10" class="vacio">${escapar(error.message)}</td></tr>`;
             } finally {
                 boton.disabled = false;
+                window.EstrellaSkeleton?.hide(document.getElementById('tarjetas'), true);
+                window.EstrellaSkeleton?.hide(document.getElementById('cuerpo'), true);
             }
         }
 
@@ -456,10 +492,20 @@ $baseUrl = rtrim((string)base_url(), '/');
             }
         }
 
-        document.getElementById('buscador').addEventListener('input', pintarTabla);
-        document.getElementById('filtroEstado').addEventListener('change', pintarTabla);
+        document.getElementById('buscador').addEventListener('input', () => { vencimientosPagina = 0; pintarTabla(); });
+        document.getElementById('vencimientosPorPagina').addEventListener('change', (event) => {
+            const tamanoAnterior = vencimientosPorPagina;
+            const indiceLoteAncla = vencimientosPagina * tamanoAnterior;
+            vencimientosPorPagina = Number(event.target.value) || 50;
+            vencimientosPagina = Math.floor(indiceLoteAncla / vencimientosPorPagina);
+            pintarTabla();
+        });
+        document.getElementById('vencimientosPaginacion').addEventListener('click', (event) => {
+            if (event.target.closest('.inventory-page-prev')) vencimientosPagina = Math.max(0, vencimientosPagina - 1);
+            if (event.target.closest('.inventory-page-next')) vencimientosPagina += 1;
+            pintarTabla();
+        });
         document.getElementById('btnRefrescar').addEventListener('click', cargar);
-        document.getElementById('btnArchivarTodos').addEventListener('click', archivarTodos);
         cargar();
     </script>
 </body>

@@ -133,23 +133,6 @@ $correoPrefillLogin = trim((string)($_GET['correo'] ?? $_GET['email'] ?? ''));
             justify-content: center;
         }
 
-        #divLoading img {
-            margin-left: 2px;
-            margin-right: 2px;
-            position: relative;
-            z-index: 1;
-            width: 88px;
-            height: 88px;
-            object-fit: contain;
-            filter: drop-shadow(0 10px 16px rgba(17, 78, 151, 0.25));
-            animation: loadingLogoSpin 0.95s linear infinite;
-        }
-
-        @keyframes loadingLogoSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
         .bg-hero{
             position:fixed;inset:0;background:linear-gradient(180deg, rgba(47,74,90,0.03), transparent 40%);pointer-events:none;z-index:0;
         }
@@ -388,13 +371,12 @@ $correoPrefillLogin = trim((string)($_GET['correo'] ?? $_GET['email'] ?? ''));
         }
      </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body class="page-login">
     <button type="button" class="refresh-page-btn" id="refrescarLoginBtn" title="Actualizar página" aria-label="Actualizar página"><i class="fas fa-sync-alt"></i></button>
     <div id="divLoading">
-        <div>
-            <img id="loginLoadingLogoImg" src="<?= htmlspecialchars($loginLoadingLogo, ENT_QUOTES, 'UTF-8'); ?>" alt="Loading">
-        </div>
     </div>
     <div class="bg-hero" aria-hidden="true"></div>
 

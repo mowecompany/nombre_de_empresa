@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Si se recibió PHPSESSID como parámetro (desde iframe), usarlo para la sesión
 if (isset($_GET['PHPSESSID']) && !empty($_GET['PHPSESSID'])) {
     session_id($_GET['PHPSESSID']);
@@ -1735,6 +1735,8 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
         }
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
 </head>
 <body class="page-roles">
     <div class="title_equipo">
@@ -1778,7 +1780,7 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
                         <?php endif; ?>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="roles-tbody">
                     <?php 
                     if (empty($roles)) {
                         echo "<tr><td colspan='" . $numColumnas . "'>No hay roles registrados</td></tr>";

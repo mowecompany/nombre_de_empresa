@@ -29,6 +29,7 @@ class Producto {
         $this->inicializarColumnasGanancia();
         $this->inicializarColumnaColor();
         $this->inicializarColumnaVentaPorKilo();
+        $this->aproximarPreciosVentaRegistrados();
     }
 
     private function esSqlite(): bool {
@@ -215,6 +216,59 @@ class Producto {
             $this->agregarColumnaSiNoExiste('productos', 'venta_por_kilo', $sql);
         } catch (Throwable $e) {
             error_log('No se pudo inicializar columna venta_por_kilo: ' . $e->getMessage());
+        }
+    }
+
+    private function aproximarPreciosVentaRegistrados(): void {
+        static $versionEjecutada = 0;
+        $version = 2;
+        if ($versionEjecutada >= $version || !function_exists('redondearPrecioVenta')) {
+            return;
+        }
+        $versionEjecutada = $version;
+
+        try {
+            $tieneOriginal = dbColumnExists($this->db, 'productos', 'precio_original');
+            $sql = $tieneOriginal
+                ? 'SELECT id, precio, precio_original FROM productos WHERE COALESCE(precio, 0) > 0 OR COALESCE(precio_original, 0) > 0'
+                : 'SELECT id, precio FROM productos WHERE COALESCE(precio, 0) > 0';
+            $filas = $this->db->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+            $actualizar = $tieneOriginal
+                ? $this->db->prepare('UPDATE productos SET precio = :precio, precio_original = CASE WHEN COALESCE(precio_original, 0) > 0 THEN :original ELSE precio_original END WHERE id = :id')
+                : $this->db->prepare('UPDATE productos SET precio = :precio WHERE id = :id');
+            foreach ($filas as $fila) {
+                $precio = (float)($fila['precio'] ?? 0);
+                $precioNuevo = $precio > 0 ? redondearPrecioVenta($precio) : $precio;
+                $original = $tieneOriginal ? (float)($fila['precio_original'] ?? 0) : 0.0;
+                $originalNuevo = $original > 0 ? redondearPrecioVenta($original) : $original;
+                if (abs($precioNuevo - $precio) < 0.005 && abs($originalNuevo - $original) < 0.005) {
+                    continue;
+                }
+                $params = [':precio' => $precioNuevo, ':id' => (int)$fila['id']];
+                if ($tieneOriginal) {
+                    $params[':original'] = $originalNuevo;
+                }
+                $actualizar->execute($params);
+            }
+        } catch (Throwable $e) {
+            error_log('No se pudieron aproximar precios de venta de productos: ' . $e->getMessage());
+        }
+
+        try {
+            if (!function_exists('dbTableExists') || !dbTableExists($this->db, 'producto_presentaciones')) {
+                return;
+            }
+            $filasPres = $this->db->query('SELECT id, precio_venta FROM producto_presentaciones WHERE COALESCE(precio_venta, 0) > 0')->fetchAll(PDO::FETCH_ASSOC);
+            $updPres = $this->db->prepare('UPDATE producto_presentaciones SET precio_venta = :precio WHERE id = :id');
+            foreach ($filasPres as $fila) {
+                $actual = (float)($fila['precio_venta'] ?? 0);
+                $nuevo = redondearPrecioVenta($actual);
+                if (abs($nuevo - $actual) >= 0.005) {
+                    $updPres->execute([':precio' => $nuevo, ':id' => (int)$fila['id']]);
+                }
+            }
+        } catch (Throwable $e) {
+            error_log('No se pudieron aproximar precios de venta de presentaciones: ' . $e->getMessage());
         }
     }
 
@@ -552,7 +606,11 @@ class Producto {
     public function setCodigoBarras($codigo_barras) { $this->codigo_barras = $codigo_barras; }
     public function setNombre($nombre) { $this->nombre = $nombre; }
     public function setDescripcion($descripcion) { $this->descripcion = $descripcion; }
-    public function setPrecio($precio) { $this->precio = $precio; }
+    public function setPrecio($precio) {
+        $this->precio = function_exists('redondearPrecioVenta')
+            ? redondearPrecioVenta($precio)
+            : (is_numeric($precio) ? (float)$precio : 0.0);
+    }
     public function setImagen($imagen) { $this->imagen = $imagen; }
     public function setCategoriaId($categoria_id) { $this->categoria_id = $categoria_id; }
     public function setEstado($estado) { $this->estado = $estado; }
@@ -812,7 +870,7 @@ class Producto {
                 $params[] = $usuarioId;
             }
 
-            $sql .= " ORDER BY p.id DESC";
+            $sql .= " ORDER BY p.id ASC";
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
@@ -834,7 +892,7 @@ class Producto {
                     $fallbackSql .= " AND p.usuario_id = ?";
                     $fallbackParams[] = $usuarioId;
                 }
-                $fallbackSql .= " ORDER BY p.id DESC";
+                $fallbackSql .= " ORDER BY p.id ASC";
                 $fallbackStmt = $this->db->prepare($fallbackSql);
                 $fallbackStmt->execute($fallbackParams);
                 $fallbackResult = $fallbackStmt->fetchAll(PDO::FETCH_OBJ);
@@ -848,6 +906,81 @@ class Producto {
             error_log("Error en getAll: " . $e->getMessage());
             return [];
         }
+    }
+
+    public function getPaginado(array $filtros = []): array {
+        try {
+            $limite = min(200, max(1, (int)($filtros['limit'] ?? 50)));
+            $offset = max(0, (int)($filtros['offset'] ?? 0));
+            $empresaId = $this->getEmpresaId();
+            $tieneEmpresaId = $this->tieneColumnaEmpresaId();
+            $subqueryUltimoPrecioCompra = '(SELECT precio_compra FROM entradas_inventario e WHERE e.producto_id = p.id ORDER BY e.fecha_entrada DESC LIMIT 1)';
+            $columnaGanancia = $this->columnaPorcentajeGananciaProducto();
+            $exprPorcentajeGanancia = $columnaGanancia !== ''
+                ? "CASE WHEN COALESCE(p.stock, 0) <= 0 THEN 0 ELSE COALESCE(p.{$columnaGanancia}, 0) END"
+                : "CASE WHEN COALESCE(p.stock, 0) <= 0 THEN 0 ELSE CASE WHEN {$subqueryUltimoPrecioCompra} > 0 THEN ROUND(100 * (p.precio - {$subqueryUltimoPrecioCompra}) / {$subqueryUltimoPrecioCompra}, 1) ELSE 0 END END";
+
+            $sql = "SELECT p.*, c.nombre AS categoria_nombre,
+                    {$subqueryUltimoPrecioCompra} AS ultimo_precio_compra,
+                    {$exprPorcentajeGanancia} AS porcentaje_ganancia,
+                    0 AS stock_reservado,
+                    COALESCE(p.stock, 0) AS stock_disponible
+                    FROM productos p
+                    LEFT JOIN categorias c ON p.categoria_id = c.id
+                    WHERE 1=1";
+            $params = [];
+
+            if ($tieneEmpresaId && $empresaId > 0) {
+                $sql .= ' AND (p.empresa_id IS NULL OR p.empresa_id = 0 OR p.empresa_id = :empresa_id)';
+                $params[':empresa_id'] = $empresaId;
+            }
+
+            $busqueda = trim((string)($filtros['search'] ?? ''));
+            if ($busqueda !== '') {
+                $sql .= ' AND (p.nombre LIKE :busqueda OR p.codigo LIKE :busqueda OR p.codigo_barras LIKE :busqueda)';
+                $params[':busqueda'] = '%' . $busqueda . '%';
+            }
+
+            $sql .= " ORDER BY p.id ASC LIMIT {$limite} OFFSET {$offset}";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
+        } catch (Throwable $e) {
+            error_log('Error en getPaginado: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function buscarPorCodigoBarras(string $codigo): ?object {
+        $codigo = trim($codigo);
+        if ($codigo === '') {
+            return null;
+        }
+
+        try {
+            $sql = 'SELECT p.*, c.nombre AS categoria_nombre FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id WHERE p.codigo_barras = :codigo';
+            $params = [':codigo' => $codigo];
+            if ($this->tieneColumnaEmpresaId()) {
+                $sql .= ' AND (p.empresa_id IS NULL OR p.empresa_id = 0 OR p.empresa_id = :empresa_id)';
+                $params[':empresa_id'] = $this->getEmpresaId();
+            }
+            $sql .= ' LIMIT 1';
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            $resultado = $stmt->fetch(PDO::FETCH_OBJ);
+            return $resultado ?: null;
+        } catch (Throwable $e) {
+            error_log('Error en buscarPorCodigoBarras: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function buscarLigero(string $busqueda, int $limite = 50): array {
+        return $this->getPaginado([
+            'search' => $busqueda,
+            'limit' => min(200, max(1, $limite)),
+            'offset' => 0
+        ]);
     }
 
     public function save() {
@@ -1593,12 +1726,12 @@ class Producto {
             
             $stmt = $this->db->prepare($sql);
             
-            $paramsCrear = [
+                $paramsCrear = [
                 $datos['codigo'],
                 $datos['codigo_barras'] ?? null,
                 $datos['nombre'],
                 $datos['descripcion'] ?? '',
-                $datos['precio'] ?? 0,
+                function_exists('redondearPrecioVenta') ? redondearPrecioVenta($datos['precio'] ?? 0) : ($datos['precio'] ?? 0),
                 $imagenCrear,
                 $datos['categoria_id'],
                 $datos['estado'] ?? 1,

@@ -1,21 +1,36 @@
-# Deshabilitar caché
-<IfModule mod_headers.c>
-    Header set Cache-Control "no-cache, no-store, must-revalidate"
-    Header set Pragma "no-cache"
-    Header set Expires 0
-</IfModule>
+# ---------------------------------------------------------------------------
+# .htaccess (Apache): en la aplicación de escritorio no se usa (php -S ignora
+# .htaccess). Estos ajustes solo aplican al despliegue web/hosting.
+# ---------------------------------------------------------------------------
 
-# Forzar recarga de PHP
-<IfModule mod_php.c>
-    php_value opcache.enable 0
-    php_value opcache.revalidate_freq 0
-</IfModule>
-
-# Permitir CORS y deshabilitar caché
 <IfModule mod_headers.c>
     Header set Access-Control-Allow-Origin "*"
     Header set Access-Control-Allow-Methods "GET,POST,OPTIONS,DELETE,PUT"
     Header set Access-Control-Allow-Headers "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
+</IfModule>
+
+# Assets estáticos: caché larga en el navegador. Al versionar con ?v= no hay
+# problema de invalidación entre despliegues.
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|ico)$">
+        Header set Cache-Control "public, max-age=604800, immutable"
+        Header unset Pragma
+        Header unset Expires
+    </FilesMatch>
+</IfModule>
+
+# Compresión GZIP para respuestas de texto (HTML, CSS, JS, JSON).
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+# PHP dinámico: sin caché (evita servir vistas viejas tras cambios).
+<IfModule mod_headers.c>
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </FilesMatch>
 </IfModule>
 
 <IfModule mod_rewrite.c>

@@ -57,7 +57,7 @@ class Usuario {
         $rol = strtr($rol, [
             'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u'
         ]);
-        return $rol === 'super administrador';
+        return str_replace(' ', '', $rol) === 'superadministrador';
     }
 
     private function esSqlite(): bool {
@@ -926,7 +926,7 @@ class Usuario {
         }
     }
 
-    public function obtenerUsuarios() {
+    public function obtenerUsuarios(?int $limite = null, int $offset = 0) {
         try {
             $usuarioSesionId = (int)($_SESSION['usuario_id'] ?? 0);
             if ($usuarioSesionId <= 0) {
@@ -951,6 +951,11 @@ class Usuario {
                      FROM " . $this->table . " u
                      LEFT JOIN empresas e ON e.id = u.{$colEmpresa}
                      ORDER BY u.id DESC";
+            if ($limite !== null) {
+                $limite = min(200, max(1, $limite));
+                $offset = max(0, $offset);
+                $query .= " LIMIT {$limite} OFFSET {$offset}";
+            }
             
             $stmt = $this->conn->prepare($query);
             $stmt->execute();
@@ -966,6 +971,15 @@ class Usuario {
         } catch(PDOException $e) {
             error_log("Error en obtenerUsuarios: " . $e->getMessage());
             return [];
+        }
+    }
+
+    public function contarUsuarios(): int {
+        try {
+            return (int)$this->conn->query('SELECT COUNT(*) FROM usuarios')->fetchColumn();
+        } catch (Throwable $e) {
+            error_log('Error en contarUsuarios: ' . $e->getMessage());
+            return 0;
         }
     }
 

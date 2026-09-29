@@ -5,7 +5,7 @@ require_once __DIR__ . '/Vencimiento.php';
 
 class Inventario {
     private $db;
-    private $columnasCache = [];
+    private static $columnasCache = [];
     private $presentacionesModelo = null;
     private $vencimientosModelo = null;
 
@@ -66,6 +66,47 @@ class Inventario {
 
     private function dbNow(): string {
         return $this->esSqlite() ? "datetime('now', 'localtime')" : 'NOW()';
+    }
+
+    private function obtenerAbonosDiaPorMetodo(string $metodo): float {
+        try {
+            $empresaId = (int)($_SESSION['empresa_id'] ?? $_SESSION['userData']['empresa_id'] ?? 0);
+            $hoy = (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d');
+            $metodoNorm = strtolower(trim($metodo));
+            // Se suman TODOS los abonos del día sin filtrar por estado del crédito.
+            // Los abonos parciales (crédito pendiente) y el pago final (crédito pagado)
+            // son registros distintos: los parciales van a abonos_creditos, el pago
+            // final va a salidas_inventario con es_credito=1. No hay doble conteo.
+            $sql = "SELECT COALESCE(SUM(ab.monto), 0) AS total
+                    FROM abonos_creditos ab
+                    INNER JOIN creditos c ON c.id = ab.credito_id
+                    WHERE DATE(ab.fecha_abono) = :hoy
+                    AND LOWER(TRIM(COALESCE(ab.metodo_pago, 'efectivo'))) = :metodo
+                    AND (:empresa_id = 0 OR c.empresa_id = :empresa_id)";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':hoy' => $hoy, ':metodo' => $metodoNorm, ':empresa_id' => $empresaId > 0 ? $empresaId : 0]);
+            return floatval($stmt->fetchColumn() ?: 0);
+        } catch (Throwable $e) {
+            return 0.0;
+        }
+    }
+
+    private function obtenerAbonosMesPorMetodo(string $metodo, string $inicio, string $fin): float {
+        try {
+            $empresaId = (int)($_SESSION['empresa_id'] ?? $_SESSION['userData']['empresa_id'] ?? 0);
+            $metodoNorm = strtolower(trim($metodo));
+            $sql = "SELECT COALESCE(SUM(ab.monto), 0) AS total
+                    FROM abonos_creditos ab
+                    INNER JOIN creditos c ON c.id = ab.credito_id
+                    WHERE DATE(ab.fecha_abono) BETWEEN :inicio AND :fin
+                    AND LOWER(TRIM(COALESCE(ab.metodo_pago, 'efectivo'))) = :metodo
+                    AND (:empresa_id = 0 OR c.empresa_id = :empresa_id)";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([':inicio' => $inicio, ':fin' => $fin, ':metodo' => $metodoNorm, ':empresa_id' => $empresaId > 0 ? $empresaId : 0]);
+            return floatval($stmt->fetchColumn() ?: 0);
+        } catch (Throwable $e) {
+            return 0.0;
+        }
     }
 
     private function normalizarTipoSalidaInventario(?string $tipo): string {
@@ -231,7 +272,7 @@ class Inventario {
             }
             $tipo = $this->esSqlite() ? 'INTEGER NOT NULL DEFAULT 0' : 'TINYINT(1) NOT NULL DEFAULT 0';
             $this->db->exec("ALTER TABLE salidas_inventario ADD COLUMN es_credito {$tipo}");
-            $this->columnasCache['salidas_inventario.es_credito'] = true;
+            self::$columnasCache['salidas_inventario.es_credito'] = true;
             // Compatibilidad: los pagos de crédito anteriores quedaron marcados en las notas.
             if ($this->columnaExiste('salidas_inventario', 'notas')) {
                 $this->db->exec("UPDATE salidas_inventario SET es_credito = 1 WHERE LOWER(TRIM(COALESCE(notas, ''))) = 'crédito pagado'");
@@ -428,8 +469,8 @@ class Inventario {
 
     private function columnaExiste(string $tabla, string $columna): bool {
         $key = $tabla . '.' . $columna;
-        if (array_key_exists($key, $this->columnasCache)) {
-            return $this->columnasCache[$key];
+        if (array_key_exists($key, self::$columnasCache)) {
+            return self::$columnasCache[$key];
         }
 
         try {
@@ -440,11 +481,11 @@ class Inventario {
                 $columnas = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 foreach ($columnas as $col) {
                     if (strcasecmp($col['name'] ?? '', $columna) === 0) {
-                        $this->columnasCache[$key] = true;
+                        self::$columnasCache[$key] = true;
                         return true;
                     }
                 }
-                $this->columnasCache[$key] = false;
+                self::$columnasCache[$key] = false;
                 return false;
             }
 
@@ -453,11 +494,11 @@ class Inventario {
             $stmt->bindValue(':columna', $columna, PDO::PARAM_STR);
             $stmt->execute();
             $existe = ((int)$stmt->fetchColumn()) > 0;
-            $this->columnasCache[$key] = $existe;
+            self::$columnasCache[$key] = $existe;
             return $existe;
         } catch (Exception $e) {
             error_log("Error en columnaExiste Inventario ({$tabla}.{$columna}): " . $e->getMessage());
-            $this->columnasCache[$key] = false;
+            self::$columnasCache[$key] = false;
             return false;
         }
     }
@@ -472,7 +513,7 @@ class Inventario {
                 ? "ALTER TABLE salidas_inventario ADD COLUMN metodo_pago TEXT NOT NULL DEFAULT 'efectivo'"
                 : "ALTER TABLE salidas_inventario ADD COLUMN metodo_pago VARCHAR(30) NOT NULL DEFAULT 'efectivo'";
             $this->db->exec($sql);
-            $this->columnasCache['salidas_inventario.metodo_pago'] = true;
+            self::$columnasCache['salidas_inventario.metodo_pago'] = true;
         } catch (Exception $e) {
             error_log('No se pudo agregar metodo_pago a salidas_inventario: ' . $e->getMessage());
         }
@@ -488,9 +529,27 @@ class Inventario {
                 ? "ALTER TABLE salidas_inventario ADD COLUMN notas TEXT"
                 : "ALTER TABLE salidas_inventario ADD COLUMN notas TEXT NULL";
             $this->db->exec($sql);
-            $this->columnasCache['salidas_inventario.notas'] = true;
+            self::$columnasCache['salidas_inventario.notas'] = true;
         } catch (Exception $e) {
             error_log('No se pudo agregar notas a salidas_inventario: ' . $e->getMessage());
+        }
+    }
+
+    private function asegurarColumnaPrecioCompraProductos(): void {
+        if ($this->columnaExiste('productos', 'precio_compra')) {
+            return;
+        }
+
+        try {
+            // Agregar columna precio_compra a productos
+            $this->db->exec("ALTER TABLE productos ADD COLUMN precio_compra DECIMAL(10,2) DEFAULT 0.00");
+            self::$columnasCache['productos.precio_compra'] = true;
+            error_log('✅ Columna precio_compra creada en productos');
+            
+            // NO migrar datos aquí para evitar timeout - se migrará gradualmente en registrarEntrada
+            
+        } catch (Exception $e) {
+            error_log('❌ Error agregando precio_compra a productos: ' . $e->getMessage());
         }
     }
 
@@ -519,41 +578,38 @@ class Inventario {
         return $filtro;
     }
 
+    private function exprPrecioVentaRedondeado(string $expr): string {
+        $tipoEntero = $this->esSqlite() ? 'INTEGER' : 'SIGNED';
+        $base = "CAST(({$expr}) / 100 AS {$tipoEntero}) * 100";
+        $resto = "({$expr}) - ({$base})";
+        return "CASE
+            WHEN ({$expr}) <= 0 THEN 0
+            WHEN {$resto} <= 40 THEN {$base}
+            ELSE ({$base} + 100)
+        END";
+    }
+
     private function exprTotalVenta(string $aliasSalida = 'si', string $aliasProducto = 'p'): string {
-        if ($this->columnaExiste('salidas_inventario', 'total_venta')) {
-            return "COALESCE({$aliasSalida}.total_venta, {$aliasSalida}.cantidad * {$aliasProducto}.precio)";
-        }
-        return "({$aliasSalida}.cantidad * {$aliasProducto}.precio)";
+        $precioVenta = $this->columnaExiste('salidas_inventario', 'precio_venta_unitario')
+            ? "COALESCE({$aliasSalida}.precio_venta_unitario, {$aliasProducto}.precio)"
+            : "{$aliasProducto}.precio";
+        return "({$aliasSalida}.cantidad * " . $this->exprPrecioVentaRedondeado($precioVenta) . ")";
     }
 
     private function exprGananciaUnitaria(string $aliasSalida = 'si', string $aliasProducto = 'p'): string {
         $costoFallback = "COALESCE((SELECT precio_compra FROM entradas_inventario WHERE producto_id = {$aliasSalida}.producto_id ORDER BY fecha_entrada DESC LIMIT 1), 0)";
-        $precioVentaExpr = $this->columnaExiste('salidas_inventario', 'precio_venta_unitario')
+        $precioVentaExprBase = $this->columnaExiste('salidas_inventario', 'precio_venta_unitario')
             ? "COALESCE({$aliasSalida}.precio_venta_unitario, {$aliasProducto}.precio)"
             : "{$aliasProducto}.precio";
+        $precioVentaExpr = $this->exprPrecioVentaRedondeado($precioVentaExprBase);
         $costoExpr = $this->columnaExiste('salidas_inventario', 'costo_unitario')
             ? "COALESCE({$aliasSalida}.costo_unitario, {$costoFallback})"
             : $costoFallback;
 
-        if ($this->columnaExiste('salidas_inventario', 'total_ganancia')) {
-            return "CASE WHEN COALESCE({$aliasSalida}.total_ganancia, 0) <> 0 AND COALESCE({$aliasSalida}.cantidad, 0) > 0 THEN {$aliasSalida}.total_ganancia / {$aliasSalida}.cantidad ELSE ({$precioVentaExpr} - {$costoExpr}) END";
-        }
-
-        if ($this->columnaExiste('salidas_inventario', 'ganancia_unitaria')) {
-            return "COALESCE({$aliasSalida}.ganancia_unitaria, ({$precioVentaExpr} - {$costoExpr}))";
-        }
-
-        if ($this->columnaExiste('salidas_inventario', 'precio_venta_unitario') || $this->columnaExiste('salidas_inventario', 'costo_unitario')) {
-            return "({$precioVentaExpr} - {$costoExpr})";
-        }
-
-        return "({$aliasProducto}.precio - {$costoFallback})";
+        return "({$precioVentaExpr} - {$costoExpr})";
     }
 
     private function exprTotalGanancia(string $aliasSalida = 'si', string $aliasProducto = 'p'): string {
-        if ($this->columnaExiste('salidas_inventario', 'total_ganancia')) {
-            return "COALESCE({$aliasSalida}.total_ganancia, {$aliasSalida}.cantidad * " . $this->exprGananciaUnitaria($aliasSalida, $aliasProducto) . ")";
-        }
         return "({$aliasSalida}.cantidad * " . $this->exprGananciaUnitaria($aliasSalida, $aliasProducto) . ")";
     }
 
@@ -680,9 +736,11 @@ class Inventario {
                 ? array_values(array_unique($tablas))
                 : ['entradas_inventario', 'salidas_inventario', 'movimientos_inventario'];
 
+            // Solo reiniciar productos si se solicita explícitamente
             $reiniciarProductos = in_array('productos', $tablasAReiniciar, true);
-            $reiniciarEntradas = in_array('entradas_inventario', $tablasAReiniciar, true);
-            if ($reiniciarProductos || $reiniciarEntradas) {
+            
+            // Si se va a reiniciar productos, guardar backup del stock
+            if ($reiniciarProductos) {
                 $this->guardarBackupStockProductos();
                 $this->db->exec('UPDATE productos SET stock = 0');
             }
@@ -691,15 +749,31 @@ class Inventario {
                 $tablaSegura = $this->limpiarNombreTabla((string)$tabla);
 
                 if ($tablaSegura === 'productos') {
-                    $this->guardarBackupStockProductos();
-                    $this->db->exec('UPDATE productos SET stock = 0');
+                    // Ya se manejó arriba
                     continue;
                 }
 
+                // Guardar backup y borrar solo el historial de la tabla
                 $this->guardarBackupTabla($tablaSegura);
                 $this->db->exec("DELETE FROM {$tablaSegura}");
                 if ($this->esSqlite()) {
                     $this->db->exec("DELETE FROM sqlite_sequence WHERE name = '{$tablaSegura}'");
+                }
+
+                // Si se reinicia salidas_inventario, también limpiar abonos de créditos ya pagados
+                // y restaurar esos créditos a estado pendiente para que el dinero no quede perdido
+                if ($tablaSegura === 'salidas_inventario') {
+                    try {
+                        // Los créditos pagados vuelven a pendiente con su saldo original
+                        $this->db->exec("UPDATE creditos SET estado = 'pendiente', saldo = total, fecha_pago = NULL, referencia = '' WHERE estado = 'pagado'");
+                        // Limpiar abonos (ya no tienen salida que los respalde)
+                        $this->db->exec("DELETE FROM abonos_creditos");
+                        if ($this->esSqlite()) {
+                            $this->db->exec("DELETE FROM sqlite_sequence WHERE name = 'abonos_creditos'");
+                        }
+                    } catch (\Throwable $e) {
+                        error_log('No se pudieron reiniciar abonos al reiniciar salidas: ' . $e->getMessage());
+                    }
                 }
             }
 
@@ -771,13 +845,7 @@ class Inventario {
                 $stmt->execute($params);
             }
 
-            if ($tablaSegura === 'entradas_inventario') {
-                $backupStock = $this->obtenerUltimoBackupTabla('productos');
-                if ($backupStock) {
-                    $this->restaurarStockProductosDesdeBackup($backupStock);
-                    $this->eliminarBackupTablaPorId((int)$backupStock['id']);
-                }
-            }
+            // NO restaurar stock de productos al deshacer entradas - los productos se mantienen intactos
 
             $this->eliminarBackupTablaPorId((int)$backup['id']);
             $this->db->commit();
@@ -800,6 +868,7 @@ class Inventario {
         $this->db = $db;
         $this->asegurarColumnaMetodoPago();
         $this->asegurarColumnaNotasSalida();
+        $this->asegurarColumnaPrecioCompraProductos();
     }
     
     // Obtener conexión a la base de datos
@@ -983,6 +1052,104 @@ class Inventario {
             return [];
         }
     }
+
+    public function obtenerMovimientosPaginado(array $filtros = []): array {
+        try {
+            $limite = min(200, max(1, (int)($filtros['limit'] ?? 50)));
+            $offset = max(0, (int)($filtros['offset'] ?? 0));
+            $sql = "SELECT m.*, p.nombre AS producto_nombre, p.codigo AS codigo,
+                    p.imagen AS producto_imagen, u.nombre AS usuario_nombre,
+                    u.apellidos AS usuario_apellidos
+                    FROM movimientos_inventario m
+                    INNER JOIN productos p ON p.id = m.producto_id
+                    LEFT JOIN usuarios u ON u.id = m.usuario_id
+                    WHERE 1=1";
+            $params = [];
+            $empresaId = $this->getEmpresaId();
+            if ($empresaId > 0 && $this->tablaTieneEmpresaId('movimientos_inventario')) {
+                $sql .= ' AND m.empresa_id = :empresa_id';
+                $params[':empresa_id'] = $empresaId;
+            }
+            if (!empty($filtros['producto_id'])) {
+                $sql .= ' AND m.producto_id = :producto_id';
+                $params[':producto_id'] = (int)$filtros['producto_id'];
+            }
+            if (!empty($filtros['tipo'])) {
+                $sql .= ' AND m.tipo_movimiento = :tipo';
+                $params[':tipo'] = (string)$filtros['tipo'];
+            }
+            $sql .= " ORDER BY m.fecha_movimiento DESC, m.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
+        } catch (Throwable $e) {
+            error_log('Error en obtenerMovimientosPaginado: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function obtenerEntradasPaginado(array $filtros = []): array {
+        try {
+            $limite = min(200, max(1, (int)($filtros['limit'] ?? 50)));
+            $offset = max(0, (int)($filtros['offset'] ?? 0));
+            $sql = "SELECT e.*, p.nombre AS producto_nombre, p.codigo AS codigo,
+                    p.imagen AS producto_imagen, pv.nombre AS proveedor_nombre,
+                    u.nombre AS usuario_nombre, u.apellidos AS usuario_apellidos
+                    FROM entradas_inventario e
+                    INNER JOIN productos p ON p.id = e.producto_id
+                    LEFT JOIN proveedores pv ON pv.id = e.proveedor_id
+                    LEFT JOIN usuarios u ON u.id = e.usuario_id
+                    WHERE 1=1";
+            $params = [];
+            $empresaId = $this->getEmpresaId();
+            if ($empresaId > 0 && $this->tablaTieneEmpresaId('entradas_inventario')) {
+                $sql .= ' AND e.empresa_id = :empresa_id';
+                $params[':empresa_id'] = $empresaId;
+            }
+            if (!empty($filtros['producto_id'])) {
+                $sql .= ' AND e.producto_id = :producto_id';
+                $params[':producto_id'] = (int)$filtros['producto_id'];
+            }
+            $sql .= " ORDER BY e.fecha_entrada DESC, e.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
+        } catch (Throwable $e) {
+            error_log('Error en obtenerEntradasPaginado: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function obtenerSalidasPaginado(array $filtros = []): array {
+        try {
+            $limite = min(200, max(1, (int)($filtros['limit'] ?? 50)));
+            $offset = max(0, (int)($filtros['offset'] ?? 0));
+            $sql = "SELECT s.*, p.nombre AS producto_nombre, p.codigo AS codigo,
+                    p.imagen AS producto_imagen, u.nombre AS usuario_nombre,
+                    u.apellidos AS usuario_apellidos
+                    FROM salidas_inventario s
+                    INNER JOIN productos p ON p.id = s.producto_id
+                    LEFT JOIN usuarios u ON u.id = s.usuario_id
+                    WHERE 1=1";
+            $params = [];
+            $empresaId = $this->getEmpresaId();
+            if ($empresaId > 0 && $this->tablaTieneEmpresaId('salidas_inventario')) {
+                $sql .= ' AND s.empresa_id = :empresa_id';
+                $params[':empresa_id'] = $empresaId;
+            }
+            if (!empty($filtros['producto_id'])) {
+                $sql .= ' AND s.producto_id = :producto_id';
+                $params[':producto_id'] = (int)$filtros['producto_id'];
+            }
+            $sql .= " ORDER BY s.fecha_salida DESC, s.id DESC LIMIT {$limite} OFFSET {$offset}";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_OBJ) ?: [];
+        } catch (Throwable $e) {
+            error_log('Error en obtenerSalidasPaginado: ' . $e->getMessage());
+            return [];
+        }
+    }
     
     // Obtener entradas de inventario
     public function obtenerEntradas($filtro = []) {
@@ -1029,7 +1196,7 @@ class Inventario {
                 $params[':fecha_fin'] = $filtro['fecha_fin'];
             }
             
-            $sql .= " ORDER BY e.fecha_entrada DESC";
+            $sql .= " ORDER BY e.fecha_entrada DESC, e.id DESC";
             
             $query = $this->db->prepare($sql);
             $query->execute($params);
@@ -1061,23 +1228,6 @@ class Inventario {
             $salidasTieneEmpresa = $this->tablaTieneEmpresaId('salidas_inventario');
             $salidasTieneUsuario = $this->tablaTieneUsuarioId('salidas_inventario');
             $salidasTieneNotas = $this->columnaExiste('salidas_inventario', 'notas');
-            // corregir registros existentes con tipo_salida vacío para que se traten como venta
-            if ($salidasTieneEmpresa) {
-                if ($empresaId <= 0) {
-                    error_log('obtenerSalidas: No se pudo resolver empresa_id, intentando fallback sin filtro de empresa');
-                }
-                $sqlUpdateTipo = "UPDATE salidas_inventario SET tipo_salida='venta' WHERE (tipo_salida = '' OR tipo_salida IS NULL) AND empresa_id = " . intval($empresaId);
-                if ($filtrarPorUsuario && $salidasTieneUsuario && $usuarioId > 0) {
-                    $sqlUpdateTipo .= " AND usuario_id = " . intval($usuarioId);
-                }
-                $this->db->exec($sqlUpdateTipo);
-            } else {
-                if ($filtrarPorUsuario && $salidasTieneUsuario && $usuarioId > 0) {
-                    $this->db->exec("UPDATE salidas_inventario SET tipo_salida='venta' WHERE (tipo_salida = '' OR tipo_salida IS NULL) AND usuario_id = " . intval($usuarioId));
-                } else {
-                    $this->db->exec("UPDATE salidas_inventario SET tipo_salida='venta' WHERE (tipo_salida = '' OR tipo_salida IS NULL)");
-                }
-            }
 
             $sql = "SELECT 
                     CASE WHEN TRIM(COALESCE(s.tipo_salida, '')) <> '' THEN
@@ -1167,7 +1317,11 @@ class Inventario {
             $stmtCategoriaEntrada = $this->db->prepare("SELECT p.venta_por_kilo, c.nombre FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id WHERE p.id = :id LIMIT 1");
             $stmtCategoriaEntrada->execute([':id' => (int)($datos['producto_id'] ?? 0)]);
             $datosCategoriaEntrada = $stmtCategoriaEntrada->fetch(PDO::FETCH_ASSOC) ?: [];
-            $admiteGramosEntrada = (int)($datosCategoriaEntrada['venta_por_kilo'] ?? 0) === 1;
+            $admitePorVentaPorKilo = (int)($datosCategoriaEntrada['venta_por_kilo'] ?? 0) === 1;
+            $categoriaEntrada = mb_strtolower(trim((string)($datosCategoriaEntrada['nombre'] ?? '')), 'UTF-8');
+            $categoriaEntrada = strtr($categoriaEntrada, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
+            $admitePorCategoria = in_array($categoriaEntrada, ['frutas', 'verduras', 'carnicos y refrigerados'], true);
+            $admiteGramosEntrada = $admitePorVentaPorKilo || $admitePorCategoria;
             if (!$admiteGramosEntrada) {
                 $cantidadPresentacion = floor($cantidadPresentacion);
             }
@@ -1195,8 +1349,7 @@ class Inventario {
             $precio_compra = $precio_compra_presentacion / $factorEntrada;
             $porcentaje_ganancia = floatval($datos['porcentaje_ganancia'] ?? 0);
             $precio_calculado = $precio_compra + ($precio_compra * ($porcentaje_ganancia / 100));
-            $base_redondeo = floor($precio_calculado / 50) * 50;
-            $precio_venta = $base_redondeo + (fmod($precio_calculado, 50) > 25 ? 50 : 0);
+            $precio_venta = $precio_calculado;
             
             // Verificar si la columna 'notas' existe en la tabla
             $tiene_notas = $this->columnaExiste('entradas_inventario', 'notas');
@@ -1282,12 +1435,18 @@ class Inventario {
             
             // Actualizar stock, precio y porcentaje de ganancia del producto
             $sqlUpdate = "UPDATE productos SET stock = :stock, precio = :precio";
-            $queryUpdate = $this->db->prepare($sqlUpdate);
             $paramsUpdate = [
                 ':stock' => $stock_nuevo,
                 ':precio' => $precio_venta,
                 ':id' => $datos['producto_id']
             ];
+            
+            // Actualizar precio_compra si la columna existe
+            if ($this->columnaExiste('productos', 'precio_compra')) {
+                $sqlUpdate .= ", precio_compra = :precio_compra";
+                $paramsUpdate[':precio_compra'] = $precio_compra;
+            }
+            
             if ($tienePorcentajeGanancia) {
                 $sqlUpdate .= ", porcentaje_ganancia = :porcentaje_ganancia";
                 $paramsUpdate[':porcentaje_ganancia'] = $porcentaje_ganancia;
@@ -1340,6 +1499,7 @@ class Inventario {
     // Registrar salida de inventario
     public function registrarSalida($datos) {
         $bloqueoReferenciaDanado = '';
+        $inicioTransaccion = false;
         try {
             $empresaId = $this->getEmpresaId();
             $tipoSalida = $this->normalizarTipoSalidaInventario((string)($datos['tipo_salida'] ?? 'venta'));
@@ -1356,9 +1516,11 @@ class Inventario {
                 $precioPresentacion = isset($datos['precio_venta']) && (float)$datos['precio_venta'] > 0
                     ? (float)$datos['precio_venta']
                     : $precioVentaPresentacion;
-                $precioVentaPresentacion = $precioPresentacion;
-                if ($precioPresentacion > 0) {
-                    $datos['precio_venta'] = $precioPresentacion / $factorSalida;
+                $precioVentaPresentacion = function_exists('redondearPrecioVenta')
+                    ? redondearPrecioVenta($precioPresentacion)
+                    : $precioPresentacion;
+                if ($precioVentaPresentacion > 0) {
+                    $datos['precio_venta'] = $precioVentaPresentacion / $factorSalida;
                 }
             }
 
@@ -1370,10 +1532,13 @@ class Inventario {
             $entradasTieneUsuario = $this->tablaTieneUsuarioId('entradas_inventario');
             $movimientosTieneEmpresa = $this->tablaTieneEmpresaId('movimientos_inventario');
             // Iniciar transacción con bloqueo inmediato para multi-caja (SQLite)
-            if ($this->esSqlite()) {
-                $this->db->exec('BEGIN IMMEDIATE');
-            } else {
-                $this->db->beginTransaction();
+            $inicioTransaccion = !$this->db->inTransaction();
+            if ($inicioTransaccion) {
+                if ($this->esSqlite()) {
+                    $this->db->exec('BEGIN IMMEDIATE');
+                } else {
+                    $this->db->beginTransaction();
+                }
             }
 
             // Referencia secuencial DA-01, DA-02... para los productos dañados.
@@ -1416,12 +1581,29 @@ class Inventario {
 
             // Snapshot de venta para no recalcular historicos con precios/porcentajes actuales.
             // Si el frontend pasa precio_venta (e.g. precio con descuento aplicado), usarlo; sino usar precio del producto.
+            $totalVentaOverride = isset($datos['total_venta_override']) && is_numeric($datos['total_venta_override'])
+                ? max(0, round((float)$datos['total_venta_override'], 2))
+                : null;
+            $esCredito = !empty($datos['es_credito']);
             $precioVentaPasado = isset($datos['precio_venta']) && $datos['precio_venta'] > 0 ? floatval($datos['precio_venta']) : null;
-            $precioVentaUnitario = $precioVentaPasado ?? floatval($producto['precio'] ?? 0);
+            // Para créditos respetamos el precio que viene (incluso 0 para productos secundarios).
+            // Para ventas normales usamos max() para no bajar del precio de catálogo.
+            if ($esCredito) {
+                $precioVentaUnitario = isset($datos['precio_venta']) ? max(0, floatval($datos['precio_venta'])) : floatval($producto['precio'] ?? 0);
+            } else {
+                $precioVentaUnitario = $precioVentaPasado ?? floatval($producto['precio'] ?? 0);
+            }
             if (!$presentacionSalida) {
-                $precioVentaUnitario = max($precioVentaUnitario, floatval($producto['precio'] ?? 0));
+                if (!$esCredito) {
+                    $precioVentaUnitario = max($precioVentaUnitario, floatval($producto['precio'] ?? 0));
+                }
             } elseif ($precioVentaUnitario <= 0) {
                 $precioVentaUnitario = $precioVentaPresentacion / $factorSalida;
+            }
+            if ($totalVentaOverride !== null && !$presentacionSalida && (float)$datos['cantidad'] > 0) {
+                $precioVentaUnitario = $totalVentaOverride / (float)$datos['cantidad'];
+            } elseif (function_exists('redondearPrecioVenta')) {
+                $precioVentaUnitario = redondearPrecioVenta($precioVentaUnitario);
             }
             $sqlCosto = "SELECT precio_compra FROM entradas_inventario WHERE producto_id = :producto_id";
             $paramsCosto = [':producto_id' => $datos['producto_id']];
@@ -1443,16 +1625,26 @@ class Inventario {
             $gananciaUnitaria = $precioVentaUnitario - $costoUnitario;
             $porcentajeGanancia = $costoUnitario > 0 ? (($gananciaUnitaria / $costoUnitario) * 100) : 0;
             $esVenta = $tipoSalida === 'venta';
-            $totalVenta = $esVenta
+            $totalVenta = $totalVentaOverride !== null
+                ? $totalVentaOverride
+                : ($esVenta
                 ? ($presentacionSalida
                     ? $precioVentaPresentacion * $cantidadPresentacionSalida
                     : $precioVentaUnitario * floatval($datos['cantidad']))
-                : 0.0;
+                : 0.0);
+            if ($totalVentaOverride === null && $esVenta && function_exists('redondearPrecioVenta')) {
+                $totalVenta = redondearPrecioVenta($totalVenta);
+            }
             $totalGanancia = $esVenta
-                ? ($presentacionSalida
-                    ? ($precioVentaPresentacion - $costoPresentacion) * $cantidadPresentacionSalida
-                    : $gananciaUnitaria * floatval($datos['cantidad']))
+                ? ($totalVenta - ($presentacionSalida
+                    ? $costoPresentacion * $cantidadPresentacionSalida
+                    : $costoUnitario * floatval($datos['cantidad'])))
                 : 0.0;
+            if ($totalVentaOverride !== null) {
+                $cantidadGanancia = $presentacionSalida ? $cantidadPresentacionSalida : (float)$datos['cantidad'];
+                $gananciaUnitaria = $cantidadGanancia > 0 ? $totalGanancia / $cantidadGanancia : 0;
+                $porcentajeGanancia = $costoUnitario > 0 ? (($gananciaUnitaria / $costoUnitario) * 100) : 0;
+            }
             
             // Verificar si la columna 'notas' existe en la tabla
             $tiene_notas = $this->columnaExiste('salidas_inventario', 'notas');
@@ -1588,10 +1780,12 @@ class Inventario {
             }
             
             // Finalizar transacción
-            if ($this->esSqlite()) {
-                $this->db->exec('COMMIT');
-            } else {
-                $this->db->commit();
+            if ($inicioTransaccion) {
+                if ($this->esSqlite()) {
+                    $this->db->exec('COMMIT');
+                } else {
+                    $this->db->commit();
+                }
             }
             if ($bloqueoReferenciaDanado !== '') {
                 $stmtLiberar = $this->db->prepare('SELECT RELEASE_LOCK(:clave)');
@@ -1601,10 +1795,12 @@ class Inventario {
             return ['success' => true, 'message' => 'Salida registrada correctamente', 'id' => $salida_id];
         } catch(Exception $e) {
             // Revertir transacción
-            if ($this->esSqlite()) {
-                try { $this->db->exec('ROLLBACK'); } catch (Exception $ex) {}
-            } else {
-                $this->db->rollBack();
+            if ($inicioTransaccion) {
+                if ($this->esSqlite()) {
+                    try { $this->db->exec('ROLLBACK'); } catch (Exception $ex) {}
+                } else {
+                    $this->db->rollBack();
+                }
             }
             if ($bloqueoReferenciaDanado !== '') {
                 try {
@@ -1670,6 +1866,10 @@ class Inventario {
     public function editarFacturaVenta(array $datos): array {
         try {
             $referencia = trim((string)($datos['referencia'] ?? ''));
+            $metodoPagoNuevo = strtolower(trim((string)($datos['metodo_pago'] ?? '')));
+            if (!in_array($metodoPagoNuevo, ['efectivo', 'transferencia'], true)) {
+                $metodoPagoNuevo = '';
+            }
             $itemsActualizarRaw = $datos['items_actualizar'] ?? $datos['items_eliminar'] ?? [];
             $itemsActualizar = [];
 
@@ -1750,6 +1950,15 @@ class Inventario {
                 }
 
                 $cantidadOriginal = floatval($fila['cantidad'] ?? 0);
+                $stmtTipoProducto = $this->db->prepare("SELECT COALESCE(p.venta_por_kilo, 0), COALESCE(c.nombre, '')
+                    FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id WHERE p.id = :producto_id LIMIT 1");
+                $stmtTipoProducto->execute([':producto_id' => (int)($fila['producto_id'] ?? 0)]);
+                $tipoProducto = $stmtTipoProducto->fetch(PDO::FETCH_NUM) ?: [0, ''];
+                $categoriaProducto = mb_strtolower(trim((string)($tipoProducto[1] ?? '')), 'UTF-8');
+                $categoriaProducto = strtr($categoriaProducto, ['á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ü'=>'u', 'ñ'=>'n']);
+                $esProductoPorKilo = (int)($tipoProducto[0] ?? 0) === 1
+                    || in_array($categoriaProducto, ['frutas', 'verduras', 'carnicos y refrigerados'], true);
+                $cantidadNueva = $esProductoPorKilo ? round($cantidadNueva, 3) : floor($cantidadNueva);
                 if ($cantidadNueva > $cantidadOriginal + 0.000001) {
                     throw new Exception('No puedes aumentar una cantidad de una venta ya registrada. Solo puedes reducirla o quitarla.');
                 }
@@ -1850,22 +2059,44 @@ class Inventario {
                 $itemsActualizados++;
             }
 
+            $metodoPagoActualizado = false;
+            if ($metodoPagoNuevo !== '' && $this->columnaExiste('salidas_inventario', 'metodo_pago')) {
+                $sqlMetodo = "UPDATE salidas_inventario SET metodo_pago = :metodo_pago WHERE referencia = :referencia";
+                $paramsMetodo = [
+                    ':metodo_pago' => $metodoPagoNuevo,
+                    ':referencia' => $referencia
+                ];
+                if ($salidasTieneEmpresa && $empresaId > 0) {
+                    $sqlMetodo .= " AND empresa_id = :empresa_id";
+                    $paramsMetodo[':empresa_id'] = $empresaId;
+                }
+                $stmtMetodo = $this->db->prepare($sqlMetodo);
+                $stmtMetodo->execute($paramsMetodo);
+                $metodoPagoActualizado = $stmtMetodo->rowCount() > 0;
+            }
+
             if ($this->esSqlite()) {
                 $this->db->exec('COMMIT');
             } else {
                 $this->db->commit();
             }
 
-            $mensaje = $itemsActualizados > 0
-                ? 'Factura actualizada correctamente. Se devolvieron ' . $unidadesDevueltas . ' unidad(es) al inventario.'
-                : 'No se encontraron cambios para aplicar';
+            $huboCambios = $itemsActualizados > 0 || $metodoPagoActualizado;
+            if ($itemsActualizados > 0) {
+                $mensaje = 'Factura actualizada correctamente. Se devolvieron ' . $unidadesDevueltas . ' unidad(es) al inventario.';
+            } elseif ($metodoPagoActualizado) {
+                $mensaje = 'Método de pago actualizado a ' . $metodoPagoNuevo . '.';
+            } else {
+                $mensaje = 'No se encontraron cambios para aplicar';
+            }
 
             return [
-                'success' => $itemsActualizados > 0,
+                'success' => $huboCambios,
                 'message' => $mensaje,
                 'items_actualizados' => $itemsActualizados,
                 'unidades_devueltas' => $unidadesDevueltas,
-                'productos_eliminados' => $productosAjustados
+                'productos_eliminados' => $productosAjustados,
+                'metodo_pago_actualizado' => $metodoPagoActualizado
             ];
         } catch (Exception $e) {
             if ($this->esSqlite()) {
@@ -2057,6 +2288,7 @@ class Inventario {
                 $sql = "SELECT 
                         p.id, 
                         p.codigo as codigo,
+                        p.codigo_barras as codigo_barras,
                         p.nombre, 
                         p.imagen,
                         p.color,
@@ -2079,6 +2311,7 @@ class Inventario {
                 $sql = "SELECT 
                         p.id, 
                         p.codigo as codigo,
+                        p.codigo_barras as codigo_barras,
                         p.nombre, 
                         p.imagen,
                         p.color,
@@ -2208,11 +2441,20 @@ class Inventario {
             $query->execute();
             $estadisticas['stock_total'] = $query->fetch(PDO::FETCH_OBJ)->total ?? 0;
             
-            // Valor total del inventario solo para productos con stock mayor a cero
-            $sql = "SELECT COALESCE(SUM(COALESCE(stock, 0) * COALESCE(precio, 0)), 0) as total FROM productos WHERE estado = 1 AND COALESCE(stock, 0) > 0" . $filtroProductos;
+            // Calcular el valor por producto para aplicar el redondeo de venta antes de sumar.
+            $sql = "SELECT COALESCE(stock, 0) AS stock, COALESCE(precio, 0) AS precio
+                    FROM productos
+                    WHERE estado = 1 AND COALESCE(stock, 0) > 0" . $filtroProductos;
             $query = $this->db->prepare($sql);
             $query->execute();
-            $estadisticas['valor_total'] = $query->fetch(PDO::FETCH_OBJ)->total ?? 0;
+            $valorTotal = 0.0;
+            while ($producto = $query->fetch(PDO::FETCH_OBJ)) {
+                $precioRedondeado = function_exists('redondearPrecioVenta')
+                    ? redondearPrecioVenta((float)($producto->precio ?? 0))
+                    : (float)($producto->precio ?? 0);
+                $valorTotal += (float)($producto->stock ?? 0) * $precioRedondeado;
+            }
+            $estadisticas['valor_total'] = $valorTotal;
 
             // Valor total de compra del inventario actual, sin tocar el valor del inventario
             $sql = "SELECT COALESCE(SUM(
@@ -2298,6 +2540,11 @@ class Inventario {
                 $stmtUltimoPrecioCompra->execute([':producto_id' => (int)($prod->id ?? 0)]);
                 $precioCompra = floatval($stmtUltimoPrecioCompra->fetchColumn() ?: 0);
                 $prod->precio_compra = $precioCompra;
+                $precioVentaRedondeado = function_exists('redondearPrecioVenta')
+                    ? redondearPrecioVenta((float)($prod->precio ?? 0))
+                    : (float)($prod->precio ?? 0);
+                $prod->precio_redondeado = $precioVentaRedondeado;
+                $prod->valor_total = $stock * $precioVentaRedondeado;
                 $prod->valor_compra_total = $stock * $precioCompra;
             }
             
@@ -2308,7 +2555,10 @@ class Inventario {
             foreach ($productos as $prod) {
                 $valor_total += floatval($prod->valor_total);
                 $valor_compra_total += floatval($prod->valor_compra_total ?? 0);
-                $valor_ganancia_total += (floatval($prod->precio ?? 0) - floatval($prod->precio_compra ?? 0)) * floatval($prod->stock ?? 0);
+                $precioVenta = function_exists('redondearPrecioVenta')
+                    ? redondearPrecioVenta((float)($prod->precio ?? 0))
+                    : (float)($prod->precio ?? 0);
+                $valor_ganancia_total += ($precioVenta - floatval($prod->precio_compra ?? 0)) * floatval($prod->stock ?? 0);
             }
             
             return [
@@ -2390,8 +2640,8 @@ class Inventario {
                     p.nombre,
                     p.stock,
                     p.precio,
-                    (SELECT AVG(precio_compra) FROM entradas_inventario WHERE producto_id = p.id AND estado = 1" . $filtroEntradasSub . ") as costo_promedio,
-                    (p.precio - (SELECT AVG(precio_compra) FROM entradas_inventario WHERE producto_id = p.id AND estado = 1" . $filtroEntradasSub . ")) as ganancia_unitaria
+                    COALESCE(p.precio_compra, (SELECT AVG(precio_compra) FROM entradas_inventario WHERE producto_id = p.id AND estado = 1" . $filtroEntradasSub . "), 0) as costo_promedio,
+                    (p.precio - COALESCE(p.precio_compra, (SELECT AVG(precio_compra) FROM entradas_inventario WHERE producto_id = p.id AND estado = 1" . $filtroEntradasSub . "), 0)) as ganancia_unitaria
                     FROM productos p
                     WHERE p.estado = 1" . $filtroProductos . " AND EXISTS (
                         SELECT 1 FROM entradas_inventario WHERE producto_id = p.id AND estado = 1" . $filtroEntradasSub . "
@@ -2403,8 +2653,12 @@ class Inventario {
             
             $ganancia_total = 0;
             foreach ($productos as $prod) {
-                if (!is_null($prod->ganancia_unitaria)) {
-                    $ganancia_total += (floatval($prod->ganancia_unitaria) * intval($prod->stock));
+                if (!is_null($prod->costo_promedio)) {
+                    $precioVentaRedondeado = function_exists('redondearPrecioVenta')
+                        ? redondearPrecioVenta((float)($prod->precio ?? 0))
+                        : (float)($prod->precio ?? 0);
+                    $gananciaUnitaria = $precioVentaRedondeado - (float)$prod->costo_promedio;
+                    $ganancia_total += $gananciaUnitaria * (float)($prod->stock ?? 0);
                 }
             }
             
@@ -2500,13 +2754,38 @@ class Inventario {
                 throw new Exception("No se pudieron obtener los totales de ventas");
             }
 
+            $empresaId = (int)$this->getEmpresaId();
+            $empIdLiteral = $empresaId > 0 ? $empresaId : 0;
+            $filtroAbonos = $empIdLiteral > 0
+                ? "AND c.empresa_id = {$empIdLiteral}"
+                : "";
+
             $sqlPagosDia = "SELECT
-                COALESCE(SUM(CASE WHEN LOWER(COALESCE(NULLIF(TRIM(si.metodo_pago), ''), 'efectivo')) = 'transferencia' THEN " . $exprTotalVenta . " ELSE 0 END), 0) AS total_transferencia,
-                COALESCE(SUM(CASE WHEN LOWER(COALESCE(NULLIF(TRIM(si.metodo_pago), ''), 'efectivo')) <> 'transferencia' THEN " . $exprTotalVenta . " ELSE 0 END), 0) AS total_efectivo
-                FROM salidas_inventario si
-                INNER JOIN productos p ON si.producto_id = p.id
-                WHERE DATE(si.fecha_salida) = " . $this->dbCurrentDate() . "
-                AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'" . $filtroSalidas . $filtroProductos;
+                COALESCE(SUM(CASE WHEN LOWER(COALESCE(NULLIF(TRIM(metodo_pago), ''), 'efectivo')) = 'transferencia' THEN monto ELSE 0 END), 0) AS total_transferencia,
+                COALESCE(SUM(CASE WHEN LOWER(COALESCE(NULLIF(TRIM(metodo_pago), ''), 'efectivo')) <> 'transferencia' THEN monto ELSE 0 END), 0) AS total_efectivo
+                FROM (
+                    SELECT " . $exprTotalVenta . " AS monto, si.metodo_pago
+                    FROM salidas_inventario si
+                    INNER JOIN productos p ON si.producto_id = p.id
+                    WHERE DATE(si.fecha_salida) = " . $this->dbCurrentDate() . "
+                    AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'
+                    AND (COALESCE(si.es_credito, 0) = 0)
+                    " . $filtroSalidas . $filtroProductos . "
+                    UNION ALL
+                    SELECT si.precio_venta_unitario * si.cantidad AS monto, si.metodo_pago
+                    FROM salidas_inventario si
+                    INNER JOIN productos p ON si.producto_id = p.id
+                    WHERE DATE(si.fecha_salida) = " . $this->dbCurrentDate() . "
+                    AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'
+                    AND COALESCE(si.es_credito, 0) = 1
+                    " . $filtroSalidas . $filtroProductos . "
+                    UNION ALL
+                    SELECT ab.monto, ab.metodo_pago
+                    FROM abonos_creditos ab
+                    INNER JOIN creditos c ON c.id = ab.credito_id
+                    WHERE DATE(ab.fecha_abono) = " . $this->dbCurrentDate() . "
+                    {$filtroAbonos}
+                ) AS pagos_combinados";
             $queryPagosDia = $this->db->prepare($sqlPagosDia);
             $queryPagosDia->execute();
             $pagosDia = $queryPagosDia->fetch(PDO::FETCH_OBJ);
@@ -2558,16 +2837,53 @@ class Inventario {
             }
             
             // Productos más vendidos del día
+            $tieneTotalVentaCol = $this->columnaExiste('salidas_inventario', 'total_venta');
+            $tieneEsCreditoCol  = $this->columnaExiste('salidas_inventario', 'es_credito');
+            $tieneDetalleCreditos = $this->columnaExiste('detalle_creditos', 'precio_unitario');
+
+            // Para créditos: precio y total desde detalle_creditos (precio original del producto).
+            // Para ventas normales: calcular con exprTotalVenta/Ganancia normales.
+            if ($tieneEsCreditoCol && $tieneDetalleCreditos) {
+                $exprPrecioCredito = "COALESCE(dc.precio_unitario, p.precio)";
+                $exprTotalVentaConCredito =
+                    "CASE WHEN COALESCE(si.es_credito,0)=1"
+                    . " THEN COALESCE(dc.precio_unitario, p.precio) * si.cantidad"
+                    . " ELSE " . $exprTotalVenta . " END";
+                $exprTotalGananciaConCredito =
+                    "CASE WHEN COALESCE(si.es_credito,0)=1"
+                    . " THEN (COALESCE(dc.precio_unitario, p.precio) - COALESCE(si.costo_unitario,0)) * si.cantidad"
+                    . " ELSE " . $exprTotalGanancia . " END";
+                $exprPrecioUnitarioDia =
+                    "CASE WHEN COALESCE(si.es_credito,0)=1"
+                    . " THEN AVG(COALESCE(dc.precio_unitario, p.precio))"
+                    . " ELSE " . $exprPrecioUnitario . " END";
+                $joinDetalle = "LEFT JOIN detalle_creditos dc"
+                    . " ON dc.credito_id = (SELECT c2.id FROM creditos c2"
+                    . "    WHERE c2.empresa_id = si.empresa_id"
+                    . "    AND c2.referencia = si.referencia LIMIT 1)"
+                    . " AND dc.producto_id = si.producto_id";
+            } else {
+                $exprTotalVentaConCredito    = $tieneTotalVentaCol && $tieneEsCreditoCol
+                    ? "CASE WHEN COALESCE(si.es_credito,0)=1 AND COALESCE(si.total_venta,0)>0 THEN si.total_venta ELSE " . $exprTotalVenta . " END"
+                    : $exprTotalVenta;
+                $exprTotalGananciaConCredito = $tieneTotalVentaCol && $tieneEsCreditoCol
+                    ? "CASE WHEN COALESCE(si.es_credito,0)=1 AND COALESCE(si.total_venta,0)>0 THEN COALESCE(si.total_ganancia,0) ELSE " . $exprTotalGanancia . " END"
+                    : $exprTotalGanancia;
+                $exprPrecioUnitarioDia = $exprPrecioUnitario;
+                $joinDetalle = "";
+            }
+
             $sql = "SELECT 
                 p.id, p.codigo, p.nombre, p.imagen, COALESCE(c.nombre,'') as categoria,
                 SUM(si.cantidad) as cantidad_vendida,
                 MAX(si.fecha_salida) as ultima_venta,
-                " . $exprPrecioUnitario . " as precio,
-                SUM(" . $exprTotalVenta . ") as total_vendido,
-                SUM(" . $exprTotalGanancia . ") as total_ganancia
+                " . $exprPrecioUnitarioDia . " as precio,
+                SUM(" . $exprTotalVentaConCredito . ") as total_vendido,
+                SUM(" . $exprTotalGananciaConCredito . ") as total_ganancia
                 FROM salidas_inventario si
                 INNER JOIN productos p ON si.producto_id = p.id
                 LEFT JOIN categorias c ON p.categoria_id = c.id
+                " . $joinDetalle . "
                 WHERE DATE(si.fecha_salida) = " . $this->dbCurrentDate() . " 
                 AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'
                 " . $filtroSalidas . $filtroProductos . "
@@ -2591,13 +2907,16 @@ class Inventario {
                 }
             }
             
+            $abonosDiaEfectivo = $this->obtenerAbonosDiaPorMetodo('efectivo');
+            $abonosDiaTransferencia = $this->obtenerAbonosDiaPorMetodo('transferencia');
+
             return [
                 'fecha' => $hoy,
                 'total_ventas' => intval($totales->total_ventas ?? 0),
                 'unidades_vendidas' => intval($totales->unidades_vendidas ?? 0),
-                'valor_total_ventas' => floatval($totales->valor_total_ventas ?? 0),
-                'ganancia_dia' => floatval($ganancia_dia),
-                'ganancia_total_dia' => floatval($totales->ganancia_total_ventas ?? 0),
+                'valor_total_ventas' => floatval($totales->valor_total_ventas ?? 0) + $abonosDiaEfectivo + $abonosDiaTransferencia,
+                'ganancia_dia' => floatval($ganancia_dia) + $abonosDiaEfectivo + $abonosDiaTransferencia,
+                'ganancia_total_dia' => floatval($totales->ganancia_total_ventas ?? 0) + $abonosDiaEfectivo + $abonosDiaTransferencia,
                 'ganancia_promedio_unidad_dia' => floatval($ganancia_promedio_unidad),
                 'total_efectivo' => floatval($pagosDia->total_efectivo ?? 0),
                 'total_transferencia' => floatval($pagosDia->total_transferencia ?? 0),
@@ -2655,15 +2974,43 @@ class Inventario {
                 throw new Exception("No se pudieron obtener los totales de ventas");
             }
             
+            $empresaIdMes = (int)$this->getEmpresaId();
+            $filtroAbonos = $empresaIdMes > 0
+                ? "AND c.empresa_id = {$empresaIdMes}"
+                : "";
+            // Usar literales seguros (valores del servidor, no input del usuario) para evitar
+            // parámetros PDO repetidos en múltiples ramas del UNION con EMULATE_PREPARES=false
+            $inicioLit = $this->db->quote($inicioMes);
+            $finLit    = $this->db->quote($finMes);
+
             $sqlPagosMes = "SELECT
-                COALESCE(SUM(CASE WHEN LOWER(COALESCE(NULLIF(TRIM(si.metodo_pago), ''), 'efectivo')) = 'transferencia' THEN " . $exprTotalVenta . " ELSE 0 END), 0) AS total_transferencia,
-                COALESCE(SUM(CASE WHEN LOWER(COALESCE(NULLIF(TRIM(si.metodo_pago), ''), 'efectivo')) <> 'transferencia' THEN " . $exprTotalVenta . " ELSE 0 END), 0) AS total_efectivo
-                FROM salidas_inventario si
-                INNER JOIN productos p ON si.producto_id = p.id
-                WHERE DATE(si.fecha_salida) >= :inicio AND DATE(si.fecha_salida) <= :fin
-                AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'" . $filtroSalidas . $filtroProductos;
+                COALESCE(SUM(CASE WHEN LOWER(COALESCE(NULLIF(TRIM(metodo_pago), ''), 'efectivo')) = 'transferencia' THEN monto ELSE 0 END), 0) AS total_transferencia,
+                COALESCE(SUM(CASE WHEN LOWER(COALESCE(NULLIF(TRIM(metodo_pago), ''), 'efectivo')) <> 'transferencia' THEN monto ELSE 0 END), 0) AS total_efectivo
+                FROM (
+                    SELECT " . $exprTotalVenta . " AS monto, si.metodo_pago
+                    FROM salidas_inventario si
+                    INNER JOIN productos p ON si.producto_id = p.id
+                    WHERE DATE(si.fecha_salida) >= {$inicioLit} AND DATE(si.fecha_salida) <= {$finLit}
+                    AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'
+                    AND (COALESCE(si.es_credito, 0) = 0)
+                    " . $filtroSalidas . $filtroProductos . "
+                    UNION ALL
+                    SELECT si.precio_venta_unitario * si.cantidad AS monto, si.metodo_pago
+                    FROM salidas_inventario si
+                    INNER JOIN productos p ON si.producto_id = p.id
+                    WHERE DATE(si.fecha_salida) >= {$inicioLit} AND DATE(si.fecha_salida) <= {$finLit}
+                    AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'
+                    AND COALESCE(si.es_credito, 0) = 1
+                    " . $filtroSalidas . $filtroProductos . "
+                    UNION ALL
+                    SELECT ab.monto, ab.metodo_pago
+                    FROM abonos_creditos ab
+                    INNER JOIN creditos c ON c.id = ab.credito_id
+                    WHERE DATE(ab.fecha_abono) >= {$inicioLit} AND DATE(ab.fecha_abono) <= {$finLit}
+                    {$filtroAbonos}
+                ) AS pagos_combinados";
             $queryPagosMes = $this->db->prepare($sqlPagosMes);
-            $queryPagosMes->execute([':inicio' => $inicioMes, ':fin' => $finMes]);
+            $queryPagosMes->execute();
             $pagosMes = $queryPagosMes->fetch(PDO::FETCH_OBJ);
 
             $unidadesMes = floatval($totales->unidades_vendidas ?? 0);
@@ -2714,16 +3061,43 @@ class Inventario {
             }
             
             // Productos más vendidos del mes
+            $tieneEsCreditoColMes   = $this->columnaExiste('salidas_inventario', 'es_credito');
+            $tieneDetallecreditosMes = $this->columnaExiste('detalle_creditos', 'precio_unitario');
+
+            if ($tieneEsCreditoColMes && $tieneDetallecreditosMes) {
+                $exprTotalVentaMes =
+                    "CASE WHEN COALESCE(si.es_credito,0)=1"
+                    . " THEN COALESCE(dc.precio_unitario, p.precio) * si.cantidad"
+                    . " ELSE " . $exprTotalVenta . " END";
+                $exprTotalGananciaMes =
+                    "CASE WHEN COALESCE(si.es_credito,0)=1"
+                    . " THEN (COALESCE(dc.precio_unitario, p.precio) - COALESCE(si.costo_unitario,0)) * si.cantidad"
+                    . " ELSE " . $exprTotalGanancia . " END";
+                $joinDetalleMes = "LEFT JOIN detalle_creditos dc"
+                    . " ON dc.credito_id = (SELECT c2.id FROM creditos c2"
+                    . "    WHERE c2.empresa_id = si.empresa_id"
+                    . "    AND c2.referencia = si.referencia LIMIT 1)"
+                    . " AND dc.producto_id = si.producto_id";
+            } else {
+                $exprTotalVentaMes    = $exprTotalVenta;
+                $exprTotalGananciaMes = $exprTotalGanancia;
+                $joinDetalleMes       = "";
+            }
+
             $sql = "SELECT 
                 p.id, p.codigo, p.nombre, p.imagen, COALESCE(c.nombre,'') as categoria,
                 SUM(si.cantidad) as cantidad_vendida,
                 MAX(si.fecha_salida) as ultima_venta,
-                p.precio,
-                SUM(" . $exprTotalVenta . ") as total_vendido,
-                SUM(" . $exprTotalGanancia . ") as total_ganancia
+                AVG(CASE WHEN COALESCE(si.es_credito,0)=1
+                         THEN COALESCE(dc.precio_unitario, p.precio)
+                         ELSE COALESCE(si.precio_venta_unitario, p.precio)
+                    END) as precio_unitario,
+                SUM(" . $exprTotalVentaMes . ") as total_vendido,
+                SUM(" . $exprTotalGananciaMes . ") as total_ganancia
                 FROM salidas_inventario si
                 INNER JOIN productos p ON si.producto_id = p.id
                 LEFT JOIN categorias c ON p.categoria_id = c.id
+                " . $joinDetalleMes . "
                 WHERE DATE(si.fecha_salida) >= :inicio 
                 AND DATE(si.fecha_salida) <= :fin 
                 AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'
@@ -2775,7 +3149,7 @@ class Inventario {
             $ventas_por_dia = $query->fetchAll(PDO::FETCH_OBJ) ?: [];
             
             // Detalle diario por producto
-            $sql = "SELECT 
+            $sqlDetalle = "SELECT 
                 DATE(si.fecha_salida) as fecha,
                 p.id as producto_id,
                 p.codigo,
@@ -2784,12 +3158,22 @@ class Inventario {
                 COALESCE(c.nombre,'') as categoria,
                 SUM(si.cantidad) as cantidad_vendida,
                 MAX(si.fecha_salida) as ultima_venta,
-                " . $exprPrecioUnitario . " as precio_unitario,
-                SUM(" . $exprTotalGanancia . ") as ganancia_total,
-                SUM(" . $exprTotalVenta . ") as total_vendido
+                AVG(CASE WHEN COALESCE(si.es_credito,0)=1
+                         THEN COALESCE(dc.precio_unitario, p.precio)
+                         ELSE COALESCE(si.precio_venta_unitario, p.precio)
+                    END) as precio_unitario,
+                SUM(CASE WHEN COALESCE(si.es_credito,0)=1
+                         THEN (COALESCE(dc.precio_unitario, p.precio) - COALESCE(si.costo_unitario,0)) * si.cantidad
+                         ELSE " . $exprTotalGanancia . "
+                    END) as ganancia_total,
+                SUM(CASE WHEN COALESCE(si.es_credito,0)=1
+                         THEN COALESCE(dc.precio_unitario, p.precio) * si.cantidad
+                         ELSE " . $exprTotalVenta . "
+                    END) as total_vendido
                 FROM salidas_inventario si
                 INNER JOIN productos p ON si.producto_id = p.id
                 LEFT JOIN categorias c ON p.categoria_id = c.id
+                " . $joinDetalleMes . "
                 WHERE DATE(si.fecha_salida) >= :inicio 
                 AND DATE(si.fecha_salida) <= :fin 
                 AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'
@@ -2797,7 +3181,7 @@ class Inventario {
                 GROUP BY DATE(si.fecha_salida), p.id, p.codigo, p.nombre, p.imagen, p.precio, c.nombre
                 ORDER BY fecha DESC, cantidad_vendida DESC, p.nombre ASC";
             
-            $query = $this->db->prepare($sql);
+            $query = $this->db->prepare($sqlDetalle);
             if (!$query->execute([':inicio' => $inicioMes, ':fin' => $finMes])) {
                 $error = $query->errorInfo();
                 throw new Exception("Error al consultar detalle diario del mes: " . ($error[2] ?? 'desconocido'));
@@ -2826,6 +3210,9 @@ class Inventario {
             $nombreMesEsp = $meses[$nombreMesEng] ?? $nombreMesEng;
             $mesTexto = $nombreMesEsp . ' ' . date('Y', strtotime($inicioMes));
 
+            $abonosMesEfectivo = $this->obtenerAbonosMesPorMetodo('efectivo', $inicioMes, $finMes);
+            $abonosMesTransferencia = $this->obtenerAbonosMesPorMetodo('transferencia', $inicioMes, $finMes);
+
             return [
                 'mes' => $mesTexto,
                 'inicio_mes' => $inicioMes,
@@ -2833,8 +3220,8 @@ class Inventario {
                 'total_ventas' => intval($totales->total_ventas ?? 0),
                 'unidades_vendidas' => intval($totales->unidades_vendidas ?? 0),
                 'valor_total_ventas' => floatval($totales->valor_total_ventas ?? 0),
-                'ganancia_mes' => floatval($totales->ganancia_total_ventas ?? 0),
-                'ganancia_total_mes' => floatval($totales->ganancia_total_ventas ?? 0),
+                'ganancia_mes' => floatval($totales->ganancia_total_ventas ?? 0) + $abonosMesEfectivo + $abonosMesTransferencia,
+                'ganancia_total_mes' => floatval($totales->ganancia_total_ventas ?? 0) + $abonosMesEfectivo + $abonosMesTransferencia,
                 'ganancia_promedio_unidad_mes' => floatval($ganancia_promedio_unidad_mes),
                 'total_efectivo' => floatval($pagosMes->total_efectivo ?? 0),
                 'total_transferencia' => floatval($pagosMes->total_transferencia ?? 0),
@@ -2916,17 +3303,26 @@ class Inventario {
             }
 
             if ($tablas_existen) {
-                $exprUltimoPrecioCompra = "COALESCE((SELECT precio_compra FROM entradas_inventario e2 WHERE e2.producto_id = p.id{$filtroEntradas} ORDER BY fecha_entrada DESC LIMIT 1), 0)";
+                // Primero intentar usar precio_compra de productos, si no existe calcular desde entradas
+                $tienePrecioCompraEnProductos = $this->columnaExiste('productos', 'precio_compra');
+                
+                $exprPrecioCompra = $tienePrecioCompraEnProductos
+                    ? "COALESCE(p.precio_compra, (SELECT precio_compra FROM entradas_inventario e2 WHERE e2.producto_id = p.id{$filtroEntradas} ORDER BY fecha_entrada DESC LIMIT 1), 0)"
+                    : "COALESCE((SELECT precio_compra FROM entradas_inventario e2 WHERE e2.producto_id = p.id{$filtroEntradas} ORDER BY fecha_entrada DESC LIMIT 1), 0)";
+                
+                $exprPrecioCompraPromedio = $tienePrecioCompraEnProductos
+                    ? "COALESCE(p.precio_compra, (SELECT SUM(precio_compra * cantidad) / NULLIF(SUM(cantidad), 0) FROM entradas_inventario WHERE producto_id = p.id{$filtroEntradas}), 0)"
+                    : "COALESCE((SELECT SUM(precio_compra * cantidad) / NULLIF(SUM(cantidad), 0) FROM entradas_inventario WHERE producto_id = p.id{$filtroEntradas}), 0)";
+                
                 $exprPorcentajeGanancia = $tienePorcentajeGanancia
-                    ? "CASE WHEN COALESCE(p.stock, 0) <= 0 THEN 0 ELSE CASE WHEN p.{$columnaGanancia} IS NOT NULL THEN COALESCE(p.{$columnaGanancia}, 0) ELSE CASE WHEN {$exprUltimoPrecioCompra} > 0 THEN ROUND(((p.precio - {$exprUltimoPrecioCompra}) * 100.0 / {$exprUltimoPrecioCompra}), 2) ELSE 0 END END END"
-                    : "CASE WHEN COALESCE(p.stock, 0) <= 0 THEN 0 ELSE CASE WHEN {$exprUltimoPrecioCompra} > 0 THEN ROUND(((p.precio - {$exprUltimoPrecioCompra}) * 100.0 / {$exprUltimoPrecioCompra}), 2) ELSE 0 END END";
+                    ? "CASE WHEN COALESCE(p.stock, 0) <= 0 THEN 0 ELSE CASE WHEN p.{$columnaGanancia} IS NOT NULL THEN COALESCE(p.{$columnaGanancia}, 0) ELSE CASE WHEN {$exprPrecioCompra} > 0 THEN ROUND(((p.precio - {$exprPrecioCompra}) * 100.0 / {$exprPrecioCompra}), 2) ELSE 0 END END END"
+                    : "CASE WHEN COALESCE(p.stock, 0) <= 0 THEN 0 ELSE CASE WHEN {$exprPrecioCompra} > 0 THEN ROUND(((p.precio - {$exprPrecioCompra}) * 100.0 / {$exprPrecioCompra}), 2) ELSE 0 END END";
+                
                 $sql = "SELECT 
                         {$baseFields},
-                        COALESCE((SELECT SUM(precio_compra * cantidad) / NULLIF(SUM(cantidad), 0)
-                                FROM entradas_inventario
-                                WHERE producto_id = p.id{$filtroEntradas}), 0) as precio_compra_promedio,
-                        {$exprUltimoPrecioCompra} as ultimo_precio_compra,
-                        CASE WHEN COALESCE(p.stock, 0) <= 0 THEN 0 ELSE ({$exprPrecioFinal} - {$exprUltimoPrecioCompra}) END as ganancia_unitaria,
+                        {$exprPrecioCompraPromedio} as precio_compra_promedio,
+                        {$exprPrecioCompra} as ultimo_precio_compra,
+                        CASE WHEN COALESCE(p.stock, 0) <= 0 THEN 0 ELSE ({$exprPrecioFinal} - {$exprPrecioCompra}) END as ganancia_unitaria,
                         {$exprPorcentajeGanancia} as porcentaje_ganancia
                         FROM productos p
                         LEFT JOIN categorias c ON p.categoria_id = c.id

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // cSpell:disable
 session_start();
 
@@ -2788,25 +2788,6 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        #divLoading img {
-            position: relative;
-            z-index: 1;
-            width: 88px;
-            height: 88px;
-            object-fit: contain;
-            filter: drop-shadow(0 10px 16px rgba(17, 78, 151, 0.25));
-            animation: loadingLogoSpin 0.95s linear infinite;
-        }
-
-        @keyframes loadingLogoSpin {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
         }
 
         body,
@@ -5894,7 +5875,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+            grid-template-columns: var(--sidebar-width) 1fr;
             gap: 12px;
             align-items: stretch;
             min-height: 0;
@@ -6029,12 +6010,22 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
         }
 
         body.sidebar-collapsed .dashboard-grid {
-            grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr);
+            grid-template-columns: var(--sidebar-collapsed-width) 1fr !important;
+        }
+
+        body.sidebar-collapsed .workspace-module {
+            width: 100% !important;
+            max-width: none !important;
+            flex: 1 !important;
         }
 
         body.sidebar-collapsed .menu-column {
             padding: 12px 8px 10px 8px;
             padding-top: 52px;
+            width: var(--sidebar-collapsed-width) !important;
+            max-width: var(--sidebar-collapsed-width) !important;
+            min-width: var(--sidebar-collapsed-width) !important;
+            flex: 0 0 var(--sidebar-collapsed-width) !important;
         }
 
         body.sidebar-collapsed .sidebar-toggle-nav {
@@ -8459,6 +8450,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
         body.sidebar-collapsed .menu {
             padding: 4px 2px !important;
+            width: 100% !important;
         }
 
         body.sidebar-collapsed .menu-title {
@@ -8467,6 +8459,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             justify-content: center !important;
             font-size: 11px !important;
             margin-bottom: 3px;
+            width: 100% !important;
+            max-width: 48px !important;
         }
 
         body.sidebar-collapsed .menu-title-text {
@@ -8484,6 +8478,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             min-height: 32px !important;
             padding: 5px !important;
             gap: 0 !important;
+            width: 100% !important;
+            max-width: 48px !important;
         }
 
         body.sidebar-collapsed .menu-item i,
@@ -8993,13 +8989,13 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8'); ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/redondeo-precio-venta.js"></script>
 </head>
 
 <body class="page-dashboard <?= $esClienteSesionDashboard ? 'cliente-dashboard' : ''; ?>">
     <div id="divLoading">
-        <div>
-            <img src="<?= htmlspecialchars($empresaImagenUrl !== '' ? $empresaImagenUrl : $dashboardLoadingLogo, ENT_QUOTES, 'UTF-8'); ?>" alt="Loading">
-        </div>
     </div>
     <div class="topbar">
         <div class="topbar-inner">
@@ -9218,10 +9214,19 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                         </a>
                     <?php endif; ?>
 
+                    <?php if ($esSuperAdminGlobalSesion && !$modoMenuPortable): ?>
+                        <a href="bascula.php" class="menu-item">
+                            <i class="fas fa-balance-scale"></i>
+                            <span class="menu-item-text">BÁSCULA</span>
+                        </a>
+                    <?php endif; ?>
+
+
                     <a href="conexion.php" class="menu-item">
                         <i class="fas fa-plug"></i>
                         <span class="menu-item-text">CONEXIÓN</span>
                     </a>
+
 
                     <?php if ($esSuperAdminGlobalSesion && !$modoMenuPortable): ?>
                         <a href="base_datos.php" class="menu-item">
@@ -9366,6 +9371,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 <?php endif; ?>
 
                 <div class="workspace-module<?= $esClienteSesionDashboard ? ' active' : ''; ?>" id="workspaceModule">
+                    <div id="moduleSkeleton" style="display:none;"></div>
                     <iframe id="moduleFrame" class="module-frame" src="" loading="lazy" aria-hidden="true"></iframe>
                 </div>
             </section>
@@ -11529,6 +11535,46 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             // Se desactiva la recarga forzada para evitar que el dashboard se refresque solo.
 
             let moduleLoadTimer = null;
+            const moduleSkeleton = document.getElementById('moduleSkeleton');
+
+            // El esqueleto de pagina completa se retiro: cada pantalla dibuja su
+            // propio esqueleto en su tabla, tarjetas o panel.
+            const showModuleSkeleton = () => {};
+
+
+            const hideModuleSkeleton = () => {
+                if (!moduleSkeleton) return;
+                if (window.EstrellaSkeleton) window.EstrellaSkeleton.hide(moduleSkeleton, true);
+                moduleSkeleton.classList.remove('is-active');
+                window.setTimeout(() => { moduleSkeleton.style.display = 'none'; }, 130);
+            };
+
+            // Respaldo para las vistas cargadas dentro de moduleFrame: Electron
+            // entrega el evento al panel y el panel replica cada lectura al marco.
+            // Inventarios deduplica por ts si también recibió el evento directo.
+            let cancelarPesoVivoDashboard = null;
+            if (window.basculaAPI && typeof window.basculaAPI.onPeso === 'function') {
+                cancelarPesoVivoDashboard = window.basculaAPI.onPeso((peso) => {
+                    const valor = Number(peso?.peso);
+                    const ts = Number(peso?.ts) || Date.now();
+                    if (!Number.isFinite(valor)) return;
+                    console.info('[PESO-INVENTARIO][dashboard-reenvio]', { peso: valor, ts });
+                    const registroDiagnostico = window.basculaAPI.registrarDiagnosticoPeso?.('dashboard-reenvio', {
+                        origen: 'dashboard', peso: valor, ts
+                    });
+                    registroDiagnostico?.catch?.(() => {});
+                    try {
+                        moduleFrame?.contentWindow?.postMessage({
+                            tipo: 'bascula-peso-vivo',
+                            peso: { ...peso, peso: valor, ts }
+                        }, window.location.origin);
+                    } catch (_) { /* el marco puede estar cambiando de página */ }
+                });
+                window.addEventListener('pagehide', () => {
+                    try { cancelarPesoVivoDashboard?.(); } catch (_) {}
+                    cancelarPesoVivoDashboard = null;
+                }, { once: true });
+            }
 
             // Puente de respaldo: si una vista dentro del marco no recibe el API de escritorio,
             // puede pedirnos la operación por mensajes y nosotros la ejecutamos aquí.
@@ -11564,6 +11610,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     if (typeof window.hideLoading === 'function') {
                         window.hideLoading();
                     }
+                    hideModuleSkeleton();
                 });
 
                 moduleFrame.addEventListener('error', () => {
@@ -11574,45 +11621,20 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     if (typeof window.hideLoading === 'function') {
                         window.hideLoading();
                     }
+                    hideModuleSkeleton();
                 });
             }
 
-            const liberarBasculaAntesDeNavegar = () => new Promise((resolve, reject) => {
-                const vistaActual = moduleFrame?.getAttribute('src') || '';
-                if (!/\/Views\/(inventarios|bascula)\.php/i.test(vistaActual) || !moduleFrame.contentWindow) {
-                    resolve();
-                    return;
-                }
-                const manejarRespuesta = (evento) => {
-                    if (evento.source !== moduleFrame.contentWindow) return;
-                    if (evento.data?.tipo === 'bascula-liberada-para-navegar') {
-                        window.removeEventListener('message', manejarRespuesta);
-                        resolve();
-                    } else if (evento.data?.tipo === 'bascula-liberacion-error') {
-                        window.removeEventListener('message', manejarRespuesta);
-                        reject(new Error(evento.data.mensaje || 'No se pudo liberar la báscula.'));
-                    }
-                };
-                window.addEventListener('message', manejarRespuesta);
-                moduleFrame.contentWindow.postMessage({ tipo: 'liberar-bascula-antes-de-navegar' }, window.location.origin);
-            });
+            // La báscula la administra el proceso principal de Electron, por lo que
+            // navegar entre módulos ya no requiere liberar el puerto COM.
 
             const openModule = async (link) => {
                 if (!link || !moduleFrame || !modulePanel || !homePanel) return;
                 const href = link.getAttribute('href');
                 if (!href) return;
 
-                try {
-                    await liberarBasculaAntesDeNavegar();
-                } catch (error) {
-                    if (typeof window.hideLoading === 'function') window.hideLoading();
-                    console.error('[BASCULA] no se pudo liberar antes de navegar', error);
-                    return;
-                }
 
-                if (typeof window.showLoading === 'function') {
-                    window.showLoading();
-                }
+                showModuleSkeleton();
 
                 if (moduleLoadTimer) {
                     clearTimeout(moduleLoadTimer);
@@ -11621,6 +11643,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     if (typeof window.hideLoading === 'function') {
                         window.hideLoading();
                     }
+                    hideModuleSkeleton();
                 }, 6000);
 
                 const moduleUrl = new URL(href, window.location.href);
@@ -13875,7 +13898,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             }).join('');
             lista.innerHTML = fichas || '<p style="padding:20px;text-align:center;color:#64748b;">No hay créditos registrados.</p>';
             if (creditosDashboardDetalles.length > creditosDashboardPorPagina) {
-                lista.innerHTML += `<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 0;"><button type="button" class="chart-list-btn" onclick="cambiarPaginaCreditosDashboard(-1)" ${creditosDashboardPagina === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><strong>PÁGINA ${creditosDashboardPagina} DE ${totalPaginas}</strong><button type="button" class="chart-list-btn" onclick="cambiarPaginaCreditosDashboard(1)" ${creditosDashboardPagina === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button></div>`;
+                lista.innerHTML += `<div style="display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 0;"><button type="button" class="chart-list-btn" onclick="cambiarPaginaCreditosDashboard(-1)" ${creditosDashboardPagina === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><strong>PÁGINA ${totalPaginas - (creditosDashboardPagina - 1)} / ${totalPaginas}</strong><button type="button" class="chart-list-btn" onclick="cambiarPaginaCreditosDashboard(1)" ${creditosDashboardPagina === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button></div>`;
             }
         }
 

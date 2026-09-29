@@ -135,6 +135,21 @@
         return BASE_URL;
     }
 
+    /** Aproxima al centenar: hasta 40 baja y desde 41 sube al siguiente 100. */
+    function redondearPrecioVenta($precio): float
+    {
+        $n = (float)$precio;
+        if ($n <= 0) {
+            return 0.0;
+        }
+        $base = floor($n / 100) * 100;
+        $resto = $n - $base;
+        if ($resto <= 40) {
+            return (float)$base;
+        }
+        return (float)($base + 100);
+    }
+
     function connection_config_path(): string
     {
         if (defined('CONNECTION_CONFIG_PATH')) {

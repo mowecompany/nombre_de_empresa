@@ -52,13 +52,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'exporta
     $exportPath = tempnam(sys_get_temp_dir(), 'mecanica_db_');
     $zipPath = tempnam(sys_get_temp_dir(), 'mecanica_backup_');
     try {
+        if ($exportPath === false || $zipPath === false) {
+            throw new RuntimeException('No se pudo crear un archivo temporal para el respaldo. Verifica la carpeta temporal de PHP.');
+        }
         if ($exportPath !== false && file_exists($exportPath)) {
             unlink($exportPath);
         }
         if ($zipPath !== false && file_exists($zipPath)) {
             unlink($zipPath);
         }
-        $db = new PDO('sqlite:' . $databasePath, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        $db = new PDO('sqlite:' . $databasePath, null, null, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_TIMEOUT => 15,
+        ]);
+        $db->exec('PRAGMA busy_timeout = 15000');
         $db->exec("VACUUM INTO " . $db->quote($exportPath));
         $db = null;
 
@@ -118,9 +125,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'exporta
             $removeStaging($stagingPath);
         }
 
-        $filename = 'base_datos_AUTOSERVICIO MI ESTRELLA
-_' . date('Y-m-d_H-i-s') . '.zip';
+        $filename = 'base_datos_AUTOSERVICIO_MI_ESTRELLA_' . date('Y-m-d_H-i-s') . '.zip';
+        // Electron habilita compresión PHP para las páginas, pero comprimir un
+        // ZIP mientras se anuncia su tamaño original provoca una descarga truncada.
+        ini_set('zlib.output_compression', '0');
+        ini_set('output_buffering', '0');
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
         header('Content-Type: application/zip');
+        header('Content-Encoding: identity');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Content-Length: ' . filesize($zipPath));
         readfile($zipPath);
@@ -143,8 +157,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'impo
     header('Content-Type: application/json; charset=UTF-8');
     $uploaded = $_FILES['base_datos'] ?? null;
     if (!$uploaded || $uploaded['error'] !== UPLOAD_ERR_OK) {
+        $codigoCarga = (int)($uploaded['error'] ?? UPLOAD_ERR_NO_FILE);
+        $limitePost = (string)ini_get('post_max_size');
+        $multiplicadores = ['K' => 1024, 'M' => 1048576, 'G' => 1073741824];
+        $limitePostBytes = (int)$limitePost;
+        if (preg_match('/^([0-9]+(?:\.[0-9]+)?)\s*([KMG])?$/i', $limitePost, $coincidencia)) {
+            $limitePostBytes = (int)((float)$coincidencia[1] * ($multiplicadores[strtoupper($coincidencia[2] ?? '')] ?? 1));
+        }
+        $tamanoPeticion = (int)($_SERVER['CONTENT_LENGTH'] ?? 0);
+        $superaLimitePost = $limitePostBytes > 0 && $tamanoPeticion > $limitePostBytes;
+        $mensajeCarga = $superaLimitePost || $codigoCarga === UPLOAD_ERR_INI_SIZE || $codigoCarga === UPLOAD_ERR_FORM_SIZE
+            ? 'El archivo supera el tamaño máximo permitido por el servidor.'
+            : 'Selecciona un archivo de base de datos válido.';
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Selecciona un archivo de base de datos válido.']);
+        echo json_encode(['success' => false, 'message' => $mensajeCarga]);
         exit;
     }
 
@@ -218,6 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'impo
             throw new RuntimeException('No se pudo preparar la importación.');
         }
         $check = new PDO('sqlite:' . $temporaryPath, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+        $check->exec('PRAGMA busy_timeout = 15000');
         $check->query('PRAGMA schema_version')->fetchColumn();
         $tables = $check->query("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
         $tablasProhibidas = ['ordenes_taller', 'detalles_orden', 'ordenes_taller_backups_reset'];
@@ -229,6 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'impo
         }
         $check = null;
         unset($check);
+        gc_collect_cycles();
         clearstatcache(true, $databasePath);
         if (!copy($temporaryPath, $databasePath)) {
             throw new RuntimeException('No se pudo finalizar la importación. Verifica que database.db no esté bloqueada por otra instancia.');

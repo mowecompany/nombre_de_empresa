@@ -7,10 +7,14 @@
 
         function __construct()
         {
-            $this->conexion = new Conexion();
-            $this->conexion = $this->conexion->conect();
+            // Reutiliza la conexión PDO cacheada en Database::connect() (pool
+            // estático por proceso). Antes cada modelo construía un nuevo objeto
+            // Conexion y abría una nueva PDO, lo cual era el mayor golpe de
+            // latencia por request en la aplicación de escritorio.
+            $this->conexion = $this->resolveFallbackConnection();
             if (!($this->conexion instanceof PDO)) {
-                $this->conexion = $this->resolveFallbackConnection();
+                $this->conexion = new Conexion();
+                $this->conexion = $this->conexion->conect();
             }
         }
 

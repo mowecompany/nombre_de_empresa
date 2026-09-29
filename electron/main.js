@@ -146,181 +146,285 @@ let connectionConfig = {
   server_port: DEFAULT_SERVER_PORT,
   lan_ip: ''
 };
-let basculaSerial = null;
-let basculaBridgeServer = null;
-const basculaBridgeClients = new Set();
-let ultimaTramaBalanza = null;
-let temporizadorReconectarBalanza = null;
-let intentosConexionBalanza = 0;
-let reconexionBalanzaEnCurso = false;
-let operacionBalanzaEnCurso = Promise.resolve();
-let ultimoListadoPuertosBalanza = '';
-let puertosDetectadosBalanza = [];
+// ---------------------------------------------------------------------------
+// Báscula ACS-30 (RS-232 -> CH340 -> COM): un único servicio en el proceso
+// principal. Ni las vistas ni ningún puente HTTP abren el puerto.
+// ---------------------------------------------------------------------------
+const { BasculaCoordinator } = require('./bascula/BasculaCoordinator');
 
-async function actualizarPuertosDetectadosBalanza() {
-  const puertos = await SerialPort.list().catch(() => []);
-  puertosDetectadosBalanza = puertos.map(item => ({
-    path: item.path,
-    manufacturer: item.manufacturer || '',
-    vendorId: item.vendorId || '',
-    productId: item.productId || ''
-  }));
-  const listadoActual = JSON.stringify(puertosDetectadosBalanza);
-  if (listadoActual !== ultimoListadoPuertosBalanza) {
-    ultimoListadoPuertosBalanza = listadoActual;
-    console.info('[BASCULA][ELECTRON] puertos USB detectados:', puertosDetectadosBalanza);
-    publicarEstadoBalanza();
-  }
-  return puertos;
-}
+const puertoBasculaForzado = (() => {
+  const argumento = process.argv.find((arg) => /^--bascula-puerto=/i.test(arg));
+  if (argumento) return argumento.split('=')[1];
+  return process.env.BASCULA_PUERTO || null;
+})();
 
-function encolarOperacionBalanza(operacion) {
-  const turno = operacionBalanzaEnCurso.then(operacion, operacion);
-  operacionBalanzaEnCurso = turno.catch(() => {});
-  return turno;
-}
+let ultimoDiagnosticoPermisos = null;
+const RECUPERACION_BASCULA_VERSION = 'ch340-pnp-v2';
+const MAX_DIAGNOSTICO_PESO_BYTES = 1024 * 1024;
+let colaDiagnosticoPeso = Promise.resolve();
+let diagnosticoPesoInventarioActivo = false;
 
-function obtenerConfiguracionesSerialBalanza(configuracionBase = {}) {
-  const baudRates = Array.from(new Set([
-    Number(configuracionBase.baudRate) || 9600,
-    9600,
-    4800,
-    2400,
-    19200,
-    115200
-  ]));
-  const dataBits = Array.from(new Set([Number(configuracionBase.dataBits) || 8, 8]));
-  const parities = Array.from(new Set([String(configuracionBase.parity || 'none').toLowerCase(), 'none', 'even', 'odd']));
-  const stopBits = Array.from(new Set([Number(configuracionBase.stopBits) || 1, 1, 2]));
-
-  const configuraciones = [];
-  for (const baudRate of baudRates) {
-    for (const dataBit of dataBits) {
-      for (const parity of parities) {
-        for (const stopBit of stopBits) {
-          configuraciones.push({ baudRate, dataBits: dataBit, parity, stopBits: stopBit });
-        }
-      }
-    }
-  }
-
-  return configuraciones.filter((config, index, arr) => arr.findIndex(item => (
-    item.baudRate === config.baudRate &&
-    item.dataBits === config.dataBits &&
-    item.parity === config.parity &&
-    item.stopBits === config.stopBits
-  )) === index);
-}
-
-async function abrirPuertoBalanzaConFallback(pathName, configuracionInicial = {}) {
-  const intentos = obtenerConfiguracionesSerialBalanza(configuracionInicial);
-  let ultimoError = null;
-
-  for (const configuracion of intentos) {
-    const puertoIntento = new SerialPort({
-      path: pathName,
-      baudRate: Number(configuracion.baudRate),
-      dataBits: Number(configuracion.dataBits),
-      stopBits: Number(configuracion.stopBits),
-      parity: String(configuracion.parity || 'none'),
-      autoOpen: false
-    });
-
-    try {
-      await new Promise((resolve, reject) => {
-        const manejarError = (error) => {
-          puertoIntento.removeListener('error', manejarError);
-          reject(error);
-        };
-        puertoIntento.once('error', manejarError);
-        puertoIntento.open((error) => {
-          puertoIntento.removeListener('error', manejarError);
-          if (error) reject(error); else resolve();
-        });
-      });
-      return puertoIntento;
-    } catch (error) {
-      ultimoError = error;
-      try { if (puertoIntento.isOpen) puertoIntento.close(); } catch (closeError) {}
-      try { puertoIntento.removeAllListeners(); } catch (listenerError) {}
-    }
-  }
-
-  throw ultimoError || new Error(`No se pudo abrir el puerto ${pathName} con ninguna configuración serial válida.`);
-}
-
-function publicarTramaBalanza(data) {
-  const bytes = Buffer.from(data);
-  ultimaTramaBalanza = {
-    data: bytes.toString('base64'),
-    timestamp: Date.now()
-  };
-  for (const client of basculaBridgeClients) {
-    client.write(`event: raw\ndata: ${ultimaTramaBalanza.data}\n\n`);
-  }
-  if (!mainWindow?.isDestroyed()) {
-    const payload = { data: ultimaTramaBalanza.data };
-    mainWindow.webContents.send('bascula-datos-raw', payload);
-    for (const frame of mainWindow.webContents.mainFrame.framesInSubtree()) {
-      if (frame === mainWindow.webContents.mainFrame) continue;
-      try {
-        mainWindow.webContents.sendToFrame(frame.frameId, 'bascula-datos-raw', payload);
-      } catch (error) {
-        console.warn('[BASCULA][ELECTRON] no se pudo enviar RAW al frame:', error?.message || error);
-      }
-    }
-  }
-}
-
-function publicarEstadoBalanza() {
-  const estado = JSON.stringify({ conectado: Boolean(basculaSerial?.isOpen), path: basculaSerial?.path || null });
-  for (const client of basculaBridgeClients) client.write(`event: estado\ndata: ${estado}\n\n`);
-}
-
-async function cerrarPuertoBalanzaSiExiste() {
-  if (!basculaSerial) return;
+function rutaDiagnosticoPesoInventario() {
+  let carpeta;
   try {
-    if (basculaSerial.isOpen) {
-      await new Promise((resolve, reject) => {
-        basculaSerial.close((error) => {
-          if (error) reject(error); else resolve();
-        });
-      });
+    carpeta = app.getPath('desktop');
+  } catch (_) {
+    carpeta = app.getPath('userData');
+  }
+  return path.join(carpeta, 'ESTRELLA-diagnostico-peso-inventario.log');
+}
+
+function normalizarDetalleDiagnosticoPeso(detalle) {
+  if (!detalle || typeof detalle !== 'object') return { detalle: String(detalle || '') };
+  return {
+    origen: String(detalle.origen || '').slice(0, 60),
+    peso: Number.isFinite(Number(detalle.peso)) ? Number(detalle.peso) : null,
+    ts: Number.isFinite(Number(detalle.ts)) ? Number(detalle.ts) : null,
+    modalActivo: Boolean(detalle.modalActivo),
+    elementoExiste: Boolean(detalle.elementoExiste),
+    texto: String(detalle.texto || '').slice(0, 120),
+    motivo: String(detalle.motivo || '').slice(0, 160)
+  };
+}
+
+function registrarDiagnosticoPesoInventario(etapa, detalle = {}) {
+  const nombreEtapa = String(etapa || 'sin-etapa').slice(0, 80);
+  if (nombreEtapa === 'modal-abierto') diagnosticoPesoInventarioActivo = true;
+  if (!diagnosticoPesoInventarioActivo) return { guardado: false };
+  const registro = {
+    hora: new Date().toISOString(),
+    etapa: nombreEtapa,
+    ...normalizarDetalleDiagnosticoPeso(detalle)
+  };
+  console.info('[PESO-INVENTARIO]', registro);
+  colaDiagnosticoPeso = colaDiagnosticoPeso.then(async () => {
+    try {
+      const ruta = rutaDiagnosticoPesoInventario();
+      try {
+        const estado = await fs.promises.stat(ruta);
+        if (estado.size >= MAX_DIAGNOSTICO_PESO_BYTES) {
+          await fs.promises.rename(ruta, `${ruta}.anterior`).catch(async () => {
+            await fs.promises.truncate(ruta, 0);
+          });
+        }
+      } catch (_) { /* el archivo todavía no existe */ }
+      await fs.promises.appendFile(ruta, `${JSON.stringify(registro)}\n`, 'utf8');
+    } catch (_) {
+      // El diagnóstico nunca debe interrumpir la lectura ni una venta.
     }
-  } catch (error) {
-    console.warn('[BASCULA][ELECTRON] cierre forzado del puerto fallido:', error?.message || error);
-  } finally {
-    basculaSerial = null;
+  });
+  if (nombreEtapa === 'modal-cerrado') diagnosticoPesoInventarioActivo = false;
+  return { guardado: true, archivo: rutaDiagnosticoPesoInventario() };
+}
+
+function identidadCompilacion() {
+  let fechaArchivo = null;
+  try { fechaArchivo = fs.statSync(__filename).mtime.toISOString(); } catch (_) {}
+  return {
+    version: app.getVersion(),
+    identificador: `${app.getVersion()}-${RECUPERACION_BASCULA_VERSION}`,
+    fechaArchivo,
+    empaquetada: app.isPackaged,
+    recuperacionPnP: true,
+    recuperacionAutomatica: true
+  };
+}
+
+function leerUltimoCierreBascula() {
+  try {
+    const archivo = path.join(app.getPath('userData'), 'bascula-ultimo-cierre.json');
+    return JSON.parse(fs.readFileSync(archivo, 'utf8'));
+  } catch (_) {
+    return null;
   }
 }
 
-function iniciarPuenteLocalBalanza() {
-  basculaBridgeServer = http.createServer((request, response) => {
-    response.setHeader('Access-Control-Allow-Origin', '*');
-    response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    if (request.method === 'OPTIONS') {
-      response.writeHead(204);
-      response.end();
-      return;
-    }
-    if (request.url === '/bascula/status') {
-      response.setHeader('Content-Type', 'application/json');
-      response.end(JSON.stringify({ conectado: Boolean(basculaSerial?.isOpen), path: basculaSerial?.path || null, puertos: puertosDetectadosBalanza, ultimaTrama: ultimaTramaBalanza }));
-      return;
-    }
-    if (request.url === '/bascula/stream') {
-      response.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
-      response.write(`event: estado\ndata: ${JSON.stringify({ conectado: Boolean(basculaSerial?.isOpen), path: basculaSerial?.path || null, puertos: puertosDetectadosBalanza })}\n\n`);
-      if (ultimaTramaBalanza) response.write(`event: raw\ndata: ${ultimaTramaBalanza.data}\n\n`);
-      basculaBridgeClients.add(response);
-      request.on('close', () => basculaBridgeClients.delete(response));
-      return;
-    }
-    response.writeHead(404);
-    response.end();
+function guardarUltimoCierreBascula(resultado) {
+  const entrada = { ts: new Date().toISOString(), procesoId: process.pid, ...resultado };
+  try {
+    const archivo = path.join(app.getPath('userData'), 'bascula-ultimo-cierre.json');
+    fs.mkdirSync(path.dirname(archivo), { recursive: true });
+    fs.writeFileSync(archivo, `${JSON.stringify(entrada, null, 2)}\n`, 'utf8');
+  } catch (error) {
+    console.warn('No se pudo guardar el resultado del cierre de báscula:', error.message);
+  }
+  return entrada;
+}
+
+function guardarDiagnosticoBascula(tipo, resultado) {
+  const entrada = { ts: new Date().toISOString(), tipo, procesoId: process.pid, ...resultado };
+  try {
+    const archivo = path.join(app.getPath('userData'), 'bascula-recuperacion.jsonl');
+    fs.mkdirSync(path.dirname(archivo), { recursive: true });
+    fs.appendFileSync(archivo, `${JSON.stringify(entrada)}\n`, 'utf8');
+  } catch (error) {
+    console.warn('No se pudo guardar el diagnóstico persistente de báscula:', error.message);
+  }
+  return entrada;
+}
+
+function consultarPermisosBascula() {
+  if (process.platform !== 'win32') {
+    ultimoDiagnosticoPermisos = guardarDiagnosticoBascula('permisos', {
+      administrador: typeof process.getuid === 'function' ? process.getuid() === 0 : false,
+      plataforma: process.platform,
+      conclusion: 'La prueba de elevación solo aplica a Windows.'
+    });
+    return ultimoDiagnosticoPermisos;
+  }
+  const script = '[Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent() | ForEach-Object { $_.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) }';
+  const prueba = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script], {
+    windowsHide: true,
+    encoding: 'utf8',
+    timeout: 10000
   });
-  basculaBridgeServer.on('error', error => console.error('Puente local de báscula:', error.message));
-  basculaBridgeServer.listen(8765, '127.0.0.1');
+  const administrador = /^true$/i.test(String(prueba.stdout || '').trim());
+  ultimoDiagnosticoPermisos = guardarDiagnosticoBascula('permisos', {
+    administrador,
+    plataforma: process.platform,
+    codigoSalida: prueba.status,
+    conclusion: administrador
+      ? 'ESTRELLA está elevada. Si SetCommState sigue devolviendo código 31, la falta de permisos queda descartada.'
+      : 'ESTRELLA se ejecuta con permisos normales. El código 31 no equivale a Acceso denegado; el reinicio puntual solicitará UAC.'
+  });
+  return ultimoDiagnosticoPermisos;
+}
+
+function ejecutarPowerShellElevado(lanzador, timeout = 120000) {
+  return new Promise((resolve) => {
+    const inicio = Date.now();
+    const proceso = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', lanzador], {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    let stdout = '';
+    let stderr = '';
+    let terminado = false;
+    let timer = null;
+    proceso.stdout.on('data', (dato) => { stdout += dato.toString(); });
+    proceso.stderr.on('data', (dato) => { stderr += dato.toString(); });
+    const finalizar = (resultado) => {
+      if (terminado) return;
+      terminado = true;
+      clearTimeout(timer);
+      resolve({ ...resultado, stdout, stderr, duracionMs: Date.now() - inicio });
+    };
+    proceso.once('error', (error) => finalizar({ status: null, error }));
+    proceso.once('exit', (codigo) => finalizar({ status: codigo, error: null }));
+    timer = setTimeout(() => {
+      try { proceso.kill(); } catch (_) {}
+      finalizar({ status: null, error: new Error('La autorización de Windows excedió el tiempo permitido.') });
+    }, timeout);
+  });
+}
+
+async function recuperarCh340(controlador = {}) {
+  if (process.platform !== 'win32') return { ok: false, mensaje: 'El reinicio PnP solo está disponible en Windows.' };
+  const instanciaId = String(controlador.instanciaId || '').trim();
+  if (!/^USB\\VID_1A86&PID_7523\\[^\r\n]+$/i.test(instanciaId)) {
+    return guardarDiagnosticoBascula('reinicio-ch340', {
+      ok: false,
+      mensaje: 'No se reinició ningún dispositivo: no se pudo validar la instancia exacta CH340 VID_1A86/PID_7523.'
+    });
+  }
+
+  const idPowerShell = instanciaId.replace(/'/g, "''");
+  const script = [
+    `$id = '${idPowerShell}'`,
+    "$pnputil = Join-Path $env:SystemRoot 'System32\\pnputil.exe'",
+    "$p = Start-Process -FilePath $pnputil -ArgumentList @('/restart-device', ('\"' + $id + '\"')) -Wait -PassThru -WindowStyle Hidden",
+    "if ($p.ExitCode -ne 0) {",
+    "  $d = Start-Process -FilePath $pnputil -ArgumentList @('/disable-device', ('\"' + $id + '\"')) -Wait -PassThru -WindowStyle Hidden",
+    "  if ($d.ExitCode -ne 0) { exit $d.ExitCode }",
+    "  Start-Sleep -Milliseconds 900",
+    "  $e = Start-Process -FilePath $pnputil -ArgumentList @('/enable-device', ('\"' + $id + '\"')) -Wait -PassThru -WindowStyle Hidden",
+    "  exit $e.ExitCode",
+    "}",
+    'exit 0'
+  ].join('; ');
+  const codificado = Buffer.from(script, 'utf16le').toString('base64');
+  const lanzador = `$p = Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-NonInteractive','-EncodedCommand','${codificado}') -Verb RunAs -Wait -PassThru; exit $p.ExitCode`;
+  const resultado = await ejecutarPowerShellElevado(lanzador);
+  const cancelado = resultado.status !== 0 && /cancel|cancelad|1223/i.test(`${resultado.stderr || ''} ${resultado.error?.message || ''}`);
+  return guardarDiagnosticoBascula('reinicio-ch340', {
+    ok: resultado.status === 0,
+    cancelado,
+    instanciaId,
+    comando: 'pnputil /restart-device (fallback disable-device/enable-device)',
+    codigoSalida: resultado.status,
+    duracionMs: resultado.duracionMs,
+    mensaje: resultado.status === 0
+      ? 'Windows reinició exclusivamente el adaptador CH340 autorizado.'
+      : (cancelado ? 'El usuario canceló la autorización de Windows.' : 'Windows no pudo reiniciar el adaptador CH340.')
+  });
+}
+
+const basculaService = new BasculaCoordinator({
+  puertoForzado: puertoBasculaForzado,
+  procesoId: process.pid,
+  recuperarDispositivo: recuperarCh340
+});
+let ventanaDiagnosticoBascula = null;
+let cierreEnCurso = null;
+let salidaAutorizada = false;
+
+function enviarABascula(canal, payload) {
+  const ventanas = [mainWindow, ventanaDiagnosticoBascula].filter((v) => v && !v.isDestroyed());
+  for (const ventana of ventanas) {
+    try {
+      ventana.webContents.send(canal, payload);
+      for (const frame of ventana.webContents.mainFrame.framesInSubtree()) {
+        if (frame === ventana.webContents.mainFrame) continue;
+        ventana.webContents.sendToFrame(frame.frameId, canal, payload);
+      }
+    } catch (error) {
+      // Una ventana cerrándose no debe interrumpir la lectura de la báscula.
+    }
+  }
+}
+
+basculaService.on('peso', (peso) => {
+  if (diagnosticoPesoInventarioActivo) {
+    registrarDiagnosticoPesoInventario('lectura-emitida', {
+      origen: 'proceso-principal',
+      peso: peso?.peso,
+      ts: peso?.ts
+    });
+  }
+  enviarABascula('bascula:peso', peso);
+  if (diagnosticoPesoInventarioActivo) {
+    registrarDiagnosticoPesoInventario('lectura-enviada', {
+      origen: 'proceso-principal',
+      peso: peso?.peso,
+      ts: peso?.ts
+    });
+  }
+});
+basculaService.on('estado', (estado) => enviarABascula('bascula:estado-cambio', estado));
+basculaService.on('trama', (trama) => enviarABascula('bascula:trama', trama));
+
+function abrirVentanaDiagnosticoBascula() {
+  if (ventanaDiagnosticoBascula && !ventanaDiagnosticoBascula.isDestroyed()) {
+    ventanaDiagnosticoBascula.focus();
+    return ventanaDiagnosticoBascula;
+  }
+  ventanaDiagnosticoBascula = new BrowserWindow({
+    width: 900,
+    height: 760,
+    title: 'Diagnóstico de báscula ACS-30',
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false
+    }
+  });
+  ventanaDiagnosticoBascula.loadFile(path.join(__dirname, 'bascula', 'diagnostico.html'));
+  ventanaDiagnosticoBascula.on('closed', () => {
+    ventanaDiagnosticoBascula = null;
+  });
+  return ventanaDiagnosticoBascula;
 }
 
 function locatePhpExecutable() {
@@ -432,6 +536,10 @@ function getWritableDatabasePath() {
 
 function buildPhpEnvironment(port) {
   const sqlitePath = getWritableDatabasePath();
+  // Escala los workers según el hardware: en cajas con más núcleos, más peticiones
+  // concurrentes se atienden sin hacer cola. Mínimo 8, máximo 16.
+  const cpuCount = Math.max(1, (os.cpus() || []).length || 4);
+  const workers = Math.min(16, Math.max(8, cpuCount * 2));
   return {
     ...process.env,
     APP_ENV: app.isPackaged ? 'production' : 'development',
@@ -443,7 +551,7 @@ function buildPhpEnvironment(port) {
     SQLITE_PATH: sqlitePath,
     DB_CHARSET: 'utf8mb4',
     // Permite que el servidor PHP integrado atienda varias cajas a la vez.
-    PHP_CLI_SERVER_WORKERS: process.env.PHP_CLI_SERVER_WORKERS || '6'
+    PHP_CLI_SERVER_WORKERS: process.env.PHP_CLI_SERVER_WORKERS || String(workers)
   };
 }
 
@@ -471,6 +579,62 @@ function startPhpServer(port, bindHost) {
         phpArgs.push('-c', iniPath);
       }
       phpArgs.push('-d', `extension_dir=${path.join(path.dirname(phpExecutable), 'ext')}`);
+      // Extensiones críticas para rendimiento y funcionalidad. Se cargan siempre
+      // para que la app no dependa de que estén habilitadas en el php.ini.
+      phpArgs.push('-d', 'zend_extension=opcache');
+      phpArgs.push('-d', 'extension=pdo_sqlite');
+      phpArgs.push('-d', 'extension=pdo_mysql');
+      phpArgs.push('-d', 'extension=mbstring');
+      phpArgs.push('-d', 'extension=openssl');
+      phpArgs.push('-d', 'extension=curl');
+      phpArgs.push('-d', 'extension=fileinfo');
+      phpArgs.push('-d', 'extension=gd');
+      phpArgs.push('-d', 'extension=zip');
+    }
+    // Aceleración PHP: OPcache + JIT + preload + realpath cache + buffering.
+    // Estas banderas son seguras si OPcache no está compilado (PHP las ignora).
+    const preloadPath = path.join(PROJECT_ROOT, 'php', 'preload.php');
+    const opcacheFileCacheDir = path.join(app.getPath('userData'), 'opcache-file');
+    const sessionDir = path.join(app.getPath('userData'), 'tmp', 'sessions');
+    try { fs.mkdirSync(opcacheFileCacheDir, { recursive: true }); } catch (_) {}
+    try { fs.mkdirSync(sessionDir, { recursive: true }); } catch (_) {}
+
+    const opcacheFlags = [
+      'opcache.enable=1',
+      'opcache.enable_cli=1',
+      'opcache.memory_consumption=192',
+      'opcache.interned_strings_buffer=16',
+      'opcache.max_accelerated_files=20000',
+      'opcache.validate_timestamps=' + (app.isPackaged ? '0' : '1'),
+      'opcache.revalidate_freq=' + (app.isPackaged ? '0' : '2'),
+      'opcache.save_comments=1',
+      'opcache.fast_shutdown=1',
+      // JIT tracing: acelera bucles calientes (listas grandes, reportes).
+      'opcache.jit_buffer_size=128M',
+      'opcache.jit=tracing',
+      // Respaldo persistente entre reinicios del servidor.
+      'opcache.file_cache=' + opcacheFileCacheDir,
+      'opcache.file_cache_consistency_checks=0',
+      'realpath_cache_size=4M',
+      'realpath_cache_ttl=600',
+      'memory_limit=256M',
+      'output_buffering=4096',
+      'zlib.output_compression=On',
+      'zlib.output_compression_level=4',
+      // Sesiones en carpeta rápida (dentro de userData) en vez de %TEMP%.
+      'session.save_path=' + sessionDir,
+      'session.gc_probability=1',
+      'session.gc_divisor=1000',
+      'session.lazy_write=1',
+      'session.sid_length=32',
+      'session.sid_bits_per_character=5'
+    ];
+    // Preload: precompila las clases del núcleo al arrancar el servidor.
+    if (fs.existsSync(preloadPath)) {
+      opcacheFlags.push('opcache.preload=' + preloadPath);
+    }
+    for (const flag of opcacheFlags) {
+      phpArgs.push('-d', flag);
     }
     phpArgs.push('-S', `${bindHost}:${port}`, '-t', PROJECT_ROOT);
 
@@ -478,7 +642,10 @@ function startPhpServer(port, bindHost) {
       cwd: PROJECT_ROOT,
       env,
       windowsHide: true,
-      stdio: ['ignore', 'pipe', 'pipe']
+      // Descartamos stdout: en producción php -S imprime una línea por request
+      // y drenar ese pipe desde Electron cuesta CPU en cargas grandes. stderr sí
+      // se conserva para detectar puertos ocupados o errores de arranque.
+      stdio: ['ignore', app.isPackaged ? 'ignore' : 'pipe', 'pipe']
     });
     const launchedProcess = phpProcess;
 
@@ -510,6 +677,33 @@ function stopPhpServer() {
   if (phpProcess && !phpProcess.killed) {
     phpProcess.kill();
     phpProcess = null;
+  }
+}
+
+/**
+ * Precalienta el servidor PHP disparando peticiones silenciosas a rutas
+ * ligeras justo después de arrancar. OPcache/preload/SQLite quedan tibios
+ * antes de que el usuario haga clic en cualquier módulo.
+ */
+function warmUpPhpServer(port) {
+  const rutas = ['/health.php', '/Views/login.php', '/Views/dashboard.php'];
+  for (const ruta of rutas) {
+    try {
+      const req = http.request({
+        host: SERVER_HOST,
+        port,
+        path: ruta,
+        method: 'GET',
+        headers: { 'X-Silent-Request': '1', 'User-Agent': 'Electron-WarmUp' },
+        timeout: 5000
+      }, (res) => {
+        res.on('data', () => {});
+        res.on('end', () => {});
+      });
+      req.on('error', () => {});
+      req.on('timeout', () => req.destroy());
+      req.end();
+    } catch (_) { /* el warm-up nunca debe interrumpir el arranque */ }
   }
 }
 
@@ -602,27 +796,65 @@ function createMainWindow(serverUrl) {
       // Sin esto, el puente de escritorio no llega a la pantalla de Conexión.
       nodeIntegrationInSubFrames: true,
       enableRemoteModule: false,
-      sandbox: false
+      sandbox: false,
+      // Mantiene la ventana con máximo rendimiento aunque pierda foco (caja registradora).
+      backgroundThrottling: false,
+      // No se necesita corrector ortográfico en un TPV; ahorra memoria y CPU.
+      spellcheck: false
     }
   });
 
-  // Permitir que la vista autenticada solicite y use una báscula serial USB.
-  mainWindow.webContents.session.setPermissionCheckHandler((_webContents, permission) => {
-    return permission === 'serial';
-  });
+  // Caché de larga duración para /Assets/**: el navegador Electron los guarda
+  // en su caché de disco, así que la segunda apertura de cualquier módulo carga
+  // los estáticos sin ida y vuelta al servidor PHP.
+  try {
+    mainWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+      const url = String(details.url || '');
+      const isStaticAsset = /\/(Assets|favicon\.ico)(\/|$|\?)/i.test(url)
+        && !/\.php(\?|$)/i.test(url);
+      if (isStaticAsset) {
+        const headers = { ...(details.responseHeaders || {}) };
+        // Eliminamos cualquier no-cache heredado del .htaccess original.
+        for (const key of Object.keys(headers)) {
+          const k = key.toLowerCase();
+          if (k === 'cache-control' || k === 'pragma' || k === 'expires') {
+            delete headers[key];
+          }
+        }
+        headers['Cache-Control'] = ['public, max-age=604800, immutable'];
+        callback({ responseHeaders: headers });
+        return;
+      }
+      callback({ responseHeaders: details.responseHeaders });
+    });
+  } catch (error) {
+    console.warn('No se pudo instalar la caché de estáticos de Electron:', error.message);
+  }
+
+  // La báscula la administra exclusivamente el proceso principal (BasculaService).
+  // El frontend no abre puertos seriales: Web Serial queda deshabilitado a propósito.
+  mainWindow.webContents.session.setPermissionCheckHandler((_webContents, permission) => permission !== 'serial');
   mainWindow.webContents.session.setPermissionRequestHandler((_webContents, permission, callback) => {
-    callback(permission === 'serial');
+    callback(permission !== 'serial');
   });
-  mainWindow.webContents.session.on('select-serial-port', (event, portList, _webContents, callback) => {
-    event.preventDefault();
-    const primerPuerto = Array.isArray(portList) ? portList[0] : null;
-    callback(primerPuerto ? primerPuerto.portId : '');
+
+  // Atajo para abrir el diagnóstico de báscula sin ensuciar la interfaz de ventas.
+  mainWindow.webContents.on('before-input-event', (_event, input) => {
+    if (input.type === 'keyDown' && input.key === 'F9') {
+      abrirVentanaDiagnosticoBascula();
+    }
   });
 
   mainWindow.setMenuBarVisibility(false);
 
-  // Diagnóstico de recargas: deja constancia de cada navegación de la ventana.
+  // Diagnóstico de recargas: en desarrollo se persiste cada navegación en disco.
+  // En producción solo registramos fallos/caídas para no golpear el disco en
+  // cada navegación normal (bloqueaba visiblemente el arranque de módulos).
+  const soloRegistrarErrores = app.isPackaged;
   const registrarNavegacion = (evento, detalle = '') => {
+    if (soloRegistrarErrores && evento !== 'did-fail-load' && evento !== 'render-process-gone' && evento !== 'unresponsive') {
+      return;
+    }
     try {
       const linea = `[${new Date().toISOString()}] ${evento} ${detalle}\n`;
       fs.appendFileSync(path.join(app.getPath('userData'), 'navegacion.log'), linea, 'utf8');
@@ -650,8 +882,19 @@ function createMainWindow(serverUrl) {
     mainWindow.show();
   });
 
-  mainWindow.on('close', () => {
-    stopPhpServer();
+  mainWindow.on('close', (event) => {
+    if (salidaAutorizada) return;
+    event.preventDefault();
+    solicitarCierreAplicacion().catch(() => {});
+  });
+
+  // Windows puede terminar la sesión sin recorrer el cierre normal de Electron.
+  // Esta señal garantiza que el lector auxiliar y COM3 terminen primero.
+  mainWindow.on('session-end', () => {
+    solicitarCierreAplicacion().catch(() => {
+      salidaAutorizada = true;
+      app.exit(1);
+    });
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -811,6 +1054,10 @@ app.on('second-instance', () => {
 
 app.whenReady().then(async () => {
   try {
+    guardarDiagnosticoBascula('inicio', {
+      compilacion: identidadCompilacion(),
+      cierreAnterior: leerUltimoCierreBascula()
+    });
     connectionConfig = readConnectionConfig();
     const serverMode = connectionConfig.mode === 'server';
     activeBindHost = serverMode ? LAN_BIND_HOST : SERVER_HOST;
@@ -827,22 +1074,56 @@ app.whenReady().then(async () => {
     }
     const serverUrl = `http://${SERVER_HOST}:${activePort}`;
     await startPhpServer(activePort, activeBindHost);
+    // Precalienta el servidor en segundo plano mientras se abre la ventana.
+    setImmediate(() => warmUpPhpServer(activePort));
     createMainWindow(serverUrl);
+    // La báscula se conecta sola al arrancar y se mantiene abierta toda la sesión.
+    basculaService.iniciar();
   } catch (error) {
     showFatalError('No se pudo iniciar la aplicación.', error.message);
     app.quit();
   }
 });
 
-app.on('before-quit', () => {
-  stopPhpServer();
+async function solicitarCierreAplicacion({ reiniciar = false } = {}) {
+  if (cierreEnCurso) return cierreEnCurso;
+  cierreEnCurso = (async () => {
+    const inicioCierre = Date.now();
+    basculaService.registrar('info', reiniciar ? 'Reinicio seguro de ESTRELLA solicitado' : 'Cierre seguro de ESTRELLA solicitado');
+    const resultadoBascula = await basculaService.detener();
+    const cierreRegistrado = guardarUltimoCierreBascula({
+      ok: Boolean(resultadoBascula?.cerrado),
+      reiniciar,
+      duracionMs: Date.now() - inicioCierre,
+      resultado: resultadoBascula
+    });
+    guardarDiagnosticoBascula('cierre', cierreRegistrado);
+    if (ventanaDiagnosticoBascula && !ventanaDiagnosticoBascula.isDestroyed()) {
+      ventanaDiagnosticoBascula.destroy();
+      ventanaDiagnosticoBascula = null;
+    }
+    await stopPhpServerAndWait();
+    salidaAutorizada = true;
+    if (reiniciar) app.relaunch();
+    for (const ventana of BrowserWindow.getAllWindows()) {
+      if (!ventana.isDestroyed()) ventana.destroy();
+    }
+    app.exit(0);
+  })();
+  return cierreEnCurso;
+}
+
+app.on('before-quit', (event) => {
+  if (salidaAutorizada) return;
+  event.preventDefault();
+  solicitarCierreAplicacion().catch(() => {
+    salidaAutorizada = true;
+    app.exit(1);
+  });
 });
 
 app.on('window-all-closed', () => {
-  stopPhpServer();
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  if (process.platform !== 'darwin' && !salidaAutorizada) solicitarCierreAplicacion().catch(() => {});
 });
 
 app.on('activate', () => {
@@ -852,137 +1133,41 @@ app.on('activate', () => {
   }
 });
 
-ipcMain.handle('bascula-listar-puertos', async () => {
-  const puertos = await SerialPort.list();
-  console.info('[BASCULA][ELECTRON] puertos detectados:', puertos.map((puerto) => ({ path: puerto.path, manufacturer: puerto.manufacturer || '' })));
-  return puertos.map((puerto) => ({
-    path: puerto.path,
-    manufacturer: puerto.manufacturer || '',
-    serialNumber: puerto.serialNumber || '',
-    vendorId: puerto.vendorId || '',
-    productId: puerto.productId || ''
-  }));
+// ---------------------------------------------------------------------------
+// Báscula ACS-30: canales IPC (única vía de comunicación con el frontend)
+// ---------------------------------------------------------------------------
+ipcMain.handle('bascula:estado', async () => basculaService.estado());
+
+ipcMain.handle('bascula:diagnostico-peso-inventario', async (_event, etapa, detalle = {}) => {
+  return registrarDiagnosticoPesoInventario(etapa, detalle);
 });
 
-ipcMain.handle('bascula-conectar', async (event, options = {}) => {
-  return encolarOperacionBalanza(async () => {
-    console.info('[BASCULA][ELECTRON] solicitud de conexión:', options);
-    await cerrarPuertoBalanzaSiExiste();
-
-    const pathName = String(options.path || '').trim();
-    const baudRate = Number(options.baudRate);
-    const dataBits = Number(options.dataBits);
-    const stopBits = Number(options.stopBits);
-    const parity = String(options.parity || 'none');
-    if (!pathName) throw new Error('Puerto no disponible');
-    const puertos = await SerialPort.list();
-    puertosDetectadosBalanza = puertos.map(item => ({ path: item.path, manufacturer: item.manufacturer || '', vendorId: item.vendorId || '', productId: item.productId || '' }));
-    const puertoSeleccionado = puertos.find((puerto) => puerto.path === pathName);
-    if (!puertoSeleccionado || !/CH340|USB-SERIAL|wch\.cn/i.test(`${puertoSeleccionado.path} ${puertoSeleccionado.manufacturer}`)) {
-      throw new Error('Seleccione el puerto USB-SERIAL CH340 de la ACS-30, no COM1.');
-    }
-    if (!Number.isInteger(baudRate) || baudRate <= 0) throw new Error('Debe indicar el baud rate real de la ACS-30.');
-    if (![5, 6, 7, 8].includes(dataBits) || ![1, 2].includes(stopBits) || !['none', 'even', 'odd', 'mark', 'space'].includes(parity)) {
-      throw new Error('Parámetros seriales no válidos.');
-    }
-
-    try {
-      basculaSerial = await abrirPuertoBalanzaConFallback(pathName, { baudRate, dataBits, parity, stopBits });
-      basculaSerial.on('data', (data) => {
-        publicarTramaBalanza(data);
-      });
-      const puertoAbierto = basculaSerial;
-      puertoAbierto.on('close', () => {
-        if (basculaSerial !== puertoAbierto) return;
-        basculaSerial = null;
-        intentosConexionBalanza = 0;
-        publicarEstadoBalanza();
-        if (!mainWindow?.isDestroyed()) mainWindow.webContents.send('bascula-estado', { estado: 'desconectada' });
-      });
-      puertoAbierto.on('error', (error) => {
-        if (!mainWindow?.isDestroyed()) mainWindow.webContents.send('bascula-error', { mensaje: error.message });
-        if (puertoAbierto.isOpen) {
-          puertoAbierto.close(() => {
-            if (basculaSerial !== puertoAbierto) return;
-            basculaSerial = null;
-            intentosConexionBalanza = 0;
-            publicarEstadoBalanza();
-          });
-        }
-      });
-
-      console.info('[BASCULA][ELECTRON] puerto abierto correctamente:', pathName);
-      return { path: pathName };
-    } catch (error) {
-      console.error('[BASCULA][ELECTRON] error al abrir puerto:', { path: pathName, message: error.message, stack: error.stack });
-      basculaSerial = null;
-      const mensaje = String(error?.message || '');
-      if (/Unknown error code 31|Access is denied|The port is already open|COM3/i.test(mensaje)) {
-        throw new Error(`El puerto ${pathName} está ocupado por otra aplicación, por otro programa del sistema o la báscula no responde. Revisa si COM3 está abierto en otra app y ciérrala antes de intentar de nuevo.`);
-      }
-      throw error;
-    }
-  });
+ipcMain.handle('bascula:diagnostico', async () => {
+  return {
+    ...(await basculaService.diagnostico()),
+    diagnosticoPermisos: ultimoDiagnosticoPermisos,
+    compilacion: identidadCompilacion(),
+    cierreAnterior: leerUltimoCierreBascula()
+  };
 });
 
-async function conectarBasculaAutomatica() {
-  if (basculaSerial?.isOpen) return;
-  if (basculaSerial && !basculaSerial.isOpen) basculaSerial = null;
-  if (reconexionBalanzaEnCurso) return;
-  reconexionBalanzaEnCurso = true;
-  intentosConexionBalanza += 1;
-  try {
-    const puertos = await actualizarPuertosDetectadosBalanza();
-    const puerto = puertos.find(item => String(item.vendorId).toLowerCase() === '1a86' && String(item.productId).toLowerCase() === '7523')
-      || puertos.find(item => /USB-SERIAL|CH340|wch\.cn/i.test(`${item.path} ${item.manufacturer}`))
-      || puertos.find(item => /COM3/i.test(item.path));
-    if (!puerto) {
-      intentosConexionBalanza = 0;
-      return;
-    }
-
-    basculaSerial = await abrirPuertoBalanzaConFallback(puerto.path, { baudRate: 9600, dataBits: 8, parity: 'none', stopBits: 1 });
-    basculaSerial.on('data', publicarTramaBalanza);
-    const puertoAbierto = basculaSerial;
-    basculaSerial.on('close', () => {
-      if (basculaSerial !== puertoAbierto) return;
-      basculaSerial = null;
-      intentosConexionBalanza = 0;
-      publicarEstadoBalanza();
-    });
-    basculaSerial.on('error', error => {
-      console.error('Báscula automática:', error.message);
-      if (puertoAbierto.isOpen) {
-        puertoAbierto.close(() => {
-          if (basculaSerial !== puertoAbierto) return;
-          basculaSerial = null;
-          intentosConexionBalanza = 0;
-          publicarEstadoBalanza();
-        });
-      }
-    });
-    publicarEstadoBalanza();
-    intentosConexionBalanza = 0;
-    console.log(`Báscula conectada automáticamente en ${puerto.path}`);
-  } catch (error) {
-    basculaSerial = null;
-    console.error('No se pudo conectar automáticamente la báscula:', error.message);
-  } finally {
-    reconexionBalanzaEnCurso = false;
+ipcMain.handle('bascula:comando', async (_event, comando) => {
+  switch (String(comando || '')) {
+    case 'reconectar':
+      return basculaService.reconectar();
+    case 'probar-permisos':
+      return consultarPermisosBascula();
+    case 'tarar':
+      return basculaService.tarar();
+    case 'quitar-tara':
+      return basculaService.quitarTara();
+    case 'abrir-diagnostico':
+      abrirVentanaDiagnosticoBascula();
+      return { abierto: true };
+    default:
+      throw new Error(`Comando de báscula no reconocido: ${comando}`);
   }
-}
-
-ipcMain.handle('bascula-desconectar', async () => {
-  return encolarOperacionBalanza(async () => {
-    await cerrarPuertoBalanzaSiExiste();
-    publicarEstadoBalanza();
-  });
 });
-
-ipcMain.handle('bascula-probar', async () => ({
-  conectado: Boolean(basculaSerial?.isOpen),
-  path: basculaSerial?.path || null
-}));
 
 ipcMain.handle('open-external', async (_, url) => {
   await shell.openExternal(url);
@@ -1120,10 +1305,7 @@ ipcMain.handle('stop-main-server', async () => {
     ? { intentado: false, ok: false, mensaje: `Servidor apagado. Puerto ${puertoServidor} liberado.` }
     : firewall;
 
-  setTimeout(() => {
-    app.relaunch();
-    app.exit(0);
-  }, 700);
+  setTimeout(() => solicitarCierreAplicacion({ reiniciar: true }).catch(() => {}), 700);
 
   return {
     ok: true,
@@ -1137,9 +1319,8 @@ ipcMain.handle('stop-main-server', async () => {
 });
 
 ipcMain.handle('restart-app', async () => {
-  await stopPhpServerAndWait();
-  app.relaunch();
-  app.exit(0);
+  setImmediate(() => solicitarCierreAplicacion({ reiniciar: true }).catch(() => {}));
+  return { ok: true, restarting: true };
 });
 
 ipcMain.handle('check-remote-server', async (_, rawUrl) => {
@@ -1370,7 +1551,10 @@ ipcMain.handle('save-html-pdf', async (_, payload = {}) => {
 });
 
 ipcMain.handle('save-exported-database', async (_, filename, data) => {
-  const result = await dialog.showSaveDialog(mainWindow, {
+  const ownerWindow = mainWindow && !mainWindow.isDestroyed()
+    ? mainWindow
+    : BrowserWindow.getFocusedWindow();
+  const result = await dialog.showSaveDialog(ownerWindow, {
     title: 'Guardar base de datos del taller de mecánica',
     defaultPath: filename,
     filters: [{ name: 'Base de datos del taller', extensions: ['zip'] }]
@@ -1379,7 +1563,13 @@ ipcMain.handle('save-exported-database', async (_, filename, data) => {
     return { saved: false };
   }
 
-  fs.writeFileSync(result.filePath, Buffer.from(data));
+  const contenido = data instanceof ArrayBuffer
+    ? Buffer.from(new Uint8Array(data))
+    : Buffer.from(data);
+  if (!contenido.length) {
+    throw new Error('La exportación llegó vacía. Vuelve a intentarlo.');
+  }
+  fs.writeFileSync(result.filePath, contenido);
 
   return { saved: true, filePath: result.filePath, filename };
 });

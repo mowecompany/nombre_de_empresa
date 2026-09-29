@@ -56,6 +56,21 @@ try {
             } else {
                 throw new Exception('Error al obtener productos');
             }
+        } elseif (isset($_GET['action']) && $_GET['action'] === 'getPaginado') {
+            $limite = min(200, max(1, (int)($_GET['limit'] ?? 50)));
+            $result = $producto->getPaginado([
+                'limit' => $limite + 1,
+                'offset' => $_GET['offset'] ?? 0,
+                'search' => $_GET['search'] ?? ''
+            ]);
+            $hasMore = count($result) > $limite;
+            echo json_encode([
+                'success' => true,
+                'data' => array_slice($result, 0, $limite),
+                'has_more' => $hasMore,
+                'limit' => $limite,
+                'offset' => max(0, (int)($_GET['offset'] ?? 0))
+            ]);
         } elseif (isset($_GET['action']) && $_GET['action'] === 'getOne' && isset($_GET['id'])) {
             // Obtener un producto por ID
             if (!is_numeric($_GET['id'])) {
@@ -374,11 +389,14 @@ try {
 
                     $nombreCategoriaSeleccionada = mb_strtolower(trim((string)($categoriaSeleccionada['nombre'] ?? '')), 'UTF-8');
                     $nombreCategoriaSeleccionada = strtr($nombreCategoriaSeleccionada, ['á'=>'a','é'=>'e','í'=>'i','ó'=>'o','ú'=>'u','ü'=>'u','ñ'=>'n']);
+                    $categoriaAdmiteGramos = in_array($nombreCategoriaSeleccionada, ['frutas', 'verduras', 'carnicos y refrigerados'], true);
                     $ventaPorKiloEnviado = isset($_POST['venta_por_kilo'])
                         ? (int)$_POST['venta_por_kilo'] === 1
                         : (int)($productoAntes->venta_por_kilo ?? 0) === 1;
                     if (isset($_POST['stock'])) {
-                        $producto->setStock($parseDecimalInput($_POST['stock']));
+                        $producto->setStock($categoriaAdmiteGramos || $ventaPorKiloEnviado
+                            ? $parseDecimalInput($_POST['stock'])
+                            : (int)$parseDecimalInput($_POST['stock']));
                     }
 
                     $producto->setCategoriaId($categoriaIdNuevo);
@@ -397,10 +415,10 @@ try {
 
                     // Registrar un movimiento de entrada informativo al editar el producto con datos de stock/precio
                     $stockAnterior = isset($productoAntes->stock)
-                        ? (float)$productoAntes->stock
+                        ? ($categoriaAdmiteGramos || $ventaPorKiloEnviado ? (float)$productoAntes->stock : (int)$productoAntes->stock)
                         : 0;
                     $stockNuevo = isset($_POST['stock'])
-                        ? $parseDecimalInput($_POST['stock'])
+                        ? ($categoriaAdmiteGramos || $ventaPorKiloEnviado ? $parseDecimalInput($_POST['stock']) : (int)$parseDecimalInput($_POST['stock']))
                         : $stockAnterior;
                     $precioAnterior = isset($productoAntes->precio) ? (float)$productoAntes->precio : 0;
                     $precioNuevo = isset($_POST['precio']) ? $parseDecimalInput($_POST['precio']) : $precioAnterior;
@@ -409,7 +427,9 @@ try {
                     $cambioStock = $stockNuevo - $stockAnterior;
                     $cambioPrecio = $precioNuevo - $precioAnterior;
                     $cambioPrecioCompra = $precioCompraNuevo !== null && $productoAntes !== null ? $precioCompraNuevo - (float)($productoAntes->precio ?? 0) : 0;
-                    $debeRegistrarEntradaEdicion = $cambioStock > 0 || ($precioCompraNuevo !== null && $precioCompraNuevo > 0) || abs($cambioPrecio) > 0;
+                    $origenEdicion = trim((string)($_POST['origen'] ?? ''));
+                    $debeRegistrarEntradaEdicion = $origenEdicion !== 'productos'
+                        && ($cambioStock > 0 || ($precioCompraNuevo !== null && $precioCompraNuevo > 0) || abs($cambioPrecio) > 0);
 
                     if ($debeRegistrarEntradaEdicion) {
                         try {

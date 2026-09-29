@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Si se recibió PHPSESSID como parámetro (desde iframe), usarlo para la sesión
 if (isset($_GET['PHPSESSID']) && !empty($_GET['PHPSESSID'])) {
     session_id($_GET['PHPSESSID']);
@@ -66,6 +66,8 @@ if ($esSuperAdmin) {
 // Obtener productos para los selectores
 try {
     $db = Database::connect();
+    require_once __DIR__ . '/../Models/Producto.php';
+    new Producto($db);
 
     $empresaIdSesion = isset($_SESSION['empresa_id']) ? (int)$_SESSION['empresa_id'] : (int)($_SESSION['userData']['empresa_id'] ?? 0);
     $usuarioIdSesion = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : (int)($_SESSION['userData']['idusuario'] ?? ($_SESSION['userData']['id'] ?? 0));
@@ -465,10 +467,12 @@ if (is_file($logoPdfPath)) {
         .productos-categoria-salida-grid {
             display: grid;
             grid-template-columns: repeat(8, minmax(0, 1fr));
+            grid-auto-rows: auto;
             gap: 14px;
             padding: 18px;
             max-height: 65vh;
             overflow-y: auto;
+            align-items: stretch;
         }
 
         .categoria-salida-option {
@@ -699,10 +703,59 @@ if (is_file($logoPdfPath)) {
         /* Estadísticas */
         .stats-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+            gap: 16px;
             margin-bottom: 30px;
             flex-wrap: wrap;
+            min-width: 0;
+        }
+
+        #ventasDiaModal .stats-container {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        #valorInventarioModal .stats-container {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        #reordenModal .stats-container {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        @media (max-width: 1200px) {
+            #ventasDiaModal .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            #valorInventarioModal .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            #reordenModal .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            #ventasDiaModal .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            #valorInventarioModal .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            #reordenModal .stats-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            #ventasDiaModal .stats-container {
+                grid-template-columns: 1fr;
+            }
+            #valorInventarioModal .stats-container {
+                grid-template-columns: 1fr;
+            }
+            #reordenModal .stats-container {
+                grid-template-columns: 1fr;
+            }
         }
 
         .stats-container .stat-content p[id^="valorVentas"],
@@ -794,12 +847,14 @@ if (is_file($logoPdfPath)) {
         .stat-card {
             background: white;
             border-radius: 12px;
-            padding: 25px;
+            padding: 16px 18px;
             box-shadow: 0 4px 12px rgba(47, 74, 90, 0.08);
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 14px;
             transition: all 0.3s ease;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .stat-card:hover {
@@ -808,13 +863,14 @@ if (is_file($logoPdfPath)) {
         }
 
         .stat-icon {
-            width: 70px;
-            height: 70px;
+            width: 48px;
+            height: 48px;
+            flex: 0 0 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 20px;
             color: var(--primary-blue); /* icon blue */
             background: white; /* circle white */
             border: 2px solid var(--primary-blue);
@@ -831,37 +887,77 @@ if (is_file($logoPdfPath)) {
         .stat-content {
             min-width: 0;
             flex: 1;
+            overflow: hidden;
         }
 
         .stat-content p {
-            font-size: clamp(20px, 1.9vw, 32px);
+            font-size: clamp(13px, 1.35vw, 22px);
             font-weight: 700;
             color: var(--primary-blue);
+            max-width: 100%;
+            width: 100%;
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.15;
         }
 
-        #valorInventarioModal .stat-card {
-            padding: 18px 16px;
+        #stockTotal,
+        #valorTotal,
+        #totalProductos,
+        #bajoStock {
+            font-size: clamp(13px, 1.3vw, 20px) !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        #stockTotalModal .stats-container,
+        #reordenModal .stats-container {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        #valorInventarioModal .stats-container {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+
+        #stockTotalModal .stat-card,
+        #valorInventarioModal .stat-card,
+        #reordenModal .stat-card {
+            padding: 18px 14px;
             gap: 12px;
             min-width: 0;
         }
 
-        #valorInventarioModal .stat-content {
+        #stockTotalModal .stat-content,
+        #valorInventarioModal .stat-content,
+        #reordenModal .stat-content {
             min-width: 0;
             flex: 1 1 auto;
         }
 
-        #valorInventarioModal .stat-content h3 {
+        #stockTotalModal .stat-content h3,
+        #valorInventarioModal .stat-content h3,
+        #reordenModal .stat-content h3 {
             margin-bottom: 6px;
             line-height: 1.2;
+            white-space: nowrap;
         }
 
-        #valorInventarioModal .stat-content p {
-            font-size: clamp(30px, 2vw + 16px, 56px);
+        #stockTotalModal .stat-content p,
+        #valorInventarioModal .stat-content p,
+        #reordenModal .stat-content p {
+            font-size: clamp(14px, 1.6vw, 22px);
             line-height: 1.15;
             white-space: nowrap;
-            overflow: visible;
-            text-overflow: unset;
-            word-break: normal;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #stockTotalModal th,
+        #valorInventarioModal th,
+        #reordenModal th {
+            white-space: nowrap;
         }
 
         .ganancia-item {
@@ -1187,9 +1283,9 @@ if (is_file($logoPdfPath)) {
         #stockTotalModal .modal-content,
         #valorInventarioModal .modal-content,
         #reordenModal .modal-content {
-            width: min(96vw, 1500px);
-            max-width: min(96vw, 1500px) !important;
-            max-height: 90vh;
+            width: min(96vw, 1600px);
+            max-width: min(96vw, 1600px) !important;
+            max-height: 94vh;
             padding: 0;
             display: flex;
             flex-direction: column;
@@ -1373,7 +1469,8 @@ if (is_file($logoPdfPath)) {
         #valorInventarioModal .modal-content,
         #reordenModal .modal-content {
             height: auto !important;
-            max-height: 90vh !important;
+            min-height: min(88vh, 920px);
+            max-height: 94vh !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
         }
@@ -1538,6 +1635,11 @@ if (is_file($logoPdfPath)) {
         .badge-credit {
             background: rgba(29, 78, 216, 0.12);
             color: #1d4ed8;
+        }
+
+        .badge-abono {
+            background: rgba(22, 101, 52, 0.12);
+            color: #166534;
         }
 
         .badge-danger {
@@ -1808,7 +1910,14 @@ if (is_file($logoPdfPath)) {
             #reordenModal .modal-content {
                 width: 98vw;
                 max-width: 98vw !important;
-                max-height: 92vh;
+                min-height: 0;
+                max-height: 94vh;
+            }
+
+            #stockTotalModal .stats-container,
+            #valorInventarioModal .stats-container,
+            #reordenModal .stats-container {
+                grid-template-columns: 1fr;
             }
 
             #ventasDiaModal .modal-content {
@@ -2248,6 +2357,9 @@ if (is_file($logoPdfPath)) {
             text-transform: uppercase !important;
         }
     </style>
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/redondeo-precio-venta.js"></script>
 </head>
 <body class="inventario">
     <!-- Header -->
@@ -2346,13 +2458,18 @@ if (is_file($logoPdfPath)) {
         <!-- TAB: RESUMEN -->
         <div id="resumen" class="tab-content active">
             <div class="card">
-                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                    <h2><i class="fas fa-list"></i> RESUMEN DE INVENTARIO</h2>
+                <div class="inventory-list-toolbar" data-inventory-toolbar="resumen" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <input type="search" class="inventory-list-search" placeholder="BUSCAR PRODUCTO..." style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
+                    <select class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                    <div class="inventory-pagination" style="display:flex;gap:6px;"></div>
                     <?php if ($esSuperAdminGlobalInventario || $esAdministradorContexto): ?>
                         <button type="button" onclick="verificarYAlertarProductosCriticosYUrgentes()" title="Mostrar alerta de stock cero" aria-label="Mostrar alerta de stock cero" style="width:34px;height:34px;flex:0 0 34px;border:0;border-radius:50%;background:#d33;color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(211,51,51,.25);">
                             <i class="fas fa-triangle-exclamation"></i>
                         </button>
                     <?php endif; ?>
+                </div>
+                <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                    <h2><i class="fas fa-list"></i> RESUMEN DE INVENTARIO</h2>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
                     <table id="salidasTable" class="resumen-inventario-table <?= $puedeVerID ? 'con-id' : 'sin-id' ?>" style="min-width: 900px;">
@@ -2382,6 +2499,11 @@ if (is_file($logoPdfPath)) {
         <!-- TAB: ENTRADAS -->
         <div id="entradas" class="tab-content">
             <div class="card">
+                <div class="inventory-list-toolbar" data-inventory-toolbar="entradas" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <input type="search" class="inventory-list-search" placeholder="BUSCAR ENTRADA..." style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
+                    <select class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                    <div class="inventory-pagination" style="display:flex;gap:6px;"></div>
+                </div>
                 <div class="card-header">
                     <h2><i class="fas fa-arrow-down"></i> ENTRADAS DE INVENTARIO</h2>
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -2414,10 +2536,11 @@ if (is_file($logoPdfPath)) {
                                 <th><i class="fas fa-calendar-check"></i> FECHA VENCIMIENTO</th>
                                 <th><i class="fas fa-calendar-alt"></i> FECHA/HORA</th>
                                 <th><i class="fas fa-user"></i> USUARIO</th>
+                                <?php if ($esSuperAdminGlobalInventario): ?><th style="width:80px;"><i class="fas fa-cogs"></i> ACCIONES</th><?php endif; ?>
                             </tr>
                         </thead>
                         <tbody id="entradasTableBody">
-                            <tr><td colspan="<?= $puedeVerID ? 10 : 9 ?>" style="text-align: center; padding: 20px;">Cargando...</td></tr>
+                            <tr><td colspan="<?= $puedeVerID ? ($esSuperAdminGlobalInventario ? 11 : 10) : ($esSuperAdminGlobalInventario ? 10 : 9) ?>" style="text-align: center; padding: 20px;">Cargando...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -2427,6 +2550,11 @@ if (is_file($logoPdfPath)) {
         <!-- TAB: SALIDAS -->
         <div id="salidas" class="tab-content">
             <div class="card">
+                <div class="inventory-list-toolbar" data-inventory-toolbar="salidas" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <input type="search" class="inventory-list-search" placeholder="BUSCAR SALIDA..." style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
+                    <select class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                    <div class="inventory-pagination" style="display:flex;gap:6px;"></div>
+                </div>
                 <div class="card-header">
                     <h2><i class="fas fa-arrow-up"></i> SALIDAS DE INVENTARIO</h2>
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -2478,6 +2606,11 @@ if (is_file($logoPdfPath)) {
         <!-- TAB: MOVIMIENTOS -->
         <div id="movimientos" class="tab-content">
             <div class="card">
+                <div class="inventory-list-toolbar" data-inventory-toolbar="movimientos" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <input type="search" class="inventory-list-search" placeholder="BUSCAR MOVIMIENTO..." style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
+                    <select class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                    <div class="inventory-pagination" style="display:flex;gap:6px;"></div>
+                </div>
                 <div class="card-header">
                     <h2><i class="fas fa-exchange-alt"></i> HISTORIAL DE MOVIMIENTOS</h2>
                     <?php if ($esSuperAdminGlobalInventario): ?>
@@ -2529,6 +2662,17 @@ if (is_file($logoPdfPath)) {
             <div class="modal-body" id="detallesMovimientosContent" style="padding: 20px;">
                 <!-- Contenido dinámico -->
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: HISTORIAL DE ABONOS DEL CRÉDITO -->
+    <div id="modalHistorialAbonosSalida" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.52);align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+        <div style="background:#fff;border-radius:12px;padding:24px;width:min(560px,calc(100% - 28px));max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18);" onclick="event.stopPropagation()">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="margin:0;color:#2f4a5a;font-size:18px;"><i class="fas fa-hand-holding-usd" style="color:#166534;margin-right:8px;"></i>HISTORIAL DE ABONOS</h3>
+                <button type="button" onclick="document.getElementById('modalHistorialAbonosSalida').style.display='none'" style="border:0;background:transparent;font-size:22px;cursor:pointer;color:#64748b;">&times;</button>
+            </div>
+            <div id="modalHistorialAbonosSalidaBody"></div>
         </div>
     </div>
 
@@ -2599,10 +2743,14 @@ if (is_file($logoPdfPath)) {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="cantidadEntrada"><i class="fas fa-cubes"></i> <span id="unidadEntradaLabel">CANTIDAD</span> *</label>
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <button type="button" onclick="decrementarCantidad('cantidadEntrada')" style="padding: 6px 12px; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">−</button>
                             <input type="number" id="cantidadEntrada" min="1" step="1" value="1" autocomplete="off" required style="width: 80px; text-align: center; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                             <button type="button" onclick="incrementarCantidad('cantidadEntrada')" style="padding: 6px 12px; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">+</button>
+                            <span id="basculaEntradaPesoDisplay" style="display:none; align-items:center; justify-content:center; min-width:86px; padding:4px 10px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; font-weight:800; color:#475569; font-variant-numeric:tabular-nums; white-space:nowrap;">0.000 kg</span>
+                            <button type="button" id="basculaEntradaWidget" class="bascula-led-btn rojo" style="display:none; padding:6px 10px; min-width:0;" disabled>
+                                <span class="bascula-led-punto"></span>
+                            </button>
                         </div>
                     </div>
                     <div class="form-group">
@@ -2690,7 +2838,7 @@ if (is_file($logoPdfPath)) {
                 </div>
                 <div class="form-group">
                     <label for="cantidadProductoDanado"><i class="fas fa-scale-balanced"></i> CANTIDAD DAÑADA *</label>
-                    <input type="number" id="cantidadProductoDanado" min="1" step="1" required>
+                    <input type="number" id="cantidadProductoDanado" min="0" step="any" inputmode="decimal" required>
                     <small id="stockProductoDanado" style="display:block;margin-top:6px;color:#64748b;font-weight:700;"></small>
                 </div>
                 <div class="form-group">
@@ -2709,7 +2857,8 @@ if (is_file($logoPdfPath)) {
                 <h2><i class="fas fa-box-open"></i> NUEVA SALIDA DE INVENTARIO</h2>
                 <button class="close-btn" onclick="cerrarModal('salidaModal')">&times;</button>
             </div>
-            <form autocomplete="off" onsubmit="registrarSalida(event)">
+            <div id="paginasSalidaPanel" style="display:flex; align-items:center; gap:6px; overflow-x:auto; margin:0 0 12px; padding:2px 0 6px; border-bottom:1px solid #e2e8f0;"></div>
+            <form autocomplete="off" novalidate onsubmit="registrarSalida(event)">
                 <div class="form-group">
                     <div style="display:grid; grid-template-columns:minmax(0,450px) minmax(0,1fr); align-items:start; gap:10px; width:100%; margin:0 0 8px;">
                         <label for="productoSalida" style="display:flex; align-items:center; flex:0 0 auto; margin:0;"><i class="fas fa-box"></i> PRODUCTO *</label>
@@ -2726,7 +2875,7 @@ if (is_file($logoPdfPath)) {
                                 $imgFileSalida = htmlspecialchars($prod->imagen ?? '');
                                 $codigoDisplay = $prod->codigo ? " [{$prod->codigo}]" : "";
                                 $descPct = (float)($prod->descuento_porcentaje ?? 0);
-                                $precioBas = (float)($prod->precio ?? 0);
+                                $precioBas = function_exists('redondearPrecioVenta') ? redondearPrecioVenta((float)($prod->precio ?? 0)) : (float)($prod->precio ?? 0);
                                 $precioFinalCalc = $precioBas;
                                 $stockActual = (float)($prod->stock ?? 0);
                                 $stockReservado = (int)($prod->reservado ?? 0);
@@ -2744,7 +2893,7 @@ if (is_file($logoPdfPath)) {
                                 $imgFileSalida = htmlspecialchars($prod->imagen ?? '');
                                 $codigoDisplay = $prod->codigo ? " [{$prod->codigo}]" : "";
                                 $descPct = (float)($prod->descuento_porcentaje ?? 0);
-                                $precioBas = (float)($prod->precio ?? 0);
+                                $precioBas = function_exists('redondearPrecioVenta') ? redondearPrecioVenta((float)($prod->precio ?? 0)) : (float)($prod->precio ?? 0);
                                 $precioFinalCalc = $precioBas;
                                 $stockActual = (float)($prod->stock ?? 0);
                                 $stockReservado = (int)($prod->reservado ?? 0);
@@ -2762,16 +2911,22 @@ if (is_file($logoPdfPath)) {
                         <button type="button" class="categoria-salida-option" data-categoria-id="frutas" onclick="abrirProductosCategoriaSalida('frutas', 'FRUTAS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-apple-whole"></i> FRUTAS</button>
                         <button type="button" class="categoria-salida-option" data-categoria-id="verduras" onclick="abrirProductosCategoriaSalida('verduras', 'VERDURAS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-carrot"></i> VERDURAS</button>
                         <button type="button" class="categoria-salida-option" data-categoria-id="carnicos-refrigerados" onclick="abrirProductosCategoriaSalida('carnicos-refrigerados', 'CÁRNICOS Y REFRIGERADOS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-drumstick-bite"></i> CÁRNICOS Y REFRIGERADOS</button>
+                        <button type="button" class="categoria-salida-option" data-categoria-id="otros" onclick="abrirProductosCategoriaSalida('otros', 'OTROS')" style="height:46px; padding:8px 10px; border:1px solid #cbd5e1; border-radius:5px; background:#fff; color:#1e293b; cursor:pointer; font-size:12px; font-weight:700; text-transform:uppercase;"><i class="fas fa-tag"></i> OTROS</button>
                     </div>
                     </div>
                     <input type="hidden" id="codigoProductoSalida">
+                    <div id="grupoPresentacionSalida" style="display:none; margin-top:10px; flex-direction:column; gap:6px; align-items:flex-start;">
+                        <label for="presentacionSalida" style="margin:0;"><i class="fas fa-boxes-stacked"></i> PRESENTACIÓN *</label>
+                        <select id="presentacionSalida" style="min-width:260px; padding:8px; border:1px solid #ccc; border-radius:4px; text-transform:uppercase;"></select>
+                        <small id="ayudaPresentacionSalida" style="color:#475569; font-weight:700; text-transform:uppercase;"></small>
+                    </div>
                     <div id="productoSalidaDetalle" style="display:none; align-items:flex-start; gap:12px; margin-top:12px; padding:10px 0; border-top:1px solid #e2e8f0;">
                         <div style="display:flex; flex-direction:column; align-items:flex-start; gap:8px;">
                             <div class="form-group" style="margin:0; min-width:190px;">
                                 <label for="cantidadSalida" style="margin-bottom:5px;"><i class="fas fa-scale-balanced"></i> <span id="unidadSalidaLabel">CANTIDAD</span> *</label>
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <button type="button" onclick="decrementarCantidad('cantidadSalida')" style="width:32px; height:28px; padding:0; background:#26384d; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">−</button>
-                                    <input type="number" id="cantidadSalida" min="1" step="1" value="1" autocomplete="off" required style="width:80px; height:28px; text-align:center; padding:4px; border:1px solid #cbd5e1; border-radius:4px;">
+                                    <input type="number" id="cantidadSalida" min="0" step="any" value="1" autocomplete="off" inputmode="decimal" style="width:80px; height:28px; text-align:center; padding:4px; border:1px solid #cbd5e1; border-radius:4px;">
                                     <button type="button" onclick="incrementarCantidad('cantidadSalida')" style="width:32px; height:28px; padding:0; background:#26384d; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">+</button>
                                 </div>
                                 <small id="pesoSalidaResumen" style="display:none;"> </small>
@@ -2875,6 +3030,19 @@ if (is_file($logoPdfPath)) {
         <div class="modal-content" style="max-width:1250px; width:calc(100% - 28px);">
             <div class="modal-header">
                 <h2 id="productosCategoriaSalidaTitulo"><i class="fas fa-store"></i> PRODUCTOS</h2>
+                <span id="pesoVivoCategoriaModal" style="display:none; align-items:center; gap:7px; margin-left:14px; padding:6px 14px; border-radius:999px; font-size:15px; font-weight:800; letter-spacing:.3px; white-space:nowrap;"></span>
+                <style>
+                    @keyframes basculaLedParpadeo { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+                    .bascula-led-btn { display:inline-flex; align-items:center; gap:6px; margin-left:8px; padding:5px 12px 5px 9px; border:0; border-radius:999px; font-size:13px; font-weight:800; letter-spacing:.3px; white-space:nowrap; cursor:default; }
+                    .bascula-led-btn .bascula-led-punto { width:11px; height:11px; border-radius:50%; display:inline-block; animation: basculaLedParpadeo 1s ease-in-out infinite; }
+                    .bascula-led-btn.rojo { background:#fee2e2; color:#b91c1c; }
+                    .bascula-led-btn.rojo .bascula-led-punto { background:#dc2626; }
+                    .bascula-led-btn.verde { background:#dcfce7; color:#15803d; }
+                    .bascula-led-btn.verde .bascula-led-punto { background:#16a34a; }
+                </style>
+                <button type="button" id="basculaLedEstado" class="bascula-led-btn rojo" style="display:none;" disabled>
+                    <span class="bascula-led-punto"></span>
+                </button>
                 <div style="display:flex; align-items:center; gap:10px; min-width:0; margin-left:auto;">
                     <div style="display:flex; align-items:center; width:20%; min-width:150px; max-width:220px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; overflow:hidden;">
                         <input type="search" id="buscarProductosCategoriaSalida" placeholder="BUSCAR..." autocomplete="off" style="width:100%; min-width:0; border:0; outline:0; padding:8px 10px; font-size:12px; text-transform:uppercase;">
@@ -2889,7 +3057,7 @@ if (is_file($logoPdfPath)) {
 
     <!-- MODAL: RESUMEN VENTAS DEL DÍA -->
     <div id="ventasDiaModal" class="modal">
-        <div class="modal-content" style="max-width: 1000px;">
+        <div class="modal-content" style="max-width: 1400px;">
             <div class="modal-header">
                 <h2><i class="fas fa-chart-line"></i> RESUMEN DE VENTAS</h2>
                 <button class="close-btn" onclick="cerrarModal('ventasDiaModal')">&times;</button>
@@ -3210,6 +3378,7 @@ if (is_file($logoPdfPath)) {
             </h2>
             <form id="formEditarProducto" autocomplete="off" onsubmit="submitEditarProducto(event)">
                 <input type="hidden" id="editProdId" name="id">
+                <input type="hidden" id="editProdVentaPorKilo" name="venta_por_kilo" value="0">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="editProdNombre"><i class="fas fa-box"></i> NOMBRE *</label>
@@ -3266,7 +3435,7 @@ if (is_file($logoPdfPath)) {
 
     <!-- MODAL: STOCK TOTAL -->
     <div id="stockTotalModal" class="modal">
-        <div class="modal-content" style="max-width: 1400px;">
+        <div class="modal-content" style="max-width: 1600px;">
             <div class="modal-header">
                 <h2><i class="fas fa-cubes"></i> DESGLOSE DE STOCK TOTAL</h2>
                 <button class="close-btn" onclick="cerrarModal('stockTotalModal')">&times;</button>
@@ -3519,6 +3688,157 @@ if (is_file($logoPdfPath)) {
         const inventarioControllerUrl = base_url + '/Controllers/InventarioController.php';
         const productoControllerUrl = base_url + '/Controllers/ProductoController.php';
 
+        const inventarioPaginas = new Map();
+        const inventarioTamanosPagina = new Map();
+        const inventarioFilasOriginales = new Map();
+        const inventarioObservadores = new Map();
+        const inventarioTablaPorClave = {
+            resumen: 'resumenTableBody',
+            entradas: 'entradasTableBody',
+            salidas: 'salidasTableBody',
+            movimientos: 'movimientosTableBody'
+        };
+
+        function actualizarPaginacionInventario(clave) {
+            const toolbar = document.querySelector(`[data-inventory-toolbar="${clave}"]`);
+            const tbody = document.getElementById(inventarioTablaPorClave[clave]);
+            if (!toolbar || !tbody) return;
+            const textoBusqueda = normalizarFiltroInventario(toolbar.querySelector('.inventory-list-search')?.value);
+            const textoBusquedaGeneral = normalizarFiltroInventario(document.getElementById('filtroResumen')?.value);
+            const estadoFilas = inventarioFilasOriginales.get(clave) || { filas: [], encabezados: new Map() };
+            const todasLasFilas = estadoFilas.filas;
+            const esSeparador = (fila) => fila.classList.contains('group-date');
+            const filasDatos = todasLasFilas.filter(fila => !esSeparador(fila));
+            const filas = filasDatos.filter((fila) => {
+                const contenido = normalizarFiltroInventario(`${fila.textContent} ${fila.dataset.busquedaInventario || ''}`);
+                return (!textoBusqueda || contenido.includes(textoBusqueda))
+                    && (!textoBusquedaGeneral || contenido.includes(textoBusquedaGeneral));
+            });
+            const selector = toolbar.querySelector('.inventory-page-size');
+            const porPagina = Math.max(1, Number(selector?.value || 50));
+            const totalPaginas = Math.max(1, Math.ceil(filas.length / porPagina));
+            const pagina = Math.min(inventarioPaginas.get(clave) || 0, totalPaginas - 1);
+            inventarioPaginas.set(clave, pagina);
+            const inicioNatural = pagina * porPagina;
+            const inicio = pagina === totalPaginas - 1 && filas.length > porPagina
+                ? Math.max(0, filas.length - porPagina)
+                : inicioNatural;
+            // Las filas ya llegan ordenadas de la más reciente a la más antigua.
+            // La última página cronológica se ancla al final para completar el tamaño seleccionado.
+            const filasPagina = filas.slice(inicio, inicio + porPagina);
+            const fragmento = document.createDocumentFragment();
+            let ultimoEncabezado = null;
+            filasPagina.forEach((fila) => {
+                const encabezado = estadoFilas.encabezados.get(fila) || null;
+                if (encabezado && encabezado !== ultimoEncabezado) {
+                    fragmento.appendChild(encabezado.cloneNode(true));
+                    ultimoEncabezado = encabezado;
+                }
+                fila.style.display = '';
+                fragmento.appendChild(fila);
+            });
+            const observador = inventarioObservadores.get(clave);
+            if (observador) observador.disconnect();
+            tbody.replaceChildren(fragmento);
+            if (observador) observador.observe(tbody, { childList: true });
+            toolbar.querySelector('.inventory-pagination').innerHTML = `
+                <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${pagina === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
+                <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - pagina} / ${totalPaginas}</span>
+                <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${pagina >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
+        }
+
+        function inicializarPaginacionInventario() {
+            Object.keys(inventarioTablaPorClave).forEach((clave) => {
+                const toolbar = document.querySelector(`[data-inventory-toolbar="${clave}"]`);
+                const tbody = document.getElementById(inventarioTablaPorClave[clave]);
+                if (!toolbar || !tbody) return;
+                toolbar.querySelector('.inventory-page-size')?.addEventListener('change', () => {
+                    const estadoFilas = inventarioFilasOriginales.get(clave) || { filas: [] };
+                    const textoBusqueda = normalizarFiltroInventario(toolbar.querySelector('.inventory-list-search')?.value);
+                    const textoBusquedaGeneral = normalizarFiltroInventario(document.getElementById('filtroResumen')?.value);
+                    const totalRegistros = estadoFilas.filas.filter((fila) => {
+                        if (fila.classList.contains('group-date')) return false;
+                        const contenido = normalizarFiltroInventario(`${fila.textContent} ${fila.dataset.busquedaInventario || ''}`);
+                        return (!textoBusqueda || contenido.includes(textoBusqueda))
+                            && (!textoBusquedaGeneral || contenido.includes(textoBusquedaGeneral));
+                    }).length;
+                    const tamanoAnterior = inventarioTamanosPagina.get(clave) || 50;
+                    const totalPaginasAnterior = Math.max(1, Math.ceil(totalRegistros / tamanoAnterior));
+                    const paginaInternaAnterior = Math.min(inventarioPaginas.get(clave) || 0, totalPaginasAnterior - 1);
+                    const paginaVisibleAnterior = totalPaginasAnterior - paginaInternaAnterior;
+                    const nuevoTamano = Number(toolbar.querySelector('.inventory-page-size')?.value || 50);
+                    const totalPaginasNuevo = Math.max(1, Math.ceil(totalRegistros / nuevoTamano));
+                    const paginaVisibleNueva = Math.min(paginaVisibleAnterior, totalPaginasNuevo);
+                    inventarioPaginas.set(clave, totalPaginasNuevo - paginaVisibleNueva);
+                    inventarioTamanosPagina.set(clave, nuevoTamano);
+                    actualizarPaginacionInventario(clave);
+                });
+                toolbar.querySelector('.inventory-list-search')?.addEventListener('input', () => {
+                    inventarioPaginas.set(clave, 0);
+                    actualizarPaginacionInventario(clave);
+                });
+                toolbar.addEventListener('click', (event) => {
+                    const paginaActual = inventarioPaginas.get(clave) || 0;
+                    if (event.target.closest('.inventory-page-prev')) inventarioPaginas.set(clave, Math.max(0, paginaActual - 1));
+                    if (event.target.closest('.inventory-page-next')) inventarioPaginas.set(clave, paginaActual + 1);
+                    actualizarPaginacionInventario(clave);
+                });
+                const observador = new MutationObserver(() => {
+                    const filas = Array.from(tbody.children).filter(fila => fila.tagName === 'TR');
+                    const encabezados = new Map();
+                    let encabezadoActual = null;
+                    filas.forEach((fila) => {
+                        if (fila.classList.contains('group-date')) {
+                            encabezadoActual = fila;
+                        } else {
+                            encabezados.set(fila, encabezadoActual);
+                        }
+                    });
+                    inventarioFilasOriginales.set(clave, { filas, encabezados });
+                    inventarioPaginas.set(clave, 0);
+                    actualizarPaginacionInventario(clave);
+                });
+                inventarioObservadores.set(clave, observador);
+                observador.observe(tbody, { childList: true });
+                const filasIniciales = Array.from(tbody.children).filter(fila => fila.tagName === 'TR');
+                inventarioFilasOriginales.set(clave, { filas: filasIniciales, encabezados: new Map() });
+                inventarioTamanosPagina.set(clave, Number(toolbar.querySelector('.inventory-page-size')?.value || 50));
+                actualizarPaginacionInventario(clave);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', inicializarPaginacionInventario, { once: true });
+
+        let productosConGananciaCache = null;
+        let productosConGananciaPromise = null;
+
+        function obtenerProductosConGanancia(force = false) {
+            if (!force && Array.isArray(productosConGananciaCache)) {
+                return Promise.resolve({ success: true, data: productosConGananciaCache });
+            }
+
+            if (!force && productosConGananciaPromise) {
+                return productosConGananciaPromise;
+            }
+
+            productosConGananciaPromise = fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
+                .then(response => response.json())
+                .then(data => {
+                    productosConGananciaCache = Array.isArray(data?.data) ? data.data : [];
+                    return data;
+                })
+                .finally(() => {
+                    productosConGananciaPromise = null;
+                });
+
+            return productosConGananciaPromise;
+        }
+
+        function invalidarCacheProductosConGanancia() {
+            productosConGananciaCache = null;
+            productosConGananciaPromise = null;
+        }
+
         const resolveAppUrl = (path) => {
             const value = String(path || '').trim();
             if (!value) return base_url;
@@ -3545,6 +3865,7 @@ if (is_file($logoPdfPath)) {
         const permisoEditar = <?= json_encode((bool)$tienePermisoEditar) ?>;
         const permisoCrear = <?= json_encode((bool)$tienePermisoCrear) ?>;
         const puedeVerID  = <?= json_encode((bool)$puedeVerID) ?>;
+        const esSuperAdminGlobal = <?= json_encode((bool)$esSuperAdminGlobalInventario) ?>;
         const phpSessionId = (new URLSearchParams(window.location.search)).get('PHPSESSID') || '';
         const accionInventarioDesdeUrl = (new URLSearchParams(window.location.search)).get('accion') || '';
 
@@ -3586,49 +3907,6 @@ if (is_file($logoPdfPath)) {
             }, 150);
         }
 
-        async function cerrarConexionWebSerialSalida(cerrarPuerto = false) {
-            const lector = lectorBalanzaSalida;
-            const puerto = puertoBalanzaSalida;
-            lectorBalanzaSalida = null;
-            puertoBalanzaSalida = null;
-            basculaNativaConectada = false;
-
-            if (lector) {
-                try {
-                    await lector.cancel();
-                    console.info('[BASCULA][WEB] reader cancelado');
-                } catch (error) {
-                    console.error('[BASCULA][WEB] error al cancelar reader', error);
-                }
-                try {
-                    lector.releaseLock();
-                    console.info('[BASCULA][WEB] reader releaseLock() completado');
-                } catch (error) {
-                    console.error('[BASCULA][WEB] error en reader.releaseLock()', error);
-                }
-            }
-
-            console.info('[BASCULA][WEB] pagehide completado; el navegador libera el puerto al destruir el documento');
-            if (cerrarPuerto && puerto?.close) {
-                try {
-                    await puerto.close();
-                    console.info('[BASCULA][WEB] port.close() completado');
-                } catch (error) {
-                    console.error('[BASCULA][WEB] error en port.close()', error);
-                    throw error;
-                }
-            }
-        }
-
-        window.addEventListener('message', async evento => {
-            if (evento.data?.tipo !== 'liberar-bascula-antes-de-navegar') return;
-            try {
-                await cerrarConexionWebSerialSalida(true);
-                evento.source?.postMessage({ tipo: 'bascula-liberada-para-navegar' }, evento.origin);
-            } catch (error) {
-                evento.source?.postMessage({ tipo: 'bascula-liberacion-error', mensaje: error?.message || String(error) }, evento.origin);
-            }
-        });
 
         document.addEventListener('DOMContentLoaded', abrirAccionInventarioDesdeUrl);
 
@@ -3667,7 +3945,9 @@ if (is_file($logoPdfPath)) {
         }
 
         function obtenerColspanEntradas() {
-            return puedeVerID ? 10 : 9;
+            return puedeVerID
+                ? (esSuperAdminGlobal ? 11 : 10)
+                : (esSuperAdminGlobal ? 10 : 9);
         }
 
         function actualizarSugerenciasResumen(items) {
@@ -3675,6 +3955,7 @@ if (is_file($logoPdfPath)) {
             (items || []).forEach(item => {
                 if (item && item.nombre) valores.set(String(item.nombre).trim(), String(item.nombre).trim());
                 if (item && item.codigo) valores.set(String(item.codigo).trim(), String(item.codigo).trim());
+                if (item && item.codigo_barras) valores.set(String(item.codigo_barras).trim(), String(item.codigo_barras).trim());
             });
             window.opcionesFiltroInventario = Array.from(valores.values()).filter(Boolean);
             renderResultadosFiltroInventario();
@@ -3696,24 +3977,9 @@ if (is_file($logoPdfPath)) {
         }
 
         function filtrarTablasInventario() {
-            const texto = normalizarFiltroInventario(document.getElementById('filtroResumen')?.value);
-            ['resumenTableBody', 'entradasTableBody', 'salidasTableBody', 'movimientosTableBody'].forEach(id => {
-                const tbody = document.getElementById(id);
-                if (!tbody) return;
-                const filas = Array.from(tbody.querySelectorAll('tr'));
-                filas.forEach(fila => {
-                    if (fila.classList.contains('group-date')) return;
-                    fila.style.display = !texto || normalizarFiltroInventario(fila.textContent).includes(texto) ? '' : 'none';
-                });
-                filas.filter(fila => fila.classList.contains('group-date')).forEach(encabezado => {
-                    let siguiente = encabezado.nextElementSibling;
-                    let visible = false;
-                    while (siguiente && !siguiente.classList.contains('group-date')) {
-                        if (siguiente.style.display !== 'none') visible = true;
-                        siguiente = siguiente.nextElementSibling;
-                    }
-                    encabezado.style.display = visible ? '' : 'none';
-                });
+            Object.keys(inventarioTablaPorClave).forEach((clave) => {
+                inventarioPaginas.set(clave, 0);
+                actualizarPaginacionInventario(clave);
             });
         }
 
@@ -3754,12 +4020,14 @@ if (is_file($logoPdfPath)) {
             modal.classList.add('active');
             document.body.classList.add('modal-open');
             if (modalId === 'salidaModal') {
+                restaurarPaginasSalidaPersistidas();
                 if (!yaEstabaActivo) {
                     const referenciaField = document.getElementById('referenciaSalida');
                     if (referenciaField) referenciaField.value = '';
                     inicializarReferenciaSalida();
                 }
                 inicializarCategoriasSalida();
+                renderPaginasSalida();
                 try { attachSalidaListeners(); } catch (e) {}
             }
             if (modalId === 'entradaModal' || modalId === 'salidaModal') {
@@ -3780,6 +4048,10 @@ if (is_file($logoPdfPath)) {
         // Cerrar modal
         function cerrarModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
+            if (modalId === 'productosCategoriaSalidaModal') {
+                detenerRefrescoPesoVivoCategoria();
+                registrarDiagnosticoPesoSalida('modal-cerrado', { origen: 'inventarios' });
+            }
             if (!document.querySelector('.modal.active')) {
                 document.body.classList.remove('modal-open');
             }
@@ -3791,11 +4063,25 @@ if (is_file($logoPdfPath)) {
             if (form) form.reset();
             if (modalId === 'entradaModal') {
                 resetEntradaModalFields();
+                detenerRefrescoPesoVivoEntrada();
+                // Ocultar widget de báscula al cerrar
+                const widget = document.getElementById('basculaEntradaWidget');
+                if (widget) widget.style.display = 'none';
+                const display = document.getElementById('basculaEntradaPesoDisplay');
+                if (display) {
+                    display.style.display = 'none';
+                    display.textContent = '0.000 kg';
+                    display.style.background = '#f1f5f9';
+                    display.style.borderColor = '#cbd5e1';
+                    display.style.color = '#475569';
+                }
+                _basculaEntradaUltimoPeso = null;
+                _basculaEntradaUltimoTs = 0;
             }
             if (modalId === 'salidaModal') {
-                carritoSalida = [];
                 ventaPorPesoCategoriaActiva = false;
-                renderCarritoSalida();
+                guardarPaginaSalidaActiva();
+                persistirPaginasSalida();
                 const cantidad = document.getElementById('cantidadSalida');
                 if (cantidad) {
                     cantidad.value = 1;
@@ -3824,6 +4110,10 @@ if (is_file($logoPdfPath)) {
         }
 
         let carritoSalida = [];
+        let paginasSalida = [{ items: [] }];
+        let paginaSalidaActiva = 0;
+        let paginasSalidaPersistidasCargadas = false;
+        const clavePaginasSalida = 'caja1_paginas_salida_pendientes';
         let productoSalidaSeleccionadoPorCategoria = null;
         let salidasAgrupadasCache = {};
         let movimientosAgrupadosCache = {};
@@ -3831,139 +4121,120 @@ if (is_file($logoPdfPath)) {
         let clientesCreditoSalida = [];
         let ventaPorPesoCategoriaActiva = false;
         let puertoBalanzaSalida = null;
-        let lectorBalanzaSalida = null;
         let bufferBalanzaSalida = '';
         let basculaNativaConectada = false;
         let basculaNativaListenerRegistrado = false;
-        let ultimoDatoBalanzaSalida = 0;
-        let ultimoPesoBalanzaSalida = null;
-        let temporizadorSinDatosBalanzaSalida = null;
-        let conexionWebSerialEnCurso = null;
-        let conexionBalanzaSalidaEnCurso = null;
-        let reintentosWebSerialAutomaticos = 0;
-        let puenteLocalBalanza = null;
-        let temporizadorSincronizarPesoPuente = null;
-        let ultimaTramaPuenteProcesada = '';
-        let respaldoWebSerialIniciado = false;
-        let verificacionPuenteLocalEnCurso = false;
-        let limpiezaBalanzaEnCurso = Promise.resolve();
-        const canalBalanza = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('acs30-balanza') : null;
-        let secuenciaSolicitudBasculaPadre = 0;
-        const solicitudesBasculaPadre = new Map();
 
-        function solicitarBasculaAlPadre(tipo, datos = {}) {
-            const solicitud = `bascula-${Date.now()}-${++secuenciaSolicitudBasculaPadre}`;
-            return new Promise((resolve, reject) => {
-                solicitudesBasculaPadre.set(solicitud, { resolve, reject });
-                window.parent.postMessage({ tipo, solicitud, ...datos }, window.location.origin);
-            });
-        }
-
-        window.addEventListener('message', evento => {
-            if (evento.source !== window.parent) return;
-            const data = evento.data || {};
-            if (data.tipo === 'bascula-raw-electron') {
-                console.info('[BASCULA][DEBUG] RAW recibido desde dashboard Electron');
-                recibirDatosBalanzaSalidaElectron(data.data);
-                return;
-            }
-            if (data.tipo === 'bascula-estado-electron') {
-                const estado = data.payload || {};
-                const conectado = Boolean(estado.conectado);
-                basculaNativaConectada = conectado;
-                if (estado.path) puertoBalanzaSalida = estado.path;
-                actualizarEstadoBalanzaSalida(conectado ? 'conectada' : 'desconectada');
-                console.info('[BASCULA][DEBUG] estado Electron recibido', estado);
-                return;
-            }
-            const solicitud = solicitudesBasculaPadre.get(data.solicitud);
-            if (!solicitud) return;
-            solicitudesBasculaPadre.delete(data.solicitud);
-            if (data.error) solicitud.reject(new Error(data.error));
-            else solicitud.resolve(data.resultado);
-        });
-
-        function recibirDatosBalanzaSalidaElectron(data) {
-            const bytes = Uint8Array.from(atob(data), caracter => caracter.charCodeAt(0));
-            const recibido = new TextDecoder().decode(bytes);
-            console.info('[BASCULA][DEBUG] RAW Electron decodificado', { bytes: bytes.length, texto: JSON.stringify(recibido) });
-            ultimoDatoBalanzaSalida = Date.now();
-            procesarDatosBalanzaSalida(recibido);
-        }
-
-        async function conectarBalanzaSalidaDesdePadre(forzarSeleccion = false) {
-            console.info('[BASCULA][DEBUG] conectar desde padre', { forzarSeleccion, listenerRegistrado: basculaNativaListenerRegistrado });
-            if (basculaNativaListenerRegistrado) {
-                const estadoActual = await solicitarBasculaAlPadre('bascula-probar-electron');
-                console.info('[BASCULA][DEBUG] estado recibido del padre', estadoActual);
-                if (estadoActual?.conectado) {
-                    basculaNativaConectada = true;
-                    puertoBalanzaSalida = estadoActual.path || puertoBalanzaSalida;
-                    actualizarEstadoBalanzaSalida('conectada');
+        function persistirPaginasSalida() {
+            if (!paginasSalidaPersistidasCargadas) return;
+            try {
+                const hayProductos = paginasSalida.some(pagina => (pagina.items || []).length > 0);
+                if (!hayProductos) {
+                    localStorage.removeItem(clavePaginasSalida);
                     return;
                 }
-            } else {
-                basculaNativaListenerRegistrado = true;
-            }
-            if (!forzarSeleccion) {
-                actualizarEstadoBalanzaSalida('desconectada');
-                return;
-            }
-            const puertos = await solicitarBasculaAlPadre('bascula-listar-electron');
-            const configuracion = obtenerConfiguracionBalanzaSalida();
-            const puerto = (configuracion.path && puertos.find(item => item.path === configuracion.path))
-                || puertos.find(item => /USB-SERIAL|CH340|wch\.cn/i.test(`${item.path} ${item.manufacturer}`))
-                || puertos[0];
-            if (!puerto) throw new Error('No se encontró la ACS-30 autorizada.');
-            const estadoActual = await solicitarBasculaAlPadre('bascula-probar-electron');
-            if (!estadoActual?.conectado) {
-                await solicitarBasculaAlPadre('bascula-conectar-electron', { options: { ...configuracion, path: puerto.path } });
-            }
-            basculaNativaConectada = true;
-            puertoBalanzaSalida = puerto.path;
-            actualizarEstadoBalanzaSalida('conectada');
-        }
-
-        canalBalanza?.addEventListener('message', async evento => {
-            if (evento.data?.tipo !== 'solicitar-liberacion' || evento.data?.origen === 'inventario') return;
-            const lector = lectorBalanzaSalida;
-            const puerto = puertoBalanzaSalida;
-            basculaNativaConectada = false;
-            lectorBalanzaSalida = null;
-            puertoBalanzaSalida = null;
-            if (lector) {
-                try { await lector.cancel(); } catch (error) {}
-                try { lector.releaseLock(); } catch (error) {}
-            }
-            if (puerto?.readable && !puerto.readable.locked) {
-                try { await puerto.close(); } catch (error) {}
-            }
-            actualizarEstadoBalanzaSalida('desconectada');
-        });
-
-        function obtenerConfiguracionBalanzaSalida() {
-            try {
-                const configuracion = JSON.parse(localStorage.getItem('acs30.serialConfig') || 'null');
-                if (configuracion && configuracion.path && Number.isInteger(Number(configuracion.baudRate)) && [5, 6, 7, 8].includes(Number(configuracion.dataBits)) && [1, 2].includes(Number(configuracion.stopBits)) && ['none', 'even', 'odd', 'mark', 'space'].includes(configuracion.parity)) {
-                    return {
-                        path: String(configuracion.path),
-                        baudRate: Number(configuracion.baudRate),
-                        dataBits: Number(configuracion.dataBits),
-                        parity: configuracion.parity,
-                        stopBits: Number(configuracion.stopBits)
-                    };
-                }
-                return {
-                    path: '',
-                    baudRate: 9600,
-                    dataBits: 8,
-                    parity: 'none',
-                    stopBits: 1
-                };
+                localStorage.setItem(clavePaginasSalida, JSON.stringify({
+                    paginas: paginasSalida,
+                    activa: paginaSalidaActiva
+                }));
             } catch (error) {
-                return { path: '', baudRate: 9600, dataBits: 8, parity: 'none', stopBits: 1 };
+                console.warn('No se pudieron conservar las páginas de salida:', error);
             }
         }
+
+        function restaurarPaginasSalidaPersistidas() {
+            if (paginasSalidaPersistidasCargadas) return;
+            paginasSalidaPersistidasCargadas = true;
+            try {
+                const guardado = JSON.parse(localStorage.getItem(clavePaginasSalida) || 'null');
+                const paginasGuardadas = Array.isArray(guardado?.paginas) ? guardado.paginas : [];
+                if (paginasGuardadas.length > 0) {
+                    paginasSalida = paginasGuardadas.map(pagina => ({
+                        items: Array.isArray(pagina?.items) ? pagina.items : []
+                    }));
+                    paginaSalidaActiva = Math.max(0, Math.min(Number(guardado.activa) || 0, paginasSalida.length - 1));
+                    carritoSalida = paginasSalida[paginaSalidaActiva].items || [];
+                }
+            } catch (error) {
+                localStorage.removeItem(clavePaginasSalida);
+            }
+            renderCarritoSalida();
+            renderPaginasSalida();
+        }
+
+        function guardarPaginaSalidaActiva() {
+            if (!paginasSalida[paginaSalidaActiva]) paginasSalida[paginaSalidaActiva] = { items: [] };
+            paginasSalida[paginaSalidaActiva].items = carritoSalida;
+            persistirPaginasSalida();
+        }
+
+        function cargarPaginaSalida(indice) {
+            guardarPaginaSalidaActiva();
+            paginaSalidaActiva = Math.max(0, Math.min(indice, paginasSalida.length - 1));
+            carritoSalida = paginasSalida[paginaSalidaActiva].items || [];
+            limpiarSeleccionSalidaUI();
+            renderCarritoSalida();
+            renderPaginasSalida();
+        }
+
+        function agregarPaginaSalida() {
+            guardarPaginaSalidaActiva();
+            paginasSalida.push({ items: [] });
+            cargarPaginaSalida(paginasSalida.length - 1);
+        }
+
+        async function cerrarPaginaSalida(indice) {
+            if (indice <= 0 || indice >= paginasSalida.length) return;
+            guardarPaginaSalidaActiva();
+            const pagina = paginasSalida[indice];
+            if ((pagina.items || []).length > 0) {
+                const confirmacion = await Swal.fire({
+                    icon: 'warning',
+                    title: '¿Cerrar esta página?',
+                    text: 'Los productos de esta página se quitarán de la salida actual.',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, cerrar',
+                    cancelButtonText: 'Cancelar'
+                });
+                if (!confirmacion.isConfirmed) return;
+            }
+
+            const eraActiva = indice === paginaSalidaActiva;
+            paginasSalida.splice(indice, 1);
+            if (eraActiva) {
+                paginaSalidaActiva = Math.min(indice - 1, paginasSalida.length - 1);
+                carritoSalida = paginasSalida[paginaSalidaActiva].items || [];
+                limpiarSeleccionSalidaUI();
+                renderCarritoSalida();
+            } else if (indice < paginaSalidaActiva) {
+                paginaSalidaActiva -= 1;
+            }
+            renderPaginasSalida();
+            persistirPaginasSalida();
+            persistirPaginasSalida();
+        }
+
+        function renderPaginasSalida() {
+            const panel = document.getElementById('paginasSalidaPanel');
+            if (!panel) return;
+            panel.innerHTML = paginasSalida.map((pagina, indice) => {
+                const activa = indice === paginaSalidaActiva;
+                const cantidad = (pagina.items || []).length;
+                const cerrar = indice > 0
+                    ? `<button type="button" onclick="event.stopPropagation(); cerrarPaginaSalida(${indice})" title="Cerrar página ${indice + 1}" aria-label="Cerrar página ${indice + 1}" style="width:22px; height:22px; padding:0; border:0; border-radius:50%; background:transparent; color:${activa ? '#1d4ed8' : '#64748b'}; cursor:pointer; font-size:16px; font-weight:900; line-height:20px;">&times;</button>`
+                    : '';
+                return `<div style="display:flex; align-items:center; gap:2px; flex:0 0 auto; height:34px; padding:0 4px 0 12px; border:1px solid ${activa ? '#2563eb' : '#cbd5e1'}; border-radius:6px; background:${activa ? '#eff6ff' : '#fff'};"><button type="button" onclick="cargarPaginaSalida(${indice})" style="min-width:80px; height:32px; padding:6px 4px; border:0; background:transparent; color:${activa ? '#1d4ed8' : '#475569'}; cursor:pointer; font-size:12px; font-weight:800; text-transform:uppercase;">PÁGINA ${indice + 1}${cantidad ? ` (${cantidad})` : ''}</button>${cerrar}</div>`;
+            }).join('') + '<button type="button" onclick="agregarPaginaSalida()" style="flex:0 0 auto; height:34px; padding:6px 14px; border:1px solid #2563eb; border-radius:6px; background:#2563eb; color:#fff; cursor:pointer; font-size:12px; font-weight:800; text-transform:uppercase;"><i class="fas fa-plus"></i> MÁS</button>';
+        }
+        let ultimoDatoBalanzaSalida = 0;
+        let ultimoPesoBalanzaSalida = null;
+        // Marca de tiempo (ts) de la última lectura aplicada. Los eventos
+        // onPeso traen el ts del servicio; el sondeo de estado solo puede
+        // sobrescribir el peso si su lectura es más reciente que esta marca.
+        let ultimaLecturaBasculaTs = 0;
+        let ultimoPesoBalanzaTsAplicado = 0;
+        let puentePesoDashboardRegistrado = false;
+        let ultimaPinturaPesoDiagnostico = '';
 
         function escapeHtml(str) {
             return String(str ?? '')
@@ -4295,20 +4566,23 @@ if (is_file($logoPdfPath)) {
             const precioBase = parseFloat(option?.getAttribute('data-precio') || 0) || 0;
             const descuentoPct = parseFloat(option?.getAttribute('data-descuento') || 0) || 0;
             const stockActual = parseFloat(option?.getAttribute('data-stock') || 0) || 0;
+            // La unidad la define unicamente la casilla "vendido por kilos" del producto.
             const esPorKilo = esProductoPorKilosSalida(option);
+
             const cantidadSeleccionada = normalizarCantidadSalida(document.getElementById('cantidadSalida')?.value || '1', esPorKilo);
             const precioFinalAtributo = parseFloat(option?.getAttribute('data-precio-final') || 0) || 0;
-            const precioFinal = (precioFinalAtributo > 0 && precioBase > 0 && precioFinalAtributo <= precioBase)
-                ? precioFinalAtributo
-                : calcularPrecioFinalConDescuento(precioBase, descuentoPct, stockActual);
-            const precioVenta = precioBase;
+            const precioCerrado = typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(precioBase) : precioBase;
+            const precioFinal = (precioFinalAtributo > 0 && precioCerrado > 0 && precioFinalAtributo <= precioCerrado)
+                ? (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(precioFinalAtributo) : precioFinalAtributo)
+                : calcularPrecioFinalConDescuento(precioCerrado, descuentoPct, stockActual);
+            const precioVenta = precioFinal > 0 ? precioFinal : precioCerrado;
             return {
                 producto_id: parseInt(select.value, 10),
                 nombre: (option?.textContent || '').replace(/\s*\[[^\]]*\]\s*$/, '').trim(),
                 codigo: (option?.getAttribute('data-codigo') || '').trim(),
                 imagen: (option?.getAttribute('data-imagen') || '').trim(),
                 precio: precioVenta,
-                precio_original: precioBase,
+                precio_original: precioCerrado,
                 descuento_porcentaje: descuentoPct,
                 stock: stockActual,
                 venta_por_kilo: esPorKilo,
@@ -4326,9 +4600,11 @@ if (is_file($logoPdfPath)) {
         }
 
         function esProductoPorKilosSalida(option) {
+            // Solo la casilla "vendido por kilos" define si el producto se pesa.
             const valor = option?.dataset?.ventaPorKilo ?? option?.getAttribute?.('data-venta-por-kilo') ?? '0';
             return ['1', 'true', 'si', 'sí'].includes(String(valor).trim().toLowerCase());
         }
+
 
         function esCategoriaEspecialSalida(option) {
             const categoria = normalizarTextoBusquedaInventario(option?.dataset?.categoriaNombre || '');
@@ -4350,13 +4626,16 @@ if (is_file($logoPdfPath)) {
             if (grupo === 'frutas') return categoria === 'frutas';
             if (grupo === 'verduras') return categoria === 'verduras';
             if (grupo === 'carnicos' || grupo === 'carnicos-refrigerados') return categoria === 'carnicos y refrigerados';
+            if (grupo === 'otros') return categoria === 'otros';
             return false;
         }
 
         function actualizarModoBalanzaPorProducto() {
             const select = document.getElementById('productoSalida');
             const opcion = select?.options[select.selectedIndex];
+            // La unidad depende del producto, no de la categoria abierta.
             const esPorKilo = esProductoPorKilosSalida(opcion);
+
             const pesoBarra = document.getElementById('pesoCategoriaSalidaBarra');
             const cantidad = document.getElementById('cantidadSalida');
             const etiqueta = document.getElementById('unidadSalidaLabel');
@@ -4394,7 +4673,7 @@ if (is_file($logoPdfPath)) {
             select.addEventListener('change', actualizarModoBalanzaPorProducto);
         }
 
-        function abrirProductosCategoriaSalida(categoria, titulo) {
+        function abrirProductosCategoriaSalida(categoria, titulo, terminoInicial = '') {
             const select = document.getElementById('productoSalida');
             const grid = document.getElementById('productosCategoriaSalidaGrid');
             const tituloEl = document.getElementById('productosCategoriaSalidaTitulo');
@@ -4402,8 +4681,11 @@ if (is_file($logoPdfPath)) {
             const pesoBarra = document.getElementById('pesoCategoriaSalidaBarra');
             if (!select || !grid) return;
 
-            ventaPorPesoCategoriaActiva = categoria === 'frutas' || categoria === 'verduras';
-            select.dataset.categoriaPeso = categoria === 'frutas' || categoria === 'verduras' ? categoria : '';
+            const categoriaConPeso = ['frutas', 'verduras', 'carnicos-refrigerados'].includes(categoria);
+            // El peso se activa al elegir un producto marcado por kilos, no por la categoria.
+            ventaPorPesoCategoriaActiva = false;
+            select.dataset.categoriaPeso = categoriaConPeso ? categoria : '';
+
             actualizarEstadoBalanzaSalida('oculta');
             if (pesoBarra) pesoBarra.style.display = 'block';
             if (pesoBarra) {
@@ -4414,15 +4696,18 @@ if (is_file($logoPdfPath)) {
             const opciones = Array.from(select.options).filter(option => {
                 if (!option.value) return false;
                 if ((parseFloat(option.dataset.stock || '0') || 0) <= 0) return false;
-                return perteneceGrupoCategoriaSalida(option.dataset.categoriaNombre || '', categoria);
+                const codigoBuscado = normalizarCodigoBarrasInventario(terminoInicial);
+                const coincidePorBarras = /^\d{6,14}$/.test(codigoBuscado)
+                    && normalizarCodigoBarrasInventario(option.dataset.barcode || '') === codigoBuscado;
+                return coincidePorBarras || perteneceGrupoCategoriaSalida(option.dataset.categoriaNombre || '', categoria);
             });
             opciones.sort((a, b) => (parseInt(b.value, 10) || 0) - (parseInt(a.value, 10) || 0));
 
             const iconoTitulo = categoria === 'frutas'
                 ? 'fa-apple-whole'
-                : (categoria === 'verduras' ? 'fa-carrot' : 'fa-drumstick-bite');
+                : (categoria === 'verduras' ? 'fa-carrot' : (categoria === 'otros' ? 'fa-tag' : 'fa-drumstick-bite'));
             if (tituloEl) tituloEl.innerHTML = `<i class="fas ${iconoTitulo}"></i> ${titulo}`;
-            if (buscador) buscador.value = '';
+            if (buscador) buscador.value = terminoInicial;
             grid.innerHTML = '';
             if (!opciones.length) {
                 grid.innerHTML = '<div style="grid-column:1/-1; padding:32px; text-align:center; color:#64748b; font-weight:700;">NO HAY PRODUCTOS DISPONIBLES EN ESTA CATEGORÍA</div>';
@@ -4430,17 +4715,26 @@ if (is_file($logoPdfPath)) {
                 opciones.forEach(option => {
                     const tarjeta = document.createElement('button');
                     tarjeta.type = 'button';
-                    tarjeta.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:9px; min-height:190px; padding:14px 10px; border:1px solid #dbe4ec; border-radius:10px; background:#fff; color:#1e293b; cursor:pointer; box-shadow:0 3px 10px rgba(15,23,42,.07); text-align:center;';
+                    tarjeta.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:0; width:100%; height:100%; min-height:190px; padding:14px 10px; border:1px solid #dbe4ec; border-radius:10px; background:#fff; color:#1e293b; cursor:pointer; box-shadow:0 3px 10px rgba(15,23,42,.07); text-align:center;';
                     const imagen = resolverImagenProductoInventario(option.dataset.imagen || '');
                     const nombre = (option.dataset.nombre || option.textContent || '').trim();
                     const codigo = String(option.dataset.codigo || '').replace(/[/*()]/g, '').trim();
+                    const codigoBarras = String(option.dataset.barcode || '').trim();
                     tarjeta.dataset.searchText = normalizarTextoBusquedaInventario(`${nombre} ${codigo} ${option.dataset.barcode || ''}`);
+                    tarjeta.dataset.codigo = codigo;
+                    tarjeta.dataset.barcode = codigoBarras;
+                    tarjeta.dataset.nombre = nombre;
+                    tarjeta.dataset.categoriaNombre = option.dataset.categoriaNombre || '';
                     const esPorKiloTarjeta = esProductoPorKilosSalida(option);
                     const precio = parseFloat(option.dataset.precio || 0) || 0;
                     const stock = parseFloat(option.dataset.stock || 0) || 0;
                     tarjeta.disabled = stock <= 0;
                     tarjeta.style.opacity = stock > 0 ? '1' : '0.55';
-                    tarjeta.innerHTML = `<span style="min-height:18px; color:#2563eb; font-size:11px; font-weight:800; letter-spacing:.3px;">${escapeHtmlInventario(codigo)}</span><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700;">${formatoMonedaInventario(precio)} / KG</span>`;
+                    tarjeta.dataset.precioKg = String(precio);
+                    const stockVisible = esPorKiloTarjeta
+                        ? `${formatoStockVisible(stock, option.dataset.categoriaNombre || '', 1)} KG`
+                        : formatoStockVisible(stock, option.dataset.categoriaNombre || '', 0);
+                    tarjeta.innerHTML = `<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:18px; font-size:11px; font-weight:800; letter-spacing:.3px; margin-bottom:9px;"><span style="color:#15803d; white-space:nowrap;">${escapeHtmlInventario(stockVisible)}</span><span style="color:#2563eb; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtmlInventario(codigo)}</span></div><img src="${escapeHtmlInventario(imagen)}" alt="${escapeHtmlInventario(nombre)}" style="width:116px; height:116px; object-fit:contain; border-radius:8px; background:#f8fafc; flex-shrink:0;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"><strong style="font-size:13px; text-transform:uppercase; line-height:1.2; margin-top:9px; flex:1; display:flex; align-items:center; justify-content:center; overflow-wrap:anywhere;">${escapeHtmlInventario(nombre)}</strong><span style="font-size:12px; color:#2563eb; font-weight:700; margin-top:auto; padding-top:6px;">${formatoMonedaInventario(precio)}${esPorKiloTarjeta ? ' / KG' : ' / UNIDAD'}</span>`;
                     tarjeta.addEventListener('click', () => {
                         select.value = option.value;
                         productoSalidaSeleccionadoPorCategoria = {
@@ -4453,18 +4747,29 @@ if (is_file($logoPdfPath)) {
                             descuento_porcentaje: parseFloat(option.dataset.descuento || 0) || 0,
                             stock: parseFloat(option.dataset.stock || 0) || 0,
                             venta_por_kilo: esPorKiloTarjeta,
-                            cantidad: ventaPorPesoCategoriaActiva ? 0.001 : 1,
+                            cantidad: esPorKiloTarjeta ? 0.001 : 1,
                             referencia: (option.dataset.codigo || '').trim()
                         };
+                        ventaPorPesoCategoriaActiva = esPorKiloTarjeta;
                         const buscar = document.getElementById('buscarProductoSalida');
                         if (buscar) buscar.value = nombre;
                         const cantidad = document.getElementById('cantidadSalida');
                         if (cantidad) {
-                            cantidad.min = ventaPorPesoCategoriaActiva ? '0.001' : '1';
-                            cantidad.step = ventaPorPesoCategoriaActiva ? '0.001' : '1';
-                            if (ventaPorPesoCategoriaActiva) cantidad.value = '0.001';
+                            cantidad.min = esPorKiloTarjeta ? '0.001' : '1';
+                            cantidad.step = esPorKiloTarjeta ? '0.001' : '1';
+                            cantidad.value = esPorKiloTarjeta ? '0.001' : '1';
                         }
+
                         select.dispatchEvent(new Event('change', { bubbles: true }));
+                        // Con báscula conectada y peso válido en vivo: agregar directo al
+                        // carrito con ese peso y cerrar el modal. Sin báscula, flujo actual.
+                        const pesoVivo = esPorKiloTarjeta ? pesoVivoCategoriaValido() : null;
+                        if (pesoVivo !== null) {
+                            if (cantidad) cantidad.value = pesoVivo.toFixed(3);
+                            cerrarModal('productosCategoriaSalidaModal');
+                            agregarProductoSalida();
+                            return;
+                        }
                         cerrarModal('productosCategoriaSalidaModal');
                     });
                     grid.appendChild(tarjeta);
@@ -4473,9 +4778,35 @@ if (is_file($logoPdfPath)) {
             if (buscador) {
                 buscador.oninput = () => {
                     const termino = normalizarTextoBusquedaInventario(buscador.value);
+                    const codigoBuscado = normalizarCodigoBarrasInventario(buscador.value);
+                    let coincidencias = 0;
                     grid.querySelectorAll('button[data-search-text]').forEach((tarjeta) => {
-                        tarjeta.style.display = coincideBusquedaInventario(tarjeta.dataset.searchText, termino) ? 'flex' : 'none';
+                        const coincide = coincideProductoBusquedaInventario(tarjeta, termino);
+                        tarjeta.style.display = coincide ? 'flex' : 'none';
+                        if (coincide) coincidencias++;
                     });
+                    let sinResultados = grid.querySelector('.categoria-salida-sin-resultados');
+                    if (!coincidencias && termino) {
+                        if (!sinResultados) {
+                            sinResultados = document.createElement('div');
+                            sinResultados.className = 'categoria-salida-sin-resultados';
+                            sinResultados.style.cssText = 'grid-column:1/-1; padding:32px; text-align:center; color:#64748b; font-weight:700;';
+                            grid.appendChild(sinResultados);
+                        }
+                        sinResultados.textContent = 'NO HAY PRODUCTOS PARA EL CÓDIGO O TEXTO BUSCADO';
+                        sinResultados.style.display = 'block';
+                    } else if (sinResultados) {
+                        sinResultados.style.display = 'none';
+                    }
+                    if (!coincidencias && /^\d{6,14}$/.test(codigoBuscado)) {
+                        const opcionPorBarras = Array.from(select.options).find(option =>
+                            (parseFloat(option.dataset.stock || '0') || 0) > 0
+                            && normalizarCodigoBarrasInventario(option.dataset.barcode || '') === codigoBuscado
+                        );
+                        if (opcionPorBarras) {
+                            abrirProductosCategoriaSalida(categoria, titulo, buscador.value);
+                        }
+                    }
                 };
                 buscador.onkeydown = (event) => {
                     if (event.key === 'Escape') {
@@ -4483,8 +4814,22 @@ if (is_file($logoPdfPath)) {
                         buscador.dispatchEvent(new Event('input'));
                     }
                 };
+                if (terminoInicial) buscador.dispatchEvent(new Event('input'));
             }
+            // Cada apertura crea una sesión visual nueva. Se reinicia solamente
+            // la deduplicación; el estado actual se consulta justo después.
+            ultimaLecturaBasculaTs = 0;
+            ultimoPesoBalanzaTsAplicado = 0;
+            ultimaPinturaPesoDiagnostico = '';
             abrirModal('productosCategoriaSalidaModal');
+            registrarDiagnosticoPesoSalida('modal-abierto', {
+                origen: categoria,
+                modalActivo: true,
+                elementoExiste: Boolean(document.getElementById('pesoVivoCategoriaModal'))
+            });
+            actualizarPesoVivoCategoriaModal();
+            sincronizarEstadoBalanzaSalida();
+            iniciarRefrescoPesoVivoCategoria();
             setTimeout(() => buscador?.focus(), 80);
         }
 
@@ -4501,53 +4846,28 @@ if (is_file($logoPdfPath)) {
             indicador.innerHTML = conectada
                 ? `<i class="fas fa-circle-check"></i> BÁSCULA CONECTADA${puertoBalanzaSalida ? ` · ${escapeHtmlInventario(puertoBalanzaSalida)}` : ''}`
                 : (conectando
-                    ? '<i class="fas fa-spinner fa-spin"></i> CONECTANDO BÁSCULA'
+                    ? 'CONECTANDO BÁSCULA…'
                     : '<i class="fas fa-circle-xmark"></i> BÁSCULA NO CONECTADA');
         }
 
-        async function validarEstadoRealBalanzaSalida(motivo = 'estado') {
-            const apiBascula = window.electronAPI?.bascula;
-            if (!apiBascula?.probar) return false;
-            try {
-                const resultado = await apiBascula.probar();
-                const conectado = Boolean(resultado?.conectado);
-                if (conectado) {
-                    basculaNativaConectada = true;
-                    puertoBalanzaSalida = resultado.path || puertoBalanzaSalida;
-                    actualizarEstadoBalanzaSalida('conectada');
-                    return true;
-                }
-            } catch (error) {
-                console.info('[BASCULA][WEB] validación de estado rechazada:', motivo, error?.message || error);
-            }
-            basculaNativaConectada = false;
-            puertoBalanzaSalida = null;
-            actualizarEstadoBalanzaSalida('desconectada');
-            return false;
+        // -------------------------------------------------------------------
+        // Báscula ACS-30: la vista SOLO escucha el peso ya procesado que envía
+        // el proceso principal de Electron (BasculaService). Aquí no se abre
+        // ningún puerto COM, por lo que recargar o cambiar de página nunca
+        // corta la comunicación serial.
+        // -------------------------------------------------------------------
+        function mostrarDiagnosticoBalanzaSalida(mensaje) {
+            const destino = document.getElementById('diagnosticoBalanzaSalida');
+            if (destino) destino.textContent = mensaje;
+            console.info('[BASCULA]', mensaje);
         }
 
-        async function sincronizarEstadoBalanzaSalida() {
-            const apiBascula = window.electronAPI?.bascula;
-            if (apiBascula?.probar) {
-                try {
-                    const resultado = await apiBascula.probar();
-                    if (resultado?.conectado) {
-                        basculaNativaConectada = true;
-                        puertoBalanzaSalida = resultado.path || puertoBalanzaSalida;
-                        actualizarEstadoBalanzaSalida('conectada');
-                        mostrarDiagnosticoBalanzaSalida(`PUERTO ABIERTO: ${puertoBalanzaSalida || 'COM'}\nLEYENDO PESO REAL...`);
-                        return;
-                    }
-                } catch (error) {}
-            } else if (puertoBalanzaSalida?.readable) {
-                basculaNativaConectada = true;
-                actualizarEstadoBalanzaSalida('conectada');
-                return;
-            } else if (typeof EventSource !== 'undefined') {
-                iniciarConexionBalanzaSalidaNavegador();
-                return;
-            }
-            actualizarEstadoBalanzaSalida('desconectada');
+        function registrarDiagnosticoPesoSalida(etapa, detalle = {}) {
+            const registro = { ...detalle, etapa };
+            console.info('[PESO-INVENTARIO]', registro);
+            try {
+                window.basculaAPI?.registrarDiagnosticoPeso?.(etapa, detalle)?.catch?.(() => {});
+            } catch (_) { /* el diagnóstico nunca interrumpe la venta */ }
         }
 
         function extraerPesoBalanza(texto) {
@@ -4560,33 +4880,30 @@ if (is_file($logoPdfPath)) {
             return /^(g|gr)$/i.test(coincidencia[2] || '') ? valor / 1000 : valor;
         }
 
-        function registrarListenerBalanzaNativa(apiBascula) {
-            if (basculaNativaListenerRegistrado || !apiBascula?.onRaw) return;
-            apiBascula.onRaw(({ data }) => {
-                const bytes = Uint8Array.from(atob(data), caracter => caracter.charCodeAt(0));
-                const recibido = new TextDecoder().decode(bytes);
-                ultimoDatoBalanzaSalida = Date.now();
-                mostrarDiagnosticoBalanzaSalida(`PUERTO: ${puertoBalanzaSalida || 'COM'}\nRAW: ${JSON.stringify(recibido)}`);
-                procesarDatosBalanzaSalida(recibido);
-            });
-            apiBascula.onEstado?.(() => {
-                if (!basculaNativaConectada) return;
-                validarEstadoRealBalanzaSalida('evento de estado');
-            });
-            apiBascula.onError?.(({ mensaje }) => {
-                basculaNativaConectada = false;
-                actualizarEstadoBalanzaSalida('desconectada');
-                mostrarDiagnosticoBalanzaSalida(`ERROR SERIAL: ${mensaje}`);
-            });
-            basculaNativaListenerRegistrado = true;
-        }
-
-        function aplicarPesoBalanzaSalida(pesoKg) {
-            if (pesoKg === null || !Number.isFinite(pesoKg) || pesoKg <= 0) {
-                console.info('[BASCULA][DEBUG] peso no aplicado', { pesoKg, modoPeso: ventaPorPesoCategoriaActiva });
+        function aplicarPesoBalanzaSalida(pesoKg, tsLectura, origen = 'desconocido') {
+            if (pesoKg === null || !Number.isFinite(pesoKg) || pesoKg < 0) {
+                registrarDiagnosticoPesoSalida('lectura-descartada', { origen, peso: pesoKg, ts: tsLectura, motivo: 'peso-invalido' });
                 return;
             }
+            // Si llega una marca de tiempo, solo gana la lectura más reciente:
+            // así el sondeo de estado nunca pisa un peso nuevo con uno viejo.
+            const ts = Number(tsLectura);
+            if (Number.isFinite(ts) && ts > 0) {
+                if (ts < ultimaLecturaBasculaTs) {
+                    registrarDiagnosticoPesoSalida('lectura-descartada', { origen, peso: pesoKg, ts, motivo: 'timestamp-anterior' });
+                    return;
+                }
+                if (ts === ultimoPesoBalanzaTsAplicado && pesoKg === ultimoPesoBalanzaSalida) {
+                    registrarDiagnosticoPesoSalida('lectura-duplicada', { origen, peso: pesoKg, ts, motivo: 'mismo-evento-por-dos-canales' });
+                    return;
+                }
+                ultimaLecturaBasculaTs = ts;
+                ultimoPesoBalanzaTsAplicado = ts;
+            }
             ultimoPesoBalanzaSalida = pesoKg;
+            basculaNativaConectada = true;
+            registrarDiagnosticoPesoSalida('lectura-recibida-inventarios', { origen, peso: pesoKg, ts });
+            actualizarPesoVivoCategoriaModal();
 
             const select = document.getElementById('productoSalida');
             const opcionActiva = select?.options[select.selectedIndex];
@@ -4594,7 +4911,6 @@ if (is_file($logoPdfPath)) {
             const valorMaximoAceptable = stockDisponible > 0 ? Math.max(1, stockDisponible * 1.15) : 200;
 
             if (ventaPorPesoCategoriaActiva && pesoKg > valorMaximoAceptable) {
-                console.warn('[BASCULA][DEBUG] peso descartado por stock', { pesoKg, stockDisponible, valorMaximoAceptable });
                 mostrarDiagnosticoBalanzaSalida(`PESO DESCARTADO: ${pesoKg.toFixed(3)} kg\nSupera el stock disponible actual (${stockDisponible > 0 ? stockDisponible.toFixed(3) : 'sin stock'} kg).`);
                 return;
             }
@@ -4602,25 +4918,118 @@ if (is_file($logoPdfPath)) {
             const cantidad = document.getElementById('cantidadSalida');
             const etiqueta = document.getElementById('pesoCategoriaSalidaValor');
             if (cantidad && ventaPorPesoCategoriaActiva) {
-                cantidad.value = Math.round(pesoKg * 1000) / 1000;
+                const tieneProductoActivo = Boolean(select?.value);
+                if (!tieneProductoActivo) {
+                    if (etiqueta) etiqueta.textContent = '0.000 kg';
+                    return;
+                }
+                // Peso 0 (producto retirado) también se aplica: la cantidad
+                // vuelve a 0.000 para que un peso nuevo nunca herede el anterior.
+                cantidad.value = (Math.round(pesoKg * 1000) / 1000).toFixed(3);
                 cantidad.dispatchEvent(new Event('input', { bubbles: true }));
                 cantidad.dispatchEvent(new Event('change', { bubbles: true }));
             }
             if (etiqueta) etiqueta.textContent = `${pesoKg.toFixed(3)} kg`;
             const resumen = document.getElementById('pesoSalidaResumen');
             if (resumen) resumen.textContent = `PESO: ${pesoKg.toFixed(3)} KG`;
-            console.info('[BASCULA][DEBUG] peso aplicado a la interfaz', { pesoKg, ventaPorPesoCategoriaActiva });
+        }
+
+        // Peso en vivo dentro del modal de FRUTAS / VERDURAS / CÁRNICOS.
+        // Solo lee lo que ya entrega basculaAPI; no abre ni toca el puerto.
+        function pesoVivoCategoriaValido() {
+            return basculaNativaConectada && Number.isFinite(ultimoPesoBalanzaSalida) && ultimoPesoBalanzaSalida > 0
+                ? Math.round(ultimoPesoBalanzaSalida * 1000) / 1000
+                : null;
+        }
+
+        // Refresco continuo del peso mientras el modal de categoría está abierto,
+        // para que al retirar o cambiar el producto la cifra vuelva a 0.000 al instante.
+        let intervaloPesoVivoCategoria = null;
+
+        function detenerRefrescoPesoVivoCategoria() {
+            if (intervaloPesoVivoCategoria) clearInterval(intervaloPesoVivoCategoria);
+            intervaloPesoVivoCategoria = null;
+        }
+
+        function iniciarRefrescoPesoVivoCategoria() {
+            detenerRefrescoPesoVivoCategoria();
+            intervaloPesoVivoCategoria = setInterval(async () => {
+                const modal = document.getElementById('productosCategoriaSalidaModal');
+                if (!modal || !modal.classList.contains('active')) {
+                    detenerRefrescoPesoVivoCategoria();
+                    return;
+                }
+                try {
+                    const estado = await window.basculaAPI?.estado();
+                    if (estado) {
+                        basculaNativaConectada = Boolean(estado.conectado);
+                        const valor = Number(estado?.ultimoPeso?.peso);
+                        const tsEstado = Number(estado?.ultimoPeso?.ts) || 0;
+                        // El sondeo es solo respaldo: aplica el peso del estado
+                        // únicamente si es más reciente que la última lectura
+                        // recibida por evento; nunca pisa un peso nuevo con uno viejo.
+                        if (basculaNativaConectada && Number.isFinite(valor) && valor >= 0 && tsEstado > ultimaLecturaBasculaTs) {
+                            aplicarPesoBalanzaSalida(valor, tsEstado, 'estado-respaldo');
+                        }
+                    }
+                } catch (error) { /* sin báscula: se muestra el estado actual */ }
+                actualizarPesoVivoCategoriaModal();
+            }, 400);
+        }
+
+        function actualizarPesoVivoCategoriaModal() {
+            const modal = document.getElementById('productosCategoriaSalidaModal');
+            const insignia = document.getElementById('pesoVivoCategoriaModal');
+            const led = document.getElementById('basculaLedEstado');
+            const ledTexto = document.getElementById('basculaLedTexto');
+            if (!modal || !insignia) return;
+            if (led) {
+                const visible = modal.classList.contains('active');
+                led.style.display = visible ? 'inline-flex' : 'none';
+                if (ledTexto) ledTexto.textContent = basculaNativaConectada ? 'CONECTADA' : 'SIN CONEXIÓN';
+                led.classList.toggle('verde', basculaNativaConectada);
+                led.classList.toggle('rojo', !basculaNativaConectada);
+            }
+            if (!modal.classList.contains('active')) {
+                insignia.style.display = 'none';
+                return;
+            }
+            insignia.style.display = 'inline-flex';
+            const peso = pesoVivoCategoriaValido();
+            if (peso !== null) {
+                insignia.style.background = '#dcfce7';
+                insignia.style.color = '#15803d';
+                insignia.innerHTML = `<i class="fas fa-weight-hanging"></i> ${peso.toFixed(3)} KG`;
+            } else if (basculaNativaConectada) {
+                insignia.style.background = '#f1f5f9';
+                insignia.style.color = '#475569';
+                insignia.innerHTML = '<i class="fas fa-weight-hanging"></i> 0.000 KG';
+            } else {
+                insignia.style.background = '#fee2e2';
+                insignia.style.color = '#b91c1c';
+                insignia.innerHTML = '<i class="fas fa-circle-xmark"></i> BÁSCULA NO CONECTADA';
+            }
+            const clavePintura = `${ultimoPesoBalanzaTsAplicado}|${insignia.textContent}`;
+            if (clavePintura !== ultimaPinturaPesoDiagnostico) {
+                ultimaPinturaPesoDiagnostico = clavePintura;
+                registrarDiagnosticoPesoSalida('texto-mostrado', {
+                    origen: 'inventarios',
+                    peso: Number.isFinite(ultimoPesoBalanzaSalida) ? ultimoPesoBalanzaSalida : null,
+                    ts: ultimoPesoBalanzaTsAplicado,
+                    modalActivo: true,
+                    elementoExiste: true,
+                    texto: insignia.textContent
+                });
+            }
         }
 
         function procesarDatosBalanzaSalida(recibido) {
-            console.info('[BASCULA][DEBUG] procesando RAW', { recibido: JSON.stringify(recibido), bufferAntes: JSON.stringify(bufferBalanzaSalida) });
-            bufferBalanzaSalida += recibido;
+            bufferBalanzaSalida += String(recibido || '');
             const partes = bufferBalanzaSalida.split(/[\r\n]+/);
             bufferBalanzaSalida = partes.pop() || '';
             partes.forEach(parte => aplicarPesoBalanzaSalida(extraerPesoBalanza(parte)));
             if (partes.length === 0) {
                 const pesoDirecto = extraerPesoBalanza(bufferBalanzaSalida);
-                console.info('[BASCULA][DEBUG] resultado parser directo', { buffer: JSON.stringify(bufferBalanzaSalida), pesoDirecto });
                 if (pesoDirecto !== null) {
                     aplicarPesoBalanzaSalida(pesoDirecto);
                     bufferBalanzaSalida = '';
@@ -4634,372 +5043,90 @@ if (is_file($logoPdfPath)) {
             }
         }
 
-        function conectarBalanzaSalidaPuenteLocal(ultimaTrama = null) {
-            if (puenteLocalBalanza) return;
-            if (typeof EventSource === 'undefined') return;
-            puenteLocalBalanza = new EventSource('http://127.0.0.1:8765/bascula/stream');
-            puenteLocalBalanza.onopen = () => {
-                mostrarDiagnosticoBalanzaSalida('PUENTE LOCAL: CANAL ABIERTO\nESPERANDO ESTADO REAL DE COM3...');
-            };
-            puenteLocalBalanza.addEventListener('estado', evento => {
-                const estado = JSON.parse(evento.data || '{}');
-                const conectado = Boolean(estado.conectado);
-                const hayActividadReciente = Date.now() - ultimoDatoBalanzaSalida < 4000;
-                if (conectado || hayActividadReciente) {
-                    basculaNativaConectada = true;
-                    puertoBalanzaSalida = estado.path || puertoBalanzaSalida;
-                    actualizarEstadoBalanzaSalida('conectada');
-                    return;
-                }
-                basculaNativaConectada = false;
-                puertoBalanzaSalida = estado.path || puertoBalanzaSalida;
-                actualizarEstadoBalanzaSalida('desconectada');
-            });
-            puenteLocalBalanza.addEventListener('raw', evento => {
-                const bytes = Uint8Array.from(atob(evento.data), caracter => caracter.charCodeAt(0));
-                const recibido = new TextDecoder().decode(bytes);
-                basculaNativaConectada = true;
-                ultimoDatoBalanzaSalida = Date.now();
-                mostrarDiagnosticoBalanzaSalida(`PUENTE LOCAL: RAW: ${JSON.stringify(recibido)}`);
-                procesarDatosBalanzaSalida(recibido);
-            });
-            if (ultimaTrama?.data) {
-                const bytes = Uint8Array.from(atob(ultimaTrama.data), caracter => caracter.charCodeAt(0));
-                ultimaTramaPuenteProcesada = String(ultimaTrama.timestamp || '');
-                procesarDatosBalanzaSalida(new TextDecoder().decode(bytes));
+        function aplicarEstadoBasculaEscritorio(estado) {
+            const conectada = Boolean(estado?.conectado);
+            basculaNativaConectada = conectada;
+            puertoBalanzaSalida = estado?.puerto || null;
+            const ultimoPesoEstado = Number(estado?.ultimoPeso?.peso);
+            const tsPesoEstado = Number(estado?.ultimoPeso?.ts) || 0;
+            if (conectada && Number.isFinite(ultimoPesoEstado) && ultimoPesoEstado >= 0) {
+                aplicarPesoBalanzaSalida(ultimoPesoEstado, tsPesoEstado, 'estado-inicial');
             }
-            if (!temporizadorSincronizarPesoPuente) {
-                temporizadorSincronizarPesoPuente = setInterval(async () => {
-                    try {
-                        const respuesta = await fetch('http://127.0.0.1:8765/bascula/status', { cache: 'no-store' });
-                        if (!respuesta.ok) return;
-                        const estado = await respuesta.json();
-                        if (!estado.conectado || !estado.ultimaTrama?.data) return;
-                        const timestamp = String(estado.ultimaTrama.timestamp || '');
-                        if (timestamp && timestamp === ultimaTramaPuenteProcesada) return;
-                        ultimaTramaPuenteProcesada = timestamp;
-                        const bytes = Uint8Array.from(atob(estado.ultimaTrama.data), caracter => caracter.charCodeAt(0));
-                        basculaNativaConectada = true;
-                        ultimoDatoBalanzaSalida = Date.now();
-                        procesarDatosBalanzaSalida(new TextDecoder().decode(bytes));
-                    } catch (error) {}
-                }, 500);
-            }
-            puenteLocalBalanza.onerror = () => {
-                const puenteFallido = puenteLocalBalanza;
-                puenteLocalBalanza = null;
-                puenteFallido.close();
-                basculaNativaConectada = false;
-                actualizarEstadoBalanzaSalida('conectando');
-                mostrarDiagnosticoBalanzaSalida('PUENTE LOCAL DESCONECTADO. INICIE LA APLICACIÓN ELECTRON.');
-            };
-        }
-        async function iniciarConexionBalanzaSalidaNavegador(forzarSeleccion = false) {
-            if (puenteLocalBalanza || verificacionPuenteLocalEnCurso) return;
-            verificacionPuenteLocalEnCurso = true;
-            try {
-                try {
-                    const controlador = new AbortController();
-                    const temporizador = setTimeout(() => controlador.abort(), 700);
-                    const respuesta = await fetch('http://127.0.0.1:8765/bascula/status', { cache: 'no-store', signal: controlador.signal });
-                    clearTimeout(temporizador);
-                    if (!respuesta.ok) throw new Error('Puente local no disponible');
-                    const estadoPuente = await respuesta.json();
-                    if (estadoPuente.conectado) {
-                        conectarBalanzaSalidaPuenteLocal(estadoPuente.ultimaTrama || null);
-                        return;
-                    }
-                    console.info('[BASCULA][DEBUG] puente local activo sin báscula; se intentará Web Serial');
-                } catch (error) {
-                    console.info('[BASCULA][DEBUG] puente local no disponible; se intentará Web Serial', error?.message || error);
-                }
-                if (!respaldoWebSerialIniciado && 'serial' in navigator) {
-                    respaldoWebSerialIniciado = true;
-                    const puertos = await navigator.serial.getPorts().catch(() => []);
-                    if (puertos.length || forzarSeleccion) {
-                        await conectarBalanzaSalidaWebSerial(forzarSeleccion);
-                        return;
-                    }
-                }
-                actualizarEstadoBalanzaSalida('desconectada');
-                mostrarDiagnosticoBalanzaSalida('CONEXIÓN AUTOMÁTICA: no se encontró Electron activo ni un puerto COM autorizado.');
-            } finally {
-                verificacionPuenteLocalEnCurso = false;
+            actualizarEstadoBalanzaSalida(conectada ? 'conectada' : 'desconectada');
+            actualizarPesoVivoCategoriaModal();
+            if (conectada) {
+                mostrarDiagnosticoBalanzaSalida(`PUERTO ABIERTO: ${puertoBalanzaSalida || 'COM'}\nLEYENDO PESO REAL...`);
+            } else if (estado && estado.disponible === false) {
+                mostrarDiagnosticoBalanzaSalida('La librería serial no está instalada. Ejecute npm install en la carpeta del programa.');
+            } else if (estado && estado.ultimoError && estado.ultimoError.mensaje) {
+                mostrarDiagnosticoBalanzaSalida(`${estado.ultimoError.mensaje}\n\nPulse "Reintentar báscula" cuando lo haya cerrado.`);
+            } else {
+                mostrarDiagnosticoBalanzaSalida('BÁSCULA NO DETECTADA. Revise el cable USB del adaptador CH340.');
             }
         }
 
-        function mostrarDiagnosticoBalanzaSalida(mensaje) {
-            const diagnostico = document.getElementById('diagnosticoBalanzaSalida');
-            if (!diagnostico) return;
-            diagnostico.style.display = 'block';
-            diagnostico.textContent = mensaje;
-        }
-
-        async function leerDatosBalanzaSalidaWebSerial() {
-            if (!lectorBalanzaSalida) return;
-            console.info('[BASCULA][WEB] esperando datos');
-            try {
-                const decoder = new TextDecoder();
-                while (lectorBalanzaSalida) {
-                    const resultado = await lectorBalanzaSalida.read();
-                    if (resultado.done) {
-                        console.warn('[BASCULA][DEBUG] reader.read() terminó con done=true');
-                        break;
-                    }
-                    const recibido = decoder.decode(resultado.value, { stream: true });
+        function iniciarPuenteBasculaEscritorio() {
+            if (basculaNativaListenerRegistrado) return true;
+            const api = window.basculaAPI;
+            if (!puentePesoDashboardRegistrado) {
+                puentePesoDashboardRegistrado = true;
+                window.addEventListener('message', (evento) => {
+                    if (evento.origin !== window.location.origin || evento.source !== window.parent) return;
+                    if (evento.data?.tipo !== 'bascula-peso-vivo') return;
+                    const peso = evento.data.peso;
+                    const valorPeso = Number(peso?.peso);
+                    if (!Number.isFinite(valorPeso)) return;
                     ultimoDatoBalanzaSalida = Date.now();
-                    console.info('[BASCULA][WEB] datos RAW recibidos', JSON.stringify(recibido));
-                    procesarDatosBalanzaSalida(recibido);
-                }
-            } catch (error) {
-                console.error('[BASCULA][DEBUG] error en reader Web Serial', error);
-                basculaNativaConectada = false;
+                    aplicarPesoBalanzaSalida(valorPeso, Number(peso?.ts) || Date.now(), 'dashboard-reenvio');
+                });
+            }
+            if (!api) {
                 actualizarEstadoBalanzaSalida('desconectada');
-                mostrarDiagnosticoBalanzaSalida(`NAVEGADOR: LECTURA INTERRUMPIDA\n${error?.message || error}`);
-            } finally {
-                console.info('[BASCULA][DEBUG] finalizó lector Web Serial', { tieneReader: Boolean(lectorBalanzaSalida) });
-                if (lectorBalanzaSalida) {
-                    try { lectorBalanzaSalida.releaseLock(); } catch (error) {}
-                    lectorBalanzaSalida = null;
-                }
+                mostrarDiagnosticoBalanzaSalida('La báscula solo está disponible dentro de la aplicación de escritorio.');
+                return false;
+            }
+            basculaNativaListenerRegistrado = true;
+            api.onPeso(peso => {
+                const valorPeso = Number(peso?.peso);
+                if (!peso || !Number.isFinite(valorPeso)) return;
+                ultimoDatoBalanzaSalida = Date.now();
+                aplicarPesoBalanzaSalida(valorPeso, Number(peso?.ts) || Date.now(), 'evento-directo');
+            });
+            api.onEstado(aplicarEstadoBasculaEscritorio);
+            api.estado().then(aplicarEstadoBasculaEscritorio).catch(() => {});
+            return true;
+        }
+
+        async function sincronizarEstadoBalanzaSalida() {
+            if (!iniciarPuenteBasculaEscritorio()) return;
+            try {
+                aplicarEstadoBasculaEscritorio(await window.basculaAPI.estado());
+            } catch (error) {
+                actualizarEstadoBalanzaSalida('desconectada');
             }
         }
 
-        async function conectarBalanzaSalidaWebSerial(forzarSeleccion = false) {
-            console.info('[BASCULA][WEB] iniciar conexión', { forzarSeleccion, url: window.location.href });
-            if (conexionWebSerialEnCurso) return conexionWebSerialEnCurso;
-            if (basculaNativaConectada && lectorBalanzaSalida) {
-                console.info('[BASCULA][WEB] conexión existente reutilizada');
-                actualizarEstadoBalanzaSalida('conectada');
-                mostrarDiagnosticoBalanzaSalida('NAVEGADOR: PUERTO ABIERTO\nLEYENDO PESO REAL...');
-                return;
-            }
-            if (!('serial' in navigator)) {
-                actualizarEstadoBalanzaSalida('desconectada');
-                mostrarDiagnosticoBalanzaSalida('ERROR: ESTE NAVEGADOR NO SOPORTA WEB SERIAL. USE CHROME O EDGE EN HTTPS O EN LOCALHOST.');
-                return;
-            }
-            if (lectorBalanzaSalida) {
-                try { await lectorBalanzaSalida.cancel(); } catch (error) {}
-                try { lectorBalanzaSalida.releaseLock(); } catch (error) {}
-                lectorBalanzaSalida = null;
-            }
-            if (puertoBalanzaSalida?.readable && !puertoBalanzaSalida.readable.locked) {
-                basculaNativaConectada = true;
-                actualizarEstadoBalanzaSalida('conectada');
-                mostrarDiagnosticoBalanzaSalida('NAVEGADOR: PUERTO COM YA ABIERTO\nLEYENDO PESO REAL...');
-                lectorBalanzaSalida = puertoBalanzaSalida.readable.getReader();
-                leerDatosBalanzaSalidaWebSerial();
-                return;
-            }
-            if (puertoBalanzaSalida?.readable?.locked) {
-                throw new Error('El puerto Web Serial sigue bloqueado por un reader anterior.');
-            }
-            puertoBalanzaSalida = null;
-            const configuracion = obtenerConfiguracionBalanzaSalida();
-            console.info('[BASCULA][WEB] configuración serial', configuracion);
-                        conexionWebSerialEnCurso = (async () => {
-                            try {
-                const puertosAutorizados = await navigator.serial.getPorts();
-                console.info('[BASCULA][WEB] puertos autorizados', puertosAutorizados.map(puerto => puerto.getInfo?.() || {}));
-                if (!puertosAutorizados.length && !forzarSeleccion) {
-                    mostrarDiagnosticoBalanzaSalida('NAVEGADOR: esperando el puente local automático de Electron.');
-                    return;
-                }
-                puertoBalanzaSalida = puertosAutorizados.find(puerto => {
-                    const info = puerto.getInfo?.() || {};
-                    return Number(info.usbVendorId) === 6790 && Number(info.usbProductId) === 29987;
-                }) || (puertosAutorizados.length ? puertosAutorizados[0] : await navigator.serial.requestPort());
-                if (!puertoBalanzaSalida) return;
-                console.info('[BASCULA][WEB] puerto seleccionado', puertoBalanzaSalida.getInfo?.() || {});
-                mostrarDiagnosticoBalanzaSalida(`PUERTO SELECCIONADO: ${puertoBalanzaSalida.getInfo?.().usbProductId ? 'USB' : 'SERIAL'}\nABRIENDO CON ${configuracion.baudRate}, ${configuracion.dataBits}${configuracion.parity === 'none' ? 'N' : configuracion.parity.toUpperCase()}${configuracion.stopBits}...`);
-                if (puertoBalanzaSalida.readable && !puertoBalanzaSalida.readable.locked) {
-                    console.info('[BASCULA][WEB] puerto ya abierto, se reutiliza');
-                } else if (!puertoBalanzaSalida.readable) {
-                    console.info('[BASCULA][WEB] antes de port.open()');
-                    console.info('[BASCULA][WEB] port.open() iniciado');
-                    await puertoBalanzaSalida.open({
-                        baudRate: configuracion.baudRate,
-                        dataBits: configuracion.dataBits,
-                        parity: configuracion.parity,
-                        stopBits: configuracion.stopBits
-                    });
-                    console.info('[BASCULA][WEB] port.open() completado');
-                } else {
-                    throw new Error('El puerto Web Serial sigue bloqueado por un reader anterior. No se ejecutará port.open() para evitar una segunda conexión.');
-                }
-                if (typeof puertoBalanzaSalida.setSignals === 'function') {
-                    await puertoBalanzaSalida.setSignals({ dataTerminalReady: true, requestToSend: true }).catch(error => {
-                        console.info('[BASCULA][WEB] el dispositivo no permite activar DTR/RTS', error?.message || error);
-                    });
-                }
-                if (!puertoBalanzaSalida.readable) {
-                    throw new Error('port.open() terminó, pero readable no está disponible.');
-                }
-                console.info('[BASCULA][WEB] readable disponible');
-                mostrarDiagnosticoBalanzaSalida('NAVEGADOR: PUERTO ABIERTO\nESPERANDO DATOS RAW REALES...');
-                lectorBalanzaSalida = puertoBalanzaSalida.readable.getReader();
-                console.info('[BASCULA][WEB] iniciando reader');
-                if (!lectorBalanzaSalida) throw new Error('No se pudo crear el reader del puerto serial.');
-                console.info('[BASCULA][WEB] reader iniciado');
-                basculaNativaConectada = true;
-                actualizarEstadoBalanzaSalida('conectada');
-                document.getElementById('pesoCategoriaSalidaValor').textContent = '--.--- kg';
-                const decoder = new TextDecoder();
-                while (true) {
-                    const resultado = await lectorBalanzaSalida.read();
-                    if (resultado.done) break;
-                    const recibido = decoder.decode(resultado.value, { stream: true });
-                    console.info('[BASCULA][WEB] datos RAW recibidos', JSON.stringify(recibido));
-                    mostrarDiagnosticoBalanzaSalida(`NAVEGADOR: RAW: ${JSON.stringify(recibido)}`);
-                    procesarDatosBalanzaSalida(recibido);
-                }
-                            } catch (error) {
-                basculaNativaConectada = false;
-                reintentosWebSerialAutomaticos = 0;
-                actualizarEstadoBalanzaSalida('desconectada');
-                mostrarDiagnosticoBalanzaSalida(`NAVEGADOR: NO SE PUDO ABRIR EL PUERTO COM\nERROR REAL: ${error?.name || 'Error'}: ${error?.message || error}`);
-                            } finally {
-                if (lectorBalanzaSalida) {
-                    try { await lectorBalanzaSalida.cancel(); } catch (error) {}
-                    try { lectorBalanzaSalida.releaseLock(); } catch (error) {}
-                    lectorBalanzaSalida = null;
-                }
-                if (!puertoBalanzaSalida?.readable) {
-                    puertoBalanzaSalida = null;
-                    basculaNativaConectada = false;
-                    actualizarEstadoBalanzaSalida('desconectada');
-                }
-              }
-            })();
-            try {
-                await conexionWebSerialEnCurso;
-            } finally {
-                conexionWebSerialEnCurso = null;
-            }
+        async function conectarBalanzaSalida() {
+            if (!iniciarPuenteBasculaEscritorio()) return null;
+            return sincronizarEstadoBalanzaSalida();
+        }
+
+        async function tararBalanzaSalida() {
+            if (!window.basculaAPI) return;
+            await window.basculaAPI.tarar().catch(() => {});
         }
 
         async function diagnosticarBalanzaSalida() {
-            mostrarDiagnosticoBalanzaSalida('DIAGNÓSTICO: buscando puertos COM...');
-            const apiBascula = window.electronAPI?.bascula;
-            if (!apiBascula?.listarPuertos || !apiBascula?.conectar) {
-                mostrarDiagnosticoBalanzaSalida('MODO NAVEGADOR: usando el puente local persistente...');
-                iniciarConexionBalanzaSalidaNavegador();
+            if (!window.basculaAPI) {
+                mostrarDiagnosticoBalanzaSalida('La báscula solo está disponible dentro de la aplicación de escritorio.');
                 return;
             }
-            try {
-                const puertos = await apiBascula.listarPuertos();
-                if (!puertos.length) {
-                    mostrarDiagnosticoBalanzaSalida('ERROR: PUERTO NO DISPONIBLE');
-                    actualizarEstadoBalanzaSalida('desconectada');
-                    return;
-                }
-                const puerto = puertos.find(item => /USB-SERIAL|CH340/i.test(`${item.path} ${item.manufacturer}`)) || puertos[0];
-                const estadoActual = await apiBascula.probar();
-                const configuracion = obtenerConfiguracionBalanzaSalida();
-                mostrarDiagnosticoBalanzaSalida(`PUERTO DETECTADO: ${puerto.path}\nABRIENDO CON ${configuracion.baudRate}, ${configuracion.dataBits}${configuracion.parity === 'none' ? 'N' : configuracion.parity.toUpperCase()}${configuracion.stopBits}...`);
-                await conectarBalanzaSalida();
-                const resultado = await apiBascula.probar();
-                mostrarDiagnosticoBalanzaSalida(resultado.conectado
-                    ? `PUERTO ABIERTO: ${resultado.path || puerto.path}\nCONFIGURACIÓN: ${configuracion.baudRate}, ${configuracion.dataBits}${configuracion.parity === 'none' ? 'N' : configuracion.parity.toUpperCase()}${configuracion.stopBits}\nESPERANDO DATOS RAW...`
-                    : 'ERROR: NO SE PUDO CONECTAR CON LA BÁSCULA');
-            } catch (error) {
-                console.error('[BASCULA][WEB] error completo al conectar', {
-                    name: error?.name,
-                    message: error?.message,
-                    stack: error?.stack,
-                    puerto: puertoBalanzaSalida?.getInfo?.() || null,
-                    configuracion
-                });
-                mostrarDiagnosticoBalanzaSalida(`ERROR REAL: ${error?.message || error}`);
-            }
+            await window.basculaAPI.reconectar().catch(() => {});
+            await window.basculaAPI.abrirDiagnostico().catch(() => {});
+            await sincronizarEstadoBalanzaSalida();
         }
 
-        async function conectarBalanzaSalidaInterna(forzarSeleccion = false) {
-            const modoElectronDashboard = new URLSearchParams(window.location.search).get('electron') === '1'
-                || (window.parent !== window);
-            console.info('[BASCULA][DEBUG] decisión de transporte', {
-                forzarSeleccion,
-                enIframe: window.parent !== window,
-                modoElectronDashboard,
-                electronAPI: Boolean(window.electronAPI?.bascula)
-            });
-            if (modoElectronDashboard && window.parent !== window) {
-                return conectarBalanzaSalidaDesdePadre(forzarSeleccion);
-            }
-            const apiBascula = window.electronAPI?.bascula;
-            if (apiBascula?.listarPuertos && apiBascula?.conectar) {
-                registrarListenerBalanzaNativa(apiBascula);
-                if (basculaNativaConectada) {
-                    actualizarEstadoBalanzaSalida('conectada');
-                    mostrarDiagnosticoBalanzaSalida(`PUERTO: ${puertoBalanzaSalida}\nLEYENDO PESO REAL...`);
-                    return;
-                }
-                try {
-                    const puertos = await apiBascula.listarPuertos();
-                    const configuracion = obtenerConfiguracionBalanzaSalida();
-                    const estadoActual = await apiBascula.probar();
-                    const puerto = (configuracion && puertos.find(item => item.path === configuracion.path)) || puertos.find(item => /USB-SERIAL|CH340/i.test(`${item.path} ${item.manufacturer}`)) || puertos[0];
-                    if (!puerto) {
-                        actualizarEstadoBalanzaSalida('desconectada');
-                        const etiqueta = document.getElementById('pesoCategoriaSalidaValor');
-                        if (etiqueta) etiqueta.textContent = 'PUERTO NO DISPONIBLE';
-                        return;
-                    }
-                    if (estadoActual?.conectado) {
-                        puertoBalanzaSalida = estadoActual.path || puerto.path;
-                    } else {
-                        await apiBascula.conectar({ ...configuracion, path: puerto.path });
-                        puertoBalanzaSalida = puerto.path;
-                    }
-                    conectarBalanzaSalidaPuenteLocal();
-                    basculaNativaConectada = true;
-                    actualizarEstadoBalanzaSalida('conectada');
-                    const etiqueta = document.getElementById('pesoCategoriaSalidaValor');
-                    if (etiqueta) etiqueta.textContent = '--.--- kg';
-                    reaplicarUltimoPesoBalanzaSalida();
-                    mostrarDiagnosticoBalanzaSalida(`PUERTO ABIERTO: ${puertoBalanzaSalida}\nLEYENDO PESO REAL...\nESPERANDO DATOS RAW...`);
-                    ultimoDatoBalanzaSalida = 0;
-                    if (temporizadorSinDatosBalanzaSalida) clearTimeout(temporizadorSinDatosBalanzaSalida);
-                    temporizadorSinDatosBalanzaSalida = setTimeout(() => {
-                        if (basculaNativaConectada && !ultimoDatoBalanzaSalida) {
-                            mostrarDiagnosticoBalanzaSalida(`PUERTO ABIERTO: ${puerto.path}\nCONECTADA, PERO SIN DATOS`);
-                        }
-                    }, 3000);
-                } catch (error) {
-                    basculaNativaConectada = false;
-                    actualizarEstadoBalanzaSalida('desconectada');
-                    const etiqueta = document.getElementById('pesoCategoriaSalidaValor');
-                    if (etiqueta) etiqueta.textContent = 'NO SE PUDO LEER EL PESO';
-                    const mensajeError = String(error?.message || error || '');
-                    const detalleHumano = /Unknown error code 31|Access is denied|The port is already open|COM3/i.test(mensajeError)
-                        ? 'PUERTO OCUPADO O BASCULA NO DISPONIBLE.\nCierre cualquier programa que use la escala y vuelva a intentarlo.'
-                        : `PUERTO INTENTADO: ${puertoBalanzaSalida?.path || puertoBalanzaSalida || 'desconocido'}\nERROR REAL: ${mensajeError}`;
-                    mostrarDiagnosticoBalanzaSalida(detalleHumano);
-                }
-                return;
-            }
-            if (basculaNativaConectada && lectorBalanzaSalida) {
-                actualizarEstadoBalanzaSalida('conectada');
-                mostrarDiagnosticoBalanzaSalida('NAVEGADOR: PUERTO ABIERTO\nLEYENDO PESO REAL...');
-                return;
-            }
-            actualizarEstadoBalanzaSalida('desconectada');
-            await iniciarConexionBalanzaSalidaNavegador(forzarSeleccion);
-        }
-
-        async function conectarBalanzaSalida(forzarSeleccion = false) {
-            if (conexionBalanzaSalidaEnCurso) {
-                console.info('[BASCULA][WEB] conexión ya en curso; se reutiliza la operación existente');
-                return conexionBalanzaSalidaEnCurso;
-            }
-            conexionBalanzaSalidaEnCurso = conectarBalanzaSalidaInterna(forzarSeleccion);
-            try {
-                return await conexionBalanzaSalidaEnCurso;
-            } finally {
-                conexionBalanzaSalidaEnCurso = null;
-            }
-        }
+        document.addEventListener('DOMContentLoaded', () => { iniciarPuenteBasculaEscritorio(); });
 
         function filtrarProductosSalidaPorCategoria(categoriaId) {
             const select = document.getElementById('productoSalida');
@@ -5027,7 +5154,9 @@ if (is_file($logoPdfPath)) {
 
         function validarCantidadStock(item, cantidad) {
             const stock = parseFloat(item.stock || 0) || 0;
-            const esPorKilo = item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1;
+            const esPorKilo = typeof window.esProductoPorKiloInventario === 'function'
+                ? window.esProductoPorKiloInventario(item.venta_por_kilo, item.categoria_nombre || item.categoria)
+                : (item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1);
             const qty = normalizarCantidadSalida(cantidad, esPorKilo);
             if (stock <= 0) {
                 return { valido: false, cantidad: qty, stock, mensaje: 'El producto no tiene stock disponible.' };
@@ -5058,6 +5187,7 @@ if (is_file($logoPdfPath)) {
                 delete select.dataset.categoriaPeso;
                 select.style.backgroundImage = '';
             }
+            ultimoPesoBalanzaSalida = null;
             if (buscar) {
                 buscar.value = '';
                 buscar.dataset.lectorPreparado = '0';
@@ -5253,6 +5383,10 @@ if (is_file($logoPdfPath)) {
             }
 
             const validacionInicial = validarCantidadStock(producto, producto.cantidad);
+            if (validacionInicial.cantidad <= 0) {
+                aseguraryMostrarSwalEstilizado('Coloca el producto en la báscula e indica un peso mayor que 0 kg.');
+                return;
+            }
             if (!validacionInicial.valido) {
                 aseguraryMostrarSwalEstilizado(validacionInicial.mensaje || 'Stock insuficiente');
                 return;
@@ -5330,18 +5464,30 @@ if (is_file($logoPdfPath)) {
 
         function eliminarProductoSalida(productoId) {
             carritoSalida = carritoSalida.filter(item => item.producto_id !== productoId);
+            const select = document.getElementById('productoSalida');
+            if (select && Number(select.value) === Number(productoId)) {
+                limpiarSeleccionSalidaUI();
+            }
             renderCarritoSalida();
         }
 
         function redondearTotalSalida(valor) {
             const total = Math.max(0, Number(valor) || 0);
-            const baseRedondeo = Math.floor(total / 100) * 100;
-            return baseRedondeo + (total % 100 > 20 ? 100 : 0);
+            if (typeof redondearPrecioVenta === 'function') {
+                return redondearPrecioVenta(total);
+            }
+            const base = Math.floor(total / 100) * 100;
+            const resto = total - base;
+            if (resto <= 40) return base;
+            return base + 100;
         }
 
         function calcularTotalItemsSalida(items) {
             return items.reduce((total, item) => {
-                return total + ((Number(item.precio_venta) || 0) * (Number(item.cantidad) || 0));
+                const precio = typeof redondearPrecioVenta === 'function'
+                    ? redondearPrecioVenta(Number(item.precio_venta) || 0)
+                    : (Number(item.precio_venta) || 0);
+                return total + (precio * (Number(item.cantidad) || 0));
             }, 0);
         }
 
@@ -5349,6 +5495,8 @@ if (is_file($logoPdfPath)) {
             const tbody = document.getElementById('carritoSalidaBody');
             const totalEl = document.getElementById('totalCarritoSalida');
             if (!tbody) return;
+            guardarPaginaSalidaActiva();
+            renderPaginasSalida();
 
             if (!carritoSalida.length) {
                 tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 14px;">Sin productos agregados</td></tr>';
@@ -5364,10 +5512,12 @@ if (is_file($logoPdfPath)) {
                 const codigo = item.codigo || 'N/A';
                 const referencia = item.referencia || item.codigo || 'N/A';
                 const stock = parseFloat(item.stock || 0) || 0;
-                const precio = stock <= 0 ? 0 : parseFloat(item.precio) || 0;
-                const precioOriginal = stock <= 0 ? 0 : parseFloat(item.precio_original) || 0;
+                const precio = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(item.precio) || 0) : (parseFloat(item.precio) || 0));
+                const precioOriginal = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(item.precio_original) || 0) : (parseFloat(item.precio_original) || 0));
                 const descuentoPct = stock <= 0 ? 0 : parseFloat(item.descuento_porcentaje) || 0;
-                const esPorKilo = item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1;
+                const esPorKilo = typeof window.esProductoPorKiloInventario === 'function'
+                    ? window.esProductoPorKiloInventario(item.venta_por_kilo, item.categoria_nombre || item.categoria)
+                    : (item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1);
                 const cantidad = normalizarCantidadSalida(item.cantidad, esPorKilo);
                 const pesoEnGramos = esPorKilo ? cantidad * 1000 : cantidad;
                 const subtotal = esPorKilo ? (pesoEnGramos / 1000) * precio : precio * cantidad;
@@ -5402,8 +5552,8 @@ if (is_file($logoPdfPath)) {
                     <td style="min-width: 130px;">
                         <div style="display: flex; align-items: center; gap: 4px;">
                             <button type="button" onclick="decrementarItemCarritoSalida(${item.producto_id})" style="padding: 4px 8px; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">−</button>
-                            <input type="number" min="${esPorKilo ? '0.001' : '1'}" step="${esPorKilo ? '0.001' : '1'}" max="${stock}" value="${cantidad}"
-                                   style="width: 60px; text-align: center; padding: 4px; border: 1px solid #ccc; border-radius: 4px;"
+                            <input type="number" min="${esPorKilo ? '0.001' : '1'}" step="${esPorKilo ? '0.001' : '1'}" max="${stock}" value="${esPorKilo ? cantidad.toFixed(3) : Math.round(cantidad)}"
+                                   style="width: 74px; text-align: center; padding: 4px; border: 1px solid #ccc; border-radius: 4px;"
                                    onchange="actualizarCantidadSalidaItem(${item.producto_id}, this.value)"
                                    oninput="actualizarCantidadSalidaItem(${item.producto_id}, this.value)"
                                    onblur="actualizarCantidadSalidaItem(${item.producto_id}, this.value)">
@@ -5439,7 +5589,9 @@ if (is_file($logoPdfPath)) {
             item.presentacion_nombre = String(seleccion.nombre || '').toUpperCase();
             item.presentacion_factor = factor;
             item.stock = factor > 1 ? Math.floor(stockBase / factor) : stockBase;
-            item.precio = Number(seleccion.precio_venta || 0) || Number(item.precio_producto || item.precio || 0);
+            item.precio = typeof redondearPrecioVenta === 'function'
+                ? redondearPrecioVenta(Number(seleccion.precio_venta || 0) || Number(item.precio_producto || item.precio || 0))
+                : (Number(seleccion.precio_venta || 0) || Number(item.precio_producto || item.precio || 0));
             item.precio_original = item.precio;
             item.precio_venta = item.precio;
             item.cantidad = 1;
@@ -5465,37 +5617,21 @@ if (is_file($logoPdfPath)) {
             const valorEl = document.getElementById(elementoId);
             if (!valorEl) return;
 
-            const texto = (valorEl.textContent || '').replace(/\s/g, '');
-            const longitud = texto.length;
             const esResumenVentas = /^(efectivo|transferencia|ganancia|valorVentas)(Dia|Mes)$/.test(elementoId)
                 || elementoId === 'totalDiaCard'
                 || elementoId === 'gananciaDiaCard';
-            const esValorInventario = elementoId === 'valorTotal' || ['valorTotalDetalle', 'valorCompraDetalle', 'valorGananciaDetalle'].includes(elementoId);
+            const esTarjetaPrincipal = ['valorTotal', 'stockTotal', 'totalProductos', 'bajoStock'].includes(elementoId);
 
-            let tamano = esResumenVentas ? 22 : 38;
-            let tamanoMinimo = esValorInventario ? 19 : 12;
-            let tamanoMaximo = esValorInventario ? 56 : 34;
-
-            if (!esResumenVentas) {
-                if (longitud >= 14) {
-                    tamano = esValorInventario ? 40 : 22;
-                } else if (longitud >= 12) {
-                    tamano = esValorInventario ? 44 : 24;
-                } else if (longitud >= 10) {
-                    tamano = esValorInventario ? 48 : 28;
-                } else if (longitud >= 8) {
-                    tamano = esValorInventario ? 52 : 30;
-                }
+            if (esTarjetaPrincipal) {
+                valorEl.style.fontSize = '';
+                return;
             }
 
+            let tamano = esResumenVentas ? 20 : 22;
+            const tamanoMinimo = 12;
             valorEl.style.fontSize = tamano + 'px';
 
             if (!esResumenVentas) {
-                while (valorEl.scrollWidth < valorEl.clientWidth && tamano < tamanoMaximo) {
-                    tamano += 1;
-                    valorEl.style.fontSize = tamano + 'px';
-                }
-
                 while (valorEl.scrollWidth > valorEl.clientWidth && tamano > tamanoMinimo) {
                     tamano -= 1;
                     valorEl.style.fontSize = tamano + 'px';
@@ -5511,6 +5647,9 @@ if (is_file($logoPdfPath)) {
 
         function ajustarTamanoValorInventario() {
             ajustarTamanoTextoStat('valorTotal');
+            ajustarTamanoTextoStat('stockTotal');
+            ajustarTamanoTextoStat('totalProductos');
+            ajustarTamanoTextoStat('bajoStock');
         }
 
         function ajustarTamanoGananciaTotal() {
@@ -5523,27 +5662,37 @@ if (is_file($logoPdfPath)) {
         }
 
         function formatoMonedaCompleta(valor) {
-            const normalizado = normalizarValorMonedaVenta(valor);
+            const normalizado = typeof redondearPrecioVenta === 'function'
+                ? redondearPrecioVenta(normalizarValorMonedaVenta(valor))
+                : normalizarValorMonedaVenta(valor);
             return '$' + normalizado.toLocaleString('es-CO', {
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 2
+                maximumFractionDigits: 0
             });
         }
 
         function formatoMonedaInventario(valor) {
-            const numero = parseFloat(valor) || 0;
+            const numeroBase = parseFloat(valor) || 0;
+            const numero = typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(numeroBase) : numeroBase;
             return '$' + numero.toLocaleString('es-CO', {
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 2
+                maximumFractionDigits: 0
             });
         }
 
         function formatoPrecioUnitarioInventario(valor) {
-            const numero = parseFloat(valor) || 0;
+            const numeroBase = parseFloat(valor) || 0;
+            const numero = typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(numeroBase) : numeroBase;
             return '$' + numero.toLocaleString('es-CO', {
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 2
+                maximumFractionDigits: 0
             });
+        }
+
+        function normalizarDineroRecibidoSalida(valor) {
+            let texto = String(valor ?? '').trim().replace(/\s/g, '');
+            if (!/^\d+(?:\.\d{3})*$/.test(texto)) return NaN;
+            return Number(texto.replace(/\./g, ''));
         }
 
         function escapeHtmlInventario(valor) {
@@ -5735,10 +5884,11 @@ if (is_file($logoPdfPath)) {
             const stockActual = parseFloat(stock) || 0;
 
             if (stockActual <= 0 || original <= 0 || descuento <= 0) {
-                return original;
+                return typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(original) : original;
             }
 
-            return Math.max(0, original * (1 - descuento / 100));
+            const conDescuento = Math.max(0, original * (1 - descuento / 100));
+            return typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(conDescuento) : conDescuento;
         }
 
         function renderResumenPrecioDescuento(precioOriginal, precioFinal, descuentoPorcentaje) {
@@ -5881,11 +6031,20 @@ if (is_file($logoPdfPath)) {
 
                         productosOrdenados.forEach((item) => {
                             const row = document.createElement('tr');
+                            row.dataset.busquedaInventario = [
+                                item.id,
+                                item.nombre,
+                                item.codigo,
+                                item.codigo_barras,
+                                item.categoria
+                            ].filter(Boolean).join(' ');
                             
                             // Preparar imagen del producto
                             const imgSrc = resolverImagenProductoInventario(item.imagen);
                             const stock = parseFloat(item.stock || 0) || 0;
-                            const precioBase = stock <= 0 ? 0 : (parseFloat(item.precio_final || item.precio || 0) || 0);
+                            const precioBase = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                                ? redondearPrecioVenta(parseFloat(item.precio_final || item.precio || 0) || 0)
+                                : (parseFloat(item.precio_final || item.precio || 0) || 0));
                             const precioCompra = stock <= 0 ? 0 : (parseFloat(item.ultimo_precio_compra || item.precio_compra_promedio || item.precio_compra || 0) || 0);
                             const porcentajeBase = stock <= 0 ? 0 : (!isNaN(parseFloat(item.porcentaje_ganancia)) ? parseFloat(item.porcentaje_ganancia) : 0);
                             const porcentajeGanancia = stock <= 0 ? 0 : calcularPorcentajeGananciaInventario(precioBase, precioCompra, porcentajeBase);
@@ -6022,6 +6181,11 @@ if (is_file($logoPdfPath)) {
                         });
 
                         Object.keys(gruposPorFecha)
+                            .sort((a, b) => {
+                                const fechaA = new Date(a.split('/').reverse().join('-'));
+                                const fechaB = new Date(b.split('/').reverse().join('-'));
+                                return fechaB - fechaA;
+                            })
                             .forEach(fechaDia => {
                                 const grupoFecha = gruposPorFecha[fechaDia];
                                 const headerRow = document.createElement('tr');
@@ -6069,11 +6233,12 @@ if (is_file($logoPdfPath)) {
                                         <td>${(item.codigo || 'N/A').toUpperCase()}</td>
                                         <td>${(item.producto_nombre || '').toUpperCase()}</td>
                                         <td>${datos.cantidad.toLocaleString('es-CO')}</td>
-                                        <td>$${datos.precioCompra.toLocaleString('es-CO', {maximumFractionDigits: 2})}</td>
+                                        <td>${formatoMonedaInventario(datos.precioCompra)}</td>
                                         <td>${(item.proveedor_nombre || 'N/A').toUpperCase()}</td>
                                         <td>${escapeHtmlInventario(fechaVencimientoTexto)}</td>
                                         <td>${datos.fechaTexto}</td>
                                         <td>${datos.usuarioCompleto}</td>
+                                        ${esSuperAdminGlobal ? `<td style="text-align:center;"><button type="button" class="btn-delete btn-action" title="Eliminar entrada" onclick="eliminarEntrada(${Number(item.id)})"><i class="fas fa-trash"></i></button></td>` : ''}
                                     `;
                                     tbody.appendChild(row);
                                 });
@@ -6083,6 +6248,42 @@ if (is_file($logoPdfPath)) {
                     }
                 })
                 .catch(e => console.error('Error:', e));
+        }
+
+        async function eliminarEntrada(entradaId) {
+            if (!esSuperAdminGlobal) return;
+            const id = Number(entradaId);
+            if (!id || id <= 0) return;
+
+            const confirmacion = await Swal.fire({
+                icon: 'warning',
+                title: '¿ELIMINAR ENTRADA?',
+                html: `<p>Esta acción eliminará el registro de entrada <strong>#${id}</strong> y <strong>descontará la cantidad del stock</strong> del producto correspondiente.</p><p style="margin-top:8px;color:#b91c1c;font-weight:700;">Esta operación no se puede deshacer.</p>`,
+                showCancelButton: true,
+                confirmButtonText: 'SÍ, ELIMINAR',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#dc2626'
+            });
+            if (!confirmacion.isConfirmed) return;
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'eliminarEntrada');
+                formData.append('entrada_id', id);
+
+                const respuesta = await fetch(inventarioControllerUrl, { method: 'POST', body: formData });
+                const resultado = await respuesta.json();
+
+                if (!resultado.success) throw new Error(resultado.message || 'No se pudo eliminar la entrada.');
+
+                Swal.fire({ icon: 'success', title: 'ENTRADA ELIMINADA', text: resultado.message || 'La entrada fue eliminada correctamente.', timer: 2000, showConfirmButton: false });
+                cargarEntradas();
+                cargarResumen();
+                cargarEstadisticas();
+                dispararRefreshInventarioGlobal?.();
+            } catch (error) {
+                Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudo eliminar la entrada.' });
+            }
         }
 
         // Cargar salidas
@@ -6193,7 +6394,7 @@ if (is_file($logoPdfPath)) {
             }
             const mesesNombre = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
             const encabezados = '<tr><th>FECHA</th><th>IMAGEN</th><th>REFERENCIA</th><th>CÓDIGO</th><th>PRODUCTO</th><th>CANTIDAD</th><th>PRECIO</th><th>SUBTOTAL</th></tr>';
-            const formatoImporteReporte = valor => '$' + (parseFloat(valor) || 0).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            const formatoImporteReporte = valor => formatoMonedaInventario(valor);
             const grupos = {};
             ventasFiltradas.forEach(item => {
                 const fecha = String(item.fecha_salida || '');
@@ -6201,7 +6402,7 @@ if (is_file($logoPdfPath)) {
                 if (!grupos[clave]) grupos[clave] = [];
                 grupos[clave].push(item);
             });
-            const filas = Object.keys(grupos).sort().reverse().map(clave => {
+            const filas = Object.keys(grupos).sort().map(clave => {
                 const fecha = clave.match(/^\d{4}-(\d{2})$/);
                 const titulo = fecha ? `${mesesNombre[Number(fecha[1]) - 1]} ${fecha[0].slice(0, 4)}` : clave;
                 const productos = new Map();
@@ -6277,17 +6478,41 @@ if (is_file($logoPdfPath)) {
         function cargarSalidas() {
             fetch(inventarioControllerUrl + '?action=obtenerSalidas')
                 .then(r => r.json())
-                .then(data => {
+                .then(async data => {
                     if (data.success) {
                         const tbody = document.getElementById('salidasTableBody');
                         if (!tbody) return; // Elemento no existe en la página actual
                         tbody.innerHTML = '';
                         salidasAgrupadasCache = {};
+
+                        // Cargar abonos de crédito en paralelo
+                        let abonosCreditoLista = [];
+                        try {
+                            const creditosCtrlUrl = base_url + '/Controllers/CreditosController.php';
+                            const respAbonos = await fetch(creditosCtrlUrl + '?action=listarAbonos');
+                            const dataAbonos = await respAbonos.json();
+                            if (dataAbonos?.success && Array.isArray(dataAbonos.data)) {
+                                abonosCreditoLista = dataAbonos.data;
+                            }
+                        } catch (eAbonos) {
+                            // No bloquear la carga de salidas si los abonos fallan
+                        }
                         
-                        if (data.data.length === 0) {
+                        if (data.data.length === 0 && abonosCreditoLista.length === 0) {
                             tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 20px; color: #64748b;">No hay salidas registradas aún.</td></tr>';
                             return;
                         }
+
+                        // Calcular abono total por crédito_id para enrichment de filas de crédito
+                        const abonoPorCredito = {};
+                        const abonosDetalladosPorCredito = {};
+                        abonosCreditoLista.forEach(ab => {
+                            const cid = String(ab.credito_id || '');
+                            if (!abonoPorCredito[cid]) abonoPorCredito[cid] = 0;
+                            abonoPorCredito[cid] += Number(ab.monto || 0);
+                            if (!abonosDetalladosPorCredito[cid]) abonosDetalladosPorCredito[cid] = [];
+                            abonosDetalladosPorCredito[cid].push(ab);
+                        });
 
                         const formatarFechaDia = (valorFecha) => {
                             const fechaObj = new Date(valorFecha || null);
@@ -6347,7 +6572,8 @@ if (is_file($logoPdfPath)) {
                                     totalUnidades: 0,
                                     metodoPago: item.metodo_pago || 'efectivo',
                                     esCredito: esRegistroCredito(item.es_credito),
-                                    total: 0
+                                    total: 0,
+                                    esAbono: false
                                 };
                             }
 
@@ -6360,10 +6586,55 @@ if (is_file($logoPdfPath)) {
                             grupos[key].total += subtotal;
                         });
 
+                        // ── Agregar abonos como grupos separados (tipo 'abono', badge AB) ──
+                        abonosCreditoLista.forEach(ab => {
+                            const refAbono = String(ab.referencia || '').trim();
+                            if (!refAbono) return; // ignorar abonos sin código
+                            const keyAbono = `ABONO-${ab.id}-${refAbono}`;
+                            const clienteNombreAb = `${ab.cliente_nombre || ''} ${ab.cliente_apellidos || ''}`.trim() || 'CLIENTE';
+                            grupos[keyAbono] = {
+                                claveAgrupacion: keyAbono,
+                                referencia: refAbono.toUpperCase(),
+                                items: [{
+                                    producto_nombre: `ABONO CRÉDITO – ${clienteNombreAb.toUpperCase()}`,
+                                    codigo: refAbono.toUpperCase(),
+                                    cantidad: 1,
+                                    precio_venta_unitario: ab.monto,
+                                    total_venta: ab.monto,
+                                    notas: `Abono: ${refAbono} | Cliente: ${clienteNombreAb}`
+                                }],
+                                fechaRaw: ab.fecha_abono || null,
+                                tipo: 'abono',
+                                origen: 'CRÉDITO',
+                                usuarioNombre: ab.usuario_nombre ? String(ab.usuario_nombre).trim() : 'N/A',
+                                usuarioApellidos: String(ab.usuario_apellidos || '').trim(),
+                                usuarioRol: String(ab.usuario_rol || '').trim(),
+                                totalUnidades: 0,
+                                metodoPago: ab.metodo_pago || 'efectivo',
+                                esCredito: false,
+                                esAbono: true,
+                                abonoMonto: Number(ab.monto || 0),
+                                abonoCliente: clienteNombreAb,
+                                abonoDocumento: ab.cliente_documento || '',
+                                creditoTotal: Number(ab.credito_total || 0),
+                                creditoSaldo: Number(ab.credito_saldo || 0),
+                                total: Number(ab.monto || 0)
+                            };
+                        });
+
                         const gruposPorFecha = {};
 
                         Object.values(grupos)
-                            .sort((a, b) => numeroReferenciaSalida(b.referencia) - numeroReferenciaSalida(a.referencia) || parseFechaInventario(b.fechaRaw) - parseFechaInventario(a.fechaRaw) || (Number(b.items?.[0]?.id) || 0) - (Number(a.items?.[0]?.id) || 0))
+                            .sort((a, b) => {
+                                const tsA = parseFechaInventario(a.fechaRaw);
+                                const tsB = parseFechaInventario(b.fechaRaw);
+                                if (tsB !== tsA) return tsB - tsA;
+                                // Mismo timestamp exacto: abonos van antes que ventas del mismo segundo
+                                if (a.esAbono && !b.esAbono) return -1;
+                                if (!a.esAbono && b.esAbono) return 1;
+                                return numeroReferenciaSalida(b.referencia) - numeroReferenciaSalida(a.referencia)
+                                    || (Number(b.items?.[0]?.id) || 0) - (Number(a.items?.[0]?.id) || 0);
+                            })
                             .forEach(grupo => {
                                 const fechaDia = formatarFechaDia(grupo.fechaRaw);
                                 if (!gruposPorFecha[fechaDia]) {
@@ -6424,6 +6695,48 @@ if (is_file($logoPdfPath)) {
 
                                     const row = document.createElement('tr');
                                     const tipo = grupo.tipo || 'venta';
+                                    const fechaHoraGrupo = fechaHoraImpresion(grupo.fechaRaw || grupo.fecha);
+                                    const usuarioNombre = String(grupo.usuarioNombre || 'N/A').trim();
+                                    const usuarioApellidos = String(grupo.usuarioApellidos || '').trim();
+                                    const usuarioRol = String(grupo.usuarioRol || '').trim();
+                                    const usuarioHtml = `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">${usuarioNombre ? `<span>${escapeHtml(usuarioNombre)}</span>` : ''}${usuarioApellidos ? `<span>${escapeHtml(usuarioApellidos)}</span>` : ''}${usuarioRol ? `<span>${escapeHtml(usuarioRol)}</span>` : ''}</div>`;
+
+                                    // ── FILA DE ABONO (AB-XX) ──
+                                    if (grupo.esAbono) {
+                                        row.style.background = '#f0fdf4';
+                                        row.innerHTML = `
+                                            <td>
+                                                <strong style="color:#166534;">${escapeHtml(grupo.referencia)}</strong><br>
+                                                <div style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:4px;text-align:center;">
+                                                    <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
+                                                    <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <strong style="text-transform:uppercase;">${escapeHtml(grupo.abonoCliente || 'CLIENTE')}</strong>
+                                            </td>
+                                            <td style="text-align:center;">—</td>
+                                            <td>
+                                                <small style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;color:#166534;">ABONO</small>
+                                                <strong style="color:#166534;font-size:16px;">${formatoMonedaInventario(grupo.abonoMonto)}</strong>
+                                            </td>
+                                            <td><span class="badge badge-abono">ABONO</span></td>
+                                            <td style="text-transform:uppercase;font-weight:700;">${escapeHtml(grupo.metodoPago || 'EFECTIVO')}</td>
+                                            <td>CRÉDITO</td>
+                                            <td>
+                                                <div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">
+                                                    <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
+                                                    <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
+                                                </div>
+                                            </td>
+                                            <td style="text-align:center;">${usuarioHtml}</td>
+                                            <td style="white-space:nowrap;text-align:center;color:#94a3b8;font-size:12px;">—</td>
+                                        `;
+                                        tbody.appendChild(row);
+                                        return;
+                                    }
+
+                                    // ── FILA NORMAL (venta / crédito pagado / dañado / etc.) ──
                                     const origen = grupo.origen || origenSalida({ tipo_salida: tipo, metodo_pago: grupo.metodoPago });
                                     const etiquetaTipo = (etiquetaTipoSalida(tipo, 0, grupo.metodoPago, grupo.esCredito) || '').toUpperCase();
                                     let tipoBadge = 'badge-success';
@@ -6435,11 +6748,35 @@ if (is_file($logoPdfPath)) {
                                         .map(p => `${(p.producto_nombre || 'N/A').toUpperCase()} (${(p.codigo || 'N/A').toUpperCase()})` )
                                         .join('· ');
                                     const extra = grupo.items.length > 2 ? ` +${grupo.items.length - 2} más` : '';
-                                    const fechaHoraGrupo = fechaHoraImpresion(grupo.fechaRaw || grupo.fecha);
-                                    const usuarioNombre = String(grupo.usuarioNombre || 'N/A').trim();
-                                    const usuarioApellidos = String(grupo.usuarioApellidos || '').trim();
-                                    const usuarioRol = String(grupo.usuarioRol || '').trim();
-                                    const usuarioHtml = `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">${usuarioNombre ? `<span>${escapeHtml(usuarioNombre)}</span>` : ''}${usuarioApellidos ? `<span>${escapeHtml(usuarioApellidos)}</span>` : ''}${usuarioRol ? `<span>${escapeHtml(usuarioRol)}</span>` : ''}</div>`;
+
+                                    // Para créditos: mostrar SALDO arriba y ABONO debajo
+                                    let celdaTotal = '';
+                                    if (grupo.esCredito) {
+                                        const notaPago = grupo.items.find(it => it.notas && String(it.notas).includes('Abono previo:'))?.notas || '';
+                                        const matchAbono = notaPago.match(/Abono previo:\s*([\d.]+)/i);
+                                        const matchSaldo = notaPago.match(/Saldo:\s*([\d.]+)/i);
+                                        const matchDeuda = notaPago.match(/Deuda total:\s*([\d.]+)/i);
+                                        const abonoPrevio = matchAbono ? parseFloat(matchAbono[1]) : 0;
+                                        // Si hay nota con saldo explícito úsalo, si no grupo.total ya es el saldo
+                                        const saldoPagado = matchSaldo ? parseFloat(matchSaldo[1]) : grupo.total;
+                                        // Total crédito original = saldo + abono
+                                        const totalCredito = matchDeuda ? parseFloat(matchDeuda[1]) : (saldoPagado + abonoPrevio);
+                                        celdaTotal = `
+                                            <small style="display:block;color:#334155;font-weight:700;font-size:10px;text-transform:uppercase;">SALDO PAGADO</small>
+                                            <strong>${formatoMonedaInventario(saldoPagado)}</strong>
+                                            ${abonoPrevio > 0 ? `
+                                            <div style="margin-top:4px;">
+                                                <small style="display:block;color:#166534;font-weight:700;font-size:10px;text-transform:uppercase;">ABONO</small>
+                                                <strong style="color:#166534;">${formatoMonedaInventario(abonoPrevio)}</strong>
+                                            </div>
+                                            <div style="margin-top:4px;padding-top:4px;border-top:1px solid #e2e8f0;">
+                                                <small style="display:block;color:#1d4ed8;font-weight:700;font-size:10px;text-transform:uppercase;">TOTAL CRÉDITO</small>
+                                                <strong style="color:#1d4ed8;">${formatoMonedaInventario(totalCredito)}</strong>
+                                            </div>` : ''}
+                                        `;
+                                    } else {
+                                        celdaTotal = `<strong>${formatoMonedaInventario(grupo.total)}</strong>`;
+                                    }
 
                                     row.innerHTML = `
                                         <td>
@@ -6451,7 +6788,7 @@ if (is_file($logoPdfPath)) {
                                         </td>
                                         <td>${productosPreview}${extra}</td>
                                         <td>${grupo.totalUnidades.toLocaleString('es-CO')}</td>
-                                        <td><strong>${formatoMonedaInventario(grupo.total)}</strong></td>
+                                        <td>${celdaTotal}</td>
                                         <td><span class="badge ${tipoBadge}">${escapeHtml(etiquetaTipo)}</span></td>
                                         <td style="white-space: normal; word-break: break-word;">${escapeHtml(metodoPagoVisible(tipo, grupo.metodoPago))}</td>
                                         <td>${(escapeHtml(origen) || 'N/A').toUpperCase()}</td>
@@ -6494,6 +6831,76 @@ if (is_file($logoPdfPath)) {
             mostrarModalDetallesSalidaVenta(referencia, grupo);
         }
 
+        function abrirModalAbonosTotalesSalida(abonosJson) {
+            let abonos = [];
+            try { abonos = JSON.parse(abonosJson); } catch(e) { abonos = []; }
+            const monedaCOP = v => new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 }).format(Number(v||0));
+            const fmtFechaHora = raw => {
+                if (!raw) return { fecha: 'N/D', hora: 'N/D' };
+                const txt = String(raw).trim();
+                const d = txt.includes('T') ? new Date(txt) : new Date(txt.replace(' ', 'T'));
+                if (isNaN(d.getTime())) return { fecha: txt, hora: '' };
+                const fecha = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+                const hora = d.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+                return { fecha, hora };
+            };
+            const body = document.getElementById('modalHistorialAbonosSalidaBody');
+            if (!abonos.length) {
+                body.innerHTML = '<p style="text-align:center;color:#64748b;padding:24px 0;">No hay abonos registrados.</p>';
+            } else {
+                const totalAbonado = abonos.reduce((s, a) => s + Number(a.monto || 0), 0);
+                
+                // Ordenar abonos: más reciente PRIMERO (arriba)
+                const abonosOrdenados = [...abonos].sort((a, b) => {
+                    const fechaA = a.fecha_abono || '1900-01-01 00:00:00';
+                    const fechaB = b.fecha_abono || '1900-01-01 00:00:00';
+                    // Convertir a timestamp y comparar - más reciente primero
+                    const timeA = new Date(fechaA.replace(' ', 'T')).getTime();
+                    const timeB = new Date(fechaB.replace(' ', 'T')).getTime();
+                    return timeB - timeA;
+                });
+                
+                const filas = abonosOrdenados.map(ab => {
+                    const fh = fmtFechaHora(ab.fecha_abono);
+                    const ref = String(ab.referencia || 'AB').toUpperCase();
+                    const metodo = String(ab.metodo_pago || 'efectivo').toUpperCase();
+                    const cliente = `${ab.cliente_nombre || ''} ${ab.cliente_apellidos || ''}`.trim().toUpperCase() || 'CLIENTE';
+                    return `<tr>
+                        <td style="padding:9px 8px;border-bottom:1px solid #e2e8f0;text-align:center;">
+                            <span style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:900;color:#c2410c;">${ref}</span>
+                        </td>
+                        <td style="padding:9px 8px;border-bottom:1px solid #e2e8f0;">
+                            <div style="font-size:13px;font-weight:800;">${cliente}</div>
+                        </td>
+                        <td style="padding:9px 8px;border-bottom:1px solid #e2e8f0;text-align:center;">
+                            <div style="font-size:12px;font-weight:700;">${fh.fecha}</div>
+                            <div style="font-size:11px;color:#64748b;">${fh.hora}</div>
+                        </td>
+                        <td style="padding:9px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:900;color:#166534;font-size:14px;">${monedaCOP(ab.monto)}</td>
+                        <td style="padding:9px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:11px;color:#475569;">${metodo}</td>
+                    </tr>`;
+                }).join('');
+                body.innerHTML = `
+                    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                        <thead>
+                            <tr style="background:#f8fafc;">
+                                <th style="padding:8px;text-align:center;font-size:11px;color:#64748b;text-transform:uppercase;">CÓD.</th>
+                                <th style="padding:8px;font-size:11px;color:#64748b;text-transform:uppercase;">CLIENTE</th>
+                                <th style="padding:8px;text-align:center;font-size:11px;color:#64748b;text-transform:uppercase;">FECHA / HORA</th>
+                                <th style="padding:8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;">MONTO</th>
+                                <th style="padding:8px;text-align:center;font-size:11px;color:#64748b;text-transform:uppercase;">MÉTODO</th>
+                            </tr>
+                        </thead>
+                        <tbody>${filas}</tbody>
+                    </table>
+                    <div style="text-align:right;margin-top:14px;padding-top:12px;border-top:2px solid #e2e8f0;">
+                        <span style="font-size:13px;color:#64748b;font-weight:700;">TOTAL ABONADO: </span>
+                        <strong style="font-size:18px;color:#166534;">${monedaCOP(totalAbonado)}</strong>
+                    </div>`;
+            }
+            document.getElementById('modalHistorialAbonosSalida').style.display = 'flex';
+        }
+
         function mostrarModalEditarFacturaVenta(referencia) {
             const grupo = salidasAgrupadasCache[referencia]
                 || Object.values(salidasAgrupadasCache).find(item => String(item.referencia || '') === String(referencia || ''));
@@ -6509,6 +6916,10 @@ if (is_file($logoPdfPath)) {
             const filas = grupo.items.map(item => {
                 const cantidad = parseFloat(item.cantidad || 0) || 0;
                 const id = Number(item.id || 0);
+                const esPorKilo = typeof window.esProductoPorKiloInventario === 'function'
+                    ? window.esProductoPorKiloInventario(item.venta_por_kilo, item.categoria_nombre || item.categoria)
+                    : Number(item.venta_por_kilo) === 1;
+                const pasoCantidad = esPorKilo ? 0.001 : 1;
                 const precio = obtenerPrecioUnitarioSalidaItem(item);
                 const subtotal = obtenerSubtotalSalidaItem(item);
                 const imagen = item.producto_imagen ? `<img src="${resolveAppUrl('/Assets/images/productos/' + item.producto_imagen)}" style="max-width: 50px; max-height: 50px; object-fit: contain;">` : '<div style="width: 50px; height: 50px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999; font-size: 12px;">S/img</div>';
@@ -6520,9 +6931,9 @@ if (is_file($logoPdfPath)) {
                         <td style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">${(item.codigo || 'N/A').toUpperCase()}</td>
                         <td style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">
                             <div class="factura-cantidad-editor" style="display: inline-flex; align-items: center; gap: 4px; justify-content: center;">
-                                <button type="button" class="btn-action" data-step="-1" onclick="cambiarCantidadFacturaControl(this, -1)" title="Quitar 1" style="width: 30px; height: 30px; padding: 0; background: var(--primary-blue); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">−</button>
-                                <input type="number" name="itemEditarFactura" value="${cantidad}" min="0" max="${cantidad}" step="1" data-id="${id}" data-original="${cantidad}" style="width: 56px; text-align: center; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; font-weight: 600; background: #fff; box-sizing: border-box;" oninput="validarCantidadFacturaControl(this)" onchange="validarCantidadFacturaControl(this)" />
-                                <button type="button" class="btn-action" data-step="1" onclick="cambiarCantidadFacturaControl(this, 1)" title="Agregar 1" style="width: 30px; height: 30px; padding: 0; background: var(--primary-blue); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">+</button>
+                                <button type="button" class="btn-action" data-step="-${pasoCantidad}" onclick="cambiarCantidadFacturaControl(this, -${pasoCantidad})" title="Quitar ${esPorKilo ? '0.001 kg' : '1'}" style="width: 30px; height: 30px; padding: 0; background: var(--primary-blue); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">−</button>
+                                <input type="number" name="itemEditarFactura" value="${cantidad}" min="0" max="${cantidad}" step="${pasoCantidad}" data-id="${id}" data-original="${cantidad}" data-por-kilo="${esPorKilo ? '1' : '0'}" style="width: 56px; text-align: center; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; font-weight: 600; background: #fff; box-sizing: border-box;" oninput="validarCantidadFacturaControl(this)" onchange="validarCantidadFacturaControl(this)" />
+                                <button type="button" class="btn-action" data-step="${pasoCantidad}" onclick="cambiarCantidadFacturaControl(this, ${pasoCantidad})" title="Agregar ${esPorKilo ? '0.001 kg' : '1'}" style="width: 30px; height: 30px; padding: 0; background: var(--primary-blue); color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 16px; line-height: 1; display: inline-flex; align-items: center; justify-content: center;">+</button>
                             </div>
                         </td>
                         <td class="factura-precio-unitario" style="border: 1px solid #ddd; padding: 10px; text-align: center; vertical-align: middle;">${formatoMonedaInventario(precio)}</td>
@@ -6550,13 +6961,22 @@ if (is_file($logoPdfPath)) {
                         </thead>
                         <tbody>${filas || '<tr><td colspan="6" style="padding: 14px; text-align: center;">No hay productos para editar.</td></tr>'}</tbody>
                     </table>
-                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
-                        <button type="button" class="btn-nuevo" onclick="cerrarModal('detallesMovimientosModal')" style="padding: 8px 14px; background: #64748b; border-color: #64748b; font-size: 12px; line-height: 1.1;">
-                            <i class="fas fa-times"></i> CANCELAR
-                        </button>
-                        <button type="button" class="btn-nuevo" onclick="guardarEdicionFacturaVenta('${String(referencia).replace(/'/g, "\\'")}')" style="padding: 8px 14px; font-size: 12px; line-height: 1.1;">
-                            <i class="fas fa-save"></i> ACTUALIZAR
-                        </button>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd; display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label for="editarFacturaMetodoPago" style="font-size: 12px; font-weight: 700; color: #334155; text-transform: uppercase;">Método de pago:</label>
+                            <select id="editarFacturaMetodoPago" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; font-weight: 600; background: #fff; min-width: 150px;">
+                                <option value="efectivo" ${String(grupo.metodoPago || '').toLowerCase() === 'efectivo' ? 'selected' : ''}>Efectivo</option>
+                                <option value="transferencia" ${String(grupo.metodoPago || '').toLowerCase() === 'transferencia' ? 'selected' : ''}>Transferencia</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="button" class="btn-nuevo" onclick="cerrarModal('detallesMovimientosModal')" style="padding: 8px 14px; background: #64748b; border-color: #64748b; font-size: 12px; line-height: 1.1;">
+                                <i class="fas fa-times"></i> CANCELAR
+                            </button>
+                            <button type="button" class="btn-nuevo" onclick="guardarEdicionFacturaVenta('${String(referencia).replace(/'/g, "\\'")}')" style="padding: 8px 14px; font-size: 12px; line-height: 1.1;">
+                                <i class="fas fa-save"></i> ACTUALIZAR
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -6572,7 +6992,10 @@ if (is_file($logoPdfPath)) {
 
             const original = Math.max(0, parseFloat(input.dataset.original || input.value || 0) || 0);
             let nuevoValor = Math.max(0, parseFloat(input.value || 0) || 0);
+            const paso = Number(input.dataset.porKilo) === 1 ? 0.001 : 1;
             nuevoValor = Math.min(Math.max(nuevoValor + delta, 0), original);
+            nuevoValor = Math.round(nuevoValor / paso) * paso;
+            nuevoValor = Math.round(nuevoValor * 1000) / 1000;
             input.value = String(nuevoValor);
             input.setAttribute('max', String(original));
             input.dataset.nuevoValor = String(nuevoValor);
@@ -6580,7 +7003,9 @@ if (is_file($logoPdfPath)) {
 
         function validarCantidadFacturaControl(input) {
             const original = Math.max(0, parseFloat(input.dataset.original || input.value || 0) || 0);
-            const valor = Math.max(0, Math.min(parseFloat(input.value || 0) || 0, original));
+            const paso = Number(input.dataset.porKilo) === 1 ? 0.001 : 1;
+            const valorIngresado = parseFloat(String(input.value || 0).replace(',', '.')) || 0;
+            const valor = Math.round(Math.max(0, Math.min(valorIngresado, original)) / paso) * paso;
             input.value = String(valor);
 
             const fila = input.closest('tr');
@@ -6598,13 +7023,17 @@ if (is_file($logoPdfPath)) {
             const items = Array.from(document.querySelectorAll('input[name="itemEditarFactura"]'))
                 .map(input => {
                     const id = Number(input.dataset.id || 0);
-                    const cantidad = Math.max(0, Math.min(parseFloat(input.value || 0) || 0, parseFloat(input.dataset.original || 0) || 0));
+                    const paso = Number(input.dataset.porKilo) === 1 ? 0.001 : 1;
+                    const original = parseFloat(input.dataset.original || 0) || 0;
+                    const cantidad = Math.round(Math.max(0, Math.min(parseFloat(input.value || 0) || 0, original)) / paso) * paso;
                     return {
                         id,
                         cantidad
                     };
                 })
                 .filter(item => Number.isFinite(item.id) && item.id > 0);
+
+            const metodoPago = String(document.getElementById('editarFacturaMetodoPago')?.value || '').toLowerCase();
 
             if (!items.length) {
                 Swal.fire({
@@ -6618,7 +7047,7 @@ if (is_file($logoPdfPath)) {
             const confirmacion = await Swal.fire({
                 icon: 'question',
                 title: '¿Actualizar factura?',
-                text: `Se ajustarán las cantidades de la factura ${referencia}. Si alguna queda en 0, ese producto regresará al inventario.`,
+                text: `Se ajustarán las cantidades y el método de pago de la factura ${referencia}. Si alguna cantidad queda en 0, ese producto regresará al inventario.`,
                 showCancelButton: true,
                 confirmButtonText: 'Sí, actualizar',
                 cancelButtonText: 'Cancelar'
@@ -6632,6 +7061,9 @@ if (is_file($logoPdfPath)) {
             formData.append('action', 'editarFactura');
             formData.append('referencia', referencia);
             formData.append('items_actualizar', JSON.stringify(items));
+            if (metodoPago) {
+                formData.append('metodo_pago', metodoPago);
+            }
 
             try {
                 const response = await fetch(inventarioControllerUrl, {
@@ -6731,190 +7163,286 @@ if (is_file($logoPdfPath)) {
         }
 
         // Cargar movimientos
-        function cargarMovimientos() {
-            fetch(inventarioControllerUrl + '?action=obtenerMovimientos')
-                .then(r => {
-                    if (!r.ok) {
-                        throw new Error('HTTP error ' + r.status);
+        async function cargarMovimientos() {
+            try {
+                const respMovimientos = await fetch(inventarioControllerUrl + '?action=obtenerMovimientos');
+                if (!respMovimientos.ok) {
+                    throw new Error('HTTP error ' + respMovimientos.status);
+                }
+                const data = await respMovimientos.json();
+
+                const tbody = document.getElementById('movimientosTableBody');
+                if (!tbody) return;
+
+                tbody.innerHTML = '';
+                movimientosAgrupadosCache = {};
+
+                if (!data.success) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ff6b6b;">ERROR: ' + escapeHtml(data.message || 'No se pudo cargar los movimientos') + '</td></tr>';
+                    return;
+                }
+
+                // Cargar abonos
+                let abonosLista = [];
+                try {
+                    const creditosCtrlUrl = base_url + '/Controllers/CreditosController.php';
+                    const respAbonos = await fetch(creditosCtrlUrl + '?action=listarAbonos');
+                    const dataAbonos = await respAbonos.json();
+                    if (dataAbonos?.success && Array.isArray(dataAbonos.data)) {
+                        abonosLista = dataAbonos.data;
                     }
-                    return r.json();
-                })
-                .then(data => {
-                    const tbody = document.getElementById('movimientosTableBody');
-                    if (!tbody) return;
+                } catch (eAbonos) {
+                    // No bloquear si falla
+                }
 
-                    tbody.innerHTML = '';
-                    movimientosAgrupadosCache = {};
+                if (!Array.isArray(data.data) && abonosLista.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #64748b;">No hay movimientos registrados aún.</td></tr>';
+                    return;
+                }
 
-                    if (!data.success) {
-                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #ff6b6b;">ERROR: ' + escapeHtml(data.message || 'No se pudo cargar los movimientos') + '</td></tr>';
-                        return;
+                if ((!Array.isArray(data.data) || data.data.length === 0) && abonosLista.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #64748b;">No hay movimientos registrados aún.</td></tr>';
+                    return;
+                }
+
+                const movimientosOrdenados = [...(data.data || [])].sort((a, b) => {
+                    const fechaB = parseFechaInventario(b.fecha_movimiento || b.fecha_salida || b.fecha || b.created_at);
+                    const fechaA = parseFechaInventario(a.fecha_movimiento || a.fecha_salida || a.fecha || a.created_at);
+                    if (fechaB !== fechaA) return fechaB - fechaA;
+                    return (Number(b.id) || 0) - (Number(a.id) || 0);
+                });
+
+                const formatarFechaDia = (valorFecha) => {
+                    const fechaObj = new Date(valorFecha || null);
+                    if (isNaN(fechaObj.getTime())) {
+                        return 'SIN FECHA';
                     }
+                    return fechaObj.toLocaleDateString('es-CO', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    });
+                };
 
-                    if (!Array.isArray(data.data) || data.data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #64748b;">No hay movimientos registrados aún.</td></tr>';
-                        return;
-                    }
-
-                        const movimientosOrdenados = [...data.data].sort((a, b) => {
-                            const fechaB = parseFechaInventario(b.fecha_movimiento || b.fecha_salida || b.fecha || b.created_at);
-                            const fechaA = parseFechaInventario(a.fecha_movimiento || a.fecha_salida || a.fecha || a.created_at);
-                            if (fechaB !== fechaA) return fechaB - fechaA;
-                            return (Number(b.id) || 0) - (Number(a.id) || 0);
-                        });
-
-                        const formatarFechaDia = (valorFecha) => {
-                            const fechaObj = new Date(valorFecha || null);
-                            if (isNaN(fechaObj.getTime())) {
-                                return 'SIN FECHA';
-                            }
-                            return fechaObj.toLocaleDateString('es-CO', {
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit'
-                            });
+                const grupos = {};
+                
+                // Agregar movimientos normales
+                movimientosOrdenados.forEach(item => {
+                    const key = item.referencia || `MOV-${item.id}`;
+                    if (!grupos[key]) {
+                        grupos[key] = {
+                            referencia: key,
+                            items: [],
+                            fechaRaw: item.fecha_movimiento || item.fecha_salida || item.fecha || item.created_at || null,
+                            tipo: item.tipo_movimiento || 'movimiento',
+                            origen: origenMovimiento(item),
+                            usuarioNombre: item.usuario_nombre ? String(item.usuario_nombre).trim() : 'N/A',
+                            usuarioApellidos: String(item.usuario_apellidos || '').trim(),
+                            usuarioRol: String(item.usuario_rol || '').trim(),
+                            usuario: item.usuario_nombre
+                                ? (`${item.usuario_nombre} ${item.usuario_apellidos || ''}`.trim() + (item.usuario_rol ? ` (${item.usuario_rol})` : '')).toUpperCase()
+                                : 'N/A',
+                            totalUnidades: 0,
+                            metodoPago: item.metodo_pago || 'efectivo',
+                            tipoSalida: String(item.tipo_salida || '').trim(),
+                            esCredito: esRegistroCredito(item.es_credito),
+                            esAbono: false
                         };
+                    }
 
-                        const grupos = {};
-                        movimientosOrdenados.forEach(item => {
-                            // Agrupar por referencia (igual a SALIDA)
-                            const key = item.referencia || `MOV-${item.id}`;
-                            if (!grupos[key]) {
-                                grupos[key] = {
-                                    referencia: key,
-                                    items: [],
-                                    fechaRaw: item.fecha_movimiento || item.fecha_salida || item.fecha || item.created_at || null,
-                                    tipo: item.tipo_movimiento || 'movimiento',
-                                    origen: origenMovimiento(item),
-                                    usuarioNombre: item.usuario_nombre ? String(item.usuario_nombre).trim() : 'N/A',
-                                    usuarioApellidos: String(item.usuario_apellidos || '').trim(),
-                                    usuarioRol: String(item.usuario_rol || '').trim(),
-                                    usuario: item.usuario_nombre
-                                        ? (`${item.usuario_nombre} ${item.usuario_apellidos || ''}`.trim() + (item.usuario_rol ? ` (${item.usuario_rol})` : '')).toUpperCase()
-                                        : 'N/A',
-                                    totalUnidades: 0
-                                    ,metodoPago: item.metodo_pago || 'efectivo'
-                                    ,tipoSalida: String(item.tipo_salida || '').trim()
-                                    ,esCredito: esRegistroCredito(item.es_credito)
-                                };
+                    const cantidad = parseFloat(item.cantidad || 0) || 0;
+                    grupos[key].items.push(item);
+                    grupos[key].totalUnidades += cantidad;
+                });
+
+                // Agregar abonos
+                abonosLista.forEach(ab => {
+                    const refAbono = String(ab.referencia || '').trim();
+                    if (!refAbono) return;
+                    const keyAbono = `ABONO-${ab.id}-${refAbono}`;
+                    const clienteNombreAb = `${ab.cliente_nombre || ''} ${ab.cliente_apellidos || ''}`.trim() || 'CLIENTE';
+                    grupos[keyAbono] = {
+                        referencia: refAbono.toUpperCase(),
+                        items: [{
+                            producto_nombre: `ABONO CRÉDITO – ${clienteNombreAb.toUpperCase()}`,
+                            codigo: refAbono.toUpperCase(),
+                            cantidad: 1,
+                            precio_venta_unitario: ab.monto,
+                            total_venta: ab.monto,
+                            notas: `Abono: ${refAbono} | Cliente: ${clienteNombreAb}`
+                        }],
+                        fechaRaw: ab.fecha_abono || null,
+                        tipo: 'abono',
+                        origen: 'CRÉDITO',
+                        usuarioNombre: ab.usuario_nombre ? String(ab.usuario_nombre).trim() : 'N/A',
+                        usuarioApellidos: String(ab.usuario_apellidos || '').trim(),
+                        usuarioRol: String(ab.usuario_rol || '').trim(),
+                        totalUnidades: 0,
+                        metodoPago: ab.metodo_pago || 'efectivo',
+                        tipoSalida: '',
+                        esCredito: false,
+                        esAbono: true,
+                        abonoMonto: Number(ab.monto || 0),
+                        abonoCliente: clienteNombreAb,
+                        abonoDocumento: ab.cliente_documento || ''
+                    };
+                });
+
+                const gruposPorFecha = {};
+
+                Object.values(grupos)
+                    .sort((a, b) => {
+                        const tsA = parseFechaInventario(a.fechaRaw);
+                        const tsB = parseFechaInventario(b.fechaRaw);
+                        if (tsB !== tsA) return tsB - tsA;
+                        // Abonos van antes en el mismo timestamp
+                        if (a.esAbono && !b.esAbono) return -1;
+                        if (!a.esAbono && b.esAbono) return 1;
+                        return (Number(b.items?.[0]?.id) || 0) - (Number(a.items?.[0]?.id) || 0);
+                    })
+                    .forEach(grupo => {
+                        const fechaDia = formatarFechaDia(grupo.fechaRaw);
+                        if (!gruposPorFecha[fechaDia]) {
+                            gruposPorFecha[fechaDia] = {
+                                grupos: [],
+                                totalUnidades: 0
+                            };
+                        }
+                        gruposPorFecha[fechaDia].grupos.push(grupo);
+                        gruposPorFecha[fechaDia].totalUnidades += grupo.totalUnidades;
+                    });
+
+                Object.entries(gruposPorFecha)
+                    .sort(([, grupoA], [, grupoB]) => {
+                        const diferencia = parseFechaInventario(grupoB.grupos?.[0]?.fechaRaw) - parseFechaInventario(grupoA.grupos?.[0]?.fechaRaw);
+                        return diferencia || (Number(grupoB.grupos?.[0]?.items?.[0]?.id) || 0) - (Number(grupoA.grupos?.[0]?.items?.[0]?.id) || 0);
+                    })
+                    .forEach(([fechaDia, grupoFecha]) => {
+                        const headerRow = document.createElement('tr');
+                        headerRow.className = 'group-date';
+                        headerRow.innerHTML = `
+                            <td colspan="${obtenerColspanMovimientos()}">
+                                <div class="group-date-summary">
+                                    <div class="group-date-total">
+                                        <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
+                                        <strong class="group-date-value">${grupoFecha.grupos.reduce((total, grupo) => total + grupo.items.length, 0)}</strong>
+                                    </div>
+                                    <div class="group-date-metric">
+                                        <span class="group-date-label">FECHA:</span>
+                                        <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
+                                    </div>
+                                    <div class="group-date-metric">
+                                        <span class="group-date-label">CANTIDAD:</span>
+                                        <strong class="group-date-value">${grupoFecha.totalUnidades.toLocaleString('es-CO')}</strong>
+                                    </div>
+                                </div>
+                            </td>`;
+                        tbody.appendChild(headerRow);
+
+                        grupoFecha.grupos.forEach(grupo => {
+                            movimientosAgrupadosCache[grupo.referencia] = {
+                                ...grupo,
+                                fecha: new Date(grupo.fechaRaw || 0).toLocaleString('es-CO')
+                            };
+
+                            const row = document.createElement('tr');
+                            const fechaHoraGrupo = fechaHoraImpresion(grupo.fechaRaw || grupo.fecha);
+                            const usuarioNombre = String(grupo.usuarioNombre || 'N/A').trim();
+                            const usuarioApellidos = String(grupo.usuarioApellidos || '').trim();
+                            const usuarioRol = String(grupo.usuarioRol || '').trim();
+                            const usuarioHtml = `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">${usuarioNombre ? `<span>${escapeHtml(usuarioNombre)}</span>` : ''}${usuarioApellidos ? `<span>${escapeHtml(usuarioApellidos)}</span>` : ''}${usuarioRol ? `<span>${escapeHtml(usuarioRol)}</span>` : ''}</div>`;
+
+                            // ── FILA DE ABONO ──
+                            if (grupo.esAbono) {
+                                row.style.background = '#f0fdf4';
+                                row.innerHTML = `
+                                    <td>
+                                        <strong style="color:#166534;">${escapeHtml(grupo.referencia)}</strong><br>
+                                        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:4px;text-align:center;">
+                                            <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
+                                            <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
+                                        </div>
+                                    </td>
+                                    <td><strong style="text-transform:uppercase;color:#166534;">${escapeHtml(grupo.abonoCliente || 'CLIENTE')}</strong></td>
+                                    <td style="text-align:center;">—</td>
+                                    <td><span class="badge badge-abono">ABONO</span></td>
+                                    <td style="text-transform:uppercase;font-weight:700;">${escapeHtml(grupo.metodoPago || 'EFECTIVO')}</td>
+                                    <td>CRÉDITO</td>
+                                    <td style="text-align:center;">
+                                        <div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">
+                                            <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
+                                            <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:center;">${usuarioHtml}</td>
+                                    <td style="white-space:nowrap;text-align:center;color:#94a3b8;font-size:12px;">—</td>
+                                `;
+                                tbody.appendChild(row);
+                                return;
                             }
 
-                            const cantidad = parseFloat(item.cantidad || 0) || 0;
-                            grupos[key].items.push(item);
-                            grupos[key].totalUnidades += cantidad;
+                            // ── FILA NORMAL ──
+                            const tipo = grupo.tipo || 'movimiento';
+                            const origen = grupo.origen || 'Movimiento';
+                            const tipoSalidaMov = String(grupo.tipoSalida || '').trim();
+                            const etiquetaMovimiento = tipo === 'salida'
+                                ? (tipoSinCobro(tipoSalidaMov)
+                                    ? etiquetaTipoSalida(tipoSalidaMov, 0, '', false)
+                                    : (String(origen).toUpperCase() === 'CRÉDITO' ? 'CRÉDITO' : 'INVENTARIO'))
+                                : (etiquetaTipoMovimiento(tipo) || '').toUpperCase();
+                            let tipoBadge = 'badge-info';
+                            if (tipo === 'entrada') tipoBadge = 'badge-success';
+                            if (tipo === 'salida') {
+                                tipoBadge = ['DAÑADO', 'PÉRDIDA'].includes(etiquetaMovimiento)
+                                    ? 'badge-danger'
+                                    : (etiquetaMovimiento === 'CRÉDITO' ? 'badge-credit' : 'badge-success');
+                            }
+
+                            const productosPreview = grupo.items
+                                .slice(0, 2)
+                                .map(p => `${p.producto_nombre || 'N/A'} (${p.codigo || 'N/A'})`)
+                                .join('· ');
+                            const extra = grupo.items.length > 2 ? ` +${grupo.items.length - 2} más` : '';
+
+                            row.innerHTML = `
+                                <td>
+                                    <strong>${grupo.referencia}</strong><br>
+                                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px; margin-top:4px; text-align:center;">
+                                        <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
+                                        <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
+                                    </div>
+                                </td>
+                                <td>${productosPreview}${extra}</td>
+                                <td>${grupo.totalUnidades.toLocaleString('es-CO')}</td>
+                                <td><span class="badge ${tipoBadge}">${escapeHtml(etiquetaMovimiento)}</span></td>
+                                <td>${escapeHtml(metodoPagoVisible(grupo.tipoSalida, grupo.metodoPago))}</td>
+                                <td>${escapeHtml(origen)}</td>
+                                <td style="text-align:center;">
+                                    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">
+                                        <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
+                                        <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
+                                    </div>
+                                </td>
+                                <td style="text-align:center;">${usuarioHtml}</td>
+                                <td style="white-space: nowrap;">
+                                    <button type="button" class="btn-info btn-action" title="Ver detalle de movimiento" onclick="mostrarDetallesMovimiento('${String(grupo.referencia).replace(/'/g, "\\'")}')">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" class="btn-info btn-action" title="IMPRIMIR MOVIMIENTO" onclick="imprimirMovimiento('${String(grupo.referencia).replace(/'/g, "\\'")}')">
+                                        <i class="fas fa-print"></i>
+                                    </button>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
                         });
-
-                        const gruposPorFecha = {};
-
-                        Object.values(grupos)
-                            .sort((a, b) => parseFechaInventario(b.fechaRaw) - parseFechaInventario(a.fechaRaw) || (Number(b.items?.[0]?.id) || 0) - (Number(a.items?.[0]?.id) || 0))
-                            .forEach(grupo => {
-                                const fechaDia = formatarFechaDia(grupo.fechaRaw);
-                                if (!gruposPorFecha[fechaDia]) {
-                                    gruposPorFecha[fechaDia] = {
-                                        grupos: [],
-                                        totalUnidades: 0
-                                    };
-                                }
-                                gruposPorFecha[fechaDia].grupos.push(grupo);
-                                gruposPorFecha[fechaDia].totalUnidades += grupo.totalUnidades;
-                            });
-
-                        Object.entries(gruposPorFecha)
-                            .sort(([, grupoA], [, grupoB]) => {
-                                const diferencia = parseFechaInventario(grupoB.grupos?.[0]?.fechaRaw) - parseFechaInventario(grupoA.grupos?.[0]?.fechaRaw);
-                                return diferencia || (Number(grupoB.grupos?.[0]?.items?.[0]?.id) || 0) - (Number(grupoA.grupos?.[0]?.items?.[0]?.id) || 0);
-                            })
-                            .forEach(([fechaDia, grupoFecha]) => {
-                                const headerRow = document.createElement('tr');
-                                headerRow.className = 'group-date';
-                                headerRow.innerHTML = `
-                                    <td colspan="${obtenerColspanMovimientos()}">
-                                        <div class="group-date-summary">
-                                            <div class="group-date-total">
-                                                <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
-                                                <strong class="group-date-value">${grupoFecha.grupos.reduce((total, grupo) => total + grupo.items.length, 0)}</strong>
-                                            </div>
-                                            <div class="group-date-metric">
-                                                <span class="group-date-label">FECHA:</span>
-                                                <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
-                                            </div>
-                                            <div class="group-date-metric">
-                                                <span class="group-date-label">CANTIDAD:</span>
-                                                <strong class="group-date-value">${grupoFecha.totalUnidades.toLocaleString('es-CO')}</strong>
-                                            </div>
-                                        </div>
-                                    </td>`;
-                                tbody.appendChild(headerRow);
-
-                                grupoFecha.grupos.forEach(grupo => {
-                                    movimientosAgrupadosCache[grupo.referencia] = {
-                                        ...grupo,
-                                        fecha: new Date(grupo.fechaRaw || 0).toLocaleString('es-CO')
-                                    };
-
-                                    const row = document.createElement('tr');
-                                    const tipo = grupo.tipo || 'movimiento';
-                                    const origen = grupo.origen || 'Movimiento';
-                                    const tipoSalidaMov = String(grupo.tipoSalida || '').trim();
-                                    const etiquetaMovimiento = tipo === 'salida'
-                                        ? (tipoSinCobro(tipoSalidaMov)
-                                            ? etiquetaTipoSalida(tipoSalidaMov, 0, '', false)
-                                            : (String(origen).toUpperCase() === 'CRÉDITO' ? 'CRÉDITO' : 'INVENTARIO'))
-                                        : (etiquetaTipoMovimiento(tipo) || '').toUpperCase();
-                                    let tipoBadge = 'badge-info';
-                                    if (tipo === 'entrada') tipoBadge = 'badge-success';
-                                    if (tipo === 'salida') {
-                                        tipoBadge = ['DAÑADO', 'PÉRDIDA'].includes(etiquetaMovimiento)
-                                            ? 'badge-danger'
-                                            : (etiquetaMovimiento === 'CRÉDITO' ? 'badge-credit' : 'badge-success');
-                                    }
-
-                                    const productosPreview = grupo.items
-                                        .slice(0, 2)
-                                        .map(p => `${p.producto_nombre || 'N/A'} (${p.codigo || 'N/A'})`)
-                                        .join('· ');
-                                    const extra = grupo.items.length > 2 ? ` +${grupo.items.length - 2} más` : '';
-                                    const fechaHoraGrupo = fechaHoraImpresion(grupo.fechaRaw || grupo.fecha);
-                                    const usuarioNombre = String(grupo.usuarioNombre || 'N/A').trim();
-                                    const usuarioApellidos = String(grupo.usuarioApellidos || '').trim();
-                                    const usuarioRol = String(grupo.usuarioRol || '').trim();
-                                    const usuarioHtml = `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">${usuarioNombre ? `<span>${escapeHtml(usuarioNombre)}</span>` : ''}${usuarioApellidos ? `<span>${escapeHtml(usuarioApellidos)}</span>` : ''}${usuarioRol ? `<span>${escapeHtml(usuarioRol)}</span>` : ''}</div>`;
-
-                                    row.innerHTML = `
-                                        <td>
-                                            <strong>${grupo.referencia}</strong><br>
-                                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px; margin-top:4px; text-align:center;">
-                                                <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
-                                                <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
-                                            </div>
-                                        </td>
-                                        <td>${productosPreview}${extra}</td>
-                                        <td>${grupo.totalUnidades.toLocaleString('es-CO')}</td>
-                                        <td><span class="badge ${tipoBadge}">${escapeHtml(etiquetaMovimiento)}</span></td>
-                                        <td>${escapeHtml(metodoPagoVisible(grupo.tipoSalida, grupo.metodoPago))}</td>
-                                        <td>${escapeHtml(origen)}</td>
-                                        <td style="text-align:center;">
-                                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;">
-                                                <span>${escapeHtml(fechaHoraGrupo.fecha)}</span>
-                                                <span>${escapeHtml(fechaHoraGrupo.hora)}</span>
-                                            </div>
-                                        </td>
-                                        <td style="text-align:center;">${usuarioHtml}</td>
-                                        <td style="white-space: nowrap;">
-                                            <button type="button" class="btn-info btn-action" title="Ver detalle de movimiento" onclick="mostrarDetallesMovimiento('${String(grupo.referencia).replace(/'/g, "\\'")}')">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button type="button" class="btn-info btn-action" title="IMPRIMIR MOVIMIENTO" onclick="imprimirMovimiento('${String(grupo.referencia).replace(/'/g, "\\'")}')">
-                                                <i class="fas fa-print"></i>
-                                            </button>
-                                        </td>
-                                    `;
-                                    tbody.appendChild(row);
-                                });
-                            });
-                })
-                .catch(e => console.error('Error:', e));
+                    });
+            } catch(e) {
+                console.error('Error cargarMovimientos:', e);
+                const tbody = document.getElementById('movimientosTableBody');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ff6b6b;">Error al cargar movimientos</td></tr>';
+                }
+            }
         }
         
         function mostrarDetallesMovimiento(referencia) {
@@ -7065,7 +7593,7 @@ if (is_file($logoPdfPath)) {
         }
         
         // Cargar ventas del día
-        function cargarVentasDia(mostrarError = true) {
+        async function cargarVentasDia(mostrarError = true) {
             fetch(inventarioControllerUrl + '?action=obtenerVentasDia')
                 .then(async r => {
                     const raw = await r.text();
@@ -7084,7 +7612,7 @@ if (is_file($logoPdfPath)) {
 
                     return data;
                 })
-                .then(data => {
+                .then(async data => {
                     if (!data.success) {
                         if (mostrarError) {
                             Swal.fire({
@@ -7129,33 +7657,109 @@ if (is_file($logoPdfPath)) {
                     if (document.getElementById('transferenciaDia')) document.getElementById('transferenciaDia').textContent = formatoMonedaCompleta(ventas.total_transferencia || 0);
                     ajustarTamanoResumenVentas('Dia');
                     
-                    // Actualizar tabla de productos vendidos
+                    // Actualizar tabla de productos vendidos mezclando ventas y abonos por fecha
                     const tbody = document.getElementById('productosVendidosDia');
                     if (tbody) {
                         tbody.innerHTML = '';
                         
-                        if (!ventas.productos_vendidos || ventas.productos_vendidos.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No hay ventas registradas hoy</td></tr>';
+                        // Cargar abonos del día
+                        let abonosHoy = [];
+                        try {
+                            const creditosCtrlUrl = base_url + '/Controllers/CreditosController.php';
+                            const respAb = await fetch(creditosCtrlUrl + '?action=listarAbonos');
+                            const dataAb = await respAb.json();
+                            if (dataAb?.success && Array.isArray(dataAb.data)) {
+                                const hoy = new Date();
+                                const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
+                                abonosHoy = dataAb.data.filter(ab => {
+                                    const f = String(ab.fecha_abono || '').slice(0, 10);
+                                    return f === hoyStr;
+                                });
+                            }
+                        } catch(eAb) { /* no bloquear si falla */ }
+                        
+                        if ((!ventas.productos_vendidos || ventas.productos_vendidos.length === 0) && abonosHoy.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No hay ventas ni abonos registrados hoy</td></tr>';
                         } else {
-                            ventas.productos_vendidos.forEach(item => {
-                                const row = document.createElement('tr');
-                                const gananciaValor = parseFloat(item.total_ganancia ?? item.ganancia_total ?? 0) || 0;
-                                const imgSrc = resolverImagenProductoInventario(item.imagen);
-                                const fechaHoraVenta = item.ultima_venta
-                                    ? fechaHoraImpresion(item.ultima_venta)
-                                    : { fecha: '-', hora: '-' };
-                                row.innerHTML = `
-                                    <td><div class="ventas-fecha-hora"><span>${escapeHtmlInventario(fechaHoraVenta.fecha)}</span><span>${escapeHtmlInventario(fechaHoraVenta.hora)}</span></div></td>
-                                    <td style="text-align:center;"><img src="${imgSrc}" alt="${escapeHtmlInventario(item.nombre)}" class="producto-img" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:#fff;padding:2px;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"></td>
-                                    <td><strong>${item.codigo}</strong></td>
-                                    <td>${item.nombre}</td>
-                                    <td>${item.categoria || 'Sin categoría'}</td>
-                                    <td><strong>${item.cantidad_vendida}</strong></td>
-                                    <td>${formatoMonedaCompleta(item.precio)}</td>
-                                    <td>${formatoMonedaCompleta(gananciaValor)}</td>
-                                    <td><strong>${formatoMonedaCompleta(item.total_vendido)}</strong></td>
-                                `;
-                                tbody.appendChild(row);
+                            // Mezclar ventas y abonos en un solo array
+                            const registrosMezclados = [];
+                            
+                            // Agregar ventas
+                            if (ventas.productos_vendidos) {
+                                ventas.productos_vendidos.forEach(item => {
+                                    registrosMezclados.push({
+                                        tipo: 'venta',
+                                        fecha: item.ultima_venta || null,
+                                        data: item
+                                    });
+                                });
+                            }
+                            
+                            // Agregar abonos
+                            abonosHoy.forEach(ab => {
+                                registrosMezclados.push({
+                                    tipo: 'abono',
+                                    fecha: ab.fecha_abono || null,
+                                    data: ab
+                                });
+                            });
+                            
+                            // Ordenar por fecha/hora (más reciente primero)
+                            registrosMezclados.sort((a, b) => {
+                                const fechaA = new Date(a.fecha || 0).getTime();
+                                const fechaB = new Date(b.fecha || 0).getTime();
+                                return fechaB - fechaA;
+                            });
+                            
+                            // Renderizar filas
+                            registrosMezclados.forEach(registro => {
+                                if (registro.tipo === 'venta') {
+                                    const item = registro.data;
+                                    const row = document.createElement('tr');
+                                    const gananciaValor = parseFloat(item.total_ganancia ?? item.ganancia_total ?? 0) || 0;
+                                    const totalVendido = parseFloat(item.total_vendido || 0) || 0;
+                                    const cantidadVendida = parseFloat(item.cantidad_vendida || 1) || 1;
+                                    const precioUnit = parseFloat(item.precio || 0) > 0
+                                        ? parseFloat(item.precio)
+                                        : (totalVendido > 0 ? totalVendido / cantidadVendida : 0);
+                                    const imgSrc = resolverImagenProductoInventario(item.imagen);
+                                    const fechaHoraVenta = item.ultima_venta
+                                        ? fechaHoraImpresion(item.ultima_venta)
+                                        : { fecha: '-', hora: '-' };
+                                    row.innerHTML = `
+                                        <td><div class="ventas-fecha-hora"><span>${escapeHtmlInventario(fechaHoraVenta.fecha)}</span><span>${escapeHtmlInventario(fechaHoraVenta.hora)}</span></div></td>
+                                        <td style="text-align:center;"><img src="${imgSrc}" alt="${escapeHtmlInventario(item.nombre)}" class="producto-img" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:#fff;padding:2px;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"></td>
+                                        <td><strong>${item.codigo}</strong></td>
+                                        <td>${item.nombre}</td>
+                                        <td>${item.categoria || 'Sin categoría'}</td>
+                                        <td><strong>${item.cantidad_vendida}</strong></td>
+                                        <td>${formatoMonedaCompleta(precioUnit)}</td>
+                                        <td>${formatoMonedaCompleta(gananciaValor)}</td>
+                                        <td><strong>${formatoMonedaCompleta(totalVendido)}</strong></td>
+                                    `;
+                                    tbody.appendChild(row);
+                                } else {
+                                    // Abono
+                                    const ab = registro.data;
+                                    const fh = fechaHoraImpresion(ab.fecha_abono);
+                                    const cliente = `${ab.cliente_nombre || ''} ${ab.cliente_apellidos || ''}`.trim().toUpperCase() || 'CLIENTE';
+                                    const ref = String(ab.referencia || 'AB').toUpperCase();
+                                    const monto = parseFloat(ab.monto || 0);
+                                    const rowAb = document.createElement('tr');
+                                    rowAb.style.background = '#f0fdf4';
+                                    rowAb.innerHTML = `
+                                        <td><div class="ventas-fecha-hora"><span>${escapeHtmlInventario(fh.fecha)}</span><span>${escapeHtmlInventario(fh.hora)}</span></div></td>
+                                        <td style="text-align:center;"><span style="background:#dcfce7;border:1px solid #86efac;border-radius:6px;padding:3px 7px;font-size:11px;font-weight:900;color:#166534;">AB</span></td>
+                                        <td><strong style="color:#b45309;">${escapeHtmlInventario(ref)}</strong></td>
+                                        <td><strong style="color:#166534;">${escapeHtmlInventario(cliente)}</strong></td>
+                                        <td><span style="background:#f0fdf4;border:1px solid #86efac;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:700;color:#166534;">ABONO</span></td>
+                                        <td>—</td>
+                                        <td>—</td>
+                                        <td><strong style="color:#166534;">${formatoMonedaCompleta(monto)}</strong></td>
+                                        <td><strong style="color:#166534;">${formatoMonedaCompleta(monto)}</strong></td>
+                                    `;
+                                    tbody.appendChild(rowAb);
+                                }
                             });
                         }
                     }
@@ -7172,7 +7776,7 @@ if (is_file($logoPdfPath)) {
         }
         
         // Cargar ventas del mes
-        function cargarVentasMes(mostrarError = true) {
+        async function cargarVentasMes(mostrarError = true) {
             const selectorMes = document.getElementById('selectorMesVentas');
             const periodoSeleccionado = selectorMes ? (selectorMes.value || '').trim() : '';
             const queryPeriodo = periodoSeleccionado ? `&periodo=${encodeURIComponent(periodoSeleccionado)}` : '';
@@ -7195,7 +7799,7 @@ if (is_file($logoPdfPath)) {
 
                     return data;
                 })
-                .then(data => {
+                .then(async data => {
                     console.log('Respuesta obtenerVentasMes:', data);
                     if (!data.success) {
                         const acumuladoMesValorError = document.getElementById('acumuladoMesValor');
@@ -7286,8 +7890,40 @@ if (is_file($logoPdfPath)) {
                     if (productosVendidosMes) {
                         productosVendidosMes.innerHTML = '';
 
-                        if (!ventas.ventas_detalle || ventas.ventas_detalle.length === 0) {
-                            productosVendidosMes.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No hay ventas registradas este mes</td></tr>';
+                        // Cargar abonos del mes (INCLUYENDO HOY)
+                        let abonosMes = [];
+                        try {
+                            const creditosCtrlUrl = base_url + '/Controllers/CreditosController.php';
+                            const respAbMes = await fetch(creditosCtrlUrl + '?action=listarAbonos');
+                            const dataAbMes = await respAbMes.json();
+                            console.log('TODOS los abonos recibidos:', dataAbMes);
+                            
+                            if (dataAbMes?.success && Array.isArray(dataAbMes.data)) {
+                                const selectorMesEl = document.getElementById('selectorMesVentas');
+                                const periodoMes = selectorMesEl ? (selectorMesEl.value || '').trim() : '';
+                                const ahora = new Date();
+                                const mesRef = periodoMes || `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}`;
+                                
+                                console.log('Filtrando abonos - mesRef:', mesRef);
+                                
+                                // INCLUIR TODOS los abonos del mes (incluyendo hoy)
+                                abonosMes = dataAbMes.data.filter(ab => {
+                                    const f = String(ab.fecha_abono || '').slice(0, 7);
+                                    const cumpleMes = f === mesRef;
+                                    
+                                    console.log('Abono:', ab.referencia, 'fecha_abono:', ab.fecha_abono, 'mes:', f, 'cumpleMes:', cumpleMes);
+                                    
+                                    return cumpleMes;
+                                });
+                                
+                                console.log('Abonos del mes filtrados:', abonosMes.length, abonosMes);
+                            }
+                        } catch(eAbMes) { 
+                            console.error('Error cargando abonos:', eAbMes);
+                        }
+
+                        if ((!ventas.ventas_detalle || ventas.ventas_detalle.length === 0) && abonosMes.length === 0) {
+                            productosVendidosMes.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No hay ventas ni abonos registrados este mes</td></tr>';
                         } else {
                             const resumenPorDia = {};
                             if (ventas.ventas_por_dia && Array.isArray(ventas.ventas_por_dia)) {
@@ -7297,72 +7933,67 @@ if (is_file($logoPdfPath)) {
                             }
 
                             const acumuladoProducto = {};
-                            let acumuladoMesTotal = 0;
-                            let acumuladoMesGanancia = 0;
 
-                            let fechaActual = null;
-                            let unidadesDiaAcumuladas = 0;
-                            let totalDiaAcumulado = 0;
-                            let gananciaDiaAcumulada = 0;
-
-                            const pintarResumenDia = (fechaDia) => {
-                                if (!fechaDia) return;
-                                const rowTotalDia = document.createElement('tr');
-                                rowTotalDia.className = 'group-date';
-                                rowTotalDia.innerHTML = `
-                                    <td colspan="8">
-                                        <div class="group-date-summary">
-                                            <div class="group-date-total">
-                                                <span class="group-date-label">TOTAL DE PRODUCTOS:</span>
-                                                <strong class="group-date-value">${unidadesDiaAcumuladas.toLocaleString('es-CO')}</strong>
-                                            </div>
-                                            <div class="group-date-metric">
-                                                <span class="group-date-label">FECHA:</span>
-                                                <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
-                                            </div>
-                                            <div class="group-date-metric">
-                                                <span class="group-date-label">CANTIDAD:</span>
-                                                <strong class="group-date-value">${unidadesDiaAcumuladas.toLocaleString('es-CO')}</strong>
-                                            </div>
-                                            <div class="group-date-metric">
-                                                <span class="group-date-label">TOTAL:</span>
-                                                <strong class="group-date-value">${formatoMonedaCompleta(totalDiaAcumulado)}</strong>
-                                            </div>
-                                            <div class="group-date-metric">
-                                                <span class="group-date-label">GANANCIA:</span>
-                                                <strong class="group-date-value">${formatoMonedaCompleta(gananciaDiaAcumulada)}</strong>
-                                            </div>
-                                        </div>
-                                    </td>
-                                `;
-                                productosVendidosMes.appendChild(rowTotalDia);
-                            };
-
-                            const ventasDetalleOrdenado = [...ventas.ventas_detalle].sort((a, b) => {
-                                const fechaA = new Date(a.ultima_venta || a.fecha || 0).getTime();
-                                const fechaB = new Date(b.ultima_venta || b.fecha || 0).getTime();
-                                if (fechaB !== fechaA) {
-                                    return fechaB - fechaA;
-                                }
-                                return (Number(b.id) || 0) - (Number(a.id) || 0);
+                            // Mezclar ventas y abonos en un solo array (IGUAL QUE EN HOY)
+                            const registrosMezclados = [];
+                            
+                            // Agregar ventas - USAR ultima_venta que tiene hora completa
+                            if (ventas.ventas_detalle) {
+                                ventas.ventas_detalle.forEach(item => {
+                                    const fechaConHora = item.ultima_venta || item.fecha || null;
+                                    const fechaSolo = String(fechaConHora || '').slice(0, 10);
+                                    registrosMezclados.push({
+                                        tipo: 'venta',
+                                        fechaCompleta: fechaConHora,  // Con hora para ordenar
+                                        fechaDia: fechaSolo,          // Solo fecha para agrupar
+                                        data: item
+                                    });
+                                });
+                            }
+                            
+                            // Agregar abonos - fecha_abono ya tiene hora completa
+                            abonosMes.forEach(ab => {
+                                const fechaConHora = ab.fecha_abono || null;
+                                const fechaSolo = String(fechaConHora || '').slice(0, 10);
+                                registrosMezclados.push({
+                                    tipo: 'abono',
+                                    fechaCompleta: fechaConHora,  // Con hora para ordenar
+                                    fechaDia: fechaSolo,          // Solo fecha para agrupar
+                                    data: ab
+                                });
                             });
-
-                            ventasDetalleOrdenado.forEach(item => {
-                                const cantidadDiaProducto = parseFloat(item.cantidad_vendida || 0);
-                                const totalDiaProducto = parseFloat(item.total_vendido || 0);
-                                const gananciaDiaProducto = parseFloat(item.ganancia_total || 0);
-
-                                if (item.fecha !== fechaActual) {
-                                    if (fechaActual !== null) {
-                                        pintarResumenDia(fechaActual);
-                                    }
-
-                                    const grp = document.createElement('tr');
-                                    grp.className = 'group-date';
-                                    const infoDia = resumenPorDia[item.fecha];
+                            
+                            console.log('Registros mezclados antes de ordenar:', registrosMezclados.length);
+                            
+                            // Ordenar por fecha/hora COMPLETA (más reciente primero)
+                            registrosMezclados.sort((a, b) => {
+                                const fechaA = new Date(a.fechaCompleta || 0).getTime();
+                                const fechaB = new Date(b.fechaCompleta || 0).getTime();
+                                return fechaB - fechaA;
+                            });
+                            
+                            console.log('Primeros 5 registros ordenados:', registrosMezclados.slice(0, 5).map(r => ({
+                                tipo: r.tipo,
+                                fecha: r.fechaCompleta,
+                                dia: r.fechaDia
+                            })));
+                            
+                            // Renderizar filas (igual que en hoy pero con header de día)
+                            let fechaActual = null;
+                            
+                            registrosMezclados.forEach(registro => {
+                                const fechaDia = registro.fechaDia;
+                                
+                                // Si cambia el día, mostrar header
+                                if (fechaDia !== fechaActual) {
+                                    fechaActual = fechaDia;
+                                    const infoDia = resumenPorDia[fechaDia];
                                     const unidadesDia = infoDia ? parseInt(infoDia.unidades_dia || 0) : 0;
                                     const totalDia = infoDia ? parseFloat(infoDia.total_dia || 0) : 0;
                                     const gananciaDia = infoDia ? parseFloat(infoDia.ganancia_dia || 0) : 0;
+                                    
+                                    const grp = document.createElement('tr');
+                                    grp.className = 'group-date';
                                     grp.innerHTML = `
                                         <td colspan="8">
                                             <div class="group-date-summary">
@@ -7372,7 +8003,7 @@ if (is_file($logoPdfPath)) {
                                                 </div>
                                                 <div class="group-date-metric">
                                                     <span class="group-date-label">FECHA:</span>
-                                                    <strong class="group-date-value">${escapeHtmlInventario(item.fecha)}</strong>
+                                                    <strong class="group-date-value">${escapeHtmlInventario(fechaDia)}</strong>
                                                 </div>
                                                 <div class="group-date-metric">
                                                     <span class="group-date-label">CANTIDAD:</span>
@@ -7389,47 +8020,56 @@ if (is_file($logoPdfPath)) {
                                             </div>
                                         </td>`;
                                     productosVendidosMes.appendChild(grp);
-
-                                    fechaActual = item.fecha;
-                                    unidadesDiaAcumuladas = 0;
-                                    totalDiaAcumulado = 0;
-                                    gananciaDiaAcumulada = 0;
                                 }
 
-                                const keyProducto = item.codigo || item.nombre;
-                                if (!acumuladoProducto[keyProducto]) {
-                                    acumuladoProducto[keyProducto] = { cantidad: 0, total: 0, ganancia: 0 };
+                                if (registro.tipo === 'venta') {
+                                    const item = registro.data;
+                                    
+                                    const keyProducto = item.codigo || item.nombre;
+                                    if (!acumuladoProducto[keyProducto]) {
+                                        acumuladoProducto[keyProducto] = { cantidad: 0, total: 0, ganancia: 0 };
+                                    }
+                                    acumuladoProducto[keyProducto].cantidad += parseFloat(item.cantidad_vendida || 0);
+                                    acumuladoProducto[keyProducto].total += parseFloat(item.total_vendido || 0);
+                                    acumuladoProducto[keyProducto].ganancia += parseFloat(item.ganancia_total || 0);
+
+                                    const row = document.createElement('tr');
+                                    const acumProd = acumuladoProducto[keyProducto];
+                                    const imgSrc = resolverImagenProductoInventario(item.imagen);
+                                    row.innerHTML = `
+                                        <td style="text-align:center;"><img src="${imgSrc}" alt="${escapeHtmlInventario(item.nombre)}" class="producto-img" style="width:56px;height:56px;object-fit:contain;border-radius:8px;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"></td>
+                                        <td><strong>${item.codigo}</strong></td>
+                                        <td>${item.nombre}</td>
+                                        <td>${item.categoria || 'Sin categoría'}</td>
+                                        <td><strong>${item.cantidad_vendida}</strong><small class="resumen-acumulado">ACUM: ${acumProd.cantidad}</small></td>
+                                        <td>${formatoMonedaCompleta(item.precio_unitario)}</td>
+                                        <td>${formatoMonedaCompleta(item.ganancia_total ?? item.porcentaje_ganancia ?? 0)}<small class="resumen-acumulado">ACUM: ${formatoMonedaCompleta(acumProd.ganancia)}</small></td>
+                                        <td><strong>${formatoMonedaCompleta(item.total_vendido)}</strong><small class="resumen-acumulado">ACUM: ${formatoMonedaCompleta(acumProd.total)}</small></td>
+                                    `;
+                                    productosVendidosMes.appendChild(row);
+                                } else {
+                                    // Abono
+                                    const ab = registro.data;
+                                    const clienteAb = `${ab.cliente_nombre || ''} ${ab.cliente_apellidos || ''}`.trim().toUpperCase() || 'CLIENTE';
+                                    const refAb = String(ab.referencia || 'AB').toUpperCase();
+                                    const montoAb = parseFloat(ab.monto || 0);
+                                    const rowAb = document.createElement('tr');
+                                    rowAb.style.background = '#f0fdf4';
+                                    rowAb.innerHTML = `
+                                        <td style="text-align:center;"><span style="background:#dcfce7;border:1px solid #86efac;border-radius:6px;padding:3px 7px;font-size:11px;font-weight:900;color:#166534;">AB</span></td>
+                                        <td><strong style="color:#166534;">${escapeHtmlInventario(refAb)}</strong></td>
+                                        <td><strong style="color:#166534;">${escapeHtmlInventario(clienteAb)}</strong></td>
+                                        <td><span style="background:#f0fdf4;border:1px solid #86efac;border-radius:4px;padding:2px 6px;font-size:11px;font-weight:700;color:#166534;">ABONO</span></td>
+                                        <td>—</td>
+                                        <td>—</td>
+                                        <td><strong style="color:#166534;">${formatoMonedaCompleta(montoAb)}</strong></td>
+                                        <td><strong style="color:#166534;">${formatoMonedaCompleta(montoAb)}</strong></td>
+                                    `;
+                                    productosVendidosMes.appendChild(rowAb);
                                 }
-                                acumuladoProducto[keyProducto].cantidad += cantidadDiaProducto;
-                                acumuladoProducto[keyProducto].total += totalDiaProducto;
-                                acumuladoProducto[keyProducto].ganancia += gananciaDiaProducto;
-
-                                unidadesDiaAcumuladas += cantidadDiaProducto;
-                                totalDiaAcumulado += totalDiaProducto;
-                                gananciaDiaAcumulada += gananciaDiaProducto;
-                                acumuladoMesTotal += totalDiaProducto;
-                                acumuladoMesGanancia += gananciaDiaProducto;
-
-                                const row = document.createElement('tr');
-                                const acumProd = acumuladoProducto[keyProducto];
-                                const imgSrc = resolverImagenProductoInventario(item.imagen);
-                                row.innerHTML = `
-                                    <td style="text-align:center;"><img src="${imgSrc}" alt="${escapeHtmlInventario(item.nombre)}" class="producto-img" style="width:56px;height:56px;object-fit:contain;border-radius:8px;" onerror="this.onerror=null;this.src=base_url+'/favicon.ico'"></td>
-                                    <td><strong>${item.codigo}</strong></td>
-                                    <td>${item.nombre}</td>
-                                    <td>${item.categoria || 'Sin categoría'}</td>
-                                    <td><strong>${item.cantidad_vendida}</strong><small class="resumen-acumulado">ACUM: ${acumProd.cantidad}</small></td>
-                                    <td>${formatoMonedaCompleta(item.precio_unitario)}</td>
-                                    <td>${formatoMonedaCompleta(item.ganancia_total ?? item.porcentaje_ganancia ?? 0)}<small class="resumen-acumulado">ACUM: ${formatoMonedaCompleta(acumProd.ganancia)}</small></td>
-                                    <td><strong>${formatoMonedaCompleta(item.total_vendido)}</strong><small class="resumen-acumulado">ACUM: ${formatoMonedaCompleta(acumProd.total)}</small></td>
-                                `;
-                                productosVendidosMes.appendChild(row);
                             });
-
-                            pintarResumenDia(fechaActual);
-
                         }
-                    }
+                    } // fin if productosVendidosMes
                 })
                 .catch(err => {
                     console.error('Error cargarVentasMes:', err);
@@ -7509,9 +8149,9 @@ if (is_file($logoPdfPath)) {
                         
                         // Actualizar encabezados
                         totalProductosDetalleEl.textContent = inventario.cantidad_productos || 0;
-                        valorTotalDetalleEl.textContent = '$' + parseFloat(inventario.valor_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
-                        valorCompraDetalleEl.textContent = '$' + parseFloat(inventario.valor_compra_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
-                        valorGananciaDetalleEl.textContent = '$' + parseFloat(inventario.valor_ganancia_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
+                        valorTotalDetalleEl.textContent = formatoMonedaInventario(inventario.valor_total);
+                        valorCompraDetalleEl.textContent = formatoMonedaInventario(inventario.valor_compra_total);
+                        valorGananciaDetalleEl.textContent = formatoMonedaInventario(inventario.valor_ganancia_total);
 
                         ajustarTamanoTextoStat('valorTotalDetalle');
                         ajustarTamanoTextoStat('valorCompraDetalle');
@@ -7541,8 +8181,8 @@ if (is_file($logoPdfPath)) {
                         productosOrdenados.forEach(prod => {
                             const row = document.createElement('tr');
                             const imgSrc = resolverImagenProductoInventario(prod.imagen);
-                            const precioUnit = parseFloat(prod.precio || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
-                            const valorTotalProd = parseFloat(prod.valor_total || 0).toLocaleString('es-CO', {maximumFractionDigits: 2});
+                            const precioUnit = formatoMonedaInventario(prod.precio);
+                            const valorTotalProd = formatoMonedaInventario(prod.valor_total);
                             const porcentaje = ((parseFloat(prod.valor_total) / parseFloat(inventario.valor_total)) * 100).toFixed(1);
                             
                             row.innerHTML = `
@@ -7556,7 +8196,7 @@ if (is_file($logoPdfPath)) {
                                 <td><strong>${prod.codigo}</strong></td>
                                 <td>${prod.nombre}</td>
                                 <td>${prod.categoria || 'Sin categoría'}</td>
-                                <td><span class="badge badge-info">${prod.stock}</span></td>
+                                <td><span class="badge badge-info">${formatoStockVisible(prod.stock, prod.categoria, prod.venta_por_kilo)}</span></td>
                                 <td>$${precioUnit}</td>
                                 <td><strong style="color: #2c3e50;">$${valorTotalProd}</strong></td>
                                 <td><span class="badge badge-primary">${porcentaje}%</span></td>
@@ -7688,7 +8328,7 @@ if (is_file($logoPdfPath)) {
                                 <td><strong>${item.codigo || 'N/A'}</strong></td>
                                 <td>${item.nombre || 'N/A'}</td>
                                 <td>${item.categoria || 'SIN CATEGORIA'}</td>
-                                <td><span class="badge ${badgeStock}" style="font-size: 16px; padding: 8px 12px;">${stockNormalizado}</span></td>
+                                <td><span class="badge ${badgeStock}" style="font-size: 16px; padding: 8px 12px;">${formatoStockVisible(stockNormalizado, item.categoria, item.venta_por_kilo)}</span></td>
                                 <td><span class="badge ${badgeNivel}">${iconoNivel} ${nivel}</span></td>
                             `;
                             tbody.appendChild(row);
@@ -7817,7 +8457,7 @@ if (is_file($logoPdfPath)) {
                             <td style="padding:8px 6px;vertical-align:middle;text-align:right;">
                                 <span style="display:inline-flex;align-items:center;gap:6px;font-weight:700;color:${prod.nivel === 'CRÍTICO' ? '#b91c1c' : '#b45309'};}">
                                     <span>${prod.nivel}</span>
-                                    <span style="background:${prod.nivel === 'CRÍTICO' ? '#fee2e2' : '#fef3c7'};color:${prod.nivel === 'CRÍTICO' ? '#991b1b' : '#92400e'};padding:4px 8px;border-radius:9999px;font-size:12px;">Stock ${prod.stock}</span>
+                                    <span style="background:${prod.nivel === 'CRÍTICO' ? '#fee2e2' : '#fef3c7'};color:${prod.nivel === 'CRÍTICO' ? '#991b1b' : '#92400e'};padding:4px 8px;border-radius:9999px;font-size:12px;">Stock ${formatoStockVisible(prod.stock, prod.categoria, prod.venta_por_kilo)}</span>
                                 </span>
                             </td>
                         </tr>`).join('');
@@ -7902,6 +8542,25 @@ if (is_file($logoPdfPath)) {
             return tokens.every(token => texto.includes(token)) || texto.replace(/\s/g, '').includes(tokens.join(''));
         }
 
+        function coincideProductoBusquedaInventario(option, consulta) {
+            const termino = String(consulta || '').trim();
+            if (!termino) return true;
+            const codigoBarras = normalizarCodigoBarrasInventario(option?.dataset?.barcode || option?.getAttribute?.('data-barcode') || '');
+            const codigo = normalizarTextoBusquedaInventario(option?.dataset?.codigo || option?.getAttribute?.('data-codigo') || '');
+            const consultaBarras = normalizarCodigoBarrasInventario(termino);
+            if (/^\d{6,14}$/.test(consultaBarras) && codigoBarras) {
+                return codigoBarras === consultaBarras || codigoBarras.includes(consultaBarras);
+            }
+            const texto = [
+                option?.textContent || '',
+                option?.dataset?.nombre || '',
+                codigo,
+                option?.dataset?.barcode || option?.getAttribute?.('data-barcode') || '',
+                option?.dataset?.categoriaNombre || option?.getAttribute?.('data-categoria-nombre') || ''
+            ].join(' ');
+            return coincideBusquedaInventario(texto, termino);
+        }
+
             function esCategoriaGramosInventario(nombre) {
                 return ['frutas', 'verduras', 'carnicos y refrigerados'].includes(normalizarTextoBusquedaInventario(nombre));
             }
@@ -7943,14 +8602,16 @@ if (is_file($logoPdfPath)) {
                     const categoriaNombre = normalizarTextoBusquedaInventario(option.dataset.categoriaNombre || '');
                     const perteneceCategoria = !categoriaFiltro
                         || perteneceGrupoCategoriaSalida(categoriaNombre, categoriaFiltro);
-                    const coincideBusqueda = coincideBusquedaInventario(nombre, texto);
+                    const coincideBusqueda = coincideProductoBusquedaInventario(option, texto);
                     return perteneceCategoria && coincideBusqueda;
                 });
 
                 results.innerHTML = coincidencias.map((option) => `
-                    <button type="button" class="inventario-search-option" data-select-id="${selectId}" data-id="${option.value}" data-name="${(option.textContent || '').trim()}" data-imagen="${option.getAttribute('data-imagen') || ''}" data-codigo="${option.getAttribute('data-codigo') || ''}" data-barcode="${option.getAttribute('data-barcode') || ''}" data-stock="${option.getAttribute('data-stock') || '0'}" data-venta-por-kilo="${option.getAttribute('data-venta-por-kilo') || '0'}" data-requiere-vencimiento="${option.getAttribute('data-requiere-vencimiento') || '0'}" data-categoria-nombre="${option.getAttribute('data-categoria-nombre') || ''}" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9;">
-                        ${option.textContent || ''}
-                    </button>
+                    ${(() => {
+                        const codigo = String(option.dataset.codigo || '').trim();
+                        const barras = String(option.dataset.barcode || '').trim();
+                        return `<button type="button" class="inventario-search-option" data-select-id="${selectId}" data-id="${option.value}" data-name="${escapeHtml(option.textContent || '')}" data-imagen="${escapeHtml(option.getAttribute('data-imagen') || '')}" data-codigo="${escapeHtml(codigo)}" data-barcode="${escapeHtml(barras)}" data-stock="${option.getAttribute('data-stock') || '0'}" data-venta-por-kilo="${option.getAttribute('data-venta-por-kilo') || '0'}" data-requiere-vencimiento="${option.getAttribute('data-requiere-vencimiento') || '0'}" data-categoria-nombre="${escapeHtml(option.getAttribute('data-categoria-nombre') || '')}" style="display:block; width:100%; text-align:left; border:none; background:#fff; padding:10px 12px; font-size:14px; color:#1f2937; cursor:pointer; border-bottom:1px solid #f1f5f9; text-transform:uppercase;"><strong>${escapeHtml(option.textContent || '')}</strong></button>`;
+                    })()}
                 `).join('');
 
                 results.style.display = coincidencias.length > 0 && (input.value || '').trim() ? 'block' : 'none';
@@ -8089,6 +8750,12 @@ if (is_file($logoPdfPath)) {
         function seleccionarProductoDesdeLector(select, input, results, option) {
             const productoId = option.value || option.dataset.id || '';
             select.value = productoId;
+            if (select.id === 'productoSalida') {
+                // La búsqueda general debe calcular la unidad del producto nuevo;
+                // no puede heredar el modo por kilos de una categoría anterior.
+                delete select.dataset.categoriaPeso;
+                productoSalidaSeleccionadoPorCategoria = null;
+            }
             input.value = (option.textContent || '').trim();
             input.dataset.lectorPreparado = '1';
             input.dataset.selectedValue = productoId;
@@ -8108,7 +8775,9 @@ if (is_file($logoPdfPath)) {
                 programarAgregarSalidaSeleccionada(select, input);
                 input.focus();
             } else {
-                const esPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option.dataset.ventaPorKilo || '0').trim().toLowerCase());
+                const porVentaPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option.dataset.ventaPorKilo || '0').trim().toLowerCase());
+                const porCategoria = esCategoriaGramosInventario(option.dataset.categoriaNombre || '');
+                const esPorKilo = porVentaPorKilo || porCategoria;
                 const cantidad = document.getElementById('cantidadEntrada');
                 const etiqueta = document.getElementById('unidadEntradaLabel');
                 if (etiqueta) etiqueta.textContent = esPorKilo ? 'KILOS' : 'CANTIDAD';
@@ -8139,6 +8808,13 @@ if (is_file($logoPdfPath)) {
                     temporizadorAgregarSalidaAutomatico = null;
                     return;
                 }
+                const grupoPresentacion = document.getElementById('grupoPresentacionSalida');
+                const presentacion = document.getElementById('presentacionSalida');
+                const esperandoPresentacion = grupoPresentacion && grupoPresentacion.style.display !== 'none' && presentacion && !presentacion.value;
+                if (esperandoPresentacion && Date.now() - inicio < 4000) {
+                    temporizadorAgregarSalidaAutomatico = setTimeout(esperarPresentacion, 50);
+                    return;
+                }
                 try {
                     if (String(select.value || '') === productoIdSeleccionado) agregarProductoSalida();
                 } finally {
@@ -8154,13 +8830,169 @@ if (is_file($logoPdfPath)) {
             const option = select?.options[select.selectedIndex];
             const cantidad = document.getElementById('cantidadEntrada');
             const etiqueta = document.getElementById('unidadEntradaLabel');
-            const esPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option?.dataset.ventaPorKilo || '0').trim().toLowerCase());
+            const porVentaPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option?.dataset.ventaPorKilo || '0').trim().toLowerCase());
+            const porCategoria = esCategoriaGramosInventario(option?.dataset.categoriaNombre || '');
+            const esPorKilo = porVentaPorKilo || porCategoria;
             if (etiqueta) etiqueta.textContent = esPorKilo ? 'KILOS' : 'CANTIDAD';
             if (cantidad) {
                 cantidad.min = esPorKilo ? '0.001' : '1';
                 cantidad.step = esPorKilo ? '0.001' : '1';
                 cantidad.value = esPorKilo ? '0.001' : '1';
             }
+            // ── BÁSCULA ENTRADA ──────────────────────────────────────────────
+            const widget = document.getElementById('basculaEntradaWidget');
+            const display = document.getElementById('basculaEntradaPesoDisplay');
+            if (widget) widget.style.display = esPorKilo ? 'inline-flex' : 'none';
+            if (display) display.style.display = esPorKilo ? 'inline-flex' : 'none';
+            if (esPorKilo) {
+                conectarBasculaEntrada();
+                if (Number.isFinite(_basculaEntradaUltimoPeso)) {
+                    aplicarPesoBasculaEntrada(_basculaEntradaUltimoPeso, _basculaEntradaUltimoTs);
+                }
+            } else {
+                detenerRefrescoPesoVivoEntrada();
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // BÁSCULA ENTRADA — lógica paralela a la de salida, sin tocar nada de
+        // salida. Solo escucha basculaAPI (proceso Electron); nunca abre COM.
+        // ─────────────────────────────────────────────────────────────────────
+        let _basculaEntradaConectada = false;
+        let _basculaEntradaUltimoPeso = null;
+        let _basculaEntradaUltimoTs = 0;
+        let _basculaEntradaListenerRegistrado = false;
+        let _basculaEntradaIntervalo = null;
+        let _basculaEntradaPuenteDashboardRegistrado = false;
+
+        function actualizarLedBasculaEntrada(conectada) {
+            const widget = document.getElementById('basculaEntradaWidget');
+            if (!widget) return;
+            // Usa las mismas clases que el LED de salida (bascula-led-btn rojo/verde)
+            widget.classList.toggle('verde', conectada);
+            widget.classList.toggle('rojo', !conectada);
+        }
+
+        function aplicarPesoBasculaEntrada(pesoKg, tsLectura) {
+            if (pesoKg === null || !Number.isFinite(pesoKg) || pesoKg < 0) return;
+            const ts = Number(tsLectura);
+            // Descartar lecturas antiguas para no pisar un peso nuevo con uno viejo
+            if (Number.isFinite(ts) && ts > 0 && ts < _basculaEntradaUltimoTs) return;
+            if (Number.isFinite(ts) && ts > 0) _basculaEntradaUltimoTs = ts;
+            _basculaEntradaUltimoPeso = pesoKg;
+            _basculaEntradaConectada = true;
+
+            // Actualizar display: verde con peso > 0, gris en 0
+            const display = document.getElementById('basculaEntradaPesoDisplay');
+            if (display) {
+                display.textContent = pesoKg.toFixed(3) + ' kg';
+                if (pesoKg > 0) {
+                    display.style.background = '#dcfce7';
+                    display.style.borderColor = '#86efac';
+                    display.style.color = '#15803d';
+                } else {
+                    display.style.background = '#f1f5f9';
+                    display.style.borderColor = '#cbd5e1';
+                    display.style.color = '#475569';
+                }
+            }
+
+            // Aplicar al campo solo si el producto activo es por kilos
+            const select = document.getElementById('productoEntrada');
+            const option = select?.options[select.selectedIndex];
+            const porVentaPorKilo = ['1', 'true', 'si', 'sí'].includes(String(option?.dataset.ventaPorKilo || '0').trim().toLowerCase());
+            const porCategoria = esCategoriaGramosInventario(option?.dataset.categoriaNombre || '');
+            const esPorKilo = porVentaPorKilo || porCategoria;
+            if (!esPorKilo || !select?.value) return;
+
+            const cantidad = document.getElementById('cantidadEntrada');
+            if (cantidad) {
+                cantidad.value = (Math.round(pesoKg * 1000) / 1000).toFixed(3);
+                cantidad.dispatchEvent(new Event('input', { bubbles: true }));
+                cantidad.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
+        function detenerRefrescoPesoVivoEntrada() {
+            if (_basculaEntradaIntervalo) {
+                clearInterval(_basculaEntradaIntervalo);
+                _basculaEntradaIntervalo = null;
+            }
+        }
+
+        function iniciarRefrescoPesoVivoEntrada() {
+            detenerRefrescoPesoVivoEntrada();
+            _basculaEntradaIntervalo = setInterval(async () => {
+                const modal = document.getElementById('entradaModal');
+                // Detener si el modal está cerrado
+                if (!modal || !modal.classList.contains('active')) {
+                    detenerRefrescoPesoVivoEntrada();
+                    return;
+                }
+                try {
+                    const estado = await window.basculaAPI?.estado();
+                    if (estado) {
+                        _basculaEntradaConectada = Boolean(estado.conectado);
+                        actualizarLedBasculaEntrada(_basculaEntradaConectada);
+                        const valor = Number(estado?.ultimoPeso?.peso);
+                        const tsEstado = Number(estado?.ultimoPeso?.ts) || 0;
+                        if (_basculaEntradaConectada && Number.isFinite(valor) && valor >= 0 && tsEstado > _basculaEntradaUltimoTs) {
+                            aplicarPesoBasculaEntrada(valor, tsEstado);
+                        }
+                    }
+                } catch (_) { /* sin báscula disponible */ }
+            }, 400);
+        }
+
+        function conectarBasculaEntrada() {
+            const api = window.basculaAPI;
+            if (!_basculaEntradaPuenteDashboardRegistrado) {
+                _basculaEntradaPuenteDashboardRegistrado = true;
+                window.addEventListener('message', (evento) => {
+                    if (evento.origin !== window.location.origin || evento.source !== window.parent) return;
+                    if (evento.data?.tipo !== 'bascula-peso-vivo') return;
+                    const peso = evento.data.peso;
+                    const valor = Number(peso?.peso);
+                    if (!Number.isFinite(valor)) return;
+                    aplicarPesoBasculaEntrada(valor, Number(peso?.ts) || Date.now());
+                    actualizarLedBasculaEntrada(true);
+                });
+            }
+            if (!api) {
+                actualizarLedBasculaEntrada(false);
+                iniciarRefrescoPesoVivoEntrada();
+                return;
+            }
+            // Registrar listener de eventos una sola vez
+            if (!_basculaEntradaListenerRegistrado) {
+                _basculaEntradaListenerRegistrado = true;
+                api.onPeso(peso => {
+                    const val = Number(peso?.peso);
+                    if (!peso || !Number.isFinite(val)) return;
+                    aplicarPesoBasculaEntrada(val, Number(peso?.ts) || Date.now());
+                    actualizarLedBasculaEntrada(true);
+                });
+                api.onEstado(estado => {
+                    _basculaEntradaConectada = Boolean(estado?.conectado);
+                    actualizarLedBasculaEntrada(_basculaEntradaConectada);
+                    if (_basculaEntradaConectada) {
+                        const val = Number(estado?.ultimoPeso?.peso);
+                        const ts = Number(estado?.ultimoPeso?.ts) || 0;
+                        if (Number.isFinite(val) && val >= 0) aplicarPesoBasculaEntrada(val, ts);
+                    }
+                });
+            }
+            // Consulta estado inmediato
+            api.estado().then(estado => {
+                _basculaEntradaConectada = Boolean(estado?.conectado);
+                actualizarLedBasculaEntrada(_basculaEntradaConectada);
+                if (_basculaEntradaConectada) {
+                    const val = Number(estado?.ultimoPeso?.peso);
+                    const ts = Number(estado?.ultimoPeso?.ts) || 0;
+                    if (Number.isFinite(val) && val >= 0) aplicarPesoBasculaEntrada(val, ts);
+                }
+            }).catch(() => actualizarLedBasculaEntrada(false));
+            iniciarRefrescoPesoVivoEntrada();
         }
 
         function configurarLectorEntradaGlobal() {
@@ -8285,8 +9117,7 @@ if (is_file($logoPdfPath)) {
 
         async function seleccionarSalidaEscaneadaActualizada(codigo, select, input, results, optionInicial = null) {
             try {
-                const response = await fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia');
-                const data = await response.json();
+                const data = await obtenerProductosConGanancia();
                 const productoActual = (Array.isArray(data?.data) ? data.data : []).find(item =>
                     normalizarCodigoBarrasInventario(item.codigo_barras) === codigo
                 );
@@ -8336,8 +9167,7 @@ if (is_file($logoPdfPath)) {
 
         // Cargar datos del listado completo de productos (uso compartido)
         function actualizarSelectProductosInventario() {
-            fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
-                .then(r => r.json())
+            obtenerProductosConGanancia()
                 .then(data => {
                     const productos = Array.isArray(data?.data) ? data.data : [];
                     const entradaSelect = document.getElementById('productoEntrada');
@@ -8350,9 +9180,13 @@ if (is_file($logoPdfPath)) {
                         const codigo = String(item.codigo_producto || item.codigo || '').trim();
                         const nombre = String(item.nombre || 'PRODUCTO').trim();
                         const imagen = String(item.imagen || '');
-                        const precioBase = Number(item.precio ?? item.precio_venta ?? item.precio_original ?? 0) || 0;
+                        const precioBase = typeof redondearPrecioVenta === 'function'
+                            ? redondearPrecioVenta(Number(item.precio ?? item.precio_venta ?? item.precio_original ?? 0) || 0)
+                            : (Number(item.precio ?? item.precio_venta ?? item.precio_original ?? 0) || 0);
                         const descuento = Number(item.descuento_porcentaje ?? 0) || 0;
-                        const precioFinal = Number(item.precio_venta ?? 0) || 0;
+                        const precioFinal = typeof redondearPrecioVenta === 'function'
+                            ? redondearPrecioVenta(Number(item.precio_venta ?? precioBase) || 0)
+                            : (Number(item.precio_venta ?? 0) || 0);
                         const stock = Number(item.stock ?? 0) || 0;
                         const stockDisponible = Math.max(0, stock);
                         const codigoLabel = codigo ? ` [${codigo}]` : '';
@@ -8422,8 +9256,7 @@ if (is_file($logoPdfPath)) {
         }
 
         function cargarTodosProductos() {
-            fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
-                .then(r => r.json())
+            obtenerProductosConGanancia()
                 .then(data => {
                     if (data.success && data.data) {
                         const productos = data.data;
@@ -8438,7 +9271,9 @@ if (is_file($logoPdfPath)) {
                         productos.forEach(item => {
                             let stock = Number(item.stock);
                             if (isNaN(stock)) stock = 0;
-                            const precioVenta = stock <= 0 ? 0 : parseFloat(item.precio_venta) || 0;
+                            const precioVenta = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                                ? redondearPrecioVenta(parseFloat(item.precio_venta) || 0)
+                                : (parseFloat(item.precio_venta) || 0));
                             stockTotal += stock;
                             valorTotal += stock * precioVenta;
                             if (item.categoria_nombre) {
@@ -8459,7 +9294,7 @@ if (is_file($logoPdfPath)) {
 
                         modalTotalProductosEl.textContent = productos.length;
                         modalStockTotalEl.textContent = formatoStockTotalVisible(stockTotal);
-                        modalValorTotalEl.textContent = '$' + valorTotal.toLocaleString('es-CO', {maximumFractionDigits: 2});
+                        modalValorTotalEl.textContent = formatoMonedaInventario(valorTotal);
                         modalTotalCategoriasEl.textContent = categorias.size;
                         
                         // Actualizar tabla
@@ -8472,12 +9307,25 @@ if (is_file($logoPdfPath)) {
                         
                         productos.forEach(item => {
                             const row = document.createElement('tr');
+                            row.dataset.busquedaTodosProductos = [
+                                item.id,
+                                item.nombre,
+                                item.codigo_producto,
+                                item.codigo,
+                                item.codigo_barras,
+                                item.categoria_nombre
+                            ].filter(Boolean).join(' ');
+                            row.dataset.codigoBarras = String(item.codigo_barras || item.codigoBarras || '');
                             const imgSrc = resolverImagenProductoInventario(item.imagen);
                             const stock = parseFloat(item.stock || 0) || 0;
                             const precioCompra = stock <= 0 ? 0 : (parseFloat(item.ultimo_precio_compra || item.precio_compra_promedio || 0) || 0);
                             const descuentoPct = stock <= 0 ? 0 : (parseFloat(item.descuento_porcentaje || 0) || 0);
-                            const precioOriginal = stock <= 0 ? 0 : (parseFloat(item.precio_original || item.precio || item.precio_venta || 0) || 0);
-                            const precioVenta = stock <= 0 ? 0 : (parseFloat(item.precio_venta || item.precio_final || 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock));
+                            const precioOriginal = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                                ? redondearPrecioVenta(parseFloat(item.precio_original || item.precio || item.precio_venta || 0) || 0)
+                                : (parseFloat(item.precio_original || item.precio || item.precio_venta || 0) || 0));
+                            const precioVenta = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                                ? redondearPrecioVenta(parseFloat(item.precio_venta || item.precio_final || 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock))
+                                : (parseFloat(item.precio_venta || item.precio_final || 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock)));
                             const gananciaUnitaria = stock <= 0 ? 0 : (!isNaN(parseFloat(item.ganancia_unitaria)) ? parseFloat(item.ganancia_unitaria) : (precioVenta - precioCompra));
                             const porcentajeGanancia = stock <= 0 ? 0 : calcularPorcentajeGananciaInventario(precioVenta, precioCompra, item.porcentaje_ganancia);
                             const valorProducto = stock <= 0 ? 0 : stock * precioVenta;
@@ -8561,7 +9409,14 @@ if (is_file($logoPdfPath)) {
             if (!input || !resultados) return;
             const texto = normalizarBusquedaTodosProductosModal(input.value);
             const productos = Array.isArray(window.todosProductosModalCache) ? window.todosProductosModalCache : [];
-            const coincidencias = productos.filter(item => normalizarBusquedaTodosProductosModal(`${item.id || ''} ${item.nombre || ''} ${item.codigo_producto || ''}`).includes(texto));
+            const coincidencias = productos.filter(item => {
+                const codigoBarras = String(item.codigo_barras || item.codigoBarras || '').replace(/\D/g, '');
+                const consultaBarras = String(input.value || '').replace(/\D/g, '');
+                if (/^\d{6,14}$/.test(consultaBarras) && codigoBarras) {
+                    return codigoBarras === consultaBarras || codigoBarras.includes(consultaBarras);
+                }
+                return normalizarBusquedaTodosProductosModal(`${item.id || ''} ${item.nombre || ''} ${item.codigo_producto || item.codigo || ''} ${item.codigo_barras || ''}`).includes(texto);
+            });
             resultados.innerHTML = coincidencias.map(item => `<button type="button" data-valor="${escapeHtmlInventario(String(item.nombre || ''))}" style="display:block;width:100%;padding:9px 12px;border:0;border-bottom:1px solid #f1f5f9;background:#fff;text-align:left;cursor:pointer;text-transform:uppercase;">${escapeHtmlInventario(String(item.nombre || ''))}</button>`).join('');
             resultados.style.display = coincidencias.length && texto ? 'block' : 'none';
         }
@@ -8571,8 +9426,14 @@ if (is_file($logoPdfPath)) {
             const tbody = document.getElementById('todosProductosBody');
             if (!input || !tbody) return;
             const texto = normalizarBusquedaTodosProductosModal(input.value);
+            const consultaBarras = String(input.value || '').replace(/\D/g, '');
             Array.from(tbody.querySelectorAll('tr')).forEach(row => {
-                row.style.display = !texto || normalizarBusquedaTodosProductosModal(row.textContent).includes(texto) ? '' : 'none';
+                const textoFila = normalizarBusquedaTodosProductosModal(`${row.textContent} ${row.dataset.busquedaTodosProductos || ''}`);
+                const codigoBarras = String(row.dataset.codigoBarras || '').replace(/\D/g, '');
+                const coincideBarras = /^\d{6,14}$/.test(consultaBarras) && codigoBarras
+                    ? codigoBarras === consultaBarras || codigoBarras.includes(consultaBarras)
+                    : false;
+                row.style.display = !texto || coincideBarras || textoFila.includes(texto) ? '' : 'none';
             });
             renderResultadosTodosProductosModal();
         }
@@ -8613,7 +9474,9 @@ if (is_file($logoPdfPath)) {
                         const precioCompra = stock <= 0 ? 0 : (parseFloat(p.ultimo_precio_compra ?? 0) || 0);
                         const precioOriginal = stock <= 0 ? 0 : (parseFloat(p.precio_original ?? p.precio ?? 0) || parseFloat(p.precio ?? 0) || 0);
                         const descuentoPct = stock <= 0 ? 0 : (parseFloat(p.descuento_porcentaje ?? 0) || 0);
-                        const precioVenta = stock <= 0 ? 0 : (parseFloat(p.precio_final ?? 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock));
+                        const precioVenta = stock <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                            ? redondearPrecioVenta(parseFloat(p.precio_final ?? p.precio ?? 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock))
+                            : (parseFloat(p.precio_final ?? 0) || calcularPrecioFinalConDescuento(precioOriginal, descuentoPct, stock)));
                         const porcentajeGanancia = stock <= 0 ? 0 : calcularPorcentajeGananciaInventario(precioVenta, precioCompra, p.porcentaje_ganancia);
                         const valorTotal = formatoMonedaInventario(precioVenta * stock);
                         const estado = p.estado == 1 ? 'ACTIVO' : 'INACTIVO';
@@ -8653,8 +9516,7 @@ if (is_file($logoPdfPath)) {
         }
 
         function cargarDetalleValorCompra() {
-            fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
-                .then(r => r.json())
+            obtenerProductosConGanancia()
                 .then(data => {
                     if (!data.success || !Array.isArray(data.data)) {
                         throw new Error(data.message || 'No se pudo cargar el valor de compra');
@@ -8688,7 +9550,7 @@ if (is_file($logoPdfPath)) {
                     }).sort((a, b) => (b.valorTotalCompra || 0) - (a.valorTotalCompra || 0));
 
                     totalProductosDetalleEl.textContent = productosConValores.length;
-                    valorTotalDetalleEl.textContent = '$' + valorCompraTotal.toLocaleString('es-CO', { maximumFractionDigits: 2 });
+                    valorTotalDetalleEl.textContent = formatoMonedaInventario(valorCompraTotal);
                     unidadesTotalesDetalleEl.textContent = totalUnidades;
                     tbody.innerHTML = '';
 
@@ -8712,9 +9574,9 @@ if (is_file($logoPdfPath)) {
                             <td><strong>${escapeHtmlInventario(prod.codigo_producto || prod.id || 'N/A')}</strong></td>
                             <td>${escapeHtmlInventario(prod.nombre || 'PRODUCTO')}</td>
                             <td>${escapeHtmlInventario(prod.categoria_nombre || 'Sin categoría')}</td>
-                            <td><span class="badge badge-info">${prod.stock}</span></td>
-                            <td>$${(prod.precioCompra || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 })}</td>
-                            <td><strong style="color: #b42318;">$${(prod.valorTotalCompra || 0).toLocaleString('es-CO', { maximumFractionDigits: 2 })}</strong></td>
+                            <td><span class="badge badge-info">${formatoStockVisible(prod.stock, prod.categoria_nombre || prod.categoria, prod.venta_por_kilo)}</span></td>
+                            <td>${formatoMonedaInventario(prod.precioCompra)}</td>
+                            <td><strong style="color: #b42318;">${formatoMonedaInventario(prod.valorTotalCompra)}</strong></td>
                             <td><span class="badge badge-primary">${porcentaje}%</span></td>
                         `;
                         tbody.appendChild(row);
@@ -8731,11 +9593,29 @@ if (is_file($logoPdfPath)) {
         }
 
         // Cargar formulario de edición para producto
+        function productoEdicionEsPorKilo() {
+            const stock = document.getElementById('editProdStock');
+            const categoria = document.getElementById('editProdCategoria');
+            const ventaPorKilo = stock?.dataset?.ventaPorKilo || '0';
+            const nombreCategoria = categoria?.options[categoria.selectedIndex]?.textContent || '';
+            if (typeof window.esProductoPorKiloInventario === 'function') {
+                return window.esProductoPorKiloInventario(ventaPorKilo, nombreCategoria);
+            }
+            return Number(ventaPorKilo) === 1;
+        }
+
         function configurarStockEdicionPorCategoria() {
             const stock = document.getElementById('editProdStock');
             if (!stock) return;
-            stock.min = '0';
-            stock.step = '0.001';
+
+            const esPorKilo = productoEdicionEsPorKilo();
+            stock.min = esPorKilo ? '0.001' : '0';
+            stock.step = esPorKilo ? '0.001' : '1';
+            if (stock.value !== '') {
+                stock.value = typeof window.formatoStockInput === 'function'
+                    ? window.formatoStockInput(stock.value, document.getElementById('editProdCategoria')?.options[document.getElementById('editProdCategoria').selectedIndex]?.textContent || '', stock.dataset.ventaPorKilo)
+                    : (esPorKilo ? String(Number(stock.value) || 0) : String(Math.round(Number(stock.value) || 0)));
+            }
         }
 
         function editarProducto(id) {
@@ -8750,14 +9630,28 @@ if (is_file($logoPdfPath)) {
                         document.getElementById('editProdCategoria').value = p.categoria_id != null ? p.categoria_id : '';
 
                         const precioCompraValue = p.ultimo_precio_compra != null ? parseFloat(p.ultimo_precio_compra).toFixed(2) : '';
-                        const precioVentaValue = p.precio != null ? parseFloat(p.precio).toFixed(2) : '';
-                        const stockValue = p.stock != null ? Number(p.stock).toFixed(3) : '';
+                        const precioVentaValue = p.precio != null
+                            ? (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(p.precio)) : parseFloat(p.precio)).toFixed(0)
+                            : '';
                         const porcentajeValue = p.porcentaje_ganancia != null ? parseFloat(p.porcentaje_ganancia).toFixed(1) : '';
+                        const stockInput = document.getElementById('editProdStock');
+                        if (stockInput) {
+                            stockInput.dataset.ventaPorKilo = Number(p.venta_por_kilo) === 1 ? '1' : '0';
+                        }
+                        // Preservar venta_por_kilo: se envía como hidden para que el backend no lo resetee
+                        const ventaKiloHidden = document.getElementById('editProdVentaPorKilo');
+                        if (ventaKiloHidden) {
+                            ventaKiloHidden.value = Number(p.venta_por_kilo) === 1 ? '1' : '0';
+                        }
 
                         document.getElementById('editProdPrecioCompra').value = precioCompraValue;
                         document.getElementById('editProdPrecio').value = precioVentaValue;
-                        document.getElementById('editProdStock').value = stockValue;
                         configurarStockEdicionPorCategoria();
+                        if (stockInput) {
+                            stockInput.value = typeof window.formatoStockInput === 'function'
+                                ? window.formatoStockInput(p.stock, p.categoria_nombre || '', p.venta_por_kilo)
+                                : (Number(p.venta_por_kilo) === 1 ? String(Number(p.stock) || 0) : String(Math.round(Number(p.stock) || 0)));
+                        }
                         const categoriaEdicion = document.getElementById('editProdCategoria');
                         if (categoriaEdicion && categoriaEdicion.dataset.stockGramosListener !== '1') {
                             categoriaEdicion.dataset.stockGramosListener = '1';
@@ -8774,7 +9668,10 @@ if (is_file($logoPdfPath)) {
                             const pc = getPc();
                             const pct = parseFloat(pctInput.value) || 0;
                             if (pc > 0) {
-                                document.getElementById('editProdPrecio').value = (pc * (1 + pct/100)).toFixed(2);
+                                const precioCalculado = pc * (1 + pct/100);
+                                document.getElementById('editProdPrecio').value = (typeof redondearPrecioVenta === 'function'
+                                    ? redondearPrecioVenta(precioCalculado)
+                                    : precioCalculado).toFixed(0);
                             }
                         };
                         // cuando usuario modifique precio, actualizar porcentaje si hay precio de compra
@@ -8905,8 +9802,7 @@ if (is_file($logoPdfPath)) {
         function mostrarModalStockTotal() {
             abrirModal('stockTotalModal');
             
-            fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia')
-                .then(r => r.json())
+            obtenerProductosConGanancia()
                 .then(data => {
                     if (data.success && data.data) {
                         const productos = data.data;
@@ -8932,7 +9828,7 @@ if (is_file($logoPdfPath)) {
                         document.getElementById('modalStockTotalUnidades').textContent = formatoStockTotalVisible(stockTotal);
                         document.getElementById('modalStockProductos').textContent = productos.filter(p => p.estado == 1 && (parseFloat(p.stock) || 0) > 0).length;
                         document.getElementById('modalStockCategorias').textContent = categorias.size;
-                        document.getElementById('modalStockValor').textContent = '$' + valorTotal.toLocaleString('es-CO', {maximumFractionDigits: 2});
+                        document.getElementById('modalStockValor').textContent = formatoMonedaInventario(valorTotal);
                         
                         // Actualizar tabla
                         const tbody = document.getElementById('stockTotalBody');
@@ -8953,7 +9849,9 @@ if (is_file($logoPdfPath)) {
                             
                             // Calcular valores
                             const stockValue = parseFloat(item.stock || 0) || 0;
-                            const precioVenta = stockValue <= 0 ? 0 : parseFloat(item.precio_venta) || 0;
+                            const precioVenta = stockValue <= 0 ? 0 : (typeof redondearPrecioVenta === 'function'
+                                ? redondearPrecioVenta(parseFloat(item.precio_venta) || 0)
+                                : (parseFloat(item.precio_venta) || 0));
                             
                             // Determinar estado del stock
                             let stockBadge = 'badge-success';
@@ -8987,7 +9885,7 @@ if (is_file($logoPdfPath)) {
                                 <td><strong>${item.nombre}</strong></td>
                                 <td>${item.categoria_nombre || 'SIN CATEGORÍA'}</td>
                                 <td><span class="badge ${stockBadge}" style="font-size: 16px; padding: 8px 12px;">${formatoStockVisible(item.stock, item.categoria_nombre, item.venta_por_kilo)}</span></td>
-                                <td style="color: #27ae60; font-weight: bold;">$${precioVenta.toLocaleString('es-CO', {maximumFractionDigits: 2})}</td>
+                                <td style="color: #27ae60; font-weight: bold;">${formatoMonedaInventario(precioVenta)}</td>
                             `;
                             tbody.appendChild(row);
                         });
@@ -9006,10 +9904,9 @@ if (is_file($logoPdfPath)) {
             const porcentaje = parseFloat(document.getElementById('porcentajeGanancia').value) || 0;
             
             const precioCalculado = precioCompra + (precioCompra * (porcentaje / 100));
-            const baseRedondeo = Math.floor(precioCalculado / 50) * 50;
-            const precioVenta = baseRedondeo + (precioCalculado % 50 > 25 ? 50 : 0);
+            const precioVenta = precioCalculado;
             
-            document.getElementById('precioVentaMostrado').value = precioVenta.toFixed(2);
+            document.getElementById('precioVentaMostrado').value = precioVenta > 0 ? String(precioVenta) : '';
             sincronizarPrecioPresentacionUnidad(precioCompra, precioVenta);
         }
 
@@ -9021,7 +9918,7 @@ if (is_file($logoPdfPath)) {
             const compra = filaUnidad.querySelector('.entrada-pres-compra');
             const venta = filaUnidad.querySelector('.entrada-pres-venta');
             if (compra) compra.value = precioCompra > 0 ? precioCompra.toFixed(2) : '';
-            if (venta) venta.value = precioVenta > 0 ? precioVenta.toFixed(2) : '';
+            if (venta) venta.value = precioVenta > 0 ? String(precioVenta) : '';
         }
 
         function resetEntradaModalFields() {
@@ -9071,7 +9968,7 @@ if (is_file($logoPdfPath)) {
             if (porcentajeGanancia) {
                 porcentajeGanancia.value = '25';
             }
-
+ 
             const precioVentaMostrado = document.getElementById('precioVentaMostrado');
             if (precioVentaMostrado) {
                 precioVentaMostrado.value = '';
@@ -9108,7 +10005,87 @@ if (is_file($logoPdfPath)) {
         function abrirModalEntrada() {
             resetEntradaModalFields();
             abrirModal('entradaModal');
+            // Restaurar borrador y adjuntar listeners después de abrir
+            setTimeout(() => {
+                restaurarBorradorEntrada();
+                adjuntarListenersBorradorEntrada();
+            }, 100);
         }
+
+        // ── BORRADOR DE ENTRADA ──────────────────────────────────────────────
+        const claveEntradaBorrador = 'inventario_entrada_borrador';
+
+        function guardarBorradorEntrada() {
+            try {
+                const borrador = {
+                    producto_id:          document.getElementById('productoEntrada')?.value || '',
+                    producto_nombre:      document.getElementById('buscarProductoEntrada')?.value || '',
+                    proveedor:            document.getElementById('proveedorEntrada')?.value || '',
+                    proveedor_otro:       document.getElementById('proveedorEntradaOtro')?.value || '',
+                    cantidad:             document.getElementById('cantidadEntrada')?.value || '',
+                    precio_compra:        document.getElementById('precioCompra')?.value || '',
+                    porcentaje_ganancia:  document.getElementById('porcentajeGanancia')?.value || '',
+                    lote:                 document.getElementById('lote')?.value || '',
+                    fecha_vencimiento:    document.getElementById('fechaVencimiento')?.value || '',
+                    notas:                document.getElementById('notasEntrada')?.value || ''
+                };
+                if (borrador.producto_id || borrador.precio_compra) {
+                    localStorage.setItem(claveEntradaBorrador, JSON.stringify(borrador));
+                }
+            } catch (e) { /* no bloquear */ }
+        }
+
+        function restaurarBorradorEntrada() {
+            try {
+                const guardado = JSON.parse(localStorage.getItem(claveEntradaBorrador) || 'null');
+                if (!guardado) return;
+
+                if (guardado.producto_id) {
+                    const sel = document.getElementById('productoEntrada');
+                    const bus = document.getElementById('buscarProductoEntrada');
+                    if (sel) sel.value = guardado.producto_id;
+                    if (bus) { bus.value = guardado.producto_nombre || ''; bus.dataset.selectedValue = guardado.producto_id; }
+                    if (sel) sel.dispatchEvent(new Event('change'));
+                }
+                const selProv = document.getElementById('proveedorEntrada');
+                const busProv = document.getElementById('buscarProveedorEntrada');
+                if (selProv && guardado.proveedor) {
+                    selProv.value = guardado.proveedor;
+                    if (busProv) busProv.value = guardado.proveedor === '__OTRO__' ? 'NUEVO PROVEEDOR' : guardado.proveedor;
+                    if (typeof toggleProveedorEntradaOtro === 'function') toggleProveedorEntradaOtro();
+                }
+                if (guardado.proveedor_otro) { const el = document.getElementById('proveedorEntradaOtro'); if (el) el.value = guardado.proveedor_otro; }
+                if (guardado.cantidad)            { const el = document.getElementById('cantidadEntrada');    if (el) el.value = guardado.cantidad; }
+                if (guardado.precio_compra)       { const el = document.getElementById('precioCompra');       if (el) { el.value = guardado.precio_compra; if (typeof calcularPrecioVenta === 'function') calcularPrecioVenta(); } }
+                if (guardado.porcentaje_ganancia) { const el = document.getElementById('porcentajeGanancia'); if (el) { el.value = guardado.porcentaje_ganancia; if (typeof calcularPrecioVenta === 'function') calcularPrecioVenta(); } }
+                if (guardado.lote)                { const el = document.getElementById('lote');               if (el) el.value = guardado.lote; }
+                if (guardado.fecha_vencimiento)   { const el = document.getElementById('fechaVencimiento');   if (el) el.value = guardado.fecha_vencimiento; }
+                if (guardado.notas)               { const el = document.getElementById('notasEntrada');       if (el) el.value = guardado.notas; }
+            } catch (e) { localStorage.removeItem(claveEntradaBorrador); }
+        }
+
+        function limpiarBorradorEntrada() {
+            try { localStorage.removeItem(claveEntradaBorrador); } catch (e) { /* no bloquear */ }
+        }
+
+        function adjuntarListenersBorradorEntrada() {
+            ['cantidadEntrada','precioCompra','porcentajeGanancia','lote','fechaVencimiento','notasEntrada','proveedorEntradaOtro'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && !el.dataset.borradorListener) {
+                    el.addEventListener('input', guardarBorradorEntrada);
+                    el.addEventListener('change', guardarBorradorEntrada);
+                    el.dataset.borradorListener = '1';
+                }
+            });
+            ['productoEntrada','proveedorEntrada'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && !el.dataset.borradorListener) {
+                    el.addEventListener('change', guardarBorradorEntrada);
+                    el.dataset.borradorListener = '1';
+                }
+            });
+        }
+        // ────────────────────────────────────────────────────────────────────
 
         function toggleProveedorEntradaOtro() {
             const selectProveedor = document.getElementById('proveedorEntrada');
@@ -9256,29 +10233,53 @@ if (is_file($logoPdfPath)) {
             const stock = Number(opcion?.dataset?.stock || 0);
             const porKilo = String(opcion?.dataset?.kilo || '0') === '1';
             if (cantidad) {
-                cantidad.step = porKilo ? '0.001' : '1';
-                cantidad.min = porKilo ? '0.001' : '1';
-                cantidad.max = stock > 0 ? String(stock) : '';
+                // El campo siempre acepta decimales para no bloquear gramos;
+                // la validación por unidad o por kilos se hace al guardar.
+                cantidad.step = 'any';
+                cantidad.min = '0';
+                cantidad.removeAttribute('max');
+                cantidad.placeholder = porKilo ? 'EJEMPLO: 0.250 (KG)' : 'EJEMPLO: 2 (UNIDADES)';
+                const valorActual = Number(cantidad.value || 0);
+                if (!porKilo && valorActual > 0 && !Number.isInteger(valorActual)) cantidad.value = '';
             }
-            if (ayuda) ayuda.textContent = stock > 0 ? `STOCK DISPONIBLE: ${stock}${porKilo ? ' KG' : ''}` : '';
+            if (ayuda) {
+                ayuda.textContent = stock > 0
+                    ? (porKilo
+                        ? `STOCK DISPONIBLE: ${stock.toFixed(3)} KG (PUEDE USAR GRAMOS, EJEMPLO 0.250)`
+                        : `STOCK DISPONIBLE: ${Math.floor(stock)} UNIDADES (SOLO CANTIDADES ENTERAS)`)
+                    : '';
+            }
         }
+
 
         async function registrarProductoDanado(evento) {
             evento.preventDefault();
             const form = evento.currentTarget;
             if (!form.reportValidity()) return;
             const select = document.getElementById('productoDanado');
-            const cantidad = Number(document.getElementById('cantidadProductoDanado')?.value || 0);
+            const cantidad = Number(String(document.getElementById('cantidadProductoDanado')?.value || '0').replace(',', '.'));
             const opcion = select?.options?.[select.selectedIndex];
             const stock = Number(opcion?.dataset?.stock || 0);
-            if (cantidad <= 0 || cantidad > stock) {
-                Swal.fire({ icon: 'warning', title: 'CANTIDAD NO VÁLIDA', text: `La cantidad debe estar entre 0 y ${stock}.` });
+            const porKilo = String(opcion?.dataset?.kilo || '0') === '1';
+            const unidad = porKilo ? 'KG' : 'UNIDADES';
+            if (!Number.isFinite(cantidad) || cantidad <= 0) {
+                Swal.fire({ icon: 'warning', title: 'CANTIDAD NO VÁLIDA', text: porKilo ? 'Indique el peso dañado, por ejemplo 0.250 KG.' : 'Indique cuántas unidades están dañadas.' });
                 return;
             }
+            if (!porKilo && !Number.isInteger(cantidad)) {
+                Swal.fire({ icon: 'warning', title: 'CANTIDAD NO VÁLIDA', text: 'Este producto se descuenta por unidades enteras.' });
+                return;
+            }
+            if (cantidad > stock + 0.0005) {
+                Swal.fire({ icon: 'warning', title: 'CANTIDAD NO VÁLIDA', text: `La cantidad no puede pasar del stock disponible: ${porKilo ? stock.toFixed(3) : Math.floor(stock)} ${unidad}.` });
+                return;
+            }
+            const cantidadTexto = porKilo ? `${cantidad.toFixed(3)} KG` : `${cantidad} UNIDADES`;
             const confirmacion = await Swal.fire({
                 icon: 'warning',
                 title: '¿DESCONTAR PRODUCTO DAÑADO?',
-                text: `Se descontarán ${cantidad} del inventario y quedará registrado como DAÑADO.`,
+                text: `Se descontarán ${cantidadTexto} del inventario y quedará registrado como DAÑADO.`,
+
                 showCancelButton: true,
                 confirmButtonText: 'SÍ, DESCONTAR',
                 cancelButtonText: 'CANCELAR',
@@ -9310,10 +10311,26 @@ if (is_file($logoPdfPath)) {
             return verificarYAlertarProductosCriticosYUrgentes();
         }
 
+        // Agrupa varias peticiones de refresco seguidas en una sola pasada,
+        // para no repetir las mismas consultas al servidor al registrar un movimiento.
+        let refrescoInventarioTimer = null;
         function refrescarInventarioInmediato() {
+            if (refrescoInventarioTimer) clearTimeout(refrescoInventarioTimer);
+            refrescoInventarioTimer = setTimeout(() => {
+                refrescoInventarioTimer = null;
+                refrescarInventarioAhora();
+            }, 200);
+        }
+
+        function refrescarInventarioAhora() {
             // Refresco inmediato de la vista sin recargar la página completa.
             // Se actualizan solo las secciones activas para reducir el parpadeo y evitar
             // que la vista actual se salga del contexto del usuario.
+            document.body.dataset.silenciarSkeleton = '1';
+            window.setTimeout(() => {
+                delete document.body.dataset.silenciarSkeleton;
+            }, 4000);
+            invalidarCacheProductosConGanancia();
             const modalTodosProductosAbierto = document.getElementById('todosProductosModal')?.classList.contains('active');
             const tabResumenActivo = document.getElementById('resumen')?.classList.contains('active');
             const tabEntradasActivo = document.getElementById('entradas')?.classList.contains('active');
@@ -9468,6 +10485,7 @@ if (is_file($logoPdfPath)) {
                             timer: 2000
                         });
                         cerrarModal('entradaModal');
+                        limpiarBorradorEntrada();
                         dispararRefreshInventarioGlobal();
                         refrescarInventarioInmediato();
                     } else {
@@ -9483,8 +10501,7 @@ if (is_file($logoPdfPath)) {
             if (!idsVendidos.size) return;
 
             try {
-                const response = await fetch(inventarioControllerUrl + '?action=obtenerProductosConGanancia');
-                const data = await response.json();
+                const data = await obtenerProductosConGanancia();
                 const productos = Array.isArray(data?.data) ? data.data : [];
                 const algunProductoEnCero = productos.some(producto =>
                     idsVendidos.has(String(producto.id || '')) && Number(producto.stock || 0) === 0
@@ -9499,6 +10516,27 @@ if (is_file($logoPdfPath)) {
 
         // Registrar salida
         let salidaEnProceso = false;
+
+        function finalizarPaginaSalidaRegistrada() {
+            if (!paginasSalida[paginaSalidaActiva]) return false;
+            const paginaRegistrada = paginaSalidaActiva;
+            if (paginaRegistrada > 0) {
+                paginasSalida.splice(paginaRegistrada, 1);
+                paginaSalidaActiva = Math.min(paginaRegistrada, paginasSalida.length - 1);
+            } else {
+                paginasSalida[0].items = [];
+                paginaSalidaActiva = 0;
+            }
+            carritoSalida = paginasSalida[paginaSalidaActiva]?.items || [];
+            limpiarSeleccionSalidaUI();
+            renderCarritoSalida();
+            const referencia = document.getElementById('referenciaSalida');
+            if (referencia) {
+                referencia.value = '';
+                inicializarReferenciaSalida();
+            }
+            return paginasSalida.some(pagina => (pagina.items || []).length > 0);
+        }
 
         async function registrarSalida(e) {
             e.preventDefault();
@@ -9529,15 +10567,17 @@ if (is_file($logoPdfPath)) {
             const referenciaVenta = (document.getElementById('referenciaSalida')?.value || '').trim() || generarReferenciaVenta();
             const cantidadUnica = normalizarCantidadSalida(document.getElementById('cantidadSalida').value);
             const seleccionActual = productoSalidaSeleccionado();
+            guardarPaginaSalidaActiva();
+            const itemsDePaginaActiva = paginasSalida[paginaSalidaActiva]?.items || [];
 
-            let items = carritoSalida.length > 0
-                ? carritoSalida.map(item => ({
+            let items = itemsDePaginaActiva.length > 0
+                ? itemsDePaginaActiva.map(item => ({
                     producto_id: item.producto_id,
                     nombre: item.nombre,
                     presentacion_id: Number(item.presentacion_id || 0),
                     cantidad: normalizarCantidadSalida(item.cantidad, item.venta_por_kilo === true || Number(item.venta_por_kilo) === 1),
                     stock: parseFloat(item.stock || 0) || 0,
-                    precio_venta: parseFloat(item.precio) || 0
+                    precio_venta: typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(item.precio) || 0) : (parseFloat(item.precio) || 0)
                 }))
                 : (seleccionActual ? [{
                     producto_id: seleccionActual.producto_id,
@@ -9545,7 +10585,9 @@ if (is_file($logoPdfPath)) {
                     presentacion_id: Number(seleccionActual.presentacion_id || 0),
                     cantidad: normalizarCantidadSalida(cantidadUnica, seleccionActual.venta_por_kilo),
                     stock: parseFloat(seleccionActual.stock || 0) || 0,
-                    precio_venta: parseFloat(seleccionActual.precio) || 0
+                    precio_venta: typeof redondearPrecioVenta === 'function'
+                        ? redondearPrecioVenta(parseFloat(seleccionActual.precio) || 0)
+                        : (parseFloat(seleccionActual.precio) || 0)
                 }] : []);
 
             const itemsUnicos = new Map();
@@ -9559,6 +10601,17 @@ if (is_file($logoPdfPath)) {
                 itemsUnicos.set(clave, { ...item });
             });
             items = Array.from(itemsUnicos.values());
+
+            const itemSinCantidad = items.find(item => !(Number(item.cantidad) > 0));
+            if (itemSinCantidad) {
+                liberarEnvioSalida();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peso requerido',
+                    text: `Indica un peso mayor que 0 kg para ${itemSinCantidad.nombre || 'el producto'}.`
+                });
+                return;
+            }
 
             if (!items.length) {
                 liberarEnvioSalida();
@@ -9589,6 +10642,70 @@ if (is_file($logoPdfPath)) {
                     text: `No se puede registrar la salida. La cantidad solicitada de ${stockInvalido.nombre || 'este producto'} supera el stock disponible (${stockInvalido.stock}).`
                 });
                 return;
+            }
+
+            if (metodoPagoSalida !== 'credito') {
+                const totalVenta = redondearTotalSalida(calcularTotalItemsSalida(items));
+                const confirmacionVenta = await Swal.fire({
+                    icon: 'question',
+                    title: 'CONFIRMAR SALIDA',
+                    html: `
+                        <div style="text-align:left;line-height:1.7;">
+                            <div style="display:flex;justify-content:space-between;gap:18px;"><strong>TOTAL DE LA VENTA:</strong><strong>${formatoMonedaInventario(totalVenta)}</strong></div>
+                            <label for="dineroRecibidoSalida" style="display:block;margin-top:12px;font-weight:700;">DINERO RECIBIDO DEL CLIENTE</label>
+                            <input id="dineroRecibidoSalida" class="swal2-input" type="text" inputmode="numeric" autocomplete="off" placeholder="Ejemplo: 100.000" value="" style="width:100%;margin:6px 0 4px;box-sizing:border-box;">
+                            <div id="cambioSalidaResumen" style="margin-top:8px;padding:8px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;color:#166534;font-weight:700;">CAMBIO: ${formatoMonedaInventario(0)}</div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'CONFIRMAR Y GUARDAR',
+                    cancelButtonText: 'REVISAR',
+                    allowOutsideClick: false,
+                    focusConfirm: false,
+                    didOpen: () => {
+                        const input = document.getElementById('dineroRecibidoSalida');
+                        const cambio = document.getElementById('cambioSalidaResumen');
+                        input?.focus();
+                        input?.select();
+                        input?.addEventListener('keydown', (event) => event.stopPropagation());
+                        const actualizarCambio = () => {
+                            const recibido = normalizarDineroRecibidoSalida(input?.value);
+                            const diferencia = Math.max(0, recibido - totalVenta);
+                            if (cambio) cambio.textContent = `CAMBIO: ${formatoMonedaInventario(diferencia)}`;
+                        };
+                        input?.addEventListener('input', () => {
+                            const digitos = String(input.value || '').replace(/\D/g, '');
+                            input.value = digitos
+                                ? Number(digitos).toLocaleString('es-CO', { maximumFractionDigits: 0 })
+                                : '';
+                            actualizarCambio();
+                        });
+                        input?.addEventListener('blur', () => {
+                            const recibido = normalizarDineroRecibidoSalida(input.value);
+                            if (Number.isFinite(recibido) && recibido >= 0) {
+                                input.value = recibido.toLocaleString('es-CO', { maximumFractionDigits: 0 });
+                            }
+                        });
+                        actualizarCambio();
+                    },
+                    preConfirm: () => {
+                        const valorDigitado = String(document.getElementById('dineroRecibidoSalida')?.value || '').trim();
+                        const recibido = normalizarDineroRecibidoSalida(valorDigitado);
+                        if (!valorDigitado || !Number.isFinite(recibido)) {
+                            Swal.showValidationMessage('Digite el dinero recibido por el cliente.');
+                            return false;
+                        }
+                        if (recibido < totalVenta) {
+                            Swal.showValidationMessage(`El dinero recibido debe ser igual o mayor que ${formatoMonedaInventario(totalVenta)}.`);
+                            return false;
+                        }
+                        return { total: totalVenta, recibido, cambio: recibido - totalVenta };
+                    }
+                });
+                if (!confirmacionVenta.isConfirmed) {
+                    liberarEnvioSalida();
+                    return;
+                }
             }
 
             if (metodoPagoSalida === 'credito') {
@@ -9623,10 +10740,9 @@ if (is_file($logoPdfPath)) {
                     const buscarCliente = document.getElementById('buscarClienteCreditoSalida');
                     if (clienteCredito) clienteCredito.value = '';
                     if (buscarCliente) buscarCliente.value = '';
-                    carritoSalida = [];
-                    renderCarritoSalida();
+                    const quedanPaginasPendientes = finalizarPaginaSalidaRegistrada();
                     liberarEnvioSalida();
-                    cerrarModal('salidaModal', false);
+                    if (!quedanPaginasPendientes) cerrarModal('salidaModal', false);
                     dispararRefreshInventarioGlobal();
                     refrescarInventarioInmediato();
                     return;
@@ -9640,22 +10756,6 @@ if (is_file($logoPdfPath)) {
                     return;
                 }
 
-                const totalSalidaSinRedondear = calcularTotalItemsSalida(items);
-                const totalSalidaRedondeado = redondearTotalSalida(totalSalidaSinRedondear);
-                if (Math.abs(totalSalidaRedondeado - totalSalidaSinRedondear) > 0.001) {
-                    const confirmacionTotal = await Swal.fire({
-                        icon: 'info',
-                        title: 'TOTAL AJUSTADO',
-                        text: `El total de la salida es ${formatoMonedaInventario(totalSalidaSinRedondear)} y se ajustará a ${formatoMonedaInventario(totalSalidaRedondeado)}.`,
-                        showCancelButton: true,
-                        confirmButtonText: 'CONTINUAR',
-                        cancelButtonText: 'REVISAR'
-                    });
-                    if (!confirmacionTotal.isConfirmed) {
-                        liberarEnvioSalida();
-                        return;
-                    }
-                }
             }
 
             let procesados = 0;
@@ -9667,7 +10767,7 @@ if (is_file($logoPdfPath)) {
                 if (Number(item.presentacion_id || 0) > 0) {
                     formData.append('presentacion_id', String(item.presentacion_id));
                 }
-                formData.append('precio_venta', String(item.precio_venta || 0));
+                formData.append('precio_venta', String(typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(item.precio_venta || 0) : (item.precio_venta || 0)));
                 formData.append('tipo_salida', tipoSalida);
                 formData.append('metodo_pago', metodoPagoSalida);
                 formData.append('referencia', referenciaVenta);
@@ -9707,7 +10807,8 @@ if (is_file($logoPdfPath)) {
             });
 
             liberarEnvioSalida();
-            cerrarModal('salidaModal', false);
+            const quedanPaginasPendientes = finalizarPaginaSalidaRegistrada();
+            if (!quedanPaginasPendientes) cerrarModal('salidaModal', false);
             dispararRefreshInventarioGlobal();
             refrescarInventarioInmediato();
         }
@@ -9860,6 +10961,8 @@ if (is_file($logoPdfPath)) {
                     }
                 });
             }
+
+            conectarBasculaEntrada();
 
             toggleProveedorEntradaOtro();
             
@@ -10321,6 +11424,78 @@ if (is_file($logoPdfPath)) {
 
 <script>
     /* ===================================================================
+       Funciones globales de formato de inventario
+       =================================================================== */
+    function numero(valor, porDefecto = 0) {
+        const n = parseFloat(String(valor).replace(',', '.'));
+        return Number.isFinite(n) ? n : porDefecto;
+    }
+
+    function esCategoriaGramosInventario(nombre) {
+        const normalizado = String(nombre || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, ' ')
+            .trim()
+            .replace(/\s+/g, ' ');
+        return ['frutas', 'verduras', 'carnicos y refrigerados'].includes(normalizado);
+    }
+
+    function esFlagVentaPorKiloInventario(ventaPorKilo) {
+        if (ventaPorKilo === true || ventaPorKilo === 1) return true;
+        const texto = String(ventaPorKilo ?? '').trim().toLowerCase();
+        return ['1', 'true', 'si', 'sí', 'kg', 'kilo', 'kilogramo', 'kilogramos'].includes(texto);
+    }
+
+    function esProductoPorKiloInventario(ventaPorKilo = false, categoria = '') {
+        // Solo la casilla "vendido por kilos" define kilos/gramos; la categoria no.
+        return esFlagVentaPorKiloInventario(ventaPorKilo);
+    }
+
+
+    function formatoCantidad(valor, esPorKilo = false) {
+        const n = Math.round(numero(valor, 0) * 1000) / 1000;
+        if (esPorKilo) {
+            return n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        }
+        return String(Math.round(n));
+    }
+
+    function formatoStockVisible(valor, categoria = '', ventaPorKilo = false) {
+        const n = Math.max(0, numero(valor, 0));
+        if (esProductoPorKiloInventario(ventaPorKilo, categoria)) {
+            const kg = Math.round(n * 1000) / 1000;
+            return kg.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        }
+        return String(Math.round(n));
+    }
+
+    function formatoStockInput(valor, categoria = '', ventaPorKilo = false) {
+        const n = Math.max(0, numero(valor, 0));
+        if (esProductoPorKiloInventario(ventaPorKilo, categoria)) {
+            return (Math.round(n * 1000) / 1000).toFixed(3);
+        }
+        return String(Math.round(n));
+    }
+
+    function formatoStockTotalVisible(valor) {
+        const n = Math.round(numero(valor, 0) * 1000) / 1000;
+        if (Number.isInteger(n)) return String(n);
+        return n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+    }
+
+    window.numero = numero;
+    window.esCategoriaGramosInventario = esCategoriaGramosInventario;
+    window.esProductoPorKiloInventario = esProductoPorKiloInventario;
+    window.formatoCantidad = formatoCantidad;
+    window.formatoStockVisible = formatoStockVisible;
+    window.formatoStockInput = formatoStockInput;
+    window.formatoStockTotalVisible = formatoStockTotalVisible;
+</script>
+
+<script>
+    /* ===================================================================
        Presentaciones (UNIDAD / PAQUETE / CAJA) en Entradas y Salidas
        =================================================================== */
     (function () {
@@ -10334,32 +11509,6 @@ if (is_file($logoPdfPath)) {
             if (typeof inventarioControllerUrl === 'string' && inventarioControllerUrl) return inventarioControllerUrl;
             return (typeof base_url !== 'undefined' ? base_url : '') + '/Controllers/InventarioController.php';
         }
-
-        function numero(valor, porDefecto = 0) {
-            const n = parseFloat(String(valor).replace(',', '.'));
-            return Number.isFinite(n) ? n : porDefecto;
-        }
-
-        function formatoCantidad(valor) {
-            const n = Math.round(numero(valor, 0) * 1000) / 1000;
-            return n.toFixed(3);
-        }
-        function formatoStockVisible(valor, categoria = '', ventaPorKilo = false) {
-            const n = Math.round(numero(valor, 0) * 1000) / 1000;
-            if (!Number.isInteger(n)) {
-                return n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-            }
-            return String(n);
-        }
-        function formatoStockTotalVisible(valor) {
-            const n = Math.round(numero(valor, 0) * 1000) / 1000;
-            return Number.isInteger(n)
-                ? String(n)
-                : n.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
-        }
-        window.formatoCantidad = formatoCantidad;
-        window.formatoStockVisible = formatoStockVisible;
-        window.formatoStockTotalVisible = formatoStockTotalVisible;
 
         async function obtenerPresentaciones(productoId) {
             const id = parseInt(productoId, 10) || 0;
@@ -10412,7 +11561,7 @@ if (is_file($logoPdfPath)) {
                     <div><small style="display:block;color:#667085;font-weight:700;">${base ? 'NOMBRE BASE' : 'NOMBRE'}</small><input type="text" class="entrada-pres-nombre" value="${escapeHtmlInventario(String(pres.nombre || (base ? 'UNIDAD' : 'PAQUETE')).toUpperCase())}" ${base ? 'readonly' : ''} style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;text-transform:uppercase;"></div>
                     <div><small style="display:block;color:#667085;font-weight:700;">${base ? 'EQUIVALENCIA' : 'CONTIENE'}</small>${base ? '<input class="entrada-pres-factor" value="1" readonly style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;background:#f1f5f9;">' : `<select class="entrada-pres-factor" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;">${opciones}</select>`}</div>
                     <div><small style="display:block;color:#667085;font-weight:700;">PRECIO COMPRA</small><input type="number" class="entrada-pres-compra" min="0" step="0.01" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_compra, 0) > 0 ? numero(pres.precio_compra, 0).toFixed(2) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
-                    <div><small style="display:block;color:#667085;font-weight:700;">PRECIO VENTA</small><input type="number" class="entrada-pres-venta" min="0" step="0.01" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_venta, 0) > 0 ? numero(pres.precio_venta, 0).toFixed(2) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
+                    <div><small style="display:block;color:#667085;font-weight:700;">PRECIO VENTA</small><input type="number" class="entrada-pres-venta" min="0" step="0.01" value="${conservarPreciosPresentacionEntrada && numero(pres.precio_venta, 0) > 0 ? numero(pres.precio_venta, 0) : ''}" style="width:100%;box-sizing:border-box;padding:8px;border:1px solid #dbe4ec;border-radius:6px;"></div>
                 </div>`;
             }).join('');
             editor.style.display = 'block';
@@ -10433,7 +11582,7 @@ if (is_file($logoPdfPath)) {
                 nombre: String(fila.querySelector('.entrada-pres-nombre')?.value || '').trim().toUpperCase(),
                 factor_padre: indice === 0 ? 1 : numero(fila.querySelector('.entrada-pres-factor')?.value, 12),
                 precio_compra: numero(fila.querySelector('.entrada-pres-compra')?.value, 0),
-                precio_venta: numero(fila.querySelector('.entrada-pres-venta')?.value, 0)
+                precio_venta: numero(fila.querySelector('.entrada-pres-venta')?.value, 0),
             }));
             const body = new FormData();
             body.append('action', 'guardarPresentaciones');
@@ -10483,7 +11632,10 @@ if (is_file($logoPdfPath)) {
 
             select.innerHTML = '';
             const productoSelect = document.getElementById(modo === 'entrada' ? 'productoEntrada' : 'productoSalida');
-            const productoEsKilo = Number(productoSelect?.selectedOptions?.[0]?.dataset?.ventaPorKilo || 0) === 1;
+            const opcionProducto = productoSelect?.selectedOptions?.[0];
+            const productoEsKilo = typeof window.esProductoPorKiloInventario === 'function'
+                ? window.esProductoPorKiloInventario(opcionProducto?.dataset?.ventaPorKilo, opcionProducto?.dataset?.categoriaNombre)
+                : Number(opcionProducto?.dataset?.ventaPorKilo || 0) === 1;
             const stockBase = numero(datos.total_base, 0);
             datos.presentaciones.forEach((pres) => {
                 const opcion = document.createElement('option');

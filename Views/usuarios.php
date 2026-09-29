@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // cSpell:disable
 // Si se recibió PHPSESSID como parámetro (desde iframe), usarlo para la sesión
 if (isset($_GET['PHPSESSID']) && !empty($_GET['PHPSESSID'])) {
@@ -32,6 +32,7 @@ if (!PermisosHelper::esSuperAdminSesion() && !$empresaContextoActivoUsuarios && 
 }
 
 $esSuperAdminSesion = PermisosHelper::esSuperAdminSesion();
+$puedeEditarCodigoUsuario = $esSuperAdminSesion && empty($_SESSION['superadmin_modo_empresa']);
 $mostrarColumnaId = true;
 
 // Detectar si estamos en iframe (cargado desde dashboard)
@@ -48,7 +49,21 @@ if (!$db) {
 }
 
 $controller = new UsuarioController($db);
-$usuarios = $controller->listarUsuarios();
+$usuariosTamanoSolicitado = filter_input(INPUT_GET, 'por_pagina', FILTER_VALIDATE_INT);
+$usuariosTamanoPagina = in_array($usuariosTamanoSolicitado, [25, 50, 100, 200], true)
+    ? $usuariosTamanoSolicitado
+    : 50;
+$usuariosPagina = max(1, (int)($_GET['pagina'] ?? 1));
+$usuariosTotal = $controller->contarUsuarios();
+$usuariosTotalPaginas = max(1, (int)ceil($usuariosTotal / $usuariosTamanoPagina));
+$usuariosPagina = min($usuariosPagina, $usuariosTotalPaginas);
+// La última página (número visible 1) se ancla al final para completar el tamaño elegido.
+$usuariosOffset = ($usuariosPagina - 1) * $usuariosTamanoPagina;
+if ($usuariosPagina === $usuariosTotalPaginas && $usuariosTotal > $usuariosTamanoPagina) {
+    $usuariosOffset = max(0, $usuariosTotal - $usuariosTamanoPagina);
+}
+$usuarios = $controller->listarUsuarios($usuariosTamanoPagina, $usuariosOffset);
+// La consulta ya viene ORDER BY u.id DESC: el usuario con mayor id queda arriba.
 
 $existeColumna = function(string $tabla, string $columna) use ($db): bool {
     try {
@@ -1410,34 +1425,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .btn-save {
-            background: var(--btn-create);
-            color: var(--white);
-            padding: 14px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            max-width: 300px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(47, 74, 90, 0.2);
-            letter-spacing: 0.5px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-save:hover {
-            background: var(--primary-blue);
-            box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
+            background: #0b5ed7;
             transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
         }
         
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
+        }
         }
 
         .swal2-confirm {
@@ -1944,36 +1956,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .btn-save {
-            background: linear-gradient(135deg, var(--primary-blue) 0%, #2575a8 100%);
-            color: white;
-            padding: 14px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(53, 145, 202, 0.2);
-            letter-spacing: 0.5px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-save:hover {
-            background: linear-gradient(135deg, #2575a8 0%, #1e5a8e 100%);
-            box-shadow: 0 6px 18px rgba(53, 145, 202, 0.35);
+            background: #0b5ed7;
             transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
         }
 
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
         }
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
 </head>
 <body class="page-usuarios">
     <div class="title_equipo">
@@ -2105,8 +2117,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-barcode"></i> CÓDIGO ASIGNADO:</label>
-                        <input type="text" id="usuarioCodigo" readonly aria-readonly="true" placeholder="SE GENERA AL SELECCIONAR EL ROL">
-                        <small style="display:block; margin-top:6px; color:#6b7280;">Se genera automáticamente según el rol seleccionado.</small>
+                        <input type="text" name="codigo" id="usuarioCodigo" <?= $puedeEditarCodigoUsuario ? '' : 'readonly aria-readonly="true"' ?> placeholder="SE GENERA AL SELECCIONAR EL ROL" maxlength="32" pattern="[A-Za-z0-9]{2,32}">
+                        <small style="display:block; margin-top:6px; color:#6b7280;">
+                            <?= $puedeEditarCodigoUsuario ? 'El Super Administrador puede editarlo. Si lo deja vacío, se genera automáticamente.' : 'Se genera automáticamente según el rol seleccionado.' ?>
+                        </small>
                     </div>
                 </div>
 
@@ -2180,6 +2194,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="container main-scroll-panel">
         <div class="estadistica-card">
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                <select onchange="cambiarPaginacionUsuarios(this.value)" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;">
+                        <?php foreach ([25, 50, 100, 200] as $tamano): ?>
+                            <option value="<?php echo $tamano; ?>" <?php echo $usuariosTamanoPagina === $tamano ? 'selected' : ''; ?>><?php echo $tamano; ?></option>
+                        <?php endforeach; ?>
+                </select>
+                <div style="display:flex;gap:6px;">
+                    <button type="button" onclick="window.location.href='?pagina=<?php echo max(1, $usuariosPagina - 1); ?>&por_pagina=<?php echo $usuariosTamanoPagina; ?>'" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" <?php echo $usuariosPagina <= 1 ? 'disabled' : ''; ?>><i class="fas fa-chevron-left"></i></button>
+                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA <?php echo $usuariosTotalPaginas - ($usuariosPagina - 1); ?> / <?php echo $usuariosTotalPaginas; ?></span>
+                    <button type="button" onclick="window.location.href='?pagina=<?php echo min($usuariosTotalPaginas, $usuariosPagina + 1); ?>&por_pagina=<?php echo $usuariosTamanoPagina; ?>'" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" <?php echo $usuariosPagina >= $usuariosTotalPaginas ? 'disabled' : ''; ?>><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
             <div class="table-wrapper">
             <?php
             // Verificar permisos al inicio
@@ -2213,7 +2239,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <?php endif; ?>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="usuarios-tbody">
                     <?php 
                     if (empty($usuarios)) {
                         echo "<tr><td colspan='" . $numColumnas . "'>NO HAY USUARIOS REGISTRADOS EN EL SISTEMA</td></tr>";
@@ -2313,6 +2339,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <script>
         const ES_SUPER_ADMIN_SESION = <?= $esSuperAdminSesion ? 'true' : 'false'; ?>;
+
+        const USUARIOS_TOTAL = <?= (int)$usuariosTotal; ?>;
+        const USUARIOS_TAMANO_ACTUAL = <?= (int)$usuariosTamanoPagina; ?>;
+        const USUARIOS_PAGINA_ACTUAL = <?= (int)$usuariosPagina; ?>;
+
+        function cambiarPaginacionUsuarios(tamano) {
+            const nuevoTamano = Number(tamano) || 50;
+            const indiceNuevo = window.EstrellaPaginacion.paginaAlCambiarTamano(
+                USUARIOS_TOTAL,
+                USUARIOS_PAGINA_ACTUAL - 1,
+                USUARIOS_TAMANO_ACTUAL,
+                nuevoTamano
+            );
+            const parametros = new URLSearchParams(window.location.search);
+            parametros.set('pagina', String(indiceNuevo + 1));
+            parametros.set('por_pagina', String(nuevoTamano));
+            window.location.search = parametros.toString();
+        }
 
         // Polyfill ligero para SweetAlert2 cuando el CDN falla (usa confirm/alert nativo)
         if (typeof Swal === 'undefined') {
@@ -3249,11 +3293,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     formData.delete('contrasena');
                     formData.delete('contrasena_confirma_registro');
-                }
-
-                if (ES_SUPER_ADMIN_SESION && esCrear && esRolAdministradorJs(String(formData.get('rol') || ''))) {
-                    formData.set('empresa_correo_electronico', correo);
-                    formData.set('empresa_telefono', telefono);
                 }
 
                 const selectRolActivo = document.getElementById('usuarioRol');

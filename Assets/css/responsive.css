@@ -735,8 +735,8 @@ label {
     line-height: 1.05 !important;
 }
 
-/* Responsive: 3 columnas en pantallas medianas */
-@media (max-width: 1280px) {
+/* Mantener las cinco tarjetas en una fila también en el ancho habitual de escritorio. */
+@media (max-width: 900px) {
     #ventasDiaModal .stats-container {
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     }

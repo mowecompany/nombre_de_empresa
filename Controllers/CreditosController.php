@@ -5,9 +5,18 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE);
 session_start();
 
 require_once __DIR__ . '/../Helpers/Helpers.php';
+require_once __DIR__ . '/../Config/Config.php';
 require_once __DIR__ . '/../Config/database.php';
 require_once __DIR__ . '/../Models/Inventario.php';
 require_once __DIR__ . '/../Models/Usuario.php';
+
+/**
+ * Devuelve la fecha/hora actual en la zona horaria configurada (America/Bogota)
+ * formateada para insertar en la base de datos.
+ */
+function fechaAhora(): string {
+    return (new DateTime('now', new DateTimeZone('America/Bogota')))->format('Y-m-d H:i:s');
+}
 
 try {
     $db = Database::connect();
@@ -214,6 +223,17 @@ try {
         }
     }
 
+    // Asegurar columna referencia en abonos_creditos (necesaria para códigos AB-XX)
+    try {
+        $db->exec($esSqlite
+            ? "ALTER TABLE abonos_creditos ADD COLUMN referencia VARCHAR(80)"
+            : "ALTER TABLE abonos_creditos ADD COLUMN referencia VARCHAR(80) NULL");
+    } catch (Throwable $e) {
+        if (stripos($e->getMessage(), 'duplicate column') === false && stripos($e->getMessage(), 'already exists') === false) {
+            error_log('No se pudo asegurar columna referencia en abonos_creditos: ' . $e->getMessage());
+        }
+    }
+
     $aplicarRecargos = function () use ($db, $empresaId): void {
         $stmt = $db->prepare("SELECT id, saldo, fecha_creacion, ultimo_recargo_mes FROM creditos
             WHERE empresa_id = :empresa_id AND estado = 'pendiente' AND saldo > 0");
@@ -316,7 +336,9 @@ try {
     if ($accion === 'editarDetalle') {
         $detalleId = (int)($_POST['detalle_id'] ?? 0);
         $cantidad = (float)($_POST['cantidad'] ?? 0);
-        $precioVenta = (float)($_POST['precio_venta'] ?? 0);
+        $precioVenta = function_exists('redondearPrecioVenta')
+            ? redondearPrecioVenta((float)($_POST['precio_venta'] ?? 0))
+            : (float)($_POST['precio_venta'] ?? 0);
         $presentacionId = isset($_POST['presentacion_id']) ? (int)$_POST['presentacion_id'] : null;
 
         if ($detalleId <= 0) {
@@ -565,6 +587,203 @@ try {
         exit;
     }
 
+    if ($accion === 'eliminarCredito') {
+        $creditoId = (int)($_POST['credito_id'] ?? 0);
+        $idsSolicitados = $_POST['credito_ids'] ?? '';
+        if (is_string($idsSolicitados)) {
+            $idsSolicitados = json_decode($idsSolicitados, true);
+        }
+        $ids = is_array($idsSolicitados)
+            ? array_values(array_filter(array_unique(array_map('intval', $idsSolicitados))))
+            : [];
+        if ($creditoId > 0) $ids[] = $creditoId;
+        $ids = array_values(array_filter(array_unique($ids)));
+        if (!$ids) {
+            throw new Exception('No se pudo identificar el crédito');
+        }
+
+        $marcadores = implode(',', array_fill(0, count($ids), '?'));
+        $sqlCredito = "SELECT id, estado FROM creditos WHERE id IN ({$marcadores})
+            AND (:empresa_id = 0 OR empresa_id = :empresa_id)";
+        $stmtCredito = $db->prepare($sqlCredito);
+        $stmtCredito->execute(array_merge($ids, [':empresa_id' => $empresaId > 0 ? $empresaId : 0]));
+        $creditosEliminar = $stmtCredito->fetchAll(PDO::FETCH_ASSOC);
+        if (count($creditosEliminar) !== count($ids)) {
+            throw new Exception('No se encontraron todos los créditos de la tarjeta');
+        }
+        if (array_filter($creditosEliminar, static fn(array $credito): bool => strtolower(trim((string)($credito['estado'] ?? ''))) !== 'pagado')) {
+            throw new Exception('Solo se pueden eliminar créditos pagados');
+        }
+
+        $enTransaccion = false;
+        try {
+            if ($driver === 'sqlite') {
+                $db->exec('BEGIN IMMEDIATE');
+            } else {
+                $db->beginTransaction();
+            }
+            $enTransaccion = true;
+            $db->prepare("DELETE FROM abonos_creditos WHERE credito_id IN ({$marcadores})")->execute($ids);
+            $db->prepare("DELETE FROM detalle_creditos WHERE credito_id IN ({$marcadores})")->execute($ids);
+            $db->prepare("DELETE FROM creditos WHERE id IN ({$marcadores})")->execute($ids);
+            if ($driver === 'sqlite') {
+                $db->exec('COMMIT');
+            } else {
+                $db->commit();
+            }
+            $enTransaccion = false;
+        } catch (Throwable $e) {
+            if ($enTransaccion) {
+                try { $driver === 'sqlite' ? $db->exec('ROLLBACK') : $db->rollBack(); } catch (Throwable $rollbackError) {}
+            }
+            throw $e;
+        }
+
+        echo json_encode(['success' => true, 'message' => 'Crédito pagado eliminado correctamente']);
+        exit;
+    }
+
+    if ($accion === 'abonar') {
+        $creditoIdAbono = (int)($_POST['credito_id'] ?? 0);
+        $montoAbono = round((float)($_POST['monto'] ?? 0), 2);
+        $metodoPagoAbono = strtolower(trim((string)($_POST['metodo_pago'] ?? 'efectivo')));
+        if (!in_array($metodoPagoAbono, ['efectivo', 'transferencia'], true)) {
+            $metodoPagoAbono = 'efectivo';
+        }
+        if ($creditoIdAbono <= 0) {
+            throw new Exception('Crédito no especificado');
+        }
+        if ($montoAbono <= 0) {
+            throw new Exception('El monto del abono debe ser mayor a cero');
+        }
+
+        // Obtener crédito pendiente
+        $stmtCred = $db->prepare("SELECT * FROM creditos WHERE id = :id AND (:empresa_id = 0 OR empresa_id = :empresa_id) AND estado = 'pendiente' LIMIT 1");
+        $stmtCred->execute([':id' => $creditoIdAbono, ':empresa_id' => $empresaId > 0 ? $empresaId : 0]);
+        $credAbono = $stmtCred->fetch(PDO::FETCH_ASSOC);
+        if (!$credAbono) {
+            throw new Exception('Crédito pendiente no encontrado');
+        }
+
+        $saldoActual = (float)$credAbono['saldo'];
+        if ($montoAbono > $saldoActual + 0.005) {
+            throw new Exception("El abono ($montoAbono) supera el saldo pendiente (" . number_format($saldoActual, 2) . ')');
+        }
+
+        // Generar código de abono secuencial AB-01, AB-02...
+        $stmtRefAbono = $db->prepare("SELECT referencia FROM salidas_inventario WHERE empresa_id = :empresa_id AND referencia IS NOT NULL AND TRIM(referencia) <> ''");
+        $stmtRefAbono->execute([':empresa_id' => $empresaId]);
+        $todasReferencias = $stmtRefAbono->fetchAll(PDO::FETCH_COLUMN);
+        $stmtRefAbonoExistentes = $db->prepare("SELECT referencia FROM abonos_creditos WHERE referencia IS NOT NULL AND TRIM(referencia) <> '' ORDER BY id DESC");
+        try { $stmtRefAbonoExistentes->execute(); $refAbonoExist = $stmtRefAbonoExistentes->fetchAll(PDO::FETCH_COLUMN); } catch (Throwable $e) { $refAbonoExist = []; }
+        $mayorNumeroAbono = 0;
+        foreach (array_merge($todasReferencias, $refAbonoExist) as $refVal) {
+            $rv = trim((string)$refVal);
+            if (preg_match('/^AB[-\s]*(\d+)$/i', $rv, $mAbono)) {
+                $nAbono = (int)$mAbono[1];
+                if ($nAbono > $mayorNumeroAbono) $mayorNumeroAbono = $nAbono;
+            }
+        }
+        $codigoAbono = 'AB-' . str_pad((string)($mayorNumeroAbono + 1), 2, '0', STR_PAD_LEFT);
+
+        $nuevoSaldo = round($saldoActual - $montoAbono, 2);
+        $estadoNuevo = $nuevoSaldo <= 0.005 ? 'pagado' : 'pendiente';
+
+        $db->beginTransaction();
+        try {
+            $stmtAbono = $db->prepare("INSERT INTO abonos_creditos (credito_id, monto, metodo_pago, usuario_id, fecha_abono, referencia) VALUES (:credito_id, :monto, :metodo_pago, :usuario_id, :fecha_abono, :referencia)");
+            $stmtAbono->execute([
+                ':credito_id' => $creditoIdAbono,
+                ':monto' => $montoAbono,
+                ':metodo_pago' => $metodoPagoAbono,
+                ':usuario_id' => $usuarioId ?: null,
+                ':fecha_abono' => fechaAhora(),
+                ':referencia' => $codigoAbono
+            ]);
+
+            // Actualizar saldo del crédito
+            $stmtUpdCred = $db->prepare("UPDATE creditos SET saldo = :saldo, estado = :estado" . ($estadoNuevo === 'pagado' ? ", fecha_pago = :fecha_pago" : "") . " WHERE id = :id AND (:empresa_id = 0 OR empresa_id = :empresa_id)");
+            $params = [':saldo' => $nuevoSaldo, ':estado' => $estadoNuevo, ':id' => $creditoIdAbono, ':empresa_id' => $empresaId > 0 ? $empresaId : 0];
+            if ($estadoNuevo === 'pagado') $params[':fecha_pago'] = fechaAhora();
+            $stmtUpdCred->execute($params);
+
+            // Si queda saldo 0, registrar la salida en inventario (igual que pago total)
+            if ($estadoNuevo === 'pagado') {
+                // El abono ya quedó registrado en abonos_creditos (arriba).
+                // obtenerAbonosDiaPorMetodo lo suma a ganancia sin filtrar por estado.
+                // No se registra salida en inventario para evitar doble conteo.
+                // Solo actualizamos la referencia del crédito para el historial.
+                $stmtUltRefAb = $db->prepare("SELECT referencia FROM salidas_inventario WHERE empresa_id = :empresa_id AND referencia IS NOT NULL AND TRIM(referencia) <> ''");
+                $stmtUltRefAb->execute([':empresa_id' => $empresaId]);
+                $refExistentesAb = $stmtUltRefAb->fetchAll(PDO::FETCH_COLUMN);
+                $refFinalPago = $obtenerSiguienteReferenciaInventario($refExistentesAb);
+                $db->prepare("UPDATE creditos SET referencia = :ref WHERE id = :id")->execute([':ref' => $refFinalPago, ':id' => $creditoIdAbono]);
+            }
+
+            // Registrar entrada en salidas_inventario con referencia AB para que aparezca en tabla de salidas
+            // Solo registrar la "transacción de abono" como nota, sin mover producto
+            // (El abono NO es una salida de inventario, pero sí se muestra en la tabla de historial como tipo AB)
+            // Se guarda en abonos_creditos con la referencia; el frontend consultará esos datos.
+
+            $db->commit();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            throw $e;
+        }
+
+        // Calcular abono total acumulado
+        $stmtAbonoTotal = $db->prepare("SELECT COALESCE(SUM(monto), 0) FROM abonos_creditos WHERE credito_id = :id");
+        $stmtAbonoTotal->execute([':id' => $creditoIdAbono]);
+        $abonoTotal = (float)$stmtAbonoTotal->fetchColumn();
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Abono registrado correctamente',
+            'data' => [
+                'referencia' => $codigoAbono,
+                'monto' => $montoAbono,
+                'nuevo_saldo' => $nuevoSaldo,
+                'abono_total' => $abonoTotal,
+                'estado' => $estadoNuevo
+            ]
+        ]);
+        exit;
+    }
+
+    if ($accion === 'listarAbonos') {
+        $sql = "SELECT ab.*, c.empresa_id, c.cliente_id, c.total AS credito_total, c.saldo AS credito_saldo,
+                    u.nombre AS usuario_nombre, u.apellidos AS usuario_apellidos, u.rol AS usuario_rol,
+                    uc.nombre AS cliente_nombre, uc.apellidos AS cliente_apellidos, uc.documento AS cliente_documento
+                FROM abonos_creditos ab
+                INNER JOIN creditos c ON c.id = ab.credito_id
+                LEFT JOIN usuarios u ON u.id = ab.usuario_id
+                LEFT JOIN usuarios uc ON uc.id = c.cliente_id
+                WHERE (:empresa_id = 0 OR c.empresa_id = :empresa_id)
+                ORDER BY ab.fecha_abono DESC, ab.id DESC";
+        $stmtAb = $db->prepare($sql);
+        $stmtAb->execute([':empresa_id' => $empresaId > 0 ? $empresaId : 0]);
+        $abonos = array_map(static function (array $ab): array {
+            return [
+                'id'                => (int)$ab['id'],
+                'credito_id'        => (int)$ab['credito_id'],
+                'referencia'        => $ab['referencia'] ?? '',
+                'monto'             => (float)$ab['monto'],
+                'metodo_pago'       => $ab['metodo_pago'] ?? 'efectivo',
+                'fecha_abono'       => $ab['fecha_abono'] ?? '',
+                'usuario_nombre'    => $ab['usuario_nombre'] ?? '',
+                'usuario_apellidos' => $ab['usuario_apellidos'] ?? '',
+                'usuario_rol'       => $ab['usuario_rol'] ?? '',
+                'cliente_nombre'    => $ab['cliente_nombre'] ?? '',
+                'cliente_apellidos' => $ab['cliente_apellidos'] ?? '',
+                'cliente_documento' => $ab['cliente_documento'] ?? '',
+                'credito_total'     => (float)$ab['credito_total'],
+                'credito_saldo'     => (float)$ab['credito_saldo'],
+            ];
+        }, $stmtAb->fetchAll(PDO::FETCH_ASSOC));
+        echo json_encode(['success' => true, 'data' => $abonos]);
+        exit;
+    }
+
     if ($accion === 'obtenerClientes') {
         $usuarios = $usuarioModel->obtenerUsuarios();
         $clientes = array_values(array_filter($usuarios, static function (array $usuario): bool {
@@ -615,6 +834,14 @@ try {
             $fechaActual = (string)($actual['fecha_creacion'] ?? '1970-01-01 00:00:00');
             $fechaNueva = (string)($credito['fecha_creacion'] ?? '1970-01-01 00:00:00');
 
+            // Solo acumular IDs de créditos del mismo estado para evitar que los productos
+            // de créditos ya pagados aparezcan mezclados con un nuevo crédito pendiente.
+            if ($estadoNuevo === $estadoActual) {
+                $idsActuales = array_values(array_unique(array_map('intval', $actual['credit_ids'] ?? [])));
+                $idsActuales[] = (int)($credito['id'] ?? 0);
+                $actual['credit_ids'] = array_values(array_filter(array_unique($idsActuales)));
+            }
+
             $debeReemplazar = false;
             if ($estadoNuevo === 'pendiente' && $estadoActual !== 'pendiente') {
                 $debeReemplazar = true;
@@ -623,7 +850,18 @@ try {
             }
 
             if ($debeReemplazar) {
-                $creditosPorCliente[$clienteId] = $credito;
+                // Al reemplazar, el nuevo crédito pendiente empieza con sus propios IDs,
+                // sin heredar los IDs del crédito pagado anterior.
+                if ($estadoNuevo === 'pendiente' && $estadoActual !== 'pendiente') {
+                    // Crédito nuevo pendiente reemplaza a uno pagado: IDs limpios
+                    $creditosPorCliente[$clienteId] = $credito;
+                } else {
+                    // Mismo estado, más reciente: hereda los IDs acumulados del mismo estado
+                    $credito['credit_ids'] = $actual['credit_ids'];
+                    $creditosPorCliente[$clienteId] = $credito;
+                }
+            } else {
+                $creditosPorCliente[$clienteId] = $actual;
             }
         }
 
@@ -667,12 +905,30 @@ try {
             return (int)$usuario['id'] === (int)$credito['cliente_id'];
         }))[0] ?? [];
         $credito['documento'] = $cliente['documento'] ?? '';
+        // Determinar qué IDs dentro de los solicitados están pendientes.
+        // Esto evita que, si por alguna razón llegan IDs mezclados (pagado + pendiente),
+        // se muestren productos de créditos ya pagados en el perfil del crédito activo.
+        $idsPendientesDetalle = array_values(array_filter(
+            array_map('intval', array_column($creditosDetalle, 'id')),
+            static function (int $cid) use ($creditosDetalle): bool {
+                foreach ($creditosDetalle as $cd) {
+                    if ((int)$cd['id'] === $cid) {
+                        return (float)($cd['saldo'] ?? 0) > 0;
+                    }
+                }
+                return false;
+            }
+        ));
+        // Si hay al menos un crédito pendiente entre los solicitados, mostrar solo sus detalles.
+        // Si todos están pagados (vista de historial), mostrar todos.
+        $idsParaDetalle = !empty($idsPendientesDetalle) ? $idsPendientesDetalle : $idsSolicitados;
+        $marcadoresDetalle = implode(',', array_fill(0, count($idsParaDetalle), '?'));
         $stmt = $db->prepare("SELECT d.*, p.nombre AS producto_nombre, p.codigo AS producto_codigo, p.codigo_barras AS producto_codigo_barras, p.imagen AS producto_imagen, p.precio AS precio_actual, COALESCE(p.venta_por_kilo, 0) AS venta_por_kilo,
                 pp.nombre AS presentacion_nombre, pp.factor_base AS presentacion_factor
             FROM detalle_creditos d LEFT JOIN productos p ON p.id = d.producto_id
             LEFT JOIN producto_presentaciones pp ON pp.id = d.presentacion_id
-            WHERE d.credito_id IN ({$marcadores}) ORDER BY d.id");
-        $stmt->execute($idsSolicitados);
+            WHERE d.credito_id IN ({$marcadoresDetalle}) ORDER BY d.id");
+        $stmt->execute($idsParaDetalle);
         $credito['detalles'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $stmt = $db->prepare("SELECT * FROM abonos_creditos WHERE credito_id IN ({$marcadores}) ORDER BY fecha_abono");
         $stmt->execute($idsSolicitados);
@@ -716,6 +972,14 @@ try {
         }
         foreach ($creditosPago as $creditoPago) {
             $creditoIdActual = (int)$creditoPago['id'];
+            $totalOriginal = max(0.01, (float)($creditoPago['total'] ?? 0));
+            $saldoActual   = max(0, (float)($creditoPago['saldo'] ?? 0));
+
+            // Calcular el total abonado para mostrarlo en notas (informativo)
+            $stmtAbonados = $db->prepare("SELECT COALESCE(SUM(monto),0) FROM abonos_creditos WHERE credito_id = :id");
+            $stmtAbonados->execute([':id' => $creditoIdActual]);
+            $totalAbonado = (float)$stmtAbonados->fetchColumn();
+
             $stmtDetalles = $db->prepare("SELECT producto_id, cantidad, precio_unitario, presentacion_id, cantidad_presentacion FROM detalle_creditos WHERE credito_id = :credito_id");
             $stmtDetalles->execute([':credito_id' => $creditoIdActual]);
 
@@ -725,27 +989,39 @@ try {
             $referenciaCredito = $obtenerSiguienteReferenciaInventario($referenciasExistentes);
 
             $detallesPago = $stmtDetalles->fetchAll(PDO::FETCH_ASSOC);
-            foreach ($detallesPago as $detalle) {
+
+            // Distribuir el saldo exacto entre los productos del crédito.
+            // El primer producto recibe precio = saldo/cantidad para que la suma exacta
+            // sea el saldo real. Los demás llevan precio_venta = 0 (ya sumado en el primero).
+            $saldoRestante = $saldoActual;
+            foreach ($detallesPago as $i => $detalle) {
+                $cantidadDet = (float)($detalle['presentacion_id'] ? ($detalle['cantidad_presentacion'] ?: 0) : $detalle['cantidad']);
+                $precioAjustado = $i === 0
+                    ? round($saldoRestante / max(1, $cantidadDet), 2)
+                    : 0.0;
+
                 $salida = $inventario->registrarSalida([
-                    'producto_id' => (int)$detalle['producto_id'],
-                    'cantidad' => (float)($detalle['presentacion_id'] ? ($detalle['cantidad_presentacion'] ?: 0) : $detalle['cantidad']),
+                    'producto_id'     => (int)$detalle['producto_id'],
+                    'cantidad'        => $cantidadDet,
                     'presentacion_id' => (int)($detalle['presentacion_id'] ?? 0),
-                    'tipo_salida' => 'venta',
-                    'metodo_pago' => $metodoPago,
-                    'referencia' => $referenciaCredito,
-                    'usuario_id' => $usuarioId ?: null,
-                    'notas' => 'Crédito pagado',
-                    'es_credito' => 1,
-                    'precio_venta' => (float)$detalle['precio_unitario'],
-                    'omitir_stock' => true
+                    'tipo_salida'     => 'venta',
+                    'metodo_pago'     => $metodoPago,
+                    'referencia'      => $referenciaCredito,
+                    'usuario_id'      => $usuarioId ?: null,
+                    'notas'           => $totalAbonado > 0
+                        ? "Crédito pagado | Deuda total: {$totalOriginal} | Saldo: {$saldoActual} | Abono previo: {$totalAbonado}"
+                        : 'Crédito pagado',
+                    'es_credito'      => 1,
+                    'precio_venta'    => $precioAjustado,
+                    'omitir_stock'    => true
                 ]);
                 if (empty($salida['success'])) {
                     throw new Exception($salida['message'] ?? 'No se pudo registrar la ganancia del crédito');
                 }
             }
-            $stmt = $db->prepare("UPDATE creditos SET saldo = 0, estado = 'pagado', fecha_pago = CURRENT_TIMESTAMP, referencia = :referencia
+            $stmt = $db->prepare("UPDATE creditos SET saldo = 0, estado = 'pagado', fecha_pago = :fecha_pago, referencia = :referencia
                 WHERE id = :id AND empresa_id = :empresa_id AND estado IN ('pendiente', 'PENDIENTE')");
-            $stmt->execute([':referencia' => $referenciaCredito, ':id' => $creditoIdActual, ':empresa_id' => $empresaId]);
+            $stmt->execute([':fecha_pago' => fechaAhora(), ':referencia' => $referenciaCredito, ':id' => $creditoIdActual, ':empresa_id' => $empresaId]);
         }
         echo json_encode(['success' => true, 'message' => 'Crédito pagado y registrado en ganancias']);
         exit;
@@ -807,6 +1083,9 @@ try {
 
         $cantidadVenta = max(0, (float)($item['cantidad'] ?? 0));
         $precio = max(0, (float)($item['precio_venta'] ?? 0));
+        if (function_exists('redondearPrecioVenta')) {
+            $precio = redondearPrecioVenta($precio);
+        }
         $presentacionId = (int)($item['presentacion_id'] ?? 0);
 
         $stmtTipoProducto = $db->prepare('SELECT COALESCE(venta_por_kilo, 0) FROM productos WHERE id = :id LIMIT 1');
@@ -832,6 +1111,9 @@ try {
         }
         if ($presentacion && $precio <= 0 && isset($presentacion['precio_compra']) && (float)$presentacion['precio_compra'] > 0) {
             $precio = max(0, (float)$presentacion['precio_compra']);
+        }
+        if (function_exists('redondearPrecioVenta')) {
+            $precio = redondearPrecioVenta($precio);
         }
 
         $clave = $productoId . ':' . $presentacionId;
@@ -907,18 +1189,19 @@ try {
     if ($creditoActivo) {
         $creditoId = (int)($creditoActivo['id'] ?? 0);
         $referencia = trim((string)($creditoActivo['referencia'] ?? '')) !== '' ? (string)$creditoActivo['referencia'] : '';
-        $stmt = $db->prepare("UPDATE creditos SET estado = :estado, notas = :notas, fecha_creacion = CURRENT_TIMESTAMP, referencia = :referencia WHERE id = :id AND (empresa_id = :empresa_id OR empresa_id = 0 OR :empresa_id = 0)");
+        $stmt = $db->prepare("UPDATE creditos SET estado = :estado, notas = :notas, fecha_creacion = :fecha_creacion, referencia = :referencia WHERE id = :id AND (empresa_id = :empresa_id OR empresa_id = 0 OR :empresa_id = 0)");
         $stmt->execute([
             ':estado' => $estado,
             ':notas' => $notas ?: ($creditoActivo['notas'] ?? null),
             ':referencia' => $referencia,
+            ':fecha_creacion' => fechaAhora(),
             ':id' => $creditoId,
             ':empresa_id' => $empresaId
         ]);
     } else {
         $stmt = $db->prepare("INSERT INTO creditos
-            (empresa_id, cliente_id, referencia, total, saldo, estado, notas, usuario_id)
-            VALUES (:empresa_id, :cliente_id, :referencia, :total, :saldo, :estado, :notas, :usuario_id)");
+            (empresa_id, cliente_id, referencia, total, saldo, estado, notas, usuario_id, fecha_creacion)
+            VALUES (:empresa_id, :cliente_id, :referencia, :total, :saldo, :estado, :notas, :usuario_id, :fecha_creacion)");
         $stmt->execute([
             ':empresa_id' => $empresaId,
             ':cliente_id' => $clienteId,
@@ -927,7 +1210,8 @@ try {
             ':saldo' => $total,
             ':estado' => $estado,
             ':notas' => $notas ?: null,
-            ':usuario_id' => $usuarioId ?: null
+            ':usuario_id' => $usuarioId ?: null,
+            ':fecha_creacion' => fechaAhora()
         ]);
         $creditoId = (int)$db->lastInsertId();
     }
@@ -950,6 +1234,9 @@ try {
             $cantidadPresentacion = isset($item['presentacion_id']) && (int)$item['presentacion_id'] > 0 ? max(0, (float)($item['cantidad_presentacion'] ?? 0)) : null;
             $presentacionId = (int)($item['presentacion_id'] ?? 0);
             $precio = max(0, (float)($item['precio_venta'] ?? 0));
+            if (function_exists('redondearPrecioVenta')) {
+                $precio = redondearPrecioVenta($precio);
+            }
             if ($productoId <= 0) {
                 continue;
             }

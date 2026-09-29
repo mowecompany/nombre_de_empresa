@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Si se recibió PHPSESSID como parámetro (desde iframe), usarlo para la sesión
 if (isset($_GET['PHPSESSID']) && !empty($_GET['PHPSESSID'])) {
     session_id($_GET['PHPSESSID']);
@@ -1183,34 +1183,30 @@ $categorias = [];
         }
 
         .btn-save {
-            background: linear-gradient(135deg, #2f4a5a 0%, #1a2d4f 100%);
-            color: white;
-            padding: 14px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            max-width: 300px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(47, 74, 90, 0.2);
-            letter-spacing: 0.5px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-save:hover {
-            background: linear-gradient(135deg, #1a2d4f 0%, #0f1a2e 100%);
-            box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
+            background: #0b5ed7;
             transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
         }
-        
+
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
         }
 
         /* Prevenir que headers sticky aparezcan sobre modales */
@@ -1312,36 +1308,32 @@ $categorias = [];
 
         button[type="submit"],
         .btn-save {
-            background: linear-gradient(135deg, #2f4a5a 0%, #1a2d4f 100%);
-            color: white;
-            padding: 14px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            max-width: 300px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(47, 74, 90, 0.2);
-            letter-spacing: 0.5px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         button[type="submit"]:hover,
         .btn-save:hover {
-            background: linear-gradient(135deg, #1a2d4f 0%, #0f1a2e 100%);
-            box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
+            background: #0b5ed7;
             transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
         }
         
         button[type="submit"]:active,
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
         }
 
         th:nth-child(1), td:nth-child(1) { width: auto; min-width: 40px; max-width: 80px; }
@@ -1649,6 +1641,9 @@ $categorias = [];
         }
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
 </head>
 <body class="page-categorias">
     <!-- Reemplazar la sección hero-section actual por esto -->
@@ -1809,11 +1804,15 @@ $categorias = [];
 
     <div class="container main-scroll-panel">
         <div class="estadistica-card">
-            <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+            <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
                 <div style="position:relative; width:min(100%, 280px);">
-                    <input type="text" id="buscarTablaCategorias" placeholder="BUSCAR CATEGORÍA..." autocomplete="off" style="width:100%; padding:9px 12px; border:1px solid #d0d7de; border-radius:6px; background:#fff; text-transform:uppercase;">
+                    <input type="text" id="buscarTablaCategorias" placeholder="BUSCAR CATEGORÍA..." autocomplete="off" style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
                     <div id="resultadosTablaCategorias" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); max-height:220px; overflow-y:auto; border:1px solid #d0d7de; border-radius:6px; background:#fff; box-shadow:0 8px 20px rgba(31,41,55,.12); z-index:100;"></div>
                 </div>
+            <div id="paginacionCategorias" style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0;">
+                <select id="categoriasTamanoPagina" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                <div id="categoriasPagination" style="display:flex;gap:6px;"></div>
+            </div>
             </div>
             <div class="table-wrapper">
                 <table>
@@ -1861,17 +1860,28 @@ $categorias = [];
         };
 
         let categoriasTablaCache = [];
+        let categoriasPaginaActual = 0;
+        let categoriasTamanoPagina = 50;
 
         const SCROLL_SAVE_KEY = 'categorias-scroll-position';
-        let restoredScrollY = null;
+        let restoredScroll = null;
         const savedScrollPosition = sessionStorage.getItem(SCROLL_SAVE_KEY);
         if (savedScrollPosition !== null) {
-            restoredScrollY = Number(savedScrollPosition) || 0;
+            try {
+                restoredScroll = JSON.parse(savedScrollPosition);
+            } catch (error) {
+                restoredScroll = { windowY: Number(savedScrollPosition) || 0 };
+            }
             sessionStorage.removeItem(SCROLL_SAVE_KEY);
         }
 
         window.addEventListener('beforeunload', () => {
-            sessionStorage.setItem(SCROLL_SAVE_KEY, String(window.scrollY || 0));
+            const tableWrapper = document.querySelector('.table-wrapper');
+            sessionStorage.setItem(SCROLL_SAVE_KEY, JSON.stringify({
+                windowY: window.scrollY || 0,
+                tableY: tableWrapper ? tableWrapper.scrollTop : 0,
+                pagina: categoriasPaginaActual
+            }));
         });
 
         function formatBytesToKb(bytes) {
@@ -2172,24 +2182,26 @@ $categorias = [];
 
         // Cargar todas las categorías desde el Controller
         function cargarCategorias(callback = null) {
+            window.EstrellaSkeleton?.show(document.getElementById('categorias-tbody'), 'table', { rows: 7 });
             obtenerJson(`${CATEGORIA_CONTROLLER_URL}?action=getAll`)
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
-                        categoriasTablaCache = data.data;
+                        categoriasTablaCache = window.EstrellaPaginacion.recientesPrimero(data.data, ['id']);
+                        if (restoredScroll && Number.isInteger(Number(restoredScroll.pagina))) {
+                            categoriasPaginaActual = Math.max(0, Number(restoredScroll.pagina));
+                        }
                         renderResultadosTablaCategorias();
-                        const tbody = document.getElementById('categorias-tbody');
-                        tbody.innerHTML = '';
-                        const busqueda = String(document.getElementById('buscarTablaCategorias')?.value || '').trim().toLowerCase();
-                        data.data.filter(categoria => !busqueda || `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(busqueda)).forEach(categoria => {
-                            const fila = generarFilaCategoria(categoria);
-                            tbody.appendChild(fila);
-                        });
+                        renderPaginaCategorias();
                         if (typeof callback === 'function') {
                             callback();
                         }
-                        if (restoredScrollY !== null) {
-                            window.scrollTo({ top: restoredScrollY, behavior: 'auto' });
-                            restoredScrollY = null;
+                        if (restoredScroll !== null) {
+                            window.scrollTo({ top: Number(restoredScroll.windowY) || 0, behavior: 'auto' });
+                            const tableWrapper = document.querySelector('.table-wrapper');
+                            if (tableWrapper) {
+                                tableWrapper.scrollTop = Number(restoredScroll.tableY) || 0;
+                            }
+                            restoredScroll = null;
                         }
                     } else {
                         console.error('Error al cargar CATEGORÍAs:', data);
@@ -2197,7 +2209,8 @@ $categorias = [];
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                });
+                })
+                .finally(() => window.EstrellaSkeleton?.hide(document.getElementById('categorias-tbody'), true));
         }
 
         function renderResultadosTablaCategorias() {
@@ -2211,14 +2224,37 @@ $categorias = [];
         }
 
         function filtrarTablaCategorias() {
+            categoriasPaginaActual = 0;
+            renderPaginaCategorias();
+            renderResultadosTablaCategorias();
+        }
+
+        function renderPaginaCategorias() {
             const input = document.getElementById('buscarTablaCategorias');
             const tbody = document.getElementById('categorias-tbody');
             if (!input || !tbody) return;
             const texto = String(input.value || '').trim().toLowerCase();
+            const filtradas = categoriasTablaCache.filter(categoria => `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(texto));
+            const inicio = window.EstrellaPaginacion.inicioBloque(filtradas.length, categoriasPaginaActual, categoriasTamanoPagina);
             tbody.innerHTML = '';
-            categoriasTablaCache.filter(categoria => `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(texto))
-                .forEach(categoria => tbody.appendChild(generarFilaCategoria(categoria)));
-            renderResultadosTablaCategorias();
+            
+            if (filtradas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;">No hay categorías para mostrar.</td></tr>';
+            } else {
+                filtradas.slice(inicio, inicio + categoriasTamanoPagina).forEach(categoria => tbody.appendChild(generarFilaCategoria(categoria)));
+            }
+            
+            const totalPaginas = window.EstrellaPaginacion.totalPaginas(filtradas.length, categoriasTamanoPagina);
+            
+            // Generar paginador dinámico
+            const paginationDiv = document.getElementById('categoriasPagination');
+            if (paginationDiv) {
+                paginationDiv.innerHTML = `
+                    <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${categoriasPaginaActual === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
+                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - categoriasPaginaActual} / ${totalPaginas}</span>
+                    <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${categoriasPaginaActual >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
+                `;
+            }
         }
 
         function refrescarCategoriasManteniendoScroll() {
@@ -2707,6 +2743,33 @@ $categorias = [];
                 buscarTablaCategorias.addEventListener('focus', renderResultadosTablaCategorias);
                 buscarTablaCategorias.addEventListener('blur', () => setTimeout(() => { if (resultadosTablaCategorias) resultadosTablaCategorias.style.display = 'none'; }, 200));
             }
+            const categoriasTamanoPaginaSelect = document.getElementById('categoriasTamanoPagina');
+            if (categoriasTamanoPaginaSelect) {
+                categoriasTamanoPaginaSelect.value = categoriasTamanoPagina;
+                categoriasTamanoPaginaSelect.addEventListener('change', (event) => {
+                    const tamanoAnterior = categoriasTamanoPagina;
+                    const textoCategoriasActual = String(document.getElementById('buscarTablaCategorias')?.value || '').trim().toLowerCase();
+                    const totalCategoriasFiltradas = categoriasTablaCache.filter(categoria => `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(textoCategoriasActual)).length;
+                    categoriasTamanoPagina = Number(event.target.value) || 50;
+                    categoriasPaginaActual = window.EstrellaPaginacion.paginaAlCambiarTamano(totalCategoriasFiltradas, categoriasPaginaActual, tamanoAnterior, categoriasTamanoPagina);
+                    renderPaginaCategorias();
+                });
+            }
+            // Event listeners para paginador dinámico
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.inventory-page-prev')) {
+                    if (categoriasPaginaActual === 0) return;
+                    categoriasPaginaActual -= 1;
+                    renderPaginaCategorias();
+                }
+                if (e.target.closest('.inventory-page-next')) {
+                    const texto = String(document.getElementById('buscarTablaCategorias')?.value || '').trim().toLowerCase();
+                    const total = categoriasTablaCache.filter(categoria => `${categoria.id} ${categoria.nombre || ''} ${categoria.descripcion || ''}`.toLowerCase().includes(texto)).length;
+                    if (categoriasPaginaActual >= window.EstrellaPaginacion.totalPaginas(total, categoriasTamanoPagina) - 1) return;
+                    categoriasPaginaActual += 1;
+                    renderPaginaCategorias();
+                }
+            });
             if (resultadosTablaCategorias) resultadosTablaCategorias.addEventListener('mousedown', event => {
                 const opcion = event.target.closest('button[data-nombre]');
                 if (!opcion) return;

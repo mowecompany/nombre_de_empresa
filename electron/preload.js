@@ -62,9 +62,35 @@ contextBridge.exposeInMainWorld('electronAPI', {
       callback?.(payload);
     });
   },
-  getAppInfo: () => ({
+  getAppInfo: () => ipcRenderer.invoke('bascula:diagnostico').then((d) => ({
     name: 'AUTOSERVICIO MI ESTRELLA',
     company: 'AUTOSERVICIO MI ESTRELLA',
-    version: process.env.npm_package_version || '1.0.0'
-  })
+    version: d?.compilacion?.version || 'desconocida',
+    compilacion: d?.compilacion || null
+  }))
+});
+
+// ---------------------------------------------------------------------------
+// Báscula ACS-30: único canal hacia el servicio serial del proceso principal.
+// La vista solo escucha; nunca abre ni administra el puerto COM.
+// ---------------------------------------------------------------------------
+const suscribir = (canal, callback) => {
+  if (typeof callback !== 'function') return () => {};
+  const manejador = (_evento, payload) => callback(payload);
+  ipcRenderer.on(canal, manejador);
+  return () => ipcRenderer.removeListener(canal, manejador);
+};
+
+contextBridge.exposeInMainWorld('basculaAPI', {
+  estado: () => ipcRenderer.invoke('bascula:estado'),
+  diagnostico: () => ipcRenderer.invoke('bascula:diagnostico'),
+  registrarDiagnosticoPeso: (etapa, detalle = {}) => ipcRenderer.invoke('bascula:diagnostico-peso-inventario', etapa, detalle),
+  reconectar: () => ipcRenderer.invoke('bascula:comando', 'reconectar'),
+  probarPermisos: () => ipcRenderer.invoke('bascula:comando', 'probar-permisos'),
+  tarar: () => ipcRenderer.invoke('bascula:comando', 'tarar'),
+  quitarTara: () => ipcRenderer.invoke('bascula:comando', 'quitar-tara'),
+  abrirDiagnostico: () => ipcRenderer.invoke('bascula:comando', 'abrir-diagnostico'),
+  onPeso: (callback) => suscribir('bascula:peso', callback),
+  onEstado: (callback) => suscribir('bascula:estado-cambio', callback),
+  onTrama: (callback) => suscribir('bascula:trama', callback)
 });

@@ -32,8 +32,8 @@ $baseUrl = rtrim((string)base_url(), '/');
         .search { flex:1; padding:12px 14px; border:1px solid var(--border); border-radius:7px; background:#fff; outline:none; }
         .layout { display:block; }
         .panel { background:#fff; border:1px solid var(--border); border-radius:10px; padding:18px; box-shadow:0 5px 18px rgba(47,74,90,.06); }
-        #creditosLista { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; }
-        .credit-row { width:100%; min-height:150px; display:block; text-align:left; border:1px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; box-shadow:0 2px 8px rgba(15,23,42,.04); }
+        #creditosLista { display:grid; grid-template-columns:repeat(6, minmax(0, 1fr)); gap:10px; }
+        .credit-row { width:100%; aspect-ratio:1/1; display:flex; flex-direction:column; justify-content:space-between; text-align:left; border:1px solid var(--border); border-radius:12px; padding:14px; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; box-shadow:0 2px 8px rgba(15,23,42,.04); }
         .credit-row.pending { background:linear-gradient(180deg,#fff7f1 0%, #fff 100%); border-color:#f9d8b6; }
         .credit-row.paid { background:linear-gradient(180deg,#eefcf3 0%, #fff 100%); border-color:#b8e4c7; }
         .credit-row:hover, .credit-row.active { transform:translateY(-1px); box-shadow:0 8px 18px rgba(15,23,42,.08); }
@@ -54,7 +54,7 @@ $baseUrl = rtrim((string)base_url(), '/');
         .credit-total-box { display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; }
         .credit-total-box strong { font-size:18px; color:#0f172a; }
         .credit-total-box span { font-size:10px; color:#475569; letter-spacing:.08em; text-transform:uppercase; }
-        .credit-status-wrap { display:flex; justify-content:flex-end; }
+        .credit-status-wrap { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
         .credits-total-zero { font-size:11px; font-weight:900; color:#166534; }
         .tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
         .tag { display:inline-flex; padding:4px 8px; border-radius:999px; background:#edf2f5; color:#475569; font-size:11px; font-weight:700; text-transform:uppercase; }
@@ -96,8 +96,40 @@ $baseUrl = rtrim((string)base_url(), '/');
         .profile-overlay { display:none; position:fixed; inset:0; z-index:1090; background:rgba(15,23,42,.48); }
         .profile-close { border:0; background:transparent; color:var(--muted); font-size:22px; cursor:pointer; }
         .pagination { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:16px; }
-        .pagination button { border:1px solid var(--border); background:#fff; border-radius:6px; padding:8px 12px; cursor:pointer; }
+        .pagination button { border:1px solid #2f4a5a; background:#2f4a5a; color:#fff; border-radius:8px; padding:5px 7px; min-height:28px; min-width:28px; font-size:11px; cursor:pointer; }
         .pagination button:disabled { opacity:.45; cursor:not-allowed; }
+        .inventory-list-search { flex:1; padding:12px 14px; border:1px solid var(--border); border-radius:7px; background:#fff; outline:none; }
+        .inventory-page-size { width:auto; padding:5px 7px; font-size:11px; border:1px solid #2f4a5a; border-radius:8px; background:#fff; color:#2f4a5a; }
+        .inventory-pagination { display:flex; gap:6px; }
+        .inventory-page-prev, .inventory-page-next { border:1px solid #2f4a5a !important; background:#2f4a5a !important; color:#fff !important; border-radius:8px; padding:4px 7px; min-height:26px; width:28px; font-size:10px; cursor:pointer; }
+        .inventory-page-prev:disabled, .inventory-page-next:disabled { opacity:0.45 !important; cursor:not-allowed !important; }
+
+        .btn-save {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-save:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
+        }
         .empty { padding:28px; text-align:center; color:var(--muted); }
         .swal2-container { z-index:20000 !important; }
         .credito-editar-cantidad::-webkit-outer-spin-button,
@@ -109,6 +141,10 @@ $baseUrl = rtrim((string)base_url(), '/');
         @media (max-width:1100px) { #creditosLista { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
         @media (max-width:600px) { #creditosLista { grid-template-columns:1fr; } .page { padding:14px; } .page-header { align-items:flex-start; flex-direction:column; } }
     </style>
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/redondeo-precio-venta.js"></script>
 </head>
 <body>
     <main class="page">
@@ -119,13 +155,16 @@ $baseUrl = rtrim((string)base_url(), '/');
                 <button type="button" class="button" style="background:#64748b;" onclick="confirmarDeshacerReinicioCreditos()"><i class="fas fa-undo"></i> DESHACER</button>
             </div>
         </header>
-        <div class="toolbar">
-            <input class="search" id="buscarCredito" type="search" placeholder="BUSCAR CLIENTE, DOCUMENTO, CÓDIGO O REFERENCIA" oninput="renderizarCreditos()">
+        <div class="toolbar" style="display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+            <input type="search" id="buscarCredito" placeholder="BUSCAR CLIENTE, DOCUMENTO, CÓDIGO O REFERENCIA" style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;" oninput="renderizarCreditos()">
+            <select id="creditosPorPagina" class="inventory-page-size" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;">
+                    <option value="25">25</option><option value="50" selected>50</option><option value="100">100</option><option value="200">200</option>
+            </select>
+            <div id="creditosPaginacion" class="inventory-pagination" style="display:flex;gap:6px;"></div>
         </div>
         <section class="layout">
             <div class="panel">
                 <div id="creditosLista">Cargando créditos...</div>
-                <div id="creditosPaginacion" class="pagination"></div>
             </div>
         </section>
     </main>
@@ -136,11 +175,55 @@ $baseUrl = rtrim((string)base_url(), '/');
     <div id="modalPagoCredito" class="profile-overlay" style="z-index:1200;align-items:center;justify-content:center;" onclick="cerrarModalPagoCredito(event)">
         <div class="panel" style="width:min(420px, calc(100% - 28px));" onclick="event.stopPropagation()">
             <h2 style="margin-top:0;color:var(--primary);">PAGAR CRÉDITO</h2>
+            <div id="pagoCreditoResumen" style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;display:none;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="color:#64748b;font-weight:700;">DEUDA TOTAL:</span>
+                    <strong id="pagoCreditoDeudaTotal">—</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                    <span style="color:#166534;font-weight:700;">TOTAL ABONADO:</span>
+                    <strong id="pagoCreditoAbonado" style="color:#166534;">—</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);margin-top:4px;">
+                    <span style="color:#b45309;font-weight:800;font-size:14px;">SE PAGA AHORA:</span>
+                    <strong id="pagoCreditoSaldo" style="color:#b45309;font-size:16px;">—</strong>
+                </div>
+            </div>
             <p class="muted">Selecciona cómo recibió el pago.</p>
             <select id="metodoPagoCredito" class="search"><option value="efectivo">EFECTIVO</option><option value="transferencia">TRANSFERENCIA</option></select>
             <button type="button" class="pay-button" style="margin-top:12px;width:100%;" onclick="confirmarPagoCredito()"><i class="fas fa-check"></i> CONFIRMAR PAGO</button>
         </div>
     </div>
+    <!-- Modal de Abono Parcial -->
+    <div id="modalAbonoCredito" class="profile-overlay" style="z-index:1200;align-items:center;justify-content:center;" onclick="cerrarModalAbonoCredito(event)">
+        <div class="panel" style="width:min(460px, calc(100% - 28px));" onclick="event.stopPropagation()">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <h2 style="margin:0;color:var(--primary);"><i class="fas fa-hand-holding-usd"></i> REGISTRAR ABONO</h2>
+                <button type="button" class="profile-close" onclick="cerrarModalAbonoCredito()">&times;</button>
+            </div>
+            <div id="abonoInfoCredito" style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;">
+                <div style="display:flex;justify-content:space-between;"><span class="muted">SALDO PENDIENTE:</span><strong id="abonoSaldoPendiente" style="color:#b45309;">—</strong></div>
+                <div style="display:flex;justify-content:space-between;margin-top:4px;"><span class="muted">YA ABONADO:</span><strong id="abonoYaAbonado" style="color:#166534;">—</strong></div>
+            </div>
+            <label style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:4px;">MONTO DEL ABONO</label>
+            <input id="montoAbonoCredito" type="text" inputmode="numeric" autocomplete="off" class="search" style="font-size:18px;font-weight:900;text-align:center;" placeholder="$ 0">
+            <label style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;display:block;margin-top:12px;margin-bottom:4px;">MÉTODO DE PAGO</label>
+            <select id="metodoPagoAbono" class="search"><option value="efectivo">EFECTIVO</option><option value="transferencia">TRANSFERENCIA</option></select>
+            <button type="button" class="pay-button" style="margin-top:16px;width:100%;background:#b45309;" onclick="confirmarAbonoCredito()"><i class="fas fa-plus-circle"></i> CONFIRMAR ABONO</button>
+        </div>
+    </div>
+
+    <!-- Modal historial de abonos del crédito -->
+    <div id="modalHistorialAbonosCredito" style="display:none;position:fixed;inset:0;z-index:1300;background:rgba(15,23,42,.52);align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+        <div class="panel" style="width:min(520px,calc(100% - 28px));max-height:85vh;overflow-y:auto;" onclick="event.stopPropagation()">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h2 style="margin:0;color:var(--primary);font-size:18px;"><i class="fas fa-hand-holding-usd" style="color:#166534;margin-right:8px;"></i>HISTORIAL DE ABONOS</h2>
+                <button type="button" onclick="document.getElementById('modalHistorialAbonosCredito').style.display='none'" style="border:0;background:transparent;font-size:22px;cursor:pointer;color:#64748b;">&times;</button>
+            </div>
+            <div id="historialAbonosCreditoBody"></div>
+        </div>
+    </div>
+
     <div id="modalEditarCredito" class="profile-overlay" style="z-index:1250;align-items:center;justify-content:center;" onclick="cerrarModalEditarCredito(event)">
         <div class="panel" style="width:min(900px, calc(100% - 28px));max-height:90vh;overflow:auto;" onclick="event.stopPropagation()">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
@@ -156,11 +239,12 @@ $baseUrl = rtrim((string)base_url(), '/');
         </div>
     </div>
 <script>
+    // v20260926
     const creditosUrl = <?= json_encode($baseUrl . '/Controllers/CreditosController.php'); ?>;
     const baseUrlApp = <?= json_encode($baseUrl); ?>;
     let creditos = [];
     let paginaActual = 1;
-    const porPagina = 8;
+    let porPagina = 8;
 
     const escapar = valor => String(valor ?? '').replace(/[&<>"']/g, caracter => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[caracter]));
     const moneda = valor => new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 }).format(Number(valor || 0));
@@ -218,7 +302,9 @@ $baseUrl = rtrim((string)base_url(), '/');
             apellido: nombreCompleto.slice(1).join(' ').toUpperCase()
         };
     };
-    const precioProducto = item => Number(item.precio_unitario || item.precio_actual || 0);
+    const precioProducto = item => typeof redondearPrecioVenta === 'function'
+        ? redondearPrecioVenta(Number(item.precio_actual || item.precio_unitario || 0))
+        : Number(item.precio_actual || item.precio_unitario || 0);
     const resolverImagenProducto = valor => {
         const imagen = String(valor || '').trim().replace(/\\/g, '/');
         if (!imagen) return `${baseUrlApp}/favicon.ico`;
@@ -251,7 +337,9 @@ $baseUrl = rtrim((string)base_url(), '/');
             const cantidadPresentacion = item.cantidad_presentacion === null || item.cantidad_presentacion === undefined
                 ? null
                 : (Number(item.cantidad_presentacion) || 0);
-            const precio = Number(item.precio_unitario || item.precio_actual || 0) || 0;
+            const precio = typeof redondearPrecioVenta === 'function'
+                ? redondearPrecioVenta(Number(item.precio_unitario || item.precio_actual || 0) || 0)
+                : (Number(item.precio_unitario || item.precio_actual || 0) || 0);
             actual.cantidad = Number(actual.cantidad || 0) + cantidad;
             if (cantidadPresentacion !== null) {
                 actual.cantidad_presentacion = Number(actual.cantidad_presentacion || 0) + cantidadPresentacion;
@@ -276,14 +364,22 @@ $baseUrl = rtrim((string)base_url(), '/');
 
     async function cargarCreditos() {
         const lista = document.getElementById('creditosLista');
-        lista.textContent = 'Cargando créditos...';
+        window.EstrellaSkeleton?.show(lista, 'cards', { cards: 8 });
         try {
-            const respuesta = await fetch(`${creditosUrl}?action=listar`);
+            // Agregar timestamp para evitar caché
+            const timestamp = new Date().getTime();
+            const respuesta = await fetch(`${creditosUrl}?action=listar&_=${timestamp}`, {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
             const resultado = await respuesta.json();
             if (!resultado.success) throw new Error(resultado.message || 'No se pudieron cargar los créditos');
             creditos = await Promise.all((resultado.data || []).map(async credito => {
                 const ids = (credito.credit_ids || [credito.id]).join(',');
-                const detalleRespuesta = await fetch(`${creditosUrl}?action=detalle&ids=${encodeURIComponent(ids)}`);
+                const detalleRespuesta = await fetch(`${creditosUrl}?action=detalle&ids=${encodeURIComponent(ids)}&_=${timestamp}`, {
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache' }
+                });
                 const detalleResultado = await detalleRespuesta.json();
                 return detalleResultado.success ? detalleResultado.data : credito;
             }));
@@ -291,12 +387,14 @@ $baseUrl = rtrim((string)base_url(), '/');
                 const estadoA = String(a?.estado || '').trim().toLowerCase() === 'pendiente' ? 0 : 1;
                 const estadoB = String(b?.estado || '').trim().toLowerCase() === 'pendiente' ? 0 : 1;
                 if (estadoA !== estadoB) return estadoA - estadoB;
-                return new Date(b?.fecha_creacion || 0) - new Date(a?.fecha_creacion || 0);
+                return new Date(a?.fecha_creacion || 0) - new Date(b?.fecha_creacion || 0);
             });
             paginaActual = 1;
             renderizarCreditos();
         } catch (error) {
             lista.innerHTML = `<div class="empty">${escapar(error.message)}</div>`;
+        } finally {
+            window.EstrellaSkeleton?.hide(lista, true);
         }
     }
 
@@ -309,8 +407,8 @@ $baseUrl = rtrim((string)base_url(), '/');
         });
         const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
         paginaActual = Math.min(paginaActual, totalPaginas);
-        const inicio = (paginaActual - 1) * porPagina;
-        const pagina = filtrados.slice(inicio, inicio + porPagina);
+        const inicio = window.EstrellaPaginacion.inicioBloque(filtrados.length, paginaActual - 1, porPagina);
+        const pagina = filtrados.slice(inicio, inicio + porPagina).slice().reverse();
         lista.innerHTML = pagina.length ? pagina.map(credito => {
             const estadoTexto = formatoEstadoCredito(credito);
             const estado = String(credito?.estado || '').trim().toLowerCase();
@@ -322,18 +420,63 @@ $baseUrl = rtrim((string)base_url(), '/');
                 : `<div class="credit-side"><div class="credit-state-chip paid">PAGADO</div><div class="credits-total-zero">TOTAL: ${moneda(0)}</div></div>`;
             const totalCompacto = estado === 'pendiente' ? moneda(credito.total) : moneda(0);
             const claseEstado = estado === 'pendiente' ? 'pending' : 'paid';
+            const creditIds = Array.isArray(credito.credit_ids) && credito.credit_ids.length
+                ? credito.credit_ids.map(Number).filter(id => id > 0)
+                : [creditoId];
             const badgeEstado = estado === 'pendiente'
                 ? '<span class="credit-state-chip pending"><span class="status-dot"></span>PENDIENTE</span>'
                 : '<span class="credit-state-chip paid"><span class="status-dot"></span>PAGADO</span>';
-            return `<button type="button" class="credit-row ${claseEstado}" data-credito-id="${creditoId}" onclick="mostrarPerfilCredito(${creditoId}, this)"><div class="row-top"><div class="client-name-wrap"><div class="client-name">${escapar(nombreSplit.nombre || 'CLIENTE')}</div><div class="client-lastname">${escapar(nombreSplit.apellido || '')}</div><div class="client-meta">DOC: ${escapar(credito.documento || 'N/D')}</div></div><div class="credit-side"><div class="credit-code">${escapar(String(credito.codigo || 'N/D').toUpperCase())}</div></div></div><div class="row-footer"><div class="credit-total-box"><strong>${totalCompacto}</strong><span>TOTAL</span></div><div class="credit-status-wrap">${badgeEstado}</div></div></button>`;
+            const botonEliminar = estado === 'pagado'
+                ? `<button type="button" onclick="event.stopPropagation(); eliminarCreditoPagado(${creditoId}, ${escapar(JSON.stringify(creditIds))})" title="Eliminar crédito pagado" aria-label="Eliminar crédito pagado" style="width:28px;height:28px;padding:0;border:0;border-radius:6px;background:#dc2626;color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;"><i class="fas fa-trash"></i></button>`
+                : '';
+            return `<div class="credit-row ${claseEstado}" data-credito-id="${creditoId}" role="button" tabindex="0" onclick="mostrarPerfilCredito(${creditoId}, this)" onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); mostrarPerfilCredito(${creditoId}, this); }"><div class="row-top"><div class="client-name-wrap"><div class="client-name">${escapar(nombreSplit.nombre || 'CLIENTE')}</div><div class="client-lastname">${escapar(nombreSplit.apellido || '')}</div><div class="client-meta">DOC: ${escapar(credito.documento || 'N/D')}</div></div><div class="credit-side"><div class="credit-code">${escapar(String(credito.codigo || 'N/D').toUpperCase())}</div></div></div><div class="row-footer"><div class="credit-total-box"><strong>${totalCompacto}</strong><span>TOTAL</span></div><div class="credit-status-wrap" style="display:flex;align-items:center;gap:8px;">${badgeEstado}${botonEliminar}</div></div></div>`;
         }).join('') : '<div class="empty">No hay créditos para mostrar.</div>';
-        document.getElementById('creditosPaginacion').innerHTML = filtrados.length > porPagina ? `<button type="button" onclick="cambiarPagina(-1)" ${paginaActual === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><strong>PÁGINA ${paginaActual} DE ${totalPaginas}</strong><button type="button" onclick="cambiarPagina(1)" ${paginaActual === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>` : '';
+        document.getElementById('creditosPaginacion').innerHTML = `<button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button><span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - (paginaActual - 1)} / ${totalPaginas}</span><button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${paginaActual === totalPaginas ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>`;
     }
 
     function cambiarPagina(direccion) {
         paginaActual += direccion;
         renderizarCreditos();
     }
+
+    // Event listeners para las flechas del paginador
+    document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.inventory-page-prev')) {
+                e.preventDefault();
+                if (paginaActual > 1) {
+                    paginaActual--;
+                    renderizarCreditos();
+                }
+            }
+            if (e.target.closest('.inventory-page-next')) {
+                e.preventDefault();
+                const lista = document.getElementById('creditosLista');
+                const filtro = document.getElementById('buscarCredito').value || '';
+                const filtrados = creditos.filter(credito => {
+                    const productos = (credito.detalles || []).map(item => `${item.producto_nombre || ''} ${item.producto_codigo || ''} ${item.producto_codigo_barras || ''}`).join(' ');
+                    return coincideBusquedaCredito(`${nombreCliente(credito)} ${credito.documento || ''} ${credito.codigo || ''} ${credito.referencia || ''} ${productos}`, filtro);
+                });
+                const totalPaginas = Math.max(1, Math.ceil(filtrados.length / porPagina));
+                if (paginaActual < totalPaginas) {
+                    paginaActual++;
+                    renderizarCreditos();
+                }
+            }
+        });
+    });
+
+    document.getElementById('creditosPorPagina').addEventListener('change', (event) => {
+        const tamanoAnterior = porPagina;
+        const filtroCreditoActual = document.getElementById('buscarCredito')?.value || '';
+        const totalCreditosFiltrados = creditos.filter(credito => {
+            const productosCredito = (credito.detalles || []).map(item => `${item.producto_nombre || ''} ${item.producto_codigo || ''} ${item.producto_codigo_barras || ''}`).join(' ');
+            return coincideBusquedaCredito(`${nombreCliente(credito)} ${credito.documento || ''} ${credito.codigo || ''} ${credito.referencia || ''} ${productosCredito}`, filtroCreditoActual);
+        }).length;
+        porPagina = Number(event.target.value) || 8;
+        paginaActual = window.EstrellaPaginacion.paginaAlCambiarTamano(totalCreditosFiltrados, paginaActual - 1, tamanoAnterior, porPagina) + 1;
+        renderizarCreditos();
+    });
 
     async function mostrarPerfilCredito(id, elemento) {
         document.querySelectorAll('.credit-row').forEach(row => row.classList.remove('active'));
@@ -364,13 +507,68 @@ $baseUrl = rtrim((string)base_url(), '/');
             }).join('');
             const estadoCredito = formatoEstadoCredito(credito);
             const estado = String(credito?.estado || '').trim().toLowerCase();
-            const saldoVisible = estado === 'pendiente' ? `<div class="amount">SALDO<br>${moneda(credito.saldo)}</div>` : '<div class="credit-status-badge paid"><i class="fas fa-check-circle"></i> PAGADO</div>';
-            const botonPago = estado === 'pendiente' && Number(credito.saldo) > 0 ? `<button type="button" class="pay-button" onclick="abrirModalPagoCredito(${Number(credito.id || 0)})"><i class="fas fa-money-bill-wave"></i> PAGAR CRÉDITO</button>` : '<span class="credit-status-badge paid"><i class="fas fa-check-circle"></i> PAGADO</span>';
+
+            // Calcular abonos
+            const abonos = Array.isArray(credito.abonos) ? credito.abonos : [];
+            const totalAbonado = abonos.reduce((s, a) => s + Number(a.monto || 0), 0);
+            const saldoActual = Number(credito.saldo || 0);
+            const totalOriginal = Number(credito.total || 0);
+            window._creditoAbonosActual = abonos;
+
+            const saldoVisible = estado === 'pendiente'
+                ? '<div style="text-align:right;">' +
+                    '<div class="amount" style="font-size:20px;">SALDO: ' + moneda(saldoActual) + '</div>' +
+                    (totalAbonado > 0 ? '<div style="font-size:12px;color:#166534;font-weight:800;margin-top:4px;">ABONADO: ' + moneda(totalAbonado) + '</div>' : '') +
+                   '</div>'
+                : '<div class="credit-status-badge paid"><i class="fas fa-check-circle"></i> PAGADO</div>';
+
+            const botonPago = estado === 'pendiente' && saldoActual > 0
+                ? `<button type="button" class="pay-button" onclick="abrirModalPagoCredito(${Number(credito.id || 0)}, ${saldoActual.toFixed(2)}, ${totalAbonado.toFixed(2)}, ${totalOriginal.toFixed(2)})"><i class="fas fa-money-bill-wave"></i> PAGAR TOTAL</button>`
+                : '<span class="credit-status-badge paid"><i class="fas fa-check-circle"></i> PAGADO</span>';
+
+            const botonAbono = estado === 'pendiente' && saldoActual > 0
+                ? `<button type="button" class="pay-button" style="background:#b45309;" onclick="abrirModalAbonoCredito(${Number(credito.id || 0)}, ${saldoActual.toFixed(2)}, ${totalAbonado.toFixed(2)})"><i class="fas fa-hand-holding-usd"></i> ABONAR</button>`
+                : '';
+
             const mostrarProductos = estado === 'pendiente';
-            const cuerpoProductos = mostrarProductos ? (productos ? `<table class="profile-table"><thead><tr><th>IMG</th><th>FECHA / HORA</th><th>PRODUCTO</th><th>CÓDIGO</th><th>CANT.</th><th>PRECIO</th><th>TOTAL</th></tr></thead><tbody>${productos}</tbody></table>` : '<div class="credit-empty-state">No hay productos en este crédito.</div>') : '<div class="credit-solo-state">CRÉDITO PAGADO</div>';
+            const cuerpoProductos = mostrarProductos
+                ? (productos ? `<table class="profile-table"><thead><tr><th>IMG</th><th>FECHA / HORA</th><th>PRODUCTO</th><th>CÓDIGO</th><th>CANT.</th><th>PRECIO</th><th>TOTAL</th></tr></thead><tbody>${productos}</tbody></table>` : '<div class="credit-empty-state">No hay productos en este crédito.</div>')
+                : '<div class="credit-solo-state">CRÉDITO PAGADO</div>';
+
+            // Historial de abonos — solo si el crédito está pendiente
+            let historialAbonos = '';
+            if (estado === 'pendiente' && abonos.length > 0) {
+                const filasAbonos = abonos.map(ab => {
+                    const fh = formatearFechaHoraCredito(ab.fecha_abono);
+                    const ref = escapar(String(ab.referencia || 'AB').toUpperCase());
+                    return `<tr>
+                        <td><span style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:900;color:#c2410c;">${ref}</span></td>
+                        <td><div class="fecha-hora-cell"><span class="fecha">${escapar(fh.fecha)}</span><span class="hora">${escapar(fh.hora)}</span></div></td>
+                        <td style="font-weight:900;color:#166534;">${moneda(ab.monto)}</td>
+                        <td style="text-transform:uppercase;font-size:11px;">${escapar(ab.metodo_pago || 'efectivo')}</td>
+                    </tr>`;
+                }).join('');
+                historialAbonos = `
+                    <div style="margin-top:16px;">
+                        <div style="font-size:12px;font-weight:900;color:var(--muted);text-transform:uppercase;margin-bottom:8px;letter-spacing:.06em;">HISTORIAL DE ABONOS</div>
+                        <table class="profile-table" style="font-size:12px;">
+                            <thead><tr><th>CÓD. ABONO</th><th>FECHA / HORA</th><th>MONTO</th><th>MÉTODO</th></tr></thead>
+                            <tbody>${filasAbonos}</tbody>
+                        </table>
+                        <div style="text-align:right;margin-top:8px;font-size:13px;font-weight:900;color:#166534;">TOTAL ABONADO: ${moneda(totalAbonado)}</div>
+                    </div>`;
+            }
+
             const codigoCredito = (credito.codigo || 'N/D').toUpperCase();
             const nombreSplit = nombreClienteSplit(credito);
-            const totalVisible = estado === 'pendiente' ? `<div class="info-box"><small>TOTAL</small><strong>${moneda(credito.total)}</strong></div>` : `<div class="info-box"><small>TOTAL</small><strong>${moneda(0)}</strong></div>`;
+            const totalVisible = estado === 'pendiente'
+                ? `<div class="info-box"><small>DEUDA TOTAL</small><strong>${moneda(totalOriginal)}</strong></div>
+                   <div class="info-box" style="cursor:pointer;" onclick="abrirHistorialAbonosCredito()" title="Ver historial de abonos">
+                       <small style="color:#166534;font-weight:800;">ABONO TOTAL <i class="fas fa-list" style="font-size:10px;margin-left:4px;"></i></small>
+                       <strong style="color:#166534;">${moneda(totalAbonado)}</strong>
+                   </div>`
+                : `<div class="info-box"><small>TOTAL</small><strong>${moneda(0)}</strong></div>`;
+
             perfil.innerHTML = `
                 <div class="profile-header">
                     <div class="profile-header-left">
@@ -390,12 +588,13 @@ $baseUrl = rtrim((string)base_url(), '/');
                     </div>
                     ${saldoVisible}
                 </div>
-                <div class="info-grid">
+                <div class="info-grid" style="grid-template-columns:repeat(${estado === 'pendiente' ? 3 : 2}, minmax(0,1fr));">
                     <div class="info-box"><small>REFERENCIA</small><strong>${escapar(credito.referencia || 'N/D')}</strong></div>
                     ${totalVisible}
                 </div>
-                <div style="margin:14px 0;display:flex;gap:10px;flex-wrap:wrap;">${botonPago}${estado === 'pendiente' ? `<button type="button" class="button" onclick="abrirModalEditarCredito(${Number(credito.id || 0)})"><i class="fas fa-edit"></i> EDITAR</button>` : ''}</div>
+                <div style="margin:14px 0;display:flex;gap:10px;flex-wrap:wrap;">${botonPago}${botonAbono}${estado === 'pendiente' ? '<button type="button" class="button" onclick="abrirModalEditarCredito(' + Number(credito.id || 0) + ')"><i class="fas fa-edit"></i> EDITAR</button>' : ''}</div>
                 ${cuerpoProductos}
+                ${historialAbonos}
             `;
             document.getElementById('perfilCreditoOverlay').style.display = 'block';
             perfil.style.display = 'block';
@@ -405,16 +604,31 @@ $baseUrl = rtrim((string)base_url(), '/');
     }
 
     let creditoPagoId = 0;
+    let creditoPagoSaldo = 0;
+    let creditoPagoAbonado = 0;
+    let creditoPagoTotal = 0;
 
     function cerrarPerfilCredito() {
         document.getElementById('creditoPerfil').style.display = 'none';
         document.getElementById('perfilCreditoOverlay').style.display = 'none';
     }
 
-    function abrirModalPagoCredito(id) {
+    function abrirModalPagoCredito(id, saldo, totalAbonado, totalOriginal) {
         const creditoId = Number(id || 0);
         const creditoBase = creditos.find(item => Number(item.id || 0) === creditoId);
         creditoPagoId = Number(creditoBase?.id || creditoId || 0);
+        creditoPagoSaldo = Number(saldo || 0);
+        creditoPagoAbonado = Number(totalAbonado || 0);
+        creditoPagoTotal = Number(totalOriginal || 0);
+
+        const fmt = v => new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 }).format(Number(v||0));
+        const resumen = document.getElementById('pagoCreditoResumen');
+        if (resumen) {
+            document.getElementById('pagoCreditoDeudaTotal').textContent = fmt(creditoPagoTotal);
+            document.getElementById('pagoCreditoAbonado').textContent = fmt(creditoPagoAbonado);
+            document.getElementById('pagoCreditoSaldo').textContent = fmt(creditoPagoSaldo);
+            resumen.style.display = creditoPagoTotal > 0 ? 'block' : 'none';
+        }
         document.getElementById('modalPagoCredito').style.display = 'flex';
     }
 
@@ -448,11 +662,22 @@ $baseUrl = rtrim((string)base_url(), '/');
             return;
         }
         if (window.Swal) {
+            const fmt = v => new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 }).format(Number(v||0));
+            let htmlResumen = 'El crédito quedó marcado como pagado.';
+            if (creditoPagoTotal > 0) {
+                let partes = '<div style="font-size:14px;line-height:1.9;text-align:left;">';
+                if (creditoPagoAbonado > 0) {
+                    partes += '<div><span style="color:#166534;font-weight:700;">TOTAL ABONADO:</span> <strong style="color:#166534;">' + fmt(creditoPagoAbonado) + '</strong></div>';
+                }
+                partes += '<div><span style="color:#b45309;font-weight:700;">TOTAL PAGADO AHORA:</span> <strong style="color:#b45309;">' + fmt(creditoPagoSaldo) + '</strong></div>';
+                partes += '</div>';
+                htmlResumen = partes;
+            }
             Swal.fire({
                 icon: 'success',
-                title: 'CRÉDITO PAGADO',
-                text: 'El crédito quedó marcado como pagado.',
-                timer: 2200,
+                title: 'CREDITO PAGADO',
+                html: htmlResumen,
+                timer: 3000,
                 showConfirmButton: false,
                 timerProgressBar: true
             });
@@ -462,6 +687,40 @@ $baseUrl = rtrim((string)base_url(), '/');
         document.getElementById('modalPagoCredito').style.display = 'none';
         await cargarCreditos();
         cerrarPerfilCredito();
+    }
+
+    async function eliminarCredito(creditoId, creditIds = []) {
+        const id = Number(creditoId || 0);
+        const credito = creditos.find(item => Number(item.id || 0) === id);
+        if (!credito || String(credito.estado || '').trim().toLowerCase() !== 'pagado') {
+            Swal.fire({ icon: 'warning', title: 'NO PERMITIDO', text: 'Solo se pueden eliminar créditos pagados.' });
+            return;
+        }
+        const confirmacion = await Swal.fire({
+            icon: 'warning',
+            title: '¿ELIMINAR CRÉDITO PAGADO?',
+            text: 'Esta acción eliminará el registro del crédito y no se puede deshacer.',
+            showCancelButton: true,
+            confirmButtonText: 'SÍ, ELIMINAR',
+            cancelButtonText: 'CANCELAR',
+            confirmButtonColor: '#dc2626'
+        });
+        if (!confirmacion.isConfirmed) return;
+
+        const datos = new FormData();
+        datos.append('action', 'eliminarCredito');
+        datos.append('credito_id', String(id));
+        datos.append('credito_ids', JSON.stringify(Array.isArray(creditIds) && creditIds.length ? creditIds : [id]));
+        try {
+            const respuesta = await fetch(creditosUrl, { method: 'POST', body: datos, credentials: 'same-origin' });
+            const resultado = await respuesta.json();
+            if (!respuesta.ok || !resultado.success) throw new Error(resultado.message || 'No se pudo eliminar el crédito');
+            await Swal.fire({ icon: 'success', title: 'CRÉDITO ELIMINADO', text: 'El crédito pagado fue eliminado.', timer: 1800, showConfirmButton: false });
+            cerrarPerfilCredito();
+            await cargarCreditos();
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudo eliminar el crédito' });
+        }
     }
 
     let creditoEdicionActual = null;
@@ -521,7 +780,9 @@ $baseUrl = rtrim((string)base_url(), '/');
                 const detalleId = Number(cantidadInput.dataset.detalleId || 0);
                 const precioInput = precios.find(input => Number(input.dataset.detalleId || 0) === detalleId);
                 const cantidad = Number(cantidadInput.value || 0);
-                const precio = Number(precioInput?.value || 0);
+                const precio = typeof redondearPrecioVenta === 'function'
+                    ? redondearPrecioVenta(Number(precioInput?.value || 0))
+                    : Number(precioInput?.value || 0);
                 if (detalleId <= 0 || !(cantidad > 0) || precio < 0) {
                     throw new Error('Revisa las cantidades y precios de los productos.');
                 }
@@ -697,6 +958,200 @@ $baseUrl = rtrim((string)base_url(), '/');
     }
 
     cargarCreditos();
+
+    // ======== HISTORIAL DE ABONOS (desde perfil de crédito) ========
+    function abrirHistorialAbonosCredito() {
+        const abonos = window._creditoAbonosActual || [];
+        const monedaFmt = v => new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 }).format(Number(v||0));
+        const fmtFH = raw => {
+            if (!raw) return { fecha: 'N/D', hora: 'N/D' };
+            const txt = String(raw).trim();
+            const d = txt.includes('T') ? new Date(txt) : new Date(txt.replace(' ', 'T'));
+            if (isNaN(d.getTime())) return { fecha: txt, hora: '' };
+            return {
+                fecha: `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`,
+                hora: d.toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false })
+            };
+        };
+
+        const body = document.getElementById('historialAbonosCreditoBody');
+        if (!abonos.length) {
+            body.innerHTML = '<p style="text-align:center;color:#64748b;padding:28px 0;">No hay abonos registrados.</p>';
+        } else {
+            const totalAbonado = abonos.reduce((s, a) => s + Number(a.monto || 0), 0);
+            
+            // Ordenar abonos: el más reciente primero (arriba)
+            const abonosOrdenados = [...abonos].sort((a, b) => {
+                const fechaA = a.fecha_abono || '1900-01-01 00:00:00';
+                const fechaB = b.fecha_abono || '1900-01-01 00:00:00';
+                const timeA = new Date(fechaA.replace(' ', 'T')).getTime();
+                const timeB = new Date(fechaB.replace(' ', 'T')).getTime();
+                return timeB - timeA; // Más reciente primero
+            });
+            
+            const filas = abonosOrdenados.map(ab => {
+                const fh = fmtFH(ab.fecha_abono);
+                const ref = escapar(String(ab.referencia || 'AB').toUpperCase());
+                const metodo = String(ab.metodo_pago || 'efectivo').toUpperCase();
+                return `<tr>
+                    <td style="padding:10px 8px;border-bottom:1px solid #e2e8f0;text-align:center;">
+                        <span style="background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:900;color:#c2410c;">${ref}</span>
+                    </td>
+                    <td style="padding:10px 8px;border-bottom:1px solid #e2e8f0;text-align:center;">
+                        <div style="font-weight:700;font-size:13px;">${fh.fecha}</div>
+                        <div style="font-size:11px;color:#64748b;">${fh.hora}</div>
+                    </td>
+                    <td style="padding:10px 8px;border-bottom:1px solid #e2e8f0;text-align:right;font-weight:900;color:#166534;font-size:15px;">${monedaFmt(ab.monto)}</td>
+                    <td style="padding:10px 8px;border-bottom:1px solid #e2e8f0;text-align:center;font-size:11px;color:#475569;text-transform:uppercase;">${metodo}</td>
+                </tr>`;
+            }).join('');
+            body.innerHTML = `
+                <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                    <thead>
+                        <tr style="background:#f8fafc;">
+                            <th style="padding:8px;text-align:center;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;">CÓD. ABONO</th>
+                            <th style="padding:8px;text-align:center;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;">FECHA / HORA</th>
+                            <th style="padding:8px;text-align:right;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;">MONTO</th>
+                            <th style="padding:8px;text-align:center;font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700;">MÉTODO</th>
+                        </tr>
+                    </thead>
+                    <tbody>${filas}</tbody>
+                </table>
+                <div style="text-align:right;margin-top:14px;padding-top:12px;border-top:2px solid #e2e8f0;">
+                    <span style="font-size:13px;color:#64748b;font-weight:700;">TOTAL ABONADO: </span>
+                    <strong style="font-size:20px;color:#166534;">${monedaFmt(totalAbonado)}</strong>
+                </div>`;
+        }
+        document.getElementById('modalHistorialAbonosCredito').style.display = 'flex';
+    }
+
+    // ======== FUNCIONES DE ABONO PARCIAL ========
+    let creditoAbonoId = 0;
+
+    function abrirModalAbonoCredito(id, saldo, yaAbonado) {
+        creditoAbonoId = Number(id || 0);
+        document.getElementById('abonoSaldoPendiente').textContent = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(saldo || 0));
+        document.getElementById('abonoYaAbonado').textContent = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(yaAbonado || 0));
+        document.getElementById('montoAbonoCredito').value = '';
+        document.getElementById('metodoPagoAbono').value = 'efectivo';
+        document.getElementById('modalAbonoCredito').style.display = 'flex';
+        setTimeout(() => document.getElementById('montoAbonoCredito')?.focus(), 80);
+    }
+
+    function cerrarModalAbonoCredito(event) {
+        if (!event || event.target === event.currentTarget) {
+            document.getElementById('modalAbonoCredito').style.display = 'none';
+        }
+    }
+
+    async function confirmarAbonoCredito() {
+        const id = Number(creditoAbonoId || 0);
+        const montoRaw = String(document.getElementById('montoAbonoCredito')?.value || '').replace(/[^0-9.,]/g, '').replace(',', '.');
+        const monto = parseFloat(montoRaw);
+        if (id <= 0 || !Number.isFinite(monto) || monto <= 0) {
+            Swal.fire({ icon: 'warning', title: 'DATO INVÁLIDO', text: 'Ingresa un monto válido mayor a cero.' });
+            return;
+        }
+        const metodoPago = document.getElementById('metodoPagoAbono')?.value || 'efectivo';
+        const datos = new FormData();
+        datos.append('action', 'abonar');
+        datos.append('credito_id', String(id));
+        datos.append('monto', String(monto));
+        datos.append('metodo_pago', metodoPago);
+        try {
+            const respuesta = await fetch(creditosUrl, { method: 'POST', body: datos, credentials: 'same-origin' });
+            const resultado = await respuesta.json();
+            if (!respuesta.ok || !resultado.success) throw new Error(resultado.message || 'No se pudo registrar el abono');
+            const d = resultado.data || {};
+            const monedaFmt = v => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(v || 0));
+            document.getElementById('modalAbonoCredito').style.display = 'none';
+            await Swal.fire({
+                icon: 'success',
+                title: `ABONO REGISTRADO: ${escapar(d.referencia || '')}`,
+                html: `<div style="font-size:14px;line-height:1.8;">
+                    <div><b>Monto abonado:</b> ${monedaFmt(d.monto)}</div>
+                    <div><b>Total abonado:</b> ${monedaFmt(d.abono_total)}</div>
+                    <div><b>Saldo restante:</b> ${monedaFmt(d.nuevo_saldo)}</div>
+                    ${d.estado === 'pagado' ? '<div style="color:#166534;font-weight:900;margin-top:6px;"><i class="fas fa-check-circle"></i> CRÉDITO SALDADO</div>' : ''}
+                </div>`,
+                timer: 3500,
+                showConfirmButton: false
+            });
+            await cargarCreditos();
+            await mostrarPerfilCredito(id);
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'ERROR', text: error.message || 'No se pudo registrar el abono' });
+        }
+    }
+
+    // Eliminar crédito pagado
+    async function eliminarCreditoPagado(creditoId, codigoCredito) {
+        const resultado = await Swal.fire({
+            icon: 'warning',
+            title: '¿Eliminar este crédito?',
+            text: 'Esta acción no se puede deshacer',
+            showCancelButton: true,
+            confirmButtonText: 'SÍ, ELIMINAR',
+            cancelButtonText: 'CANCELAR',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b'
+        });
+
+        if (!resultado.isConfirmed) return;
+
+        try {
+            const datos = new FormData();
+            datos.append('action', 'eliminarCredito');
+            datos.append('credito_id', String(creditoId));
+            
+            const respuesta = await fetch(creditosUrl, { method: 'POST', body: datos, credentials: 'same-origin' });
+            const textoRespuesta = await respuesta.text();
+            
+            let data;
+            try {
+                data = JSON.parse(textoRespuesta);
+            } catch (e) {
+                throw new Error('Respuesta inválida del servidor: ' + textoRespuesta.substring(0, 200));
+            }
+
+            if (!respuesta.ok || !data.success) {
+                throw new Error(data.message || 'No se pudo eliminar el crédito');
+            }
+
+            // ELIMINAR LA TARJETA DEL DOM INMEDIATAMENTE
+            const tarjeta = document.querySelector(`[data-credito-id="${creditoId}"]`);
+            if (tarjeta) {
+                tarjeta.remove();
+            }
+
+            // Eliminar del array de créditos
+            creditos = creditos.filter(c => Number(c.id) !== Number(creditoId));
+
+            // Limpiar el perfil si estaba mostrando este crédito
+            const perfil = document.getElementById('creditoPerfil');
+            if (perfil) {
+                perfil.innerHTML = '<div class="profile-empty">Seleccione un crédito para ver los detalles</div>';
+            }
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'CRÉDITO ELIMINADO',
+                text: 'El crédito ha sido eliminado exitosamente',
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            // Renderizar de nuevo para actualizar paginación
+            renderizarCreditos();
+            
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'ERROR',
+                text: error.message || 'No se pudo eliminar el crédito'
+            });
+        }
+    }
 </script>
 </body>
 </html>

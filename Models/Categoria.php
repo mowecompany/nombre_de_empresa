@@ -468,13 +468,13 @@ class Categoria {
                 if ($filtrarPorUsuario && $tieneUsuarioId && $usuarioId > 0) {
                     $sql .= " AND usuario_id = :usuario_id";
                 }
-                $sql .= " ORDER BY id DESC";
+                $sql .= " ORDER BY id ASC";
             } else {
                 $sql = "SELECT *, {$fechaActualizacionExpr} AS fecha_actualizacion FROM categorias WHERE empresa_id = :empresa_id";
                 if ($filtrarPorUsuario && $tieneUsuarioId && $usuarioId > 0) {
                     $sql .= " AND usuario_id = :usuario_id";
                 }
-                $sql .= " ORDER BY id DESC";
+                $sql .= " ORDER BY id ASC";
             }
             
             $stmt = $this->db->prepare($sql);

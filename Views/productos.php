@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Si se recibió PHPSESSID como parámetro (desde iframe), usarlo para la sesión
 if (isset($_GET['PHPSESSID']) && !empty($_GET['PHPSESSID'])) {
     session_id($_GET['PHPSESSID']);
@@ -8,6 +8,57 @@ session_start();
 require_once '../Helpers/Helpers.php';
 require_once '../Config/Config.php';
 require_once '../Config/database.php';
+
+// ========== FORZAR MIGRACIÓN DE PRECIO_COMPRA ==========
+$mensajeSetup = "";
+try {
+    // Verificar cuántos productos tienen precio_compra en 0 pero tienen entradas
+    $stmt = $db->query("SELECT COUNT(*) as pendientes FROM productos WHERE (precio_compra IS NULL OR precio_compra = 0) AND id IN (SELECT DISTINCT producto_id FROM entradas_inventario WHERE estado = 1)");
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $pendientes = $result['pendientes'];
+    
+    if ($pendientes > 0) {
+        $mensajeSetup .= "⚠️ {$pendientes} productos sin precio_compra. Migrando ahora... ";
+        
+        // Migrar en lotes de 20
+        $migrados = 0;
+        for ($i = 0; $i < 1000; $i += 20) {
+            $affected = $db->exec("
+                UPDATE productos 
+                SET precio_compra = (
+                    SELECT AVG(precio_compra) 
+                    FROM entradas_inventario 
+                    WHERE producto_id = productos.id 
+                    AND estado = 1
+                )
+                WHERE id BETWEEN $i AND " . ($i + 19) . "
+                AND (precio_compra IS NULL OR precio_compra = 0)
+                AND EXISTS (
+                    SELECT 1 FROM entradas_inventario 
+                    WHERE producto_id = productos.id 
+                    AND estado = 1
+                )
+            ");
+            $migrados += $affected;
+        }
+        
+        $mensajeSetup .= "✅ Migrados {$migrados} productos. ";
+    } else {
+        $mensajeSetup .= "✅ Todos los productos tienen precio_compra. ";
+    }
+} catch (Exception $e) {
+    $mensajeSetup = "❌ Error: " . $e->getMessage();
+}
+
+// Mostrar mensaje en consola
+if ($mensajeSetup) {
+    echo "<script>console.log('MIGRACIÓN PRECIO_COMPRA: {$mensajeSetup}');</script>";
+}
+// ===============================================================
+
+
+
+
 
 // Actualizar última actividad
 if (isset($_SESSION['usuario_id'])) {
@@ -330,34 +381,32 @@ try {
         }
 
         .btn-save {
-            background: linear-gradient(135deg, #2f4a5a 0%, #1a2d4f 100%);
-            color: white;
-            padding: 14px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            max-width: 300px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(47, 74, 90, 0.2);
-            letter-spacing: 0.5px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .btn-save:hover {
-            background: linear-gradient(135deg, #1a2d4f 0%, #0f1a2e 100%);
-            box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
+            background: #0b5ed7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
+        }
             transform: translateY(-2px);
         }
         
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
         }
 
         /* Título y botón volver */
@@ -1605,36 +1654,32 @@ try {
 
         button[type="submit"],
         .btn-save {
-            background: linear-gradient(135deg, #2f4a5a 0%, #1a2d4f 100%);
-            color: white;
-            padding: 14px 30px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 700;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            max-width: 300px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(47, 74, 90, 0.2);
-            letter-spacing: 0.5px;
+            background: var(--primary-blue);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.18);
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            gap: 8px;
+            text-transform: none;
+            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         button[type="submit"]:hover,
         .btn-save:hover {
-            background: linear-gradient(135deg, #1a2d4f 0%, #0f1a2e 100%);
-            box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
+            background: #0b5ed7;
             transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
         }
         
         button[type="submit"]:active,
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
+            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
         }
 
         /* Estilos para la columna de descripción */
@@ -1875,6 +1920,10 @@ try {
 
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
+    <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/skeletons.js"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
+    <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/redondeo-precio-venta.js"></script>
 </head>
 <body class="page-productos">
     <!-- Reemplazar la sección hero-section actual por esto -->
@@ -2038,8 +2087,8 @@ try {
                             <input type="checkbox" class="venta-kilo-input" id="ventaPorKiloEdit" name="venta_por_kilo" value="1" style="width:18px; height:18px; margin:0; cursor:pointer;">
                             <span class="producto-kilo-text">X KILOS</span>
                         </label>
-                        <label for="manejaPresentacionesEdit" class="producto-kilo-option" title="Marcar producto con presentaciones" style="grid-column:4; grid-row:1; justify-self:end;">
-                            <input type="checkbox" class="venta-kilo-input" id="manejaPresentacionesEdit" name="maneja_presentaciones" value="1" style="width:18px; height:18px; margin:0; cursor:pointer;">
+                        <label for="manejaPresentacionesEdit" id="labelPresentacionesEdit" class="producto-kilo-option" title="Marcar producto con presentaciones" style="grid-column:4; grid-row:1; justify-self:end;">
+                            <input type="checkbox" class="venta-kilo-input" id="manejaPresentacionesEdit" name="maneja_presentaciones" value="1" onchange="alternarPresentaciones()" style="width:18px; height:18px; margin:0; cursor:pointer;">
                             <span class="producto-kilo-text">PRESENTACIÓN</span>
                         </label>
                     </div>
@@ -2048,22 +2097,37 @@ try {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="editProdPrecioCompra"><i class="fas fa-cart-arrow-down"></i> PRECIO DE COMPRA</label>
-                        <input type="number" id="editProdPrecioCompra" name="precio_compra" min="0" step="0.01" autocomplete="off" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdPrecioCompra" name="precio_compra" min="0" step="0.01" autocomplete="off" readonly tabindex="-1" title="Este valor solo se modifica desde Entradas o Inventario" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;background:#f2f4f7;color:#667085;cursor:not-allowed;">
                     </div>
                     <div class="form-group">
                         <label for="editProdPrecio"><i class="fas fa-dollar-sign"></i> PRECIO DE VENTA</label>
-                        <input type="number" id="editProdPrecio" name="precio" min="0" step="0.01" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdPrecio" name="precio" min="0" step="1" autocomplete="off" required readonly tabindex="-1" title="Este valor solo se modifica desde Entradas o Inventario" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;background:#f2f4f7;color:#667085;cursor:not-allowed;">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="editProdStock"><i class="fas fa-cubes"></i> STOCK</label>
-                        <input type="number" id="editProdStock" name="stock" min="0" step="0.001" autocomplete="off" required style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdStock" name="stock" min="0" step="1" autocomplete="off" required readonly tabindex="-1" title="Este valor solo se modifica desde Entradas o Inventario" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;background:#f2f4f7;color:#667085;cursor:not-allowed;">
                     </div>
                     <div class="form-group">
                         <label for="editProdPorcentaje"><i class="fas fa-percent"></i> PORCENTAJE DE GANANCIA</label>
-                        <input type="number" id="editProdPorcentaje" name="porcentaje_ganancia" min="0" step="0.01" autocomplete="off" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;">
+                        <input type="number" id="editProdPorcentaje" name="porcentaje_ganancia" min="0" step="0.01" autocomplete="off" readonly tabindex="-1" title="Este valor solo se modifica desde Entradas o Inventario" style="width:100%;padding:12px;border:1px solid #e6e9ee;border-radius:6px;font-size:14px;background:#f2f4f7;color:#667085;cursor:not-allowed;">
+                    </div>
+                </div>
+                <small style="display:block; margin-top:6px; color:#667085;"><i class="fas fa-lock"></i> El precio de compra, el precio de venta, el stock y el porcentaje de ganancia solo se modifican desde Entradas o desde Inventario &gt; Total de productos.</small>
+
+                <div class="form-group" style="margin-top:12px;">
+                    <div id="presentacionesContenido" style="display:none; background:#f8fafc; border:1px solid #e6e9ee; border-radius:8px; padding:14px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+                            <strong style="color:#2f4a5a;"><i class="fas fa-boxes"></i> PRESENTACIONES DEL PRODUCTO</strong>
+                        </div>
+                        <div id="presentacionesResumen" style="display:none; margin-bottom:10px; padding:8px 10px; background:#eef4ff; border:1px solid #d3e0fd; border-radius:6px; color:#1d4ed8; font-weight:600;"></div>
+                        <div id="presentacionesFilas" style="display:flex; flex-direction:column; gap:8px;"></div>
+                        <small style="display:block; margin-top:8px; color:#667085;">La UNIDAD se rellena sola con el precio de compra, el precio de venta y el stock que el producto ya tiene. Define la presentación PAQUETE y pulsa GUARDAR PRESENTACIÓN; después puedes pulsar ACTUALIZAR PRODUCTO.</small>
+                        <div style="display:flex; justify-content:flex-start; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                            <button type="button" onclick="guardarPresentacionesProducto({ mantenerPanel: true })" style="padding:8px 12px; border:1px solid #1d4ed8; background:#1d4ed8; color:#ffffff; border-radius:6px; cursor:pointer; font-weight:600;"><i class="fas fa-save"></i> GUARDAR PRESENTACIÓN</button>
+                        </div>
                     </div>
                 </div>
 
@@ -2140,11 +2204,15 @@ try {
 
     <div class="container main-scroll-panel">
         <div class="estadistica-card">
-            <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+            <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
                 <div style="position:relative; width:min(100%, 300px);">
-                    <input type="text" id="buscarTablaProductos" placeholder="BUSCAR PRODUCTO..." autocomplete="off" style="width:100%; padding:9px 12px; border:1px solid #d0d7de; border-radius:6px; background:#fff; text-transform:uppercase;">
+                    <input type="text" id="buscarTablaProductos" placeholder="BUSCAR PRODUCTO..." autocomplete="off" style="width:min(100%,260px);padding:6px 9px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;">
                     <div id="resultadosTablaProductos" style="display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); max-height:220px; overflow-y:auto; border:1px solid #d0d7de; border-radius:6px; background:#fff; box-shadow:0 8px 20px rgba(31,41,55,.12); z-index:100;"></div>
                 </div>
+            <div id="paginacionProductos" style="display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:0;">
+                <select id="productosTamanoPagina" aria-label="Registros por página" style="width:auto;padding:5px 7px;font-size:11px;border:1px solid #2f4a5a;border-radius:8px;background:#fff;color:#2f4a5a;"><option>25</option><option selected>50</option><option>100</option><option>200</option></select>
+                <div id="productosPagination" style="display:flex;gap:6px;"></div>
+            </div>
             </div>
             <div class="table-wrapper">
                 <table>
@@ -2180,6 +2248,10 @@ try {
     <script>
         const mostrarColumnaId = <?= json_encode($mostrarColumnaId); ?>;
         let productosTablaCache = [];
+        let productosPaginaActual = 0;
+        let productosHayPaginaSiguiente = false;
+        let productosBusquedaTimer = null;
+        let productosTamanoPagina = 50;
         // Funciones para ocultar/mostrar headers sticky cuando hay modales o alertas
         const hideHeaders = () => {
             const headers = document.querySelectorAll('thead, [role="rowheader"]');
@@ -2432,8 +2504,62 @@ try {
                 style: 'currency',
                 currency: 'COP',
                 minimumFractionDigits: 0,
-                maximumFractionDigits: 0
+                maximumFractionDigits: 2
             }).format(cantidad);
+        }
+
+        function esCategoriaGramosProducto(nombre) {
+            const normalizado = String(nombre || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim()
+                .replace(/\s+/g, ' ');
+            return ['frutas', 'verduras', 'carnicos y refrigerados'].includes(normalizado);
+        }
+
+        function esProductoPorKiloVista(producto) {
+            const ventaPorKilo = producto?.venta_por_kilo ?? producto?.ventaPorKilo ?? 0;
+            const flag = ventaPorKilo === true || Number(ventaPorKilo) === 1;
+            return flag || esCategoriaGramosProducto(producto?.categoria_nombre || producto?.categoria || '');
+        }
+
+        function formatoStockProductoVisible(producto) {
+            const n = Number(producto?.stock ?? 0) || 0;
+            if (esProductoPorKiloVista(producto)) {
+                const kg = Math.round(n * 1000) / 1000;
+                return kg.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            }
+            return String(Math.round(n));
+        }
+
+        function formatoStockProductoInput(producto) {
+            const n = Number(producto?.stock ?? 0) || 0;
+            if (esProductoPorKiloVista(producto)) {
+                return (Math.round(n * 1000) / 1000).toFixed(3);
+            }
+            return String(Math.round(n));
+        }
+
+        function configurarStockEdicionProducto() {
+            const stockEdit = document.getElementById('editProdStock');
+            const categoriaEdit = document.getElementById('categoriaEdit');
+            const ventaPorKiloEdit = document.getElementById('ventaPorKiloEdit');
+            if (!stockEdit) return;
+            const producto = {
+                venta_por_kilo: ventaPorKiloEdit?.checked ? 1 : 0,
+                categoria_nombre: categoriaEdit?.options[categoriaEdit.selectedIndex]?.textContent || ''
+            };
+            const esPorKilo = esProductoPorKiloVista(producto);
+            stockEdit.min = esPorKilo ? '0.001' : '0';
+            stockEdit.step = esPorKilo ? '0.001' : '1';
+            if (stockEdit.value !== '') {
+                stockEdit.value = formatoStockProductoInput({
+                    ...producto,
+                    stock: stockEdit.value
+                });
+            }
         }
 
         const base_url = <?= json_encode(base_url()) ?>;
@@ -2488,7 +2614,8 @@ try {
             const tableWrapper = document.querySelector('.table-wrapper');
             return {
                 windowY: window.scrollY || 0,
-                tableY: tableWrapper ? tableWrapper.scrollTop : 0
+                tableY: tableWrapper ? tableWrapper.scrollTop : 0,
+                pagina: productosPaginaActual
             };
         }
 
@@ -2521,25 +2648,49 @@ try {
             requestAnimationFrame(() => requestAnimationFrame(restaurar));
         }
 
-        // Cargar todos los productos desde el Controller
         function cargarProductos(callback = null) {
-            fetch(base_url + '/Controllers/ProductoController.php?action=getAll')
+            const inputBusqueda = document.getElementById('buscarTablaProductos');
+            window.EstrellaSkeleton?.show(document.getElementById('productos-tbody'), 'table', { rows: 7 });
+            const busqueda = normalizarBusquedaTablaProductos(inputBusqueda?.value || '');
+            try {
+                const posicionGuardada = JSON.parse(sessionStorage.getItem(productosScrollStorageKey) || 'null');
+                if (posicionGuardada && Number.isInteger(Number(posicionGuardada.pagina))) {
+                    productosPaginaActual = Math.max(0, Number(posicionGuardada.pagina));
+                }
+            } catch (error) {
+                console.warn('No se pudo restaurar la página de productos:', error);
+            }
+            const parametros = new URLSearchParams({
+                action: 'getAll'
+            });
+
+            fetch(base_url + '/Controllers/ProductoController.php?' + parametros.toString())
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
-                        productosTablaCache = data.data;
+                        productosTablaCache = window.EstrellaPaginacion.recientesPrimero(data.data, ['id']);
+                        productosHayPaginaSiguiente = false;
                         renderResultadosTablaProductos();
                         const tbody = document.getElementById('productos-tbody');
                         tbody.innerHTML = '';
-                        const busqueda = normalizarBusquedaTablaProductos(document.getElementById('buscarTablaProductos')?.value || '');
-                        data.data.filter(producto => !busqueda || textoProductoTabla(producto).includes(busqueda)).forEach(producto => {
-                            try {
-                                const fila = generarFilaProducto(producto);
-                                tbody.appendChild(fila);
-                            } catch (error) {
-                                console.warn('No se pudo renderizar un producto:', producto, error);
-                            }
-                        });
+                        // Filtrar y paginar client-side
+                        const texto = String(inputBusqueda?.value || '').trim();
+                        const filtradas = productosTablaCache.filter(producto => coincideBusquedaTablaProductos(textoProductoTabla(producto), texto));
+                        const inicio = window.EstrellaPaginacion.inicioBloque(filtradas.length, productosPaginaActual, productosTamanoPagina);
+                        
+                        if (filtradas.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">No hay productos para mostrar.</td></tr>';
+                        } else {
+                            filtradas.slice(inicio, inicio + productosTamanoPagina).forEach(producto => {
+                                try {
+                                    const fila = generarFilaProducto(producto);
+                                    tbody.appendChild(fila);
+                                } catch (error) {
+                                    console.warn('No se pudo renderizar un producto:', producto, error);
+                                }
+                            });
+                        }
+                        actualizarPaginacionProductos();
                         if (typeof callback === 'function') {
                             callback();
                         }
@@ -2547,10 +2698,50 @@ try {
                         console.error('Error al cargar productos:', data);
                     }
                 })
+                .finally(() => window.EstrellaSkeleton?.hide(document.getElementById('productos-tbody'), true))
                 .catch(error => {
                     console.error('Error:', error);
                 });
         }
+
+        function renderTablaProductosPaginada() {
+            const inputBusqueda = document.getElementById('buscarTablaProductos');
+            const tbody = document.getElementById('productos-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            const texto = String(inputBusqueda?.value || '').trim();
+            const filtradas = productosTablaCache.filter(producto => coincideBusquedaTablaProductos(textoProductoTabla(producto), texto));
+            const inicio = window.EstrellaPaginacion.inicioBloque(filtradas.length, productosPaginaActual, productosTamanoPagina);
+            
+            if (filtradas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;">No hay productos para mostrar.</td></tr>';
+            } else {
+                filtradas.slice(inicio, inicio + productosTamanoPagina).forEach(producto => {
+                    try {
+                        const fila = generarFilaProducto(producto);
+                        tbody.appendChild(fila);
+                    } catch (error) {
+                        console.warn('No se pudo renderizar un producto:', producto, error);
+                    }
+                });
+            }
+            actualizarPaginacionProductos();
+        }
+
+            function actualizarPaginacionProductos() {
+                const paginationDiv = document.getElementById('productosPagination');
+                if (!paginationDiv) return;
+                const inputBusqueda = document.getElementById('buscarTablaProductos');
+                const texto = String(inputBusqueda?.value || '').trim();
+                const filtradas = productosTablaCache.filter(producto => coincideBusquedaTablaProductos(textoProductoTabla(producto), texto));
+                const totalPaginas = window.EstrellaPaginacion.totalPaginas(filtradas.length, productosTamanoPagina);
+                paginationDiv.innerHTML = `
+                    <button type="button" class="btn-save inventory-page-prev" title="Página anterior" aria-label="Página anterior" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${productosPaginaActual === 0 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i></button>
+                    <span style="min-width:90px;text-align:center;color:#667085;font-weight:600;font-size:11px;">PÁGINA ${totalPaginas - productosPaginaActual} / ${totalPaginas}</span>
+                    <button type="button" class="btn-save inventory-page-next" title="Página siguiente" aria-label="Página siguiente" style="padding:4px 7px;min-height:26px;width:28px;font-size:10px;" ${productosPaginaActual >= totalPaginas - 1 ? 'disabled' : ''}><i class="fas fa-chevron-right"></i></button>
+                `;
+            }
 
         function normalizarBusquedaTablaProductos(valor) {
             return String(valor || '')
@@ -2568,6 +2759,7 @@ try {
             if (!busqueda) return true;
             const tokens = busqueda.split(' ').filter(Boolean);
             return tokens.every(token => texto.includes(token)) || texto.replace(/\s/g, '').includes(tokens.join(''));
+
         }
 
         function escapeHtml(valor) {
@@ -2594,20 +2786,11 @@ try {
         }
 
         function filtrarTablaProductos() {
-            const input = document.getElementById('buscarTablaProductos');
-            const tbody = document.getElementById('productos-tbody');
-            if (!input || !tbody) return;
-            const texto = normalizarBusquedaTablaProductos(input.value);
-            tbody.innerHTML = '';
-            productosTablaCache.filter(producto => coincideBusquedaTablaProductos(textoProductoTabla(producto), texto))
-                .forEach(producto => {
-                    try {
-                        tbody.appendChild(generarFilaProducto(producto));
-                    } catch (error) {
-                        console.warn('No se pudo renderizar un producto:', producto, error);
-                    }
-                });
-            renderResultadosTablaProductos();
+            window.clearTimeout(productosBusquedaTimer);
+            productosBusquedaTimer = window.setTimeout(() => {
+                productosPaginaActual = 0;
+                renderTablaProductosPaginada();
+            }, 250);
         }
 
         function refrescarProductosManteniendoScroll() {
@@ -2737,10 +2920,7 @@ try {
             const colorTexto = String(prod.color || '').trim();
             const swatchColor = colorTexto || '#D0D7DE';
             const precioCompra = Number(prod.ultimo_precio_compra ?? prod.precio_compra ?? 0) || 0;
-            const stockNumero = Number(prod.stock ?? 0) || 0;
-            const stockVisible = Number.isInteger(stockNumero)
-                ? String(stockNumero)
-                : stockNumero.toLocaleString('es-CO', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+            const stockVisible = formatoStockProductoVisible(prod);
             const colorCell = `
                 <td>
                     <div class="producto-color-cell">
@@ -2757,7 +2937,7 @@ try {
                     <div class="descripcion-content">${(prod.descripcion || '').toUpperCase()}</div>
                 </td>
                 <td style="color:#b42318; font-weight:700;">${formatMonedaColombia(precioCompra)}</td>
-                <td>${formatMonedaColombia(Number(prod.stock) === 0 ? 0 : parseFloat(prod.precio))}</td>
+                <td>${formatMonedaColombia(Number(prod.stock) === 0 ? 0 : (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(prod.precio)) : parseFloat(prod.precio)))}</td>
                 <td>${stockVisible}</td>
                 <td>${Number(prod.venta_por_kilo) === 1 ? 'KILO' : 'NORMAL'}</td>
                 <td>${(prod.categoria_nombre || '-').toUpperCase()}</td>
@@ -3572,14 +3752,14 @@ try {
                         </div>
                         <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #0B6623; border-radius: 4px;">
                             <label style="font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; display: block; margin-bottom: 4px;"><i class="fas fa-dollar-sign"></i> PRECIO</label>
-                            <p style="color: #0B6623; margin: 0; font-size: 15px; font-weight: 700;">${formatMonedaColombia(Number(prod.stock) === 0 ? 0 : parseFloat(prod.precio))}</p>
+                            <p style="color: #0B6623; margin: 0; font-size: 15px; font-weight: 700;">${formatMonedaColombia(Number(prod.stock) === 0 ? 0 : (typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(parseFloat(prod.precio)) : parseFloat(prod.precio)))}</p>
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                         <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #0B6623; border-radius: 4px;">
                             <label style="font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; display: block; margin-bottom: 4px;"><i class="fas fa-cubes"></i> STOCK</label>
-                            <p style="color: #0B6623; margin: 0; font-size: 15px; font-weight: 700;">${prod.stock} UND</p>
+                            <p style="color: #0B6623; margin: 0; font-size: 15px; font-weight: 700;">${formatoStockProductoVisible(prod)}</p>
                         </div>
                         <div style="padding: 10px; background: #f8f9fa; border-left: 4px solid #3591CA; border-radius: 4px;">
                             <label style="font-size: 11px; font-weight: 700; color: #666; text-transform: uppercase; display: block; margin-bottom: 4px;"><i class="fas fa-tag"></i> VENTA</label>
@@ -3651,11 +3831,22 @@ try {
                 }
                 const precioVentaEdit = document.getElementById('editProdPrecio');
                 if (precioVentaEdit) {
-                    precioVentaEdit.value = Number(producto.precio ?? 0).toFixed(2);
+                    precioVentaEdit.value = (typeof redondearPrecioVenta === 'function'
+                        ? redondearPrecioVenta(Number(producto.precio ?? 0))
+                        : Number(producto.precio ?? 0)).toFixed(2);
                 }
                 const stockEdit = document.getElementById('editProdStock');
                 if (stockEdit) {
-                    stockEdit.value = Number(producto.stock ?? 0).toFixed(3);
+                    stockEdit.value = formatoStockProductoInput(producto);
+                    configurarStockEdicionProducto();
+                }
+                if (categoriaEdit && categoriaEdit.dataset.stockListener !== '1') {
+                    categoriaEdit.dataset.stockListener = '1';
+                    categoriaEdit.addEventListener('change', configurarStockEdicionProducto);
+                }
+                if (ventaPorKiloEdit && ventaPorKiloEdit.dataset.stockListener !== '1') {
+                    ventaPorKiloEdit.dataset.stockListener = '1';
+                    ventaPorKiloEdit.addEventListener('change', configurarStockEdicionProducto);
                 }
                 const porcentajeEdit = document.getElementById('editProdPorcentaje');
                 if (porcentajeEdit) {
@@ -3809,6 +4000,35 @@ try {
                 filtrarTablaProductos();
                 resultadosTablaProductos.style.display = 'none';
             });
+            const productosTamanoPaginaSelect = document.getElementById('productosTamanoPagina');
+            if (productosTamanoPaginaSelect) {
+                productosTamanoPaginaSelect.value = productosTamanoPagina;
+                productosTamanoPaginaSelect.addEventListener('change', (event) => {
+                    const tamanoAnterior = productosTamanoPagina;
+                    const textoProductosActual = String(document.getElementById('buscarTablaProductos')?.value || '').trim().toLowerCase();
+                    const totalProductosFiltrados = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(textoProductosActual)).length;
+                    productosTamanoPagina = Number(event.target.value) || 50;
+                    productosPaginaActual = window.EstrellaPaginacion.paginaAlCambiarTamano(totalProductosFiltrados, productosPaginaActual, tamanoAnterior, productosTamanoPagina);
+                    cargarProductos();
+                });
+            }
+            // Event listeners para paginador dinámico
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.inventory-page-prev')) {
+                    if (productosPaginaActual === 0) return;
+                    productosPaginaActual -= 1;
+                    renderTablaProductosPaginada();
+                }
+                if (e.target.closest('.inventory-page-next')) {
+                    const inputBusqueda = document.getElementById('buscarTablaProductos');
+                    const texto = String(inputBusqueda?.value || '').trim().toLowerCase();
+                    const filtradas = productosTablaCache.filter(producto => `${producto.id} ${producto.codigo || ''} ${producto.nombre || ''} ${producto.descripcion || ''}`.toLowerCase().includes(texto));
+                    const totalPaginas = window.EstrellaPaginacion.totalPaginas(filtradas.length, productosTamanoPagina);
+                    if (productosPaginaActual >= totalPaginas - 1) return;
+                    productosPaginaActual += 1;
+                    renderTablaProductosPaginada();
+                }
+            });
             const buscarCategoria = document.getElementById('buscarCategoriaProducto');
             const categoriaSelect = document.getElementById('categoria_id');
             const camposCodigoBarras = [
@@ -3892,11 +4112,14 @@ try {
                         formData.append('categoria_id', document.getElementById('categoriaEdit').value);
                         formData.append('codigo_barras', document.getElementById('editProdCodigoBarras').value.trim());
                         formData.append('venta_por_kilo', document.getElementById('ventaPorKiloEdit').checked ? '1' : '0');
-                        formData.append('maneja_presentaciones', document.getElementById('manejaPresentacionesEdit').checked ? '1' : '0');
+                        const labelPresEditar = document.getElementById('labelPresentacionesEdit');
+                        const presentacionesYaActivas = labelPresEditar && labelPresEditar.style.display === 'none';
+                        formData.append('maneja_presentaciones', (presentacionesYaActivas || document.getElementById('manejaPresentacionesEdit').checked) ? '1' : '0');
                         formData.append('precio_compra', document.getElementById('editProdPrecioCompra').value);
                         formData.append('precio', document.getElementById('editProdPrecio').value);
                         formData.append('stock', document.getElementById('editProdStock').value);
                         formData.append('porcentaje_ganancia', document.getElementById('editProdPorcentaje').value);
+                        formData.append('origen', 'productos');
                         
                         const imagenFile = document.getElementById('imagenEdit').files[0];
                         if (imagenFile) {
@@ -3909,16 +4132,40 @@ try {
                         })
                         .then(response => response.json())
                         .then(data => {
-                            if (data.success) {
+                            if (!data.success) {
+                                mostrarAlerta('error', data.message || 'Error al actualizar');
+                                return;
+                            }
+                            const finalizarActualizacion = () => {
                                 cerrarEditModal();
                                 mostrarAlerta('success', '¡EL PRODUCTO HA SIDO ACTUALIZADO!');
                                 notificarCambioDashboard();
                                 setTimeout(() => {
                                     refrescarProductosManteniendoScroll();
                                 }, 1500);
-                            } else {
-                                mostrarAlerta('error', data.message || 'Error al actualizar');
+                            };
+                            const checkPres = document.getElementById('manejaPresentacionesEdit');
+                            const labelPres = document.getElementById('labelPresentacionesEdit');
+                            const panelVisible = labelPres && labelPres.style.display !== 'none';
+                            const contenidoPres = document.getElementById('presentacionesContenido');
+                            const btnActualizar = document.getElementById('btnSaveEdit');
+                            const debeGuardarPresentaciones = !!(checkPres && checkPres.checked && panelVisible && contenidoPres && contenidoPres.style.display === 'block' && btnActualizar && btnActualizar.disabled);
+                            if (!debeGuardarPresentaciones || typeof guardarPresentacionesProducto !== 'function') {
+                                finalizarActualizacion();
+                                return;
                             }
+                            // No guardar automáticamente las presentaciones - el usuario debe guardarlas manualmente primero
+                            if (window.Swal) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Guarda las presentaciones',
+                                    text: 'Debes guardar las presentaciones primero antes de actualizar el producto',
+                                    confirmButtonColor: '#1d4ed8'
+                                });
+                            } else {
+                                mostrarAlerta('error', 'Debes guardar las presentaciones primero antes de actualizar el producto');
+                            }
+                            return;
                         })
                         .catch(error => {
                             console.error('Error:', error);
@@ -3985,16 +4232,42 @@ try {
         let presentacionesActuales = [];
 
         function alternarPresentaciones() {
-            const activo = document.getElementById('manejaPresentaciones').checked;
+            const check = document.getElementById('manejaPresentacionesEdit');
+            const activo = !!(check && check.checked);
             document.getElementById('presentacionesContenido').style.display = activo ? 'block' : 'none';
             if (activo && document.querySelectorAll('#presentacionesFilas .fila-presentacion').length === 0) {
-                agregarFilaPresentacion({ nombre: 'UNIDAD', factor_padre: 1 });
+                agregarFilaPresentacion({
+                    nombre: 'UNIDAD',
+                    factor_padre: 1,
+                    precio_compra: parseFloat(document.getElementById('editProdPrecioCompra').value || '0') || 0,
+                    precio_venta: parseFloat(document.getElementById('editProdPrecio').value || '0') || 0
+                });
                 agregarFilaPresentacion({ nombre: 'PAQUETE', factor_padre: 12 });
+            }
+            if (activo && !presentacionesActuales.length) {
+                const resumen = document.getElementById('presentacionesResumen');
+                const stockActual = document.getElementById('editProdStock').value || '0';
+                if (resumen) {
+                    resumen.style.display = 'block';
+                    resumen.innerHTML = '<i class="fas fa-warehouse"></i> STOCK ACTUAL DEL PRODUCTO: ' + stockActual + ' UNIDADES (pasa automáticamente a la presentación UNIDAD).';
+                }
+            }
+            // Bloquear botón ACTUALIZAR PRODUCTO cuando se activan presentaciones si hay filas
+            const btnActualizar = document.getElementById('btnSaveEdit');
+            const hayFilas = document.querySelectorAll('#presentacionesFilas .fila-presentacion').length > 0;
+            if (btnActualizar && activo && hayFilas) {
+                btnActualizar.disabled = true;
+                btnActualizar.style.opacity = '0.5';
+                btnActualizar.style.cursor = 'not-allowed';
+            } else if (btnActualizar && !activo) {
+                btnActualizar.disabled = false;
+                btnActualizar.style.opacity = '1';
+                btnActualizar.style.cursor = 'pointer';
             }
         }
 
         function abrirPanelPresentaciones() {
-            const check = document.getElementById('manejaPresentaciones');
+            const check = document.getElementById('manejaPresentacionesEdit');
             if (check) check.checked = true;
             alternarPresentaciones();
         }
@@ -4023,7 +4296,7 @@ try {
                 </div>
                 <div>
                     <small style="display:block;color:#667085;font-weight:600;">PRECIO VENTA</small>
-                    <input type="number" class="pres-venta" min="0" step="0.01" value="${d.precio_venta || 0}" style="width:100%;padding:9px;border:1px solid #e6e9ee;border-radius:6px;">
+                    <input type="number" class="pres-venta" min="0" step="1" value="${typeof redondearPrecioVenta === 'function' ? redondearPrecioVenta(d.precio_venta || 0) : (d.precio_venta || 0)}" style="width:100%;padding:9px;border:1px solid #e6e9ee;border-radius:6px;">
                 </div>
                 <div style="display:flex; gap:6px;">
                     ${esBase ? '' : `<button type="button" title="Abrir una unidad de esta presentación" onclick="abrirPresentacionManual(this)" style="padding:9px 10px;border:1px solid #027a48;background:#ffffff;color:#027a48;border-radius:6px;cursor:pointer;"><i class="fas fa-box-open"></i></button>
@@ -4033,12 +4306,15 @@ try {
         }
 
         function cargarPresentacionesProducto(productoId) {
-            const check = document.getElementById('manejaPresentaciones');
+            const check = document.getElementById('manejaPresentacionesEdit');
+            const labelPres = document.getElementById('labelPresentacionesEdit');
             const cont = document.getElementById('presentacionesFilas');
             const resumen = document.getElementById('presentacionesResumen');
             if (!check || !cont) return;
             cont.innerHTML = '';
             check.checked = false;
+            presentacionesActuales = [];
+            if (labelPres) labelPres.style.display = '';
             document.getElementById('presentacionesContenido').style.display = 'none';
             if (resumen) resumen.style.display = 'none';
 
@@ -4048,13 +4324,10 @@ try {
                     if (!res.success) return;
                     presentacionesActuales = res.presentaciones || [];
                     if (res.maneja_presentaciones && presentacionesActuales.length) {
-                        check.checked = true;
-                        document.getElementById('presentacionesContenido').style.display = 'block';
-                        presentacionesActuales.forEach(p => agregarFilaPresentacion(p));
-                        if (resumen && res.texto) {
-                            resumen.style.display = 'block';
-                            resumen.innerHTML = '<i class="fas fa-warehouse"></i> STOCK FÍSICO: ' + res.texto;
-                        }
+                        // El producto ya tiene presentaciones activas: no se muestran en editar, solo en entrada de inventario.
+                        if (labelPres) labelPres.style.display = 'none';
+                        check.checked = false;
+                        document.getElementById('presentacionesContenido').style.display = 'none';
                     }
                 })
                 .catch(() => {});
@@ -4066,37 +4339,126 @@ try {
                 nombre: fila.querySelector('.pres-nombre').value.trim().toUpperCase(),
                 factor_padre: idx === 0 ? 1 : parseFloat(fila.querySelector('.pres-factor').value || '1'),
                 precio_compra: parseFloat(fila.querySelector('.pres-compra').value || '0'),
-                precio_venta: parseFloat(fila.querySelector('.pres-venta').value || '0'),
+                precio_venta: typeof redondearPrecioVenta === 'function'
+                    ? redondearPrecioVenta(parseFloat(fila.querySelector('.pres-venta').value || '0'))
+                    : parseFloat(fila.querySelector('.pres-venta').value || '0'),
                 es_base: idx === 0 ? 1 : 0
             }));
         }
 
-        function guardarPresentacionesProducto() {
+        function repintarPresentacionesGuardadas(productoId) {
+            return fetch(`${urlInventarioPres}?action=obtenerPresentaciones&producto_id=${productoId}`, { headers: { 'Accept': 'application/json' } })
+                .then(r => r.json())
+                .then(res => {
+                    if (!res.success) return;
+                    presentacionesActuales = res.presentaciones || [];
+                    const cont = document.getElementById('presentacionesFilas');
+                    if (!cont) return;
+                    cont.innerHTML = '';
+                    presentacionesActuales.forEach(p => agregarFilaPresentacion({
+                        id: p.id,
+                        nombre: p.nombre,
+                        factor_padre: p.factor_padre,
+                        precio_compra: p.precio_compra,
+                        precio_venta: p.precio_venta
+                    }));
+                })
+                .catch(() => {});
+        }
+
+        function guardarPresentacionesProducto(opciones = {}) {
+            const silencioso = !!opciones.silencioso;
+            const mantenerPanel = !!opciones.mantenerPanel;
             const productoId = document.getElementById('productoId').value;
-            const maneja = document.getElementById('manejaPresentaciones').checked ? '1' : '0';
+            const maneja = document.getElementById('manejaPresentacionesEdit').checked ? '1' : '0';
             const filas = recolectarPresentaciones();
             if (maneja === '1') {
                 if (filas.length < 2) {
-                    alert('Agrega al menos dos presentaciones (por ejemplo UNIDAD y PAQUETE).');
-                    return;
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Faltan presentaciones',
+                            text: 'Agrega al menos dos presentaciones (por ejemplo UNIDAD y PAQUETE).',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        alert('Agrega al menos dos presentaciones (por ejemplo UNIDAD y PAQUETE).');
+                    }
+                    return Promise.resolve(false);
                 }
                 if (filas.some(f => !f.nombre)) {
-                    alert('Todas las presentaciones necesitan un nombre.');
-                    return;
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Faltan nombres',
+                            text: 'Todas las presentaciones necesitan un nombre.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        alert('Todas las presentaciones necesitan un nombre.');
+                    }
+                    return Promise.resolve(false);
                 }
             }
             const body = new FormData();
+            body.append('action', 'guardarPresentaciones');
             body.append('producto_id', productoId);
             body.append('maneja_presentaciones', maneja);
             body.append('presentaciones', JSON.stringify(filas));
 
-            fetch(`${urlInventarioPres}?action=guardarPresentaciones`, { method: 'POST', body })
+            return fetch(`${urlInventarioPres}?action=guardarPresentaciones`, { method: 'POST', body })
                 .then(r => r.json())
                 .then(res => {
-                    alert(res.message || (res.success ? 'Presentaciones guardadas' : 'No se pudo guardar'));
-                    if (res.success) cargarPresentacionesProducto(productoId);
+                    if (!res.success || !silencioso) {
+                        if (window.Swal) {
+                            Swal.fire({
+                                icon: res.success ? 'success' : 'error',
+                                title: res.success ? '¡Guardado!' : 'Error',
+                                text: res.message || (res.success ? 'Presentaciones guardadas' : 'No se pudo guardar'),
+                                confirmButtonColor: '#1d4ed8'
+                            });
+                        } else {
+                            alert(res.message || (res.success ? 'Presentaciones guardadas' : 'No se pudo guardar'));
+                        }
+                    }
+                    if (res.success) {
+                        if (mantenerPanel) {
+                            repintarPresentacionesGuardadas(productoId);
+                        } else {
+                            cargarPresentacionesProducto(productoId);
+                        }
+                        // Habilitar botón ACTUALIZAR PRODUCTO cuando se guardan las presentaciones
+                        const btnActualizar = document.getElementById('btnSaveEdit');
+                        if (btnActualizar) {
+                            btnActualizar.disabled = false;
+                            btnActualizar.style.opacity = '1';
+                            btnActualizar.style.cursor = 'pointer';
+                        }
+                        // Mostrar indicador visual de que las presentaciones están guardadas
+                        const resumen = document.getElementById('presentacionesResumen');
+                        if (resumen) {
+                            resumen.style.display = 'block';
+                            resumen.style.background = '#eefcf3';
+                            resumen.style.borderColor = '#b8e4c7';
+                            resumen.style.color = '#18794e';
+                            resumen.innerHTML = '<i class="fas fa-check-circle"></i> PRESENTACIONES GUARDADAS CORRECTAMENTE';
+                        }
+                    }
+                    return !!res.success;
                 })
-                .catch(() => alert('No se pudo guardar las presentaciones.'));
+                .catch(() => {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo guardar las presentaciones.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        alert('No se pudo guardar las presentaciones.');
+                    }
+                    return false;
+                });
         }
 
         function abrirPresentacionManual(boton) {
@@ -4105,22 +4467,72 @@ try {
             const productoId = document.getElementById('productoId').value;
             const nombre = fila.querySelector('.pres-nombre').value || 'PRESENTACIÓN';
             if (!presentacionId) {
-                alert('Guarda primero las presentaciones para poder abrirlas.');
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Guarda primero',
+                        text: 'Guarda primero las presentaciones para poder abrirlas.',
+                        confirmButtonColor: '#1d4ed8'
+                    });
+                } else {
+                    alert('Guarda primero las presentaciones para poder abrirlas.');
+                }
                 return;
             }
-            if (!confirm(`¿Abrir 1 ${nombre}? Se convertirá en su equivalente de la presentación menor.`)) return;
+            if (window.Swal) {
+                Swal.fire({
+                    title: `¿Abrir 1 ${nombre}?`,
+                    text: 'Se convertirá en su equivalente de la presentación menor.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1d4ed8',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Sí, abrir',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        realizarAperturaPresentacion(productoId, presentacionId);
+                    }
+                });
+            } else {
+                if (!confirm(`¿Abrir 1 ${nombre}? Se convertirá en su equivalente de la presentación menor.`)) return;
+                realizarAperturaPresentacion(productoId, presentacionId);
+            }
+        }
 
+        function realizarAperturaPresentacion(productoId, presentacionId) {
             const body = new FormData();
+            body.append('action', 'abrirPresentacion');
             body.append('producto_id', productoId);
             body.append('presentacion_id', presentacionId);
             body.append('cantidad', '1');
             fetch(`${urlInventarioPres}?action=abrirPresentacion`, { method: 'POST', body })
                 .then(r => r.json())
                 .then(res => {
-                    alert(res.message || (res.success ? 'Presentación abierta' : 'No se pudo abrir'));
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: res.success ? 'success' : 'error',
+                            title: res.success ? '¡Abierta!' : 'Error',
+                            text: res.message || (res.success ? 'Presentación abierta' : 'No se pudo abrir'),
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        alert(res.message || (res.success ? 'Presentación abierta' : 'No se pudo abrir'));
+                    }
                     if (res.success) cargarPresentacionesProducto(productoId);
                 })
-                .catch(() => alert('No se pudo abrir la presentación.'));
+                .catch(() => {
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo abrir la presentación.',
+                            confirmButtonColor: '#1d4ed8'
+                        });
+                    } else {
+                        alert('No se pudo abrir la presentación.');
+                    }
+                });
         }
     </script>
 
