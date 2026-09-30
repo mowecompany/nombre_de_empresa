@@ -2613,16 +2613,6 @@ if (is_file($logoPdfPath)) {
                 </div>
                 <div class="card-header">
                     <h2><i class="fas fa-exchange-alt"></i> HISTORIAL DE MOVIMIENTOS</h2>
-                    <?php if ($esSuperAdminGlobalInventario): ?>
-                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                        <button type="button" class="btn-nuevo" style="padding: 8px 12px; background: #3b82f6; border-color: #3b82f6;" onclick="confirmarReinicioInventario('movimientos_inventario')">
-                            <i class="fas fa-broom"></i> REINICIAR
-                        </button>
-                        <button type="button" class="btn-nuevo" style="padding: 8px 12px; background: #64748b; border-color: #64748b;" onclick="confirmarDeshacerReinicioInventario('movimientos_inventario')">
-                            <i class="fas fa-undo"></i> DESHACER
-                        </button>
-                    </div>
-                    <?php endif; ?>
                 </div>
                 <div class="table-wrapper scrollbar-custom">
                     <table class="inventario-detalle-table tabla-movimientos-inventario" style="min-width: 900px;">

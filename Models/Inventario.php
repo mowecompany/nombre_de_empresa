@@ -771,8 +771,21 @@ class Inventario {
                         if ($this->esSqlite()) {
                             $this->db->exec("DELETE FROM sqlite_sequence WHERE name = 'abonos_creditos'");
                         }
+                        
+                        // Eliminar solo los movimientos tipo "salida" de movimientos_inventario
+                        $this->db->exec("DELETE FROM movimientos_inventario WHERE tipo_movimiento = 'salida'");
                     } catch (\Throwable $e) {
                         error_log('No se pudieron reiniciar abonos al reiniciar salidas: ' . $e->getMessage());
+                    }
+                }
+
+                // Si se reinicia entradas_inventario, también limpiar solo los movimientos tipo "entrada"
+                if ($tablaSegura === 'entradas_inventario') {
+                    try {
+                        // Eliminar solo los movimientos tipo "entrada" de movimientos_inventario
+                        $this->db->exec("DELETE FROM movimientos_inventario WHERE tipo_movimiento = 'entrada'");
+                    } catch (\Throwable $e) {
+                        error_log('No se pudieron eliminar movimientos al reiniciar entradas: ' . $e->getMessage());
                     }
                 }
             }
