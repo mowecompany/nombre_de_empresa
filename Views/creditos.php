@@ -373,6 +373,7 @@ $baseUrl = rtrim((string)base_url(), '/');
                 headers: { 'Cache-Control': 'no-cache' }
             });
             const resultado = await respuesta.json();
+            
             if (!resultado.success) throw new Error(resultado.message || 'No se pudieron cargar los créditos');
             creditos = await Promise.all((resultado.data || []).map(async credito => {
                 const ids = (credito.credit_ids || [credito.id]).join(',');
@@ -1103,6 +1104,8 @@ $baseUrl = rtrim((string)base_url(), '/');
             const datos = new FormData();
             datos.append('action', 'eliminarCredito');
             datos.append('credito_id', String(creditoId));
+            // Enviar TODOS los IDs del cliente para eliminar todos sus créditos pagados
+            datos.append('credito_ids', JSON.stringify(codigoCredito));
             
             const respuesta = await fetch(creditosUrl, { method: 'POST', body: datos, credentials: 'same-origin' });
             const textoRespuesta = await respuesta.text();

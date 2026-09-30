@@ -50,10 +50,6 @@ try {
     $mensajeSetup = "❌ Error: " . $e->getMessage();
 }
 
-// Mostrar mensaje en consola
-if ($mensajeSetup) {
-    echo "<script>console.log('MIGRACIÓN PRECIO_COMPRA: {$mensajeSetup}');</script>";
-}
 // ===============================================================
 
 

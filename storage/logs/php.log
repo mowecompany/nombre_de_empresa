@@ -4140,3 +4140,1975 @@ Stack trace:
 #1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
 #2 C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php(10): require_once('C:\\xampp\\htdocs...')
 #3 {main}
+[28-Sep-2026 23:06:59 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[28-Sep-2026 23:06:59 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[28-Sep-2026 23:06:59 America/Bogota] 🔍 Driver detectado: sqlite
+[28-Sep-2026 23:06:59 America/Bogota] ✅ Columna precio_compra YA EXISTE
+[28-Sep-2026 23:06:59 America/Bogota] ⚠️ Sin archivo de bloqueo - Verificando pendientes...
+[28-Sep-2026 23:06:59 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 no such column: e.estado
+[28-Sep-2026 23:06:59 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(91): PDO->query('\n              ...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[28-Sep-2026 23:09:09 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[28-Sep-2026 23:09:09 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[28-Sep-2026 23:09:09 America/Bogota] 🔍 Driver detectado: sqlite
+[28-Sep-2026 23:09:09 America/Bogota] ✅ Columna precio_compra YA EXISTE
+[28-Sep-2026 23:09:09 America/Bogota] ✅ Migración ya completada anteriormente
+[28-Sep-2026 23:09:09 America/Bogota] === FIN SETUP PRECIO_COMPRA ===
+
+[28-Sep-2026 23:09:10 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[28-Sep-2026 23:09:10 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[28-Sep-2026 23:09:10 America/Bogota] 🔍 Driver detectado: sqlite
+[28-Sep-2026 23:09:10 America/Bogota] ✅ Columna precio_compra YA EXISTE
+[28-Sep-2026 23:09:10 America/Bogota] ✅ Migración ya completada anteriormente
+[28-Sep-2026 23:09:10 America/Bogota] === FIN SETUP PRECIO_COMPRA ===
+
+[28-Sep-2026 23:10:05 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[28-Sep-2026 23:10:05 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[28-Sep-2026 23:10:05 America/Bogota] 🔍 Driver detectado: sqlite
+[28-Sep-2026 23:10:05 America/Bogota] ✅ Columna precio_compra YA EXISTE
+[28-Sep-2026 23:10:05 America/Bogota] ✅ Migración ya completada anteriormente
+[28-Sep-2026 23:10:05 America/Bogota] === FIN SETUP PRECIO_COMPRA ===
+
+[28-Sep-2026 23:10:06 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[28-Sep-2026 23:10:06 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[28-Sep-2026 23:10:06 America/Bogota] 🔍 Driver detectado: sqlite
+[28-Sep-2026 23:10:06 America/Bogota] ✅ Columna precio_compra YA EXISTE
+[28-Sep-2026 23:10:06 America/Bogota] ✅ Migración ya completada anteriormente
+[28-Sep-2026 23:10:06 America/Bogota] === FIN SETUP PRECIO_COMPRA ===
+
+[28-Sep-2026 23:10:06 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[28-Sep-2026 23:10:06 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[28-Sep-2026 23:10:06 America/Bogota] 🔍 Driver detectado: sqlite
+[28-Sep-2026 23:10:06 America/Bogota] ✅ Columna precio_compra YA EXISTE
+[28-Sep-2026 23:10:06 America/Bogota] ✅ Migración ya completada anteriormente
+[28-Sep-2026 23:10:06 America/Bogota] === FIN SETUP PRECIO_COMPRA ===
+
+[29-Sep-2026 20:21:29 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:29 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:29 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:29 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:29 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:29 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:29 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:29 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Views\productos.php(10): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:35 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:35 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:35 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:35 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Views\inventarios.php(13): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:35 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:35 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:35 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:35 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:37 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:37 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:37 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:37 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:37 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:37 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:37 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:37 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:39 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:39 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:39 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:39 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:41 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:41 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:41 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:41 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Views\inventarios.php(13): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:41 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:41 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:41 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:41 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:42 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:42 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:42 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:42 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:43 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:43 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:43 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:43 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Views\inventarios.php(13): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:43 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:43 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:43 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:43 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:45 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:45 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:45 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:45 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:45 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:45 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:45 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:45 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:47 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:47 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:47 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:47 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:51 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:51 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:51 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:51 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:54 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:54 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:54 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:54 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:54 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:54 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:54 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:54 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:21:54 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:21:54 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:21:54 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:21:54 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:22:08 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:22:08 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:22:08 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:22:08 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:22:11 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:22:11 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:22:11 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:22:11 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:22:12 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:22:12 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:22:12 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:22:12 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:22:12 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:22:12 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:22:12 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:22:12 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:22:48 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:22:48 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:22:48 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:22:48 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:22:50 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:22:50 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:22:50 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:22:50 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:22:50 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:22:50 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:22:50 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:22:50 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:22:50 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:22:50 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:22:50 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:22:50 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:36 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:36 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:36 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:36 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:36 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:36 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:36 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:36 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:36 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:36 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:36 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:36 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:38 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:38 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:38 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:38 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:41 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:41 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:41 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:41 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:41 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:41 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:41 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:41 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:41 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:41 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:41 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:41 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:42 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:42 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:42 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:42 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:42 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:42 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:42 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:42 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:42 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:42 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:42 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:42 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:45 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:45 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:45 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:45 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:45 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:45 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:45 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:45 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:46 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:46 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:46 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:46 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:48 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:48 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:48 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:48 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:51 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:51 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:51 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:51 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:51 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:51 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:51 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:51 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:25:51 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:25:51 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:25:51 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:25:51 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:27:01 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:27:01 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:27:01 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:27:01 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:27:01 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:27:01 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:27:01 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:27:01 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:27:01 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:27:01 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:27:01 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:27:01 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:27:06 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:27:06 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:27:06 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:27:06 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:27:06 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:27:06 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:27:06 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:27:06 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:27:06 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:27:06 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:27:06 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:27:06 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:27:15 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:27:15 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:27:15 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:27:15 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:27:18 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:27:18 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:27:18 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:27:18 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:27:18 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:27:18 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:27:18 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:27:18 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:27:18 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:27:18 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:27:18 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:27:18 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:25 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:25 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:25 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:25 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:25 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:25 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:25 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:25 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:25 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:25 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:25 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:25 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:28 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:28 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:28 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:28 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:28 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:28 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:28 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:28 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:28 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:28 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:28 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:28 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:31 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:31 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:31 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:31 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:33 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:33 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:33 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:33 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:33 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:33 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:33 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:33 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:33 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:33 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:33 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:33 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:34 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:34 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:34 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:34 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:34 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:34 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:34 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:34 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:34 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:34 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:34 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:34 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:47 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:47 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:47 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:47 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:47 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:47 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:47 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:47 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:47 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:47 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:47 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:47 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:50 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:50 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:50 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:50 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:52 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:52 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:52 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:52 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:52 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:52 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:52 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:52 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:29:52 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:29:52 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:29:52 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:29:52 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:33 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:33 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:33 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:33 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:33 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:33 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:33 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:33 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:33 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:33 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:33 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:33 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:35 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:35 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:35 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:35 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:37 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:37 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:37 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:37 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:37 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:37 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:37 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:37 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:37 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:37 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:37 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:37 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:38 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:38 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:38 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:38 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:38 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:38 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:38 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:38 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:38 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:38 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:38 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:38 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:39 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:39 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:39 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:39 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:39 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:39 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:39 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:39 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:39 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:39 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:39 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:39 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:39 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:39 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:39 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:39 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:40 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:40 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:40 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:40 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:40 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:40 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:40 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:40 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:41 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:41 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:41 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:41 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:41 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:41 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:41 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:41 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:41 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:41 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:41 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:41 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:48 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:48 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:48 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:48 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:51 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:51 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:51 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:51 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:51 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:51 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:51 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:51 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:53 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:53 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:53 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:53 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:55 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:55 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:55 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:55 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:55 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:55 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:55 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:55 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:31:55 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:31:55 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:31:55 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:31:55 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(264): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:15 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:15 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:15 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:15 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:15 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:15 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:15 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:15 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:15 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:15 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:15 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:15 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:17 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:17 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:17 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:17 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:19 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:19 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:19 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:19 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:19 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:19 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:19 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:19 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:19 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:19 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:19 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:19 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:20 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:20 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:20 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:20 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:20 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:20 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:20 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:20 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:20 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:20 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:20 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:20 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:20 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:20 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:20 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:20 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:20 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:20 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:20 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:20 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:20 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:20 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:20 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:20 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:21 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:21 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:21 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:21 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:23 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:23 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:23 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:23 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:23 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:23 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:23 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:23 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:25 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:25 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:25 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:25 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:31 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:31 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:31 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:31 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:31 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:31 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:31 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:31 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:33:31 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:33:31 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:33:31 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:33:31 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:36:06 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:36:06 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:36:06 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:36:06 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:36:06 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:06 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:36:06 America/Bogota] Total créditos en BD: 11
+[29-Sep-2026 20:36:06 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:36:06 America/Bogota] Después de mapear: 11
+[29-Sep-2026 20:36:06 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:06 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:36:06 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:36:06 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:36:06 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:36:06 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:06 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:36:06 America/Bogota] Total créditos en BD: 11
+[29-Sep-2026 20:36:06 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:36:06 America/Bogota] Después de mapear: 11
+[29-Sep-2026 20:36:06 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:06 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:36:06 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:36:06 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:36:06 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:36:09 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:36:09 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:36:09 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:36:09 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:36:09 America/Bogota] ========== ELIMINAR CREDITO DEBUG ==========
+[29-Sep-2026 20:36:09 America/Bogota] IDs a eliminar: [14]
+[29-Sep-2026 20:36:09 America/Bogota] Driver: sqlite
+[29-Sep-2026 20:36:09 America/Bogota] Créditos ANTES de DELETE: 1
+[29-Sep-2026 20:36:09 America/Bogota] Abonos eliminados: 0
+[29-Sep-2026 20:36:09 America/Bogota] Detalles eliminados: 0
+[29-Sep-2026 20:36:09 America/Bogota] Créditos eliminados: 1
+[29-Sep-2026 20:36:09 America/Bogota] COMMIT ejecutado (SQLite)
+[29-Sep-2026 20:36:09 America/Bogota] Créditos DESPUÉS de DELETE: 0
+[29-Sep-2026 20:36:09 America/Bogota] ========== FIN ELIMINAR CREDITO DEBUG ==========
+[29-Sep-2026 20:36:12 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:36:12 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:36:12 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:36:12 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:36:12 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:12 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:36:12 America/Bogota] Total créditos en BD: 10
+[29-Sep-2026 20:36:12 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:36:12 America/Bogota] Después de mapear: 10
+[29-Sep-2026 20:36:12 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:12 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:36:12 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:36:12 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:36:12 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:36:12 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:12 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:36:12 America/Bogota] Total créditos en BD: 10
+[29-Sep-2026 20:36:12 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:36:12 America/Bogota] Después de mapear: 10
+[29-Sep-2026 20:36:12 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:13 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:36:13 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:36:13 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:36:13 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:36:56 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:36:56 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:36:56 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:36:56 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:36:56 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:56 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:36:56 America/Bogota] Total créditos en BD: 10
+[29-Sep-2026 20:36:56 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:36:56 America/Bogota] Después de mapear: 10
+[29-Sep-2026 20:36:56 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:56 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:36:56 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:36:56 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:36:56 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:36:56 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:56 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:36:56 America/Bogota] Total créditos en BD: 10
+[29-Sep-2026 20:36:56 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:36:56 America/Bogota] Después de mapear: 10
+[29-Sep-2026 20:36:56 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:36:56 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:36:56 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:36:56 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:36:56 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:37:13 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:37:13 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:37:13 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:37:13 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:37:13 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:37:13 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:37:13 America/Bogota] Total créditos en BD: 10
+[29-Sep-2026 20:37:13 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:37:13 America/Bogota] Después de mapear: 10
+[29-Sep-2026 20:37:13 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:37:13 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:37:13 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:37:13 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:37:13 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:37:13 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:37:13 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:37:13 America/Bogota] Total créditos en BD: 10
+[29-Sep-2026 20:37:13 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:37:13 America/Bogota] Después de mapear: 10
+[29-Sep-2026 20:37:13 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:37:13 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:37:13 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:37:13 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:37:13 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:37:16 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:37:16 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:37:16 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:37:16 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:37:18 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:37:18 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:37:18 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:37:18 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:37:18 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:37:18 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:37:18 America/Bogota] Total créditos en BD: 9
+[29-Sep-2026 20:37:18 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:37:18 America/Bogota] Después de mapear: 9
+[29-Sep-2026 20:37:18 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:37:18 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:37:18 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:37:18 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:37:18 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:37:18 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:37:18 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:37:18 America/Bogota] Total créditos en BD: 9
+[29-Sep-2026 20:37:18 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:37:18 America/Bogota] Después de mapear: 9
+[29-Sep-2026 20:37:18 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:37:18 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:37:18 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:37:18 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:37:18 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:38:46 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:38:46 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:38:46 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:38:46 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:38:46 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:38:46 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:38:46 America/Bogota] Total créditos en BD: 9
+[29-Sep-2026 20:38:46 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:38:46 America/Bogota] Después de mapear: 9
+[29-Sep-2026 20:38:46 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:38:46 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:38:46 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:38:46 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:38:46 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:38:46 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:38:46 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:38:46 America/Bogota] Total créditos en BD: 9
+[29-Sep-2026 20:38:46 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:38:46 America/Bogota] Después de mapear: 9
+[29-Sep-2026 20:38:46 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:38:46 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:38:46 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:38:46 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:38:46 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:38:57 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:38:57 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:38:57 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:38:57 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:38:59 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:38:59 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:38:59 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:38:59 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:38:59 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:38:59 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:38:59 America/Bogota] Total créditos en BD: 8
+[29-Sep-2026 20:38:59 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:38:59 America/Bogota] Después de mapear: 8
+[29-Sep-2026 20:38:59 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:39:00 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:39:00 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:39:00 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:39:00 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:39:00 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:39:00 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:39:00 America/Bogota] Total créditos en BD: 8
+[29-Sep-2026 20:39:00 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:39:00 America/Bogota] Después de mapear: 8
+[29-Sep-2026 20:39:00 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:39:00 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:39:00 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:39:00 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:39:00 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:40:29 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:40:29 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:40:29 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:40:29 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:40:29 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:29 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:40:29 America/Bogota] Total créditos en BD: 8
+[29-Sep-2026 20:40:29 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:40:29 America/Bogota] Después de mapear: 8
+[29-Sep-2026 20:40:29 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:29 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:40:29 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:40:29 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:40:29 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:40:29 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:29 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:40:29 America/Bogota] Total créditos en BD: 8
+[29-Sep-2026 20:40:29 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:40:29 America/Bogota] Después de mapear: 8
+[29-Sep-2026 20:40:29 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:29 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:40:29 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:40:29 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:40:29 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:40:32 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:40:32 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:40:32 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:40:32 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:40:32 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:32 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:40:32 America/Bogota] Total créditos en BD: 8
+[29-Sep-2026 20:40:32 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:40:32 America/Bogota] Después de mapear: 8
+[29-Sep-2026 20:40:32 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:32 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:40:32 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:40:32 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:40:32 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:40:32 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:32 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:40:32 America/Bogota] Total créditos en BD: 8
+[29-Sep-2026 20:40:32 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:40:32 America/Bogota] Después de mapear: 8
+[29-Sep-2026 20:40:32 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:32 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:40:32 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:40:32 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:40:32 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:40:39 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:40:39 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:40:39 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:40:39 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:40:42 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:40:42 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:40:42 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:40:42 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:40:42 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:42 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:40:42 America/Bogota] Total créditos en BD: 7
+[29-Sep-2026 20:40:42 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:40:42 America/Bogota] Después de mapear: 7
+[29-Sep-2026 20:40:42 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:42 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:40:42 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:40:42 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:40:42 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:40:42 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:42 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:40:42 America/Bogota] Total créditos en BD: 7
+[29-Sep-2026 20:40:42 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:40:42 America/Bogota] Después de mapear: 7
+[29-Sep-2026 20:40:42 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:40:43 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:40:43 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:40:43 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:40:43 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(260): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:41:46 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:41:46 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:41:46 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:41:46 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:41:46 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:41:46 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:41:46 America/Bogota] Total créditos en BD: 7
+[29-Sep-2026 20:41:46 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:41:46 America/Bogota] Después de mapear: 7
+[29-Sep-2026 20:41:46 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:41:46 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:41:46 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:41:46 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:41:46 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:41:46 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:41:46 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:41:46 America/Bogota] Total créditos en BD: 7
+[29-Sep-2026 20:41:46 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:41:46 America/Bogota] Después de mapear: 7
+[29-Sep-2026 20:41:46 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:41:46 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:41:46 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:41:46 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:41:46 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:41:48 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:41:48 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:41:48 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:41:48 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:41:50 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:41:50 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:41:50 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:41:50 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:41:50 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:41:50 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:41:50 America/Bogota] Total créditos en BD: 6
+[29-Sep-2026 20:41:50 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:41:50 America/Bogota] Después de mapear: 6
+[29-Sep-2026 20:41:50 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:41:50 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:41:50 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:41:50 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:41:50 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:41:50 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:41:50 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:41:50 America/Bogota] Total créditos en BD: 6
+[29-Sep-2026 20:41:50 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:41:50 America/Bogota] Después de mapear: 6
+[29-Sep-2026 20:41:50 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:41:50 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:41:50 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:41:50 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:41:50 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:42:56 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:42:56 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:42:56 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:42:56 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:42:56 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:42:56 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:42:56 America/Bogota] Total créditos en BD: 6
+[29-Sep-2026 20:42:56 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:42:56 America/Bogota] Después de mapear: 6
+[29-Sep-2026 20:42:56 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:42:56 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:42:56 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:42:56 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:42:56 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:42:56 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:42:56 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:42:56 America/Bogota] Total créditos en BD: 6
+[29-Sep-2026 20:42:56 America/Bogota] Primeros 3 IDs: ["24","23","22"]
+[29-Sep-2026 20:42:56 America/Bogota] Después de mapear: 6
+[29-Sep-2026 20:42:56 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:42:56 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:42:56 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:42:56 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:42:56 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:37 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:37 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:37 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:37 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:37 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:37 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:37 America/Bogota] Total créditos en BD: 6
+[29-Sep-2026 20:45:37 America/Bogota] IDs en BD: ["24","23","22","21","20","19"]
+[29-Sep-2026 20:45:37 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:45:37 America/Bogota] Saldos en BD: ["0","0","0","0","0","0"]
+[29-Sep-2026 20:45:37 America/Bogota] Después de mapear: 6
+[29-Sep-2026 20:45:37 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:37 America/Bogota] Después de agrupar por cliente: 1 créditos
+[29-Sep-2026 20:45:37 America/Bogota] IDs finales: [24]
+[29-Sep-2026 20:45:38 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:38 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:38 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:38 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:38 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:38 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:38 America/Bogota] Total créditos en BD: 6
+[29-Sep-2026 20:45:38 America/Bogota] IDs en BD: ["24","23","22","21","20","19"]
+[29-Sep-2026 20:45:38 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:45:38 America/Bogota] Saldos en BD: ["0","0","0","0","0","0"]
+[29-Sep-2026 20:45:38 America/Bogota] Después de mapear: 6
+[29-Sep-2026 20:45:38 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:38 America/Bogota] Después de agrupar por cliente: 1 créditos
+[29-Sep-2026 20:45:38 America/Bogota] IDs finales: [24]
+[29-Sep-2026 20:45:38 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:38 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:38 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:38 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:40 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:40 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:40 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:40 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:42 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:42 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:42 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:42 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:42 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:42 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:42 America/Bogota] Total créditos en BD: 5
+[29-Sep-2026 20:45:42 America/Bogota] IDs en BD: ["24","23","22","21","20"]
+[29-Sep-2026 20:45:42 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:45:42 America/Bogota] Saldos en BD: ["0","0","0","0","0"]
+[29-Sep-2026 20:45:42 America/Bogota] Después de mapear: 5
+[29-Sep-2026 20:45:42 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:42 America/Bogota] Después de agrupar por cliente: 1 créditos
+[29-Sep-2026 20:45:42 America/Bogota] IDs finales: [24]
+[29-Sep-2026 20:45:42 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:42 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:42 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:42 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:42 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:42 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:42 America/Bogota] Total créditos en BD: 5
+[29-Sep-2026 20:45:42 America/Bogota] IDs en BD: ["24","23","22","21","20"]
+[29-Sep-2026 20:45:42 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:45:42 America/Bogota] Saldos en BD: ["0","0","0","0","0"]
+[29-Sep-2026 20:45:42 America/Bogota] Después de mapear: 5
+[29-Sep-2026 20:45:42 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:42 America/Bogota] Después de agrupar por cliente: 1 créditos
+[29-Sep-2026 20:45:42 America/Bogota] IDs finales: [24]
+[29-Sep-2026 20:45:42 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:42 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:42 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:42 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:43 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:43 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:43 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:43 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:43 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:43 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:43 America/Bogota] Total créditos en BD: 5
+[29-Sep-2026 20:45:43 America/Bogota] IDs en BD: ["24","23","22","21","20"]
+[29-Sep-2026 20:45:43 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:45:43 America/Bogota] Saldos en BD: ["0","0","0","0","0"]
+[29-Sep-2026 20:45:43 America/Bogota] Después de mapear: 5
+[29-Sep-2026 20:45:43 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:43 America/Bogota] Después de agrupar por cliente: 1 créditos
+[29-Sep-2026 20:45:43 America/Bogota] IDs finales: [24]
+[29-Sep-2026 20:45:43 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:43 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:43 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:43 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:43 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:43 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:43 America/Bogota] Total créditos en BD: 5
+[29-Sep-2026 20:45:43 America/Bogota] IDs en BD: ["24","23","22","21","20"]
+[29-Sep-2026 20:45:43 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:45:43 America/Bogota] Saldos en BD: ["0","0","0","0","0"]
+[29-Sep-2026 20:45:43 America/Bogota] Después de mapear: 5
+[29-Sep-2026 20:45:43 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:43 America/Bogota] Después de agrupar por cliente: 1 créditos
+[29-Sep-2026 20:45:43 America/Bogota] IDs finales: [24]
+[29-Sep-2026 20:45:43 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:43 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:43 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:43 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:45 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:45 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:45 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:45 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:46 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:46 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:46 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:46 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:46 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:46 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:46 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:45:46 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:45:46 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:45:46 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:45:46 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:45:46 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:46 America/Bogota] Después de agrupar por cliente: 0 créditos
+[29-Sep-2026 20:45:46 America/Bogota] IDs finales: []
+[29-Sep-2026 20:45:48 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:48 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:48 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:48 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:48 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:48 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:48 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:45:48 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:45:48 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:45:48 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:45:48 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:45:48 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:48 America/Bogota] Después de agrupar por cliente: 0 créditos
+[29-Sep-2026 20:45:48 America/Bogota] IDs finales: []
+[29-Sep-2026 20:45:48 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:48 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:48 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:48 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:48 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:48 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:48 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:45:48 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:45:48 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:45:48 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:45:48 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:45:48 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:48 America/Bogota] Después de agrupar por cliente: 0 créditos
+[29-Sep-2026 20:45:48 America/Bogota] IDs finales: []
+[29-Sep-2026 20:45:49 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:49 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:49 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:49 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:49 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:49 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:49 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:45:49 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:45:49 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:45:49 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:45:49 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:45:49 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:49 America/Bogota] Después de agrupar por cliente: 0 créditos
+[29-Sep-2026 20:45:49 America/Bogota] IDs finales: []
+[29-Sep-2026 20:45:49 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:45:49 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:45:49 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:45:49 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:45:49 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:49 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:45:49 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:45:49 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:45:49 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:45:49 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:45:49 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:45:49 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:45:49 America/Bogota] Después de agrupar por cliente: 0 créditos
+[29-Sep-2026 20:45:49 America/Bogota] IDs finales: []
+[29-Sep-2026 20:46:19 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:46:19 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:46:19 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:46:19 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:46:19 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:46:19 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:46:19 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:46:19 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:46:19 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:46:19 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:46:19 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:46:19 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:46:19 America/Bogota] Después de agrupar por cliente: 0 créditos
+[29-Sep-2026 20:46:19 America/Bogota] IDs finales: []
+[29-Sep-2026 20:46:19 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:46:19 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:46:19 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:46:19 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:46:19 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:46:19 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:46:19 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:46:19 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:46:19 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:46:19 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:46:19 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:46:19 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:46:19 America/Bogota] Después de agrupar por cliente: 0 créditos
+[29-Sep-2026 20:46:19 America/Bogota] IDs finales: []
+[29-Sep-2026 20:46:53 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:46:53 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:46:53 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:46:53 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:46:53 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:46:53 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:46:53 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:46:53 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:46:53 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:46:53 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:46:53 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:46:53 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:46:55 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:46:55 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:46:55 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:46:55 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:46:55 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:46:55 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:46:55 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:46:55 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:46:55 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:46:55 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:46:55 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:46:55 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:06 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:06 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:06 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:06 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php(10): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:08 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:08 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:08 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:08 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:08 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:08 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:08 America/Bogota] Total créditos en BD: 24
+[29-Sep-2026 20:47:08 America/Bogota] IDs en BD: ["24","23","22","21","20","19","18","17","16","15","14","13","12","11","10","9","8","7","6","5","4","3","2","1"]
+[29-Sep-2026 20:47:08 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:47:08 America/Bogota] Saldos en BD: ["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
+[29-Sep-2026 20:47:08 America/Bogota] Después de mapear: 24
+[29-Sep-2026 20:47:08 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:10 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:10 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:10 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:10 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:10 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:10 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:10 America/Bogota] Total créditos en BD: 24
+[29-Sep-2026 20:47:10 America/Bogota] IDs en BD: ["24","23","22","21","20","19","18","17","16","15","14","13","12","11","10","9","8","7","6","5","4","3","2","1"]
+[29-Sep-2026 20:47:10 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:47:10 America/Bogota] Saldos en BD: ["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
+[29-Sep-2026 20:47:10 America/Bogota] Después de mapear: 24
+[29-Sep-2026 20:47:10 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:10 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:10 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:10 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:10 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:12 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:12 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:12 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:12 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:14 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:14 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:15 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:15 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:15 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:15 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:15 America/Bogota] Total créditos en BD: 23
+[29-Sep-2026 20:47:15 America/Bogota] IDs en BD: ["24","23","22","21","20","19","18","17","16","15","14","13","12","11","10","9","8","7","6","5","4","3","2"]
+[29-Sep-2026 20:47:15 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:47:15 America/Bogota] Saldos en BD: ["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
+[29-Sep-2026 20:47:15 America/Bogota] Después de mapear: 23
+[29-Sep-2026 20:47:15 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:15 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:15 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:15 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:15 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:15 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:15 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:15 America/Bogota] Total créditos en BD: 23
+[29-Sep-2026 20:47:15 America/Bogota] IDs en BD: ["24","23","22","21","20","19","18","17","16","15","14","13","12","11","10","9","8","7","6","5","4","3","2"]
+[29-Sep-2026 20:47:15 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:47:15 America/Bogota] Saldos en BD: ["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
+[29-Sep-2026 20:47:15 America/Bogota] Después de mapear: 23
+[29-Sep-2026 20:47:15 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:15 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:15 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:15 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:15 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:33 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:33 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:33 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:33 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:33 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:33 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:33 America/Bogota] Total créditos en BD: 23
+[29-Sep-2026 20:47:33 America/Bogota] IDs en BD: ["24","23","22","21","20","19","18","17","16","15","14","13","12","11","10","9","8","7","6","5","4","3","2"]
+[29-Sep-2026 20:47:33 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:47:33 America/Bogota] Saldos en BD: ["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
+[29-Sep-2026 20:47:33 America/Bogota] Después de mapear: 23
+[29-Sep-2026 20:47:33 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:33 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:33 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:33 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:33 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:33 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:33 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:33 America/Bogota] Total créditos en BD: 23
+[29-Sep-2026 20:47:33 America/Bogota] IDs en BD: ["24","23","22","21","20","19","18","17","16","15","14","13","12","11","10","9","8","7","6","5","4","3","2"]
+[29-Sep-2026 20:47:33 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:47:33 America/Bogota] Saldos en BD: ["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
+[29-Sep-2026 20:47:33 America/Bogota] Después de mapear: 23
+[29-Sep-2026 20:47:33 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:33 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:33 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:33 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:33 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:35 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:35 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:35 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:35 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:37 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:37 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:37 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:37 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:37 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:37 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:37 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:47:37 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:47:37 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:47:37 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:47:37 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:47:37 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:37 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:37 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:37 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:37 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:37 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:37 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:37 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:47:37 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:47:37 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:47:37 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:47:37 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:47:37 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:38 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:38 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:38 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:38 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:38 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:38 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:38 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:47:38 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:47:38 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:47:38 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:47:38 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:47:38 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:38 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:38 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:38 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:38 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:38 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:38 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:38 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:47:38 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:47:38 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:47:38 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:47:38 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:47:38 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:48 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:48 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:48 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:48 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php(10): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:50 America/Bogota] PRECIO_COMPRA: No hay lock - Verificando productos...
+[29-Sep-2026 20:47:50 America/Bogota] PRECIO_COMPRA ERROR: SQLSTATE[HY000]: General error: 1 no such column: precio_compra
+[29-Sep-2026 20:47:50 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:50 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:50 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:50 America/Bogota] ✅ Columna precio_compra creada en productos
+[29-Sep-2026 20:47:50 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:50 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:50 America/Bogota] Total créditos en BD: 24
+[29-Sep-2026 20:47:50 America/Bogota] IDs en BD: ["24","23","22","21","20","19","18","17","16","15","14","13","12","11","10","9","8","7","6","5","4","3","2","1"]
+[29-Sep-2026 20:47:50 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:47:50 America/Bogota] Saldos en BD: ["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
+[29-Sep-2026 20:47:50 America/Bogota] Después de mapear: 24
+[29-Sep-2026 20:47:50 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:54 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:54 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:54 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:54 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:54 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:54 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:54 America/Bogota] Total créditos en BD: 24
+[29-Sep-2026 20:47:54 America/Bogota] IDs en BD: ["24","23","22","21","20","19","18","17","16","15","14","13","12","11","10","9","8","7","6","5","4","3","2","1"]
+[29-Sep-2026 20:47:54 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:47:54 America/Bogota] Saldos en BD: ["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
+[29-Sep-2026 20:47:54 America/Bogota] Después de mapear: 24
+[29-Sep-2026 20:47:54 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:54 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:54 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:54 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:54 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:54 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:54 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:47:54 America/Bogota] Total créditos en BD: 24
+[29-Sep-2026 20:47:54 America/Bogota] IDs en BD: ["24","23","22","21","20","19","18","17","16","15","14","13","12","11","10","9","8","7","6","5","4","3","2","1"]
+[29-Sep-2026 20:47:54 America/Bogota] Estados en BD: ["pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado","pagado"]
+[29-Sep-2026 20:47:54 America/Bogota] Saldos en BD: ["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]
+[29-Sep-2026 20:47:54 America/Bogota] Después de mapear: 24
+[29-Sep-2026 20:47:54 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:47:54 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:54 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:54 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:54 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:47:58 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:47:58 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:47:58 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:47:58 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:48:00 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:48:00 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:48:00 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:48:00 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:48:00 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:48:00 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:48:00 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:48:00 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:48:00 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:48:00 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:48:00 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:48:00 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:48:00 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:48:00 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:48:00 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:48:00 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:48:00 America/Bogota] ========== LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:48:00 America/Bogota] Empresa ID: 1
+[29-Sep-2026 20:48:00 America/Bogota] Total créditos en BD: 0
+[29-Sep-2026 20:48:00 America/Bogota] IDs en BD: []
+[29-Sep-2026 20:48:00 America/Bogota] Estados en BD: []
+[29-Sep-2026 20:48:00 America/Bogota] Saldos en BD: []
+[29-Sep-2026 20:48:00 America/Bogota] Después de mapear: 0
+[29-Sep-2026 20:48:00 America/Bogota] ========== FIN LISTAR CREDITOS DEBUG ==========
+[29-Sep-2026 20:53:16 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:53:16 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:53:16 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:53:16 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\BaseDatosController.php(10): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:53:17 America/Bogota] PRECIO_COMPRA: No hay lock - Verificando productos...
+[29-Sep-2026 20:53:17 America/Bogota] PRECIO_COMPRA ERROR: SQLSTATE[HY000]: General error: 1 no such column: precio_compra
+[29-Sep-2026 20:53:17 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:53:17 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:53:17 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:53:17 America/Bogota] ✅ Columna precio_compra creada en productos
+[29-Sep-2026 20:53:20 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:53:20 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:53:20 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:53:20 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:53:20 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:53:20 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:53:20 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:53:20 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}
+[29-Sep-2026 20:53:22 America/Bogota] PRECIO_COMPRA: Lock existe - No se requiere migración
+[29-Sep-2026 20:53:22 America/Bogota] === INICIO SETUP PRECIO_COMPRA ===
+[29-Sep-2026 20:53:22 America/Bogota] ❌ ERROR: SQLSTATE[HY000]: General error: 1 near "SHOW": syntax error
+[29-Sep-2026 20:53:22 America/Bogota] Stack: #0 C:\xampp\htdocs\nombre_de_empresa\Config\setup_precio_compra.php(31): PDO->query('SHOW COLUMNS FR...')
+#1 C:\xampp\htdocs\nombre_de_empresa\Config\database.php(273): require_once('C:\\xampp\\htdocs...')
+#2 C:\xampp\htdocs\nombre_de_empresa\Controllers\CreditosController.php(9): require_once('C:\\xampp\\htdocs...')
+#3 {main}

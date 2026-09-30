@@ -623,15 +623,19 @@ try {
                 $db->beginTransaction();
             }
             $enTransaccion = true;
+            
             $db->prepare("DELETE FROM abonos_creditos WHERE credito_id IN ({$marcadores})")->execute($ids);
             $db->prepare("DELETE FROM detalle_creditos WHERE credito_id IN ({$marcadores})")->execute($ids);
             $db->prepare("DELETE FROM creditos WHERE id IN ({$marcadores})")->execute($ids);
+            
             if ($driver === 'sqlite') {
                 $db->exec('COMMIT');
+                Database::clearConnections();
             } else {
                 $db->commit();
             }
             $enTransaccion = false;
+            
         } catch (Throwable $e) {
             if ($enTransaccion) {
                 try { $driver === 'sqlite' ? $db->exec('ROLLBACK') : $db->rollBack(); } catch (Throwable $rollbackError) {}
@@ -801,6 +805,8 @@ try {
                 ORDER BY CASE WHEN LOWER(COALESCE(c.estado, '')) IN ('pendiente', 'PENDIENTE') THEN 0 ELSE 1 END, c.fecha_creacion DESC";
         $stmt = $db->prepare($sql);
         $stmt->execute([':empresa_id' => $empresaId > 0 ? $empresaId : 0]);
+        $creditosRaw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
         $clientes = [];
         foreach ($usuarioModel->obtenerUsuarios() as $usuario) {
             $clientes[(int)$usuario['id']] = $usuario;
@@ -814,7 +820,7 @@ try {
             $credito['saldo'] = (float)($credito['saldo'] ?? 0);
             $credito['estado'] = $credito['saldo'] > 0 ? 'pendiente' : 'pagado';
             return $credito;
-        }, $stmt->fetchAll(PDO::FETCH_ASSOC));
+        }, $creditosRaw);
 
         $creditosPorCliente = [];
         foreach ($creditos as $credito) {

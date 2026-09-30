@@ -160,61 +160,31 @@ const puertoBasculaForzado = (() => {
 
 let ultimoDiagnosticoPermisos = null;
 const RECUPERACION_BASCULA_VERSION = 'ch340-pnp-v2';
-const MAX_DIAGNOSTICO_PESO_BYTES = 1024 * 1024;
-let colaDiagnosticoPeso = Promise.resolve();
+// DESHABILITADO: Variables de diagnóstico ya no se usan
+// const MAX_DIAGNOSTICO_PESO_BYTES = 1024 * 1024;
+// let colaDiagnosticoPeso = Promise.resolve();
 let diagnosticoPesoInventarioActivo = false;
 
+// DESHABILITADO: No generar archivos de diagnóstico
 function rutaDiagnosticoPesoInventario() {
-  let carpeta;
-  try {
-    carpeta = app.getPath('desktop');
-  } catch (_) {
-    carpeta = app.getPath('userData');
-  }
-  return path.join(carpeta, 'ESTRELLA-diagnostico-peso-inventario.log');
+  return null;
 }
 
+// DESHABILITADO: No generar archivos de diagnóstico
 function normalizarDetalleDiagnosticoPeso(detalle) {
-  if (!detalle || typeof detalle !== 'object') return { detalle: String(detalle || '') };
-  return {
-    origen: String(detalle.origen || '').slice(0, 60),
-    peso: Number.isFinite(Number(detalle.peso)) ? Number(detalle.peso) : null,
-    ts: Number.isFinite(Number(detalle.ts)) ? Number(detalle.ts) : null,
-    modalActivo: Boolean(detalle.modalActivo),
-    elementoExiste: Boolean(detalle.elementoExiste),
-    texto: String(detalle.texto || '').slice(0, 120),
-    motivo: String(detalle.motivo || '').slice(0, 160)
-  };
+  return {};
 }
 
 function registrarDiagnosticoPesoInventario(etapa, detalle = {}) {
+  // DESHABILITADO: No generar archivos de diagnóstico
   const nombreEtapa = String(etapa || 'sin-etapa').slice(0, 80);
   if (nombreEtapa === 'modal-abierto') diagnosticoPesoInventarioActivo = true;
-  if (!diagnosticoPesoInventarioActivo) return { guardado: false };
-  const registro = {
-    hora: new Date().toISOString(),
-    etapa: nombreEtapa,
-    ...normalizarDetalleDiagnosticoPeso(detalle)
-  };
-  console.info('[PESO-INVENTARIO]', registro);
-  colaDiagnosticoPeso = colaDiagnosticoPeso.then(async () => {
-    try {
-      const ruta = rutaDiagnosticoPesoInventario();
-      try {
-        const estado = await fs.promises.stat(ruta);
-        if (estado.size >= MAX_DIAGNOSTICO_PESO_BYTES) {
-          await fs.promises.rename(ruta, `${ruta}.anterior`).catch(async () => {
-            await fs.promises.truncate(ruta, 0);
-          });
-        }
-      } catch (_) { /* el archivo todavía no existe */ }
-      await fs.promises.appendFile(ruta, `${JSON.stringify(registro)}\n`, 'utf8');
-    } catch (_) {
-      // El diagnóstico nunca debe interrumpir la lectura ni una venta.
-    }
-  });
   if (nombreEtapa === 'modal-cerrado') diagnosticoPesoInventarioActivo = false;
-  return { guardado: true, archivo: rutaDiagnosticoPesoInventario() };
+  
+  // Solo log en consola, sin escribir archivos
+  console.info('[PESO-INVENTARIO]', nombreEtapa, detalle);
+  
+  return { guardado: false };
 }
 
 function identidadCompilacion() {
@@ -855,12 +825,9 @@ function createMainWindow(serverUrl) {
     if (soloRegistrarErrores && evento !== 'did-fail-load' && evento !== 'render-process-gone' && evento !== 'unresponsive') {
       return;
     }
-    try {
-      const linea = `[${new Date().toISOString()}] ${evento} ${detalle}\n`;
-      fs.appendFileSync(path.join(app.getPath('userData'), 'navegacion.log'), linea, 'utf8');
-    } catch (error) {
-      // El log es informativo: nunca debe interrumpir la aplicación.
-    }
+    // DESHABILITADO: No generar archivo de log de navegación
+    // Solo log en consola
+    console.log(`[NAVEGACION] ${evento}: ${detalle}`);
   };
 
   mainWindow.webContents.on('did-start-navigation', (_e, url, _isInPlace, isMainFrame) => {
@@ -1325,13 +1292,11 @@ ipcMain.handle('restart-app', async () => {
 
 ipcMain.handle('check-remote-server', async (_, rawUrl) => {
   const targetUrl = String(rawUrl || '').trim();
-  const logPath = path.join(app.getPath('desktop'), 'autoservicio-connection-diagnostics.txt');
+  // DESHABILITADO: No crear archivos de diagnóstico en el escritorio
+  
   const writeLog = (message) => {
-    try {
-      fs.appendFileSync(logPath, `[${new Date().toISOString()}] ${message}\r\n`, 'utf8');
-    } catch (error) {
-      console.warn('No se pudo escribir diagnóstico de conexión:', error.message);
-    }
+    // Solo log en consola, sin escribir archivos
+    console.log(`[CONNECTION-CHECK] ${message}`);
   };
 
   writeLog(`Intento de conexión: ${targetUrl || '(vacío)'}`);
@@ -1393,14 +1358,8 @@ ipcMain.handle('check-remote-server', async (_, rawUrl) => {
 });
 
 ipcMain.handle('get-connection-diagnostics', async () => {
-  const desktopPath = app.getPath('desktop');
-  const logPath = path.join(desktopPath, 'autoservicio-connection-diagnostics.txt');
-  try {
-    const content = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8') : 'No hay diagnósticos registrados todavía.';
-    return { ok: true, path: logPath, content };
-  } catch (error) {
-    return { ok: false, path: logPath, content: `No se pudo leer el diagnóstico: ${error.message}` };
-  }
+  // DESHABILITADO: Ya no se generan archivos de diagnóstico
+  return { ok: false, content: 'Diagnósticos deshabilitados - revisar consola de Electron para logs' };
 });
 
 function normalizePdfFileName(value) {
