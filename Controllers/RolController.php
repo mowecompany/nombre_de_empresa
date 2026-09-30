@@ -275,15 +275,14 @@ try {
             exit;
         }
         
-        // Evitar eliminar roles protegidos salvo que el usuario sea Super Administrador.
+        // Evitar eliminar roles protegidos (Administrador y Super Administrador)
         $rolActual = normalizarNombreRol($_SESSION['rol'] ?? '');
         $nombreRol = normalizarNombreRol($rol['nombre'] ?? '');
         $esSuperAdminSesion = $rolActual === 'superadministrador';
         $esRolProtegido = in_array($nombreRol, ['superadministrador', 'administrador'], true);
-        $esRolAdmin = $nombreRol === 'administrador';
 
-        if ($esRolProtegido || $id <= 2) {
-            $mensaje = 'No se puede eliminar administrador ni superadministrador. Solo se permite eliminar roles a partir del tercer rol.';
+        if ($esRolProtegido) {
+            $mensaje = 'No se puede eliminar el rol de Administrador o Super Administrador.';
             echo json_encode([
                 'success' => false,
                 'message' => $mensaje

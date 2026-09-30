@@ -579,17 +579,64 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
 
         .modal-content {
             background: white;
-            padding: 40px;
+            padding: 30px 35px;
             border-radius: 14px;
             box-shadow: 0 12px 36px rgba(20, 30, 40, 0.15), 0 0 0 1px rgba(20, 30, 40, 0.05);
-            max-width: 1000px;
-            width: 90%;
+            width: 95%;
+            max-width: 900px;
             max-height: 90vh;
             overflow-y: auto;
             position: relative;
+            z-index: 12001 !important;
             text-transform: uppercase;
             animation: modalFadeIn 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
             margin: auto;
+        }
+        
+        .modal-content form {
+            padding: 0;
+            flex: 1;
+            max-height: calc(90vh - 120px);
+            scrollbar-width: thin;
+            scrollbar-color: #2f4a5a #f0f0f0;
+        }
+        
+        .modal-content form::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .modal-content form::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .modal-content form::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2f4a5a 0%, #1a2d4f 100%);
+            border-radius: 4px;
+        }
+        
+        .modal-content form::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1a2d4f 0%, #0f1a2e 100%);
+        }
+        
+        .modal-content button[type="submit"] {
+            flex-shrink: 0;
+            margin-top: 20px;
+        }
+        
+        .modal-content h2 {
+            background: transparent;
+            color: #2f4a5a;
+            margin: -30px -35px 25px -35px;
+            padding: 20px 25px;
+            border-radius: 14px 14px 0 0;
+            border-bottom: 2px solid #e6e9ee;
+            font-size: 22px;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+            font-family: var(--font-saira);
         }
         
         @keyframes modalFadeIn {
@@ -842,7 +889,7 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
             font-size: 32px;
             font-weight: 300;
             cursor: pointer;
-            color: var(--text);
+            color: #2f4a5a;
             z-index: 10;
             transition: all 0.2s ease;
             width: 36px;
@@ -851,11 +898,19 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            border: none;
+            background: transparent;
         }
 
         .close:hover {
             color: white;
-            background: var(--navbar);
+            background: #2f4a5a;
+            transform: rotate(90deg);
+        }
+
+        .close:focus {
+            color: white;
+            background: #2f4a5a;
             transform: rotate(90deg);
         }
 
@@ -893,6 +948,7 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
             box-sizing: border-box;
             resize: vertical;
             min-height: 50px;
+            font-family: var(--font-saira);
         }
         
         .form-group input:focus,
@@ -1689,6 +1745,7 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
             color: #242629;
             outline: none;
             transition: all 0.3s ease;
+            font-family: var(--font-saira);
         }
 
         .form-group input:focus,
@@ -2177,6 +2234,7 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
         function editarRol(rol) {
             const rolActualNormalizado = getRolActualNormalizado();
             const nombreRolNormalizado = normalizarTextoRol(rol.nombre || '');
+            
             if (rolActualNormalizado !== 'superadministrador' && nombreRolNormalizado === 'superadministrador') {
                 Swal.fire({
                     icon: 'error',
@@ -2221,6 +2279,12 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
                     inputNombre.style.backgroundColor = '#f5f5f5';
                     inputNombre.style.color = '#666';
                     inputNombre.style.cursor = 'not-allowed';
+                } else if (nombreRolNormalizado === 'superadministrador') {
+                    // No se puede editar el nombre del Super Administrador
+                    inputNombre.setAttribute('readonly', true);
+                    inputNombre.style.backgroundColor = '#f5f5f5';
+                    inputNombre.style.color = '#666';
+                    inputNombre.style.cursor = 'not-allowed';
                 } else {
                     inputNombre.removeAttribute('readonly');
                     inputNombre.style.backgroundColor = '';
@@ -2228,14 +2292,23 @@ $numColumnas = ($tieneAlgunPermiso ? 4 : 3) + ($mostrarColumnaId ? 1 : 0);
                     inputNombre.style.cursor = 'text';
                 }
             } else {
+                // Si ES super admin, igual debe bloquear el nombre si está editando Super Administrador
+                if (nombreRolNormalizado === 'superadministrador') {
+                    inputNombre.setAttribute('readonly', true);
+                    inputNombre.style.backgroundColor = '#f5f5f5';
+                    inputNombre.style.color = '#666';
+                    inputNombre.style.cursor = 'not-allowed';
+                } else {
+                    inputNombre.removeAttribute('readonly');
+                    inputNombre.style.backgroundColor = '';
+                    inputNombre.style.color = '';
+                    inputNombre.style.cursor = 'text';
+                }
+                
                 inputId.removeAttribute('readonly');
                 inputId.style.backgroundColor = '';
                 inputId.style.color = '';
                 inputId.style.cursor = 'text';
-                inputNombre.removeAttribute('readonly');
-                inputNombre.style.backgroundColor = '';
-                inputNombre.style.color = '';
-                inputNombre.style.cursor = 'text';
             }
             
             document.getElementById('modalRol').style.display = 'flex';

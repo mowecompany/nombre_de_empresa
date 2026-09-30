@@ -345,39 +345,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root {
-            --primary-blue: <?= htmlspecialchars($coloresEmpresa['color_principal']); ?>;
-            --secondary-blue: <?= htmlspecialchars($coloresEmpresa['color_secundario']); ?>;
-            --bg: <?= htmlspecialchars($coloresEmpresa['color_fondo']); ?>;
-            --text: <?= htmlspecialchars($coloresEmpresa['color_texto']); ?>;
-            --border: <?= htmlspecialchars($coloresEmpresa['color_texto']); ?>;
-            --button: <?= htmlspecialchars($coloresEmpresa['color_botones']); ?>;
-            --navbar: <?= htmlspecialchars($coloresEmpresa['color_navbar']); ?>;
-            --title-color: <?= htmlspecialchars($coloresEmpresa['color_titulos']); ?>;
-            --table-bg: <?= htmlspecialchars($coloresEmpresa['color_fondo_tabla']); ?>;
-            --table-text: <?= htmlspecialchars($coloresEmpresa['color_texto_tabla']); ?>;
-            --table-head: <?= htmlspecialchars($coloresEmpresa['color_encabezado_tabla']); ?>;
-            --table-zebra: <?= htmlspecialchars($coloresEmpresa['color_filas_alternas']); ?>;
-            --btn-create: <?= htmlspecialchars($coloresEmpresa['color_btn_crear']); ?>;
-            --btn-edit: <?= htmlspecialchars($coloresEmpresa['color_btn_editar']); ?>;
-            --btn-delete: <?= htmlspecialchars($coloresEmpresa['color_btn_eliminar']); ?>;
-            --focus-input: <?= htmlspecialchars($coloresEmpresa['color_focus_inputs']); ?>;
-            --white: #FFFFFF;
-            --black: #000000;
-            --light-blue: rgba(47, 74, 90, 0.1);
-            --font-saira: 'Saira Condensed', sans-serif;
+        /* Estilos base sin variables CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        /* Texto base del tema (sin pisar colores específicos de títulos/tablas) */
         html, body, button, input, select, textarea, label, p, span, a {
-            color: var(--text);
+            color: #2f4a5a;
+            font-family: 'Saira Condensed', sans-serif;
         }
 
         body {
             padding-top: <?php echo $esEnIframe ? '0' : '80px'; ?>;
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: var(--font-saira);
+            background-color: #f8f9fa;
+            color: #2f4a5a;
+            font-family: 'Saira Condensed', sans-serif;
             text-transform: uppercase;
             overflow-y: auto;
             overflow-x: hidden;
@@ -397,8 +381,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             min-height: <?php echo $esEnIframe ? '100px' : '150px'; ?>;
         }
         .title_equipo h1 {
-            color: var(--title-color);
-            font-family: var(--font-saira);
+            color: #2f4a5a;
+            font-family: 'Saira Condensed', sans-serif;
             margin-top: <?php echo $esEnIframe ? '0' : '-80px'; ?>;
             font-size: <?php echo $esEnIframe ? '2.5rem' : '4rem'; ?>;
             text-transform: uppercase;
@@ -407,7 +391,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .title_equipo h1 i {
-            color: var(--title-color);
+            color: #2f4a5a;
             margin-right: 15px;
         }
 
@@ -430,18 +414,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .main-scroll-panel::-webkit-scrollbar-track {
-            background: var(--bg);
+            background: #f8f9fa;
             border-radius: 8px;
         }
 
         .main-scroll-panel::-webkit-scrollbar-thumb {
-            background: var(--primary-blue);
+            background: #2f4a5a;
             border-radius: 8px;
-            border: 1px solid var(--bg);
+            border: 1px solid #f8f9fa;
         }
 
         .main-scroll-panel::-webkit-scrollbar-thumb:hover {
-            background: var(--secondary-blue);
+            background: #2f4a5a;
         }
 
                 * {
@@ -451,7 +435,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .estadistica-card {
-            background: var(--white);
+            background: #ffffff;
             border-radius: 14px;
             box-shadow: 0 4px 12px rgba(47, 74, 90, 0.08), 0 0 0 1px rgba(47, 74, 90, 0.04);
             padding: 20px;
@@ -559,7 +543,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         tbody td {
-            color: var(--table-text);
+            color: #2f4a5a;
         }
 
         th i, td i {
@@ -573,22 +557,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .button-primary {
-            background: var(--btn-create);
-            color: var(--white);
-            padding: 10px 20px;
+            background: #2f4a5a;
+            color: #ffffff;
+            padding: 9px 16px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             margin: 5px;
-            font-size: 16px;
-            display: flex;
+            font-size: 12px;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
             text-transform: uppercase;
+            font-weight: 600;
+            min-width: auto;
         }
 
         .button-primary:hover {
-            background: var(--primary-blue);
+            background: #1a2d3e;
+        }
+
+        .button-primary i {
+            margin-right: 8px;
+        }
+
+        button[type="submit"] i {
+            margin-right: 8px;
         }
 
         .modal {
@@ -612,17 +606,63 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .modal-content {
-            background: var(--white);
-            padding: 40px;
+            background: #ffffff;
+            padding: 30px 35px;
             border-radius: 14px;
             box-shadow: 0 12px 36px rgba(20, 30, 40, 0.15), 0 0 0 1px rgba(20, 30, 40, 0.05);
-            max-width: 1000px;
-            width: 90%;
+            width: 95%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
             position: relative;
+            z-index: 12001 !important;
             text-transform: uppercase;
             animation: modalFadeIn 0.3s ease-out;
-            max-height: calc(100vh - 40px);
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .modal-content form {
+            padding: 0;
+            flex: 1;
+            max-height: calc(90vh - 120px);
+            scrollbar-width: thin;
+            scrollbar-color: #2f4a5a #f0f0f0;
+        }
+        
+        .modal-content form::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .modal-content form::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+        
+        .modal-content form::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2f4a5a 0%, #1a2d4f 100%);
+            border-radius: 4px;
+        }
+        
+        .modal-content form::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1a2d4f 0%, #0f1a2e 100%);
+        }
+        
+        .modal-content button[type="submit"] {
+            flex-shrink: 0;
+            margin-top: 20px;
+        }
+        
+        .modal-content h2 {
+            background: transparent;
+            color: #2f4a5a;
+            margin: -30px -35px 25px -35px;
+            padding: 20px 25px;
+            border-radius: 14px 14px 0 0;
+            border-bottom: 2px solid #e6e9ee;
+            font-size: 22px;
+            letter-spacing: 1px;
+            flex-shrink: 0;
         }
         
         @keyframes modalFadeIn {
@@ -643,7 +683,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             font-size: 32px;
             font-weight: 300;
             cursor: pointer;
-            color: var(--text);
+            color: #2f4a5a;
             z-index: 10;
             transition: all 0.2s ease;
             width: 36px;
@@ -652,19 +692,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             align-items: center;
             justify-content: center;
             border-radius: 50%;
+            border: none;
+            background: transparent;
         }
 
         .close:hover {
-            color: var(--white);
-            background: var(--button);
+            color: white;
+            background: #2f4a5a;
+            transform: rotate(90deg);
+        }
+
+        .close:focus {
+            color: white;
+            background: #2f4a5a;
             transform: rotate(90deg);
         }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 20px;
+            gap: 18px;
+            margin-bottom: 18px;
         }
 
         .form-group {
@@ -673,16 +721,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .section-title {
             margin: 4px 0 12px 0;
-            color: var(--text);
+            color: #2f4a5a;
             font-size: 15px;
             letter-spacing: 0.7px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid #e6e9ee;
             padding-bottom: 8px;
             font-weight: 700;
         }
 
         .form-group label {
-            color: var(--text);
+            color: #2f4a5a;
             font-weight: 600;
             margin-bottom: 10px;
             display: block;
@@ -692,20 +740,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .form-group label i {
             margin-right: 8px;
-            color: var(--text);
+            color: #2f4a5a;
             opacity: 0.8;
         }
 
         .form-group input,
         .form-group select {
-            border: 1px solid var(--border);
+            border: 1px solid #e6e9ee;
             border-radius: 8px;
             padding: 14px 16px;
             width: 100%;
             font-size: 15px;
             text-transform: uppercase;
-            background: var(--white);
-            color: var(--text);
+            background: #ffffff;
+            color: #242629;
             outline: none;
             transition: all 0.3s ease;
         }
@@ -713,13 +761,54 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .form-group input:focus,
         .form-group select:focus {
             box-shadow: 0 6px 18px rgba(47, 74, 90, 0.12);
-            border-color: var(--focus-input);
+            border-color: #2f4a5a;
         }
         
         .form-group input::placeholder {
             text-transform: uppercase;
             opacity: 0.6;
-            color: var(--border);
+            color: #6b7280;
+        }
+
+        .form-group textarea {
+            border: 1px solid #e6e9ee;
+            border-radius: 8px;
+            padding: 14px 16px;
+            width: 100%;
+            font-size: 15px;
+            text-transform: uppercase;
+            background: #ffffff;
+            color: #242629;
+            outline: none;
+            transition: all 0.3s ease;
+            resize: none;
+            min-height: 120px;
+            scrollbar-width: thin;
+            scrollbar-color: #2f4a5a #f0f0f0;
+            font-family: 'Saira Condensed', sans-serif;
+        }
+
+        .form-group textarea:focus {
+            box-shadow: 0 6px 18px rgba(47, 74, 90, 0.12);
+            border-color: #2f4a5a;
+        }
+
+        .form-group textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .form-group textarea::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        .form-group textarea::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2f4a5a 0%, #1a2d4f 100%);
+            border-radius: 4px;
+        }
+
+        .form-group textarea::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1a2d4f 0%, #2f4a5a 100%);
         }
         
         .form-group select {
@@ -733,31 +822,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         .form-group select option {
             padding: 12px;
-            background: var(--white);
-            color: var(--text);
+            background: #ffffff;
+            color: #2f4a5a;
         }
         
         .form-group select option:disabled {
-            color: var(--border);
+            color: #6b7280;
         }
 
         button[type="submit"] {
-            background: var(--button);
-            color: var(--white);
-            border: 2px solid var(--button);
-            border-radius: 8px;
-            padding: 14px 30px;
-            font-weight: 700;
+            background: #2f4a5a;
+            color: #ffffff;
+            border: 2px solid #2f4a5a;
+            border-radius: 6px;
+            padding: 9px 16px;
+            font-weight: 600;
             text-transform: uppercase;
             transition: all 0.3s ease;
             cursor: pointer;
-            font-size: 15px;
-            letter-spacing: 0.5px;
+            font-size: 12px;
+            letter-spacing: 0.3px;
+            width: auto;
         }
 
         button[type="submit"]:hover {
-            background: var(--primary-blue);
-            color: var(--white);
+            background: #1a2d3e;
+            border-color: #1a2d3e;
             box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
             transform: translateY(-2px);
         }
@@ -833,13 +923,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             background: none;
             border: none;
             padding: 0;
-            color: var(--border);
+            color: #e6e9ee;
             font-size: 16px;
             transition: color 0.2s ease;
         }
 
         .toggle-password:hover {
-            color: var(--text);
+            color: #2f4a5a;
         }
 
         .toggle-password:focus {
@@ -847,9 +937,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         #cambioContrasenaModal .modal-content {
-            max-width: 450px;
-            padding: 25px 30px;
+            max-width: 240px;
+            padding: 15px 18px;
             margin: auto;
+        }
+        
+        #cambioContrasenaModal input:focus {
+            border-color: #2f4a5a !important;
+            box-shadow: 0 0 0 3px rgba(47, 74, 90, 0.1) !important;
+        }
+        
+        #cambioContrasenaModal .toggle-password:hover {
+            color: #2f4a5a !important;
         }
         
         #cambioContrasenaModal .modal-content h2 {
@@ -897,7 +996,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         #cambioContrasenaModal .password-field label {
             font-weight: 600;
             font-size: 13px;
-            color: var(--text);
+            color: #2f4a5a;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -905,7 +1004,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         #cambioContrasenaModal .password-field label i {
-            color: var(--text);
+            color: #2f4a5a;
             opacity: 0.7;
         }
         
@@ -922,24 +1021,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             width: 100%;
             padding: 14px 40px 14px 16px;
             font-size: 15px;
-            border: 1px solid var(--border);
+            border: 1px solid #e6e9ee;
             border-radius: 8px;
             transition: all 0.3s ease;
-            background: var(--white);
-            color: var(--text);
+            background: #ffffff;
+            color: #2f4a5a;
             text-transform: uppercase;
         }
         
         #cambioContrasenaModal .password-input-wrapper input:focus {
             outline: none;
-            border-color: var(--focus-input);
+            border-color: #2f4a5a;
             box-shadow: 0 6px 18px rgba(47, 74, 90, 0.12);
         }
         
         #cambioContrasenaModal .password-input-wrapper input::placeholder {
             text-transform: uppercase;
             opacity: 0.6;
-            color: var(--border);
+            color: #e6e9ee;
         }
         
         #cambioContrasenaModal .toggle-password {
@@ -947,12 +1046,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             right: 16px;
             font-size: 15px;
             cursor: pointer;
-            color: var(--border);
+            color: #94a3b8;
             transition: color 0.2s ease;
         }
         
         #cambioContrasenaModal .toggle-password:hover {
-            color: var(--text);
+            color: #2f4a5a;
+        }
+        
+        #cambioContrasenaModal .password-input-wrapper input:focus {
+            border-color: #2f4a5a !important;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(47, 74, 90, 0.1);
         }
         
         #cambioContrasenaModal button[type="submit"] {
@@ -966,17 +1071,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         h2 {
             margin: 0 0 20px;
             font-size: 24px;
-            color: var(--text);
+            color: #2f4a5a;
             text-align: center;
         }
 
         .modal-content h2 {
             background: transparent;
-            color: var(--text);
+            color: #2f4a5a;
             margin: -40px -40px 30px -40px;
             padding: 25px 30px;
             border-radius: 14px 14px 0 0;
-            border-bottom: 2px solid var(--border);
+            border-bottom: 2px solid #e6e9ee;
             font-size: 22px;
             letter-spacing: 1px;
         }
@@ -1006,13 +1111,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         #error-message.success {
             background-color: rgba(212, 237, 218, 0.7);
             border: 1px solid rgba(195, 230, 203, 0.9);
-            color: var(--text);
+            color: #2f4a5a;
         }
 
         #error-message.error {
             background-color: rgba(248, 215, 218, 0.7);
             border: 1px solid rgba(245, 198, 203, 0.9);
-            color: var(--text);
+            color: #2f4a5a;
         }
 
         .button-actions {
@@ -1067,28 +1172,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             height: 28px;
             align-items: center;
             justify-content: center;
-            border: 1px dashed var(--border);
+            border: 1px dashed #e6e9ee;
             border-radius: 8px;
-            color: var(--text);
+            color: #2f4a5a;
             background: #f7fafc;
             margin: 0 auto;
             font-size: 10px;
         }
 
         .button-primary.button-edit-delete {
-            background: var(--btn-edit);
-            color: var(--white);
+            background: #2f4a5a;
+            color: #ffffff;
         }
         
         .button-primary.button-edit-delete:hover {
-            background: var(--primary-blue);
+            background: #1a2d3e;
             box-shadow: 0 4px 12px rgba(47, 74, 90, 0.3);
             transform: translateY(-2px);
         }
 
         .button-delete.button-edit-delete {
-            background: var(--btn-delete);
-            color: var(--white);
+            background: #dc3545;
+            color: #ffffff;
         }
         
         .button-delete.button-edit-delete:hover {
@@ -1098,8 +1203,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .button-delete {
-            background: var(--btn-delete);
-            color: var(--white);
+            background: #dc3545;
+            color: #ffffff;
             border: none;
             cursor: pointer;
             display: flex;
@@ -1163,7 +1268,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .swal2-title {
             font-weight: 700 !important;
             letter-spacing: 0.5px !important;
-            color: var(--text) !important;
+            color: #2f4a5a !important;
         }
         
         .swal-wide {
@@ -1243,8 +1348,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             transform: translateX(-50%);
             top: -30px;
             z-index: 1000;
-            background: var(--primary-blue);
-            color: var(--white);
+            background: #2f4a5a;
+            color: #ffffff;
             padding: 6px 12px;
             border-radius: 6px;
             white-space: nowrap;
@@ -1268,32 +1373,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .btn-nuevo {
             width: auto;
-            min-width: 220px;
+            min-width: auto;
             margin: 20px;
-            background: var(--btn-create);
-            color: var(--white);
-            padding: 14px 28px;
-            border: 2px solid var(--btn-create);
-            border-radius: 8px;
+            background: #2f4a5a;
+            color: #ffffff;
+            padding: 9px 16px;
+            border: 2px solid #2f4a5a;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 6px;
             text-transform: uppercase;
-            font-weight: 700;
+            font-weight: 600;
             transition: all 0.3s ease;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .btn-nuevo i {
-            font-size: 16px;
+            font-size: 12px;
+            margin-right: 8px;
         }
 
         .btn-nuevo:hover {
-            background: var(--primary-blue);
-            color: var(--white);
+            background: #1a2d3e;
+            color: #ffffff;
             box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
             transform: translateY(-2px);
         }
@@ -1313,9 +1419,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             color: #ffffff !important;
             border-radius: 8px !important;
             gap: 8px !important;
-            background: #3b82f6 !important;
-            border-color: #3b82f6 !important;
+            background: #2f4a5a !important;
+            border-color: #2f4a5a !important;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+        }
+
+        .btn-nuevo-reset {
+            background: #dc3545 !important;
+            border-color: #dc3545 !important;
         }
 
         .btn-nuevo-reset i,
@@ -1327,6 +1438,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .btn-nuevo-undo:hover {
             transform: translateY(-1px) !important;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .btn-nuevo-reset:hover {
+            background: #c82333 !important;
+            border-color: #c82333 !important;
         }
 
         .btn-nuevo-undo {
@@ -1351,19 +1467,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .btn-editar {
-            background: var(--btn-edit);
-            color: var(--white);
+            background: #2f4a5a;
+            color: #ffffff;
         }
         
         .btn-editar:hover {
-            background: var(--primary-blue);
+            background: #1a2d3e;
             box-shadow: 0 4px 12px rgba(47, 74, 90, 0.3);
             transform: translateY(-2px);
         }
 
         .btn-eliminar {
-            background: var(--btn-delete);
-            color: var(--white);
+            background: #dc3545;
+            color: #ffffff;
         }
         
         .btn-eliminar:hover {
@@ -1378,7 +1494,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .estado-activo {
-            color: var(--text);
+            color: #2f4a5a;
             font-weight: bold;
             padding: 4px 10px;
             border-radius: 6px;
@@ -1387,7 +1503,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .estado-inactivo {
-            color: var(--text);
+            color: #2f4a5a;
             font-weight: bold;
             padding: 4px 10px;
             border-radius: 6px;
@@ -1403,32 +1519,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .estadistica-card::-webkit-scrollbar-track,
         .table-wrapper::-webkit-scrollbar-track {
-            background: var(--bg);
+            background: #f8f9fa;
             border-radius: 6px;
         }
 
         .estadistica-card::-webkit-scrollbar-thumb,
         .table-wrapper::-webkit-scrollbar-thumb {
-            background: var(--button);
+            background: #2f4a5a;
             border-radius: 6px;
-            border: 2px solid var(--bg);
+            border: 2px solid #f8f9fa;
         }
         
         .estadistica-card::-webkit-scrollbar-thumb:hover,
         .table-wrapper::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-blue);
+            background: #2f4a5a;
         }
         
         .estadistica-card::-webkit-scrollbar-corner,
         .table-wrapper::-webkit-scrollbar-corner {
-            background: var(--bg);
+            background: #f8f9fa;
         }
 
         .btn-save {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: var(--primary-blue);
+            background: #2f4a5a;
             color: #fff;
             border: 2px solid rgba(255,255,255,0.18);
             border-radius: 10px;
@@ -1441,21 +1557,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .btn-save:hover {
-            background: #0b5ed7;
+            background: #2f4a5a;
             transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
+            box-shadow: 0 8px 18px rgba(47, 74, 90, 0.18);
         }
         
         .btn-save:active {
             transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
+            box-shadow: 0 2px 8px rgba(47, 74, 90, 0.25);
         }
         }
 
         .swal2-confirm {
             background: transparent !important;
-            color: var(--text) !important;
-            border: 2px solid var(--primary-blue) !important;
+            color: #2f4a5a !important;
+            border: 2px solid #2f4a5a !important;
             border-radius: 5px !important;
             padding: 6px 16px !important;
             font-weight: 700 !important;
@@ -1467,16 +1583,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         .swal2-confirm:hover {
-            background: var(--primary-blue) !important;
-            color: var(--white) !important;
+            background: #2f4a5a !important;
+            color: #ffffff !important;
             box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35) !important;
             transform: translateY(-2px) !important;
         }
         
         .swal2-cancel {
             background: transparent !important;
-            color: var(--text) !important;
-            border: 2px solid var(--border) !important;
+            color: #2f4a5a !important;
+            border: 2px solid #e6e9ee !important;
             border-radius: 5px !important;
             padding: 6px 16px !important;
             font-weight: 700 !important;
@@ -1488,8 +1604,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         .swal2-cancel:hover {
-            background: var(--border) !important;
-            color: var(--text) !important;
+            background: #e6e9ee !important;
+            color: #2f4a5a !important;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
             transform: translateY(-2px) !important;
         }
@@ -1497,13 +1613,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         /* Estilos específicos para alertas de eliminación */
         .swal2-popup.swal-delete .swal2-confirm {
             background: transparent !important;
-            color: var(--text) !important;
-            border: 2px solid var(--primary-blue) !important;
+            color: #2f4a5a !important;
+            border: 2px solid #2f4a5a !important;
         }
         
         .swal2-popup.swal-delete .swal2-confirm:hover {
-            background: var(--primary-blue) !important;
-            color: var(--white) !important;
+            background: #2f4a5a !important;
+            color: #ffffff !important;
             box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35) !important;
         }
 
@@ -1532,7 +1648,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .toggle-switch input:checked + .slider {
-            background-color: var(--primary-blue);
+            background-color: #2f4a5a;
         }
 
         td {
@@ -1545,8 +1661,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             left: 50%;
             transform: translateX(-50%);
             bottom: 100%;
-            background: var(--primary-blue);
-            color: var(--white);
+            background: #2f4a5a;
+            color: #ffffff;
             padding: 8px 14px;
             border-radius: 6px;
             font-size: 12px;
@@ -1599,7 +1715,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             overflow-y: auto !important;
             overflow-x: hidden !important;
             scrollbar-width: thin !important;
-            scrollbar-color: var(--button) var(--bg) !important;
+            scrollbar-color: #2f4a5a #f8f9fa !important;
         }
 
         .estadistica-card {
@@ -1639,15 +1755,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .table-wrapper::-webkit-scrollbar-thumb,
         .table-container::-webkit-scrollbar-thumb,
         .permisos-table-container::-webkit-scrollbar-thumb {
-            background: var(--button);
+            background: #2f4a5a;
             border-radius: 6px;
-            border: 1px solid var(--bg);
+            border: 1px solid #f8f9fa;
         }
 
         .table-wrapper::-webkit-scrollbar-thumb:hover,
         .table-container::-webkit-scrollbar-thumb:hover,
         .permisos-table-container::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-blue);
+            background: #2f4a5a;
         }
 
         .main-scroll-panel {
@@ -1665,12 +1781,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .section-title,
         .form-group label,
         .close {
-            color: var(--text) !important;
+            color: #2f4a5a !important;
         }
 
         .title_equipo h1,
         .title_equipo h1 i {
-            color: var(--title-color) !important;
+            color: #2f4a5a !important;
         }
 
         th {
@@ -1684,12 +1800,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .close:hover {
-            background: var(--text) !important;
+            background: #2f4a5a !important;
         }
 
         .form-group input,
         .form-group select {
-            border-color: var(--border ) !important;
+            border-color: #e6e9ee !important;
         }
 
         /* ===== ESTILOS DE CATEGORÍAS APLICADOS ===== */
@@ -1698,9 +1814,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             min-width: 220px;
             margin: 20px;
             background: transparent;
-            color: var(--primary-blue);
+            color: #2f4a5a;
             padding: 14px 28px;
-            border: 2px solid var(--primary-blue);
+            border: 2px solid #2f4a5a;
             border-radius: 8px;
             cursor: pointer;
             font-size: 15px;
@@ -1715,7 +1831,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .btn-nuevo:hover {
-            background: var(--primary-blue);
+            background: #2f4a5a;
             color: white;
             box-shadow: 0 6px 18px rgba(47, 74, 90, 0.35);
             transform: translateY(-2px);
@@ -1808,13 +1924,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         .btn-editar {
-            background: linear-gradient(135deg, var(--primary-blue) 0%, #2575a8 100%);
+            background: linear-gradient(135deg, #2f4a5a 0%, #1a2d3e 100%);
             color: white;
         }
 
         .btn-editar:hover {
-            background: linear-gradient(135deg, #2575a8 0%, #1e5a8e 100%);
-            box-shadow: 0 4px 12px rgba(53, 145, 202, 0.3);
+            background: linear-gradient(135deg, #1a2d3e 0%, #2f4a5a 100%);
+            box-shadow: 0 4px 12px rgba(47, 74, 90, 0.3);
             transform: translateY(-2px);
         }
 
@@ -1841,7 +1957,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             font-size: 32px;
             font-weight: 300;
             cursor: pointer;
-            color: var(--primary-blue);
+            color: #2f4a5a;
             z-index: 10;
             transition: all 0.2s ease;
             width: 36px;
@@ -1854,7 +1970,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .close:hover {
             color: white;
-            background: var(--primary-blue);
+            background: #2f4a5a;
             transform: rotate(90deg);
         }
 
@@ -1876,111 +1992,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         .modal[style*="display: flex"] {
             display: flex !important;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px 35px;
-            border-radius: 14px;
-            box-shadow: 0 12px 36px rgba(20, 30, 40, 0.15), 0 0 0 1px rgba(20, 30, 40, 0.05);
-            max-width: 1000px;
-            width: 95%;
-            position: relative;
-            text-transform: uppercase;
-            animation: modalFadeIn 0.3s ease-out;
-        }
-
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-            margin-bottom: 18px;
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        .form-group label {
-            color: var(--primary-blue);
-            font-weight: 600;
-            margin-bottom: 10px;
-            display: block;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-        }
-
-        .form-group label i {
-            margin-right: 8px;
-            color: var(--primary-blue);
-            opacity: 0.8;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 14px 16px;
-            width: 100%;
-            font-size: 15px;
-            text-transform: uppercase;
-            background: var(--white);
-            color: var(--text);
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            box-shadow: 0 6px 18px rgba(47, 74, 90, 0.12);
-            border-color: var(--focus-input);
-        }
-
-        .form-group input::placeholder {
-            text-transform: uppercase;
-            opacity: 0.6;
-            color: var(--border);
-        }
-
-        .btn-save {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--primary-blue);
-            color: #fff;
-            border: 2px solid rgba(255,255,255,0.18);
-            border-radius: 10px;
-            padding: 12px 20px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            gap: 8px;
-            text-transform: none;
-            transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .btn-save:hover {
-            background: #0b5ed7;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(11,94,215,0.18);
-        }
-
-        .btn-save:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(11,94,215,0.25);
-        }
     </style>
     <link rel="stylesheet" href="<?= base_url() ?>/Assets/css/responsive.css">
     <link rel="stylesheet" href="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/css/skeletons.css">
@@ -1996,7 +2007,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
         <div style="display:flex; gap:8px; align-items:center;">
             <button class="btn-nuevo" onclick="toggleModal('crear')">
-                <i class="fas fa-user-plus"></i> REGISTRAR USUARIO
+                <i class="fas fa-user-plus" style="margin-right: 8px;"></i>REGISTRAR USUARIO
             </button>
         </div>
         <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
@@ -2111,11 +2122,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label><i class="fas fa-image"></i> IMAGEN DE USUARIO:</label>
-                        <input type="file" name="imagen_archivo" id="imagenArchivo" accept="image/jpeg,image/png,image/webp,image/gif" autocomplete="off">
-                        <small style="display:block; margin-top:6px; color:#6b7280;">Opcional. JPG, PNG, WEBP o GIF, máximo 5 MB.</small>
-                    </div>
-                    <div class="form-group">
                         <label><i class="fas fa-barcode"></i> CÓDIGO ASIGNADO:</label>
                         <input type="text" name="codigo" id="usuarioCodigo" <?= $puedeEditarCodigoUsuario ? '' : 'readonly aria-readonly="true"' ?> placeholder="SE GENERA AL SELECCIONAR EL ROL" maxlength="32" pattern="[A-Za-z0-9]{2,32}">
                         <small style="display:block; margin-top:6px; color:#6b7280;">
@@ -2129,7 +2135,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     <div class="form-group">
                         <label><i class="fas fa-building"></i> NOMBRE DE LA EMPRESA:</label>
-                        <input type="text" name="empresa_nombre" id="empresaNombre" placeholder="Nombre de la empresa" maxlength="120" autocomplete="off" readonly style="background: var(--bg); cursor: not-allowed;">
+                        <input type="text" name="empresa_nombre" id="empresaNombre" placeholder="Nombre de la empresa" maxlength="120" autocomplete="off" readonly style="background: #f8f9fa; cursor: not-allowed;">
                     </div>
                     
                     <input type="hidden" id="usuarioTipoEmpresa" value="">
@@ -2143,10 +2149,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </div>
 
-                <div class="form-actions" style="margin: 25px auto 0; width: 100%; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                <div class="form-actions" style="margin: 25px 0 0 0; width: 100%; display: flex; flex-wrap: nowrap; justify-content: flex-start !important; gap: 10px; align-items: center;">
                     
-                    <button id="btnCambiarContrasena" type="button" onclick="abrirCambioContrasena()" style="display: none; min-width: 200px;" class="button-primary"><i class="fas fa-key"></i> CAMBIAR CONTRASEÑA</button>
-                    <button type="submit" id="btnEnviarRegistro" style="min-width: 280px;" class="button-primary"><i class="fas fa-save"></i> ACTUALIZAR USUARIO</button>
+                    <button id="btnCambiarContrasena" type="button" onclick="abrirCambioContrasena()" style="display: none; padding: 9px 16px !important; font-size: 12px !important; font-weight: 600 !important; border-radius: 6px !important; height: auto !important; line-height: normal !important; background: #2f4a5a !important; color: #ffffff !important; border: 2px solid #2f4a5a !important; text-transform: uppercase !important; letter-spacing: 0.3px !important; flex-shrink: 0; margin: 0 !important; cursor: pointer; transition: all 0.3s ease;"><i class="fas fa-key" style="margin-right: 8px;"></i>CAMBIAR CONTRASEÑA</button>
+                    <button type="submit" id="btnEnviarRegistro" style="padding: 9px 16px !important; font-size: 12px !important; font-weight: 600 !important; border-radius: 6px !important; height: auto !important; line-height: normal !important; background: #2f4a5a !important; color: #ffffff !important; border: 2px solid #2f4a5a !important; text-transform: uppercase !important; letter-spacing: 0.3px !important; flex-shrink: 0; margin: 0 !important; cursor: pointer; transition: all 0.3s ease;"><i class="fas fa-user-check" style="margin-right: 8px;"></i>ACTUALIZAR USUARIO</button>
                 </div>
             </form>
         </div>
@@ -2154,39 +2160,50 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <!-- Modal para cambiar contraseña -->
     <div id="cambioContrasenaModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarCambioContrasena()">&times;</span>
-            <h2 style="text-align: center;">
-                <i class="fas fa-key"></i> CAMBIAR CONTRASEÑA
+        <div class="modal-content" style="max-width: 240px; padding: 15px 18px;">
+            <span class="close" onclick="cerrarCambioContrasena()" style="font-size: 20px; right: 12px; top: 12px;">&times;</span>
+            <h2 style="text-align: center; color: #2f4a5a; margin-bottom: 10px; font-size: 12px; font-weight: 600;">
+                <i class="fas fa-key" style="font-size: 11px;"></i> CAMBIAR CONTRASEÑA
             </h2>
-            <div id="cambioContrasenaError" style="display: none; padding: 12px; margin-bottom: 15px; border-radius: 8px; background: #fee; color: #c00; border: 1px solid #fcc;"></div>
-            <div id="cambioContrasenaExito" style="display: none; padding: 12px; margin-bottom: 15px; border-radius: 8px; background: #efe; color: #0a0; border: 1px solid #cfc;"></div>
+            <div id="cambioContrasenaError" style="display: none; padding: 5px; margin-bottom: 6px; border-radius: 3px; background: #fee; color: #c00; border: 1px solid #fcc; font-size: 9px;"></div>
+            <div id="cambioContrasenaExito" style="display: none; padding: 5px; margin-bottom: 6px; border-radius: 3px; background: #efe; color: #0a0; border: 1px solid #cfc; font-size: 9px;"></div>
             <form id="cambioContrasenaForm" onsubmit="enviarCambioContrasena(event)" autocomplete="off">
                 <input type="hidden" id="usuarioIdContrasena">
-                <div class="password-field">
-                    <label><i class="fas fa-key"></i> CONTRASEÑA ACTUAL:</label>
-                    <div class="password-input-wrapper">
-                        <input type="password" name="contrasena_actual" id="contrasenaActual" autocomplete="off" placeholder="Ingrese su contraseña actual">
-                        <i class="fas fa-eye toggle-password" title="MOSTRAR CONTRASEÑA" role="button" aria-label="MOSTRAR CONTRASEÑA" onclick="togglePasswordVisibility(this)"></i>
-                    </div>
-                </div>
-                <div class="password-field">
-                    <label><i class="fas fa-key"></i> NUEVA CONTRASEÑA:</label>
-                    <div class="password-input-wrapper">
-                        <input type="password" name="contrasena_nueva" id="contrasenanueva" required autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" placeholder="Ingrese la nueva contraseña">
-                        <i class="fas fa-eye toggle-password" title="MOSTRAR CONTRASEÑA" role="button" aria-label="MOSTRAR CONTRASEÑA" onclick="togglePasswordVisibility(this)"></i>
-                    </div>
-                </div>
-                <div class="password-field">
-                    <label><i class="fas fa-check-circle"></i> CONFIRMAR CONTRASEÑA:</label>
-                    <div class="password-input-wrapper">
-                        <input type="password" name="contrasena_confirma" id="contrasenaConfirma" required autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" placeholder="Confirme la nueva contraseña">
-                        <i class="fas fa-eye toggle-password" title="MOSTRAR CONTRASEÑA" role="button" aria-label="MOSTRAR CONTRASEÑA" onclick="togglePasswordVisibility(this)"></i>
+                
+                <div style="margin-bottom: 6px;">
+                    <label style="display: block; margin-bottom: 2px; color: #2f4a5a; font-weight: 600; font-size: 8px;">
+                        <i class="fas fa-key" style="font-size: 7px;"></i> CONTRASEÑA ACTUAL:
+                    </label>
+                    <div style="position: relative; width: 100%;">
+                        <input type="password" name="contrasena_actual" id="contrasenaActual" autocomplete="off" placeholder="ACTUAL" style="width: 100%; padding: 6px 28px 6px 7px; font-size: 9px; border: 1px solid #e6e9ee; border-radius: 3px; background: #ffffff; color: #2f4a5a; text-transform: uppercase; box-sizing: border-box; outline: none; transition: all 0.3s;">
+                        <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility(this)" style="position: absolute; right: 7px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 9px; transition: color 0.2s;"></i>
                     </div>
                 </div>
 
-                <div style="margin: 25px auto 0; width: 100%; display: flex; justify-content: center;">
-                    <button type="submit" class="button-primary" style="min-width: 280px;"><i class="fas fa-key"></i> CAMBIAR CONTRASEÑA</button>
+                <div style="margin-bottom: 6px;">
+                    <label style="display: block; margin-bottom: 2px; color: #2f4a5a; font-weight: 600; font-size: 8px;">
+                        <i class="fas fa-key" style="font-size: 7px;"></i> NUEVA CONTRASEÑA:
+                    </label>
+                    <div style="position: relative; width: 100%;">
+                        <input type="password" name="contrasena_nueva" id="contrasenanueva" required autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" placeholder="NUEVA" style="width: 100%; padding: 6px 28px 6px 7px; font-size: 9px; border: 1px solid #e6e9ee; border-radius: 3px; background: #ffffff; color: #2f4a5a; text-transform: uppercase; box-sizing: border-box; outline: none; transition: all 0.3s;">
+                        <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility(this)" style="position: absolute; right: 7px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 9px; transition: color 0.2s;"></i>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 6px;">
+                    <label style="display: block; margin-bottom: 2px; color: #2f4a5a; font-weight: 600; font-size: 8px;">
+                        <i class="fas fa-check-circle" style="font-size: 7px;"></i> CONFIRMAR:
+                    </label>
+                    <div style="position: relative; width: 100%;">
+                        <input type="password" name="contrasena_confirma" id="contrasenaConfirma" required autocomplete="off" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" placeholder="CONFIRMAR" style="width: 100%; padding: 6px 28px 6px 7px; font-size: 9px; border: 1px solid #e6e9ee; border-radius: 3px; background: #ffffff; color: #2f4a5a; text-transform: uppercase; box-sizing: border-box; outline: none; transition: all 0.3s;">
+                        <i class="fas fa-eye toggle-password" onclick="togglePasswordVisibility(this)" style="position: absolute; right: 7px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 9px; transition: color 0.2s;"></i>
+                    </div>
+                </div>
+
+                <div style="margin: 10px 0 0 0; width: 100%; display: flex; justify-content: flex-start;">
+                    <button type="submit" style="padding: 6px 10px !important; font-size: 9px !important; font-weight: 600 !important; border-radius: 3px !important; background: #2f4a5a !important; color: #ffffff !important; border: 1px solid #2f4a5a !important; text-transform: uppercase !important; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="fas fa-key" style="font-size: 8px;"></i>CAMBIAR CONTRASEÑA
+                    </button>
                 </div>
             </form>
         </div>
@@ -2305,12 +2322,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <?php 
                                             $esSuperAdmin = $usuario['rol'] === 'Super Administrador';
                                             $esAdminViendoAdmin = ($_SESSION['rol'] === 'Administrador' && $usuario['rol'] === 'Administrador');
-                                            $esPrimerUsuario = in_array((int)$usuario['id'], [1, 2], true);
-                                            $deshabilitarBoton = $esSuperAdmin || $esAdminViendoAdmin || $esPrimerUsuario;
+                                            $deshabilitarBoton = $esSuperAdmin || $esAdminViendoAdmin;
                                             $tituloEliminar = 'Eliminar usuario';
-                                            if ($esPrimerUsuario) {
-                                                $tituloEliminar = 'No se puede eliminar este usuario';
-                                            } elseif ($esSuperAdmin) {
+                                            if ($esSuperAdmin) {
                                                 $tituloEliminar = 'No se puede eliminar un usuario Super Administrador';
                                             } elseif ($esAdminViendoAdmin) {
                                                 $tituloEliminar = 'No se puede eliminar un Administrador';
@@ -2563,7 +2577,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     limpiarFormulario();
                     
                     titulo.innerHTML = '<i class="fas fa-user-plus"></i> REGISTRAR USUARIO';
-                    botonSubmit.innerHTML = '<i class="fas fa-save"></i> REGISTRAR USUARIO';
+                    botonSubmit.innerHTML = '<i class="fas fa-user-plus" style="margin-right: 8px;"></i>REGISTRAR USUARIO';
                     
                     // Ocultar botón de cambiar contraseña en modo crear
                     if (btnCambiarContrasena) {
@@ -2596,7 +2610,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     });
                 } else if (mode === 'editar') {
                     titulo.innerHTML = '<i class="fas fa-user-edit"></i> ACTUALIZAR USUARIO';
-                    botonSubmit.innerHTML = '<i class="fas fa-save"></i> ACTUALIZAR USUARIO';
+                    botonSubmit.innerHTML = '<i class="fas fa-user-check" style="margin-right: 8px;"></i>ACTUALIZAR USUARIO';
 
                     // Mostrar botón de cambiar contraseña en modo editar
                     if (btnCambiarContrasena) {
@@ -2739,7 +2753,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     showCancelButton: true,
                     confirmButtonText: 'SÍ, REINICIAR',
                     cancelButtonText: 'CANCELAR',
-                    confirmButtonColor: '#3b82f6'
+                    confirmButtonColor: '#2f4a5a'
                 });
 
                 if (!confirmResult || !confirmResult.isConfirmed) return;
@@ -2774,7 +2788,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 showCancelButton: true,
                 confirmButtonText: 'Sí, reiniciar',
                 cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#3b82f6'
+                confirmButtonColor: '#2f4a5a'
             }).then((result) => {
                 if (!result.isConfirmed) return;
                 const formData = new FormData();
