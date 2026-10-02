@@ -13,6 +13,7 @@ if (!isset($_SESSION['usuario_id'])) {
 }
 
 $baseUrl = rtrim((string)base_url(), '/');
+$mostrarCerrarAlertaVencimientos = (string)($_GET['origen'] ?? '') === 'alerta-vencimiento';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -22,6 +23,7 @@ $baseUrl = rtrim((string)base_url(), '/');
     <title>Productos vencidos y dañados - <?= htmlspecialchars((string)NOMBRE_EMPRESA, ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/Assets/js/alerta-vencimientos.js"></script>
     <style>
         :root {
             --navy: #2f4a5a;
@@ -47,6 +49,27 @@ $baseUrl = rtrim((string)base_url(), '/');
         }
 
         .venc-shell { width: 100%; max-width: 1600px; margin: 0 auto; }
+
+        .venc-alert-close {
+            position: fixed;
+            top: 16px;
+            right: 18px;
+            z-index: 1000;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            background: #fff;
+            color: var(--navy);
+            font-size: 20px;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(36, 52, 71, 0.12);
+        }
+
+        .venc-alert-close:hover { background: var(--navy); color: #fff; }
 
         .venc-title {
             display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -82,6 +105,42 @@ $baseUrl = rtrim((string)base_url(), '/');
         .venc-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
         .venc-tabs .btn.activo { background: var(--navy); color: #fff; }
 
+        .venc-alert-button {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            flex: 0 0 38px;
+            margin-left: auto;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            background: var(--rojo);
+            color: #fff;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 3px 8px rgba(211, 48, 37, 0.24);
+        }
+
+        .venc-alert-count {
+            position: absolute;
+            top: -5px;
+            right: -6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 19px;
+            height: 19px;
+            padding: 0 4px;
+            border: 2px solid var(--page);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--rojo);
+            font: 800 10px/1 Arial, sans-serif;
+        }
+
         .btn {
             border: none; border-radius: 8px; padding: 11px 16px; font-family: inherit; font-weight: 700;
             font-size: 13px; cursor: pointer; text-transform: uppercase; color: #fff; background: var(--navy);
@@ -110,6 +169,7 @@ $baseUrl = rtrim((string)base_url(), '/');
 
         @media (max-width: 720px) {
             body { padding-top: 24px; }
+            .venc-alert-close { top: 10px; right: 10px; width: 40px; height: 40px; }
             .venc-title { font-size: 1.6rem; }
             thead th, tbody td { padding: 8px 6px; }
         }
@@ -146,6 +206,11 @@ $baseUrl = rtrim((string)base_url(), '/');
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8') ?>/Assets/js/paginacion.js?v=20260919"></script>
 </head>
 <body>
+    <?php if ($mostrarCerrarAlertaVencimientos): ?>
+    <a class="venc-alert-close" href="<?= htmlspecialchars($baseUrl . '/Views/dashboard.php', ENT_QUOTES, 'UTF-8') ?>" aria-label="Cerrar y volver al panel principal" title="Cerrar y volver al panel principal">
+        <i class="fas fa-xmark" aria-hidden="true"></i>
+    </a>
+    <?php endif; ?>
     <div class="venc-shell">
         <h1 class="venc-title"><i class="fas fa-calendar-times"></i> PRODUCTOS VENCIDOS Y DAÑADOS</h1>
         <p class="venc-sub">PRODUCTOS VENCIDOS Y PRODUCTOS DAÑADOS REGISTRADOS EN EL INVENTARIO</p>
@@ -156,6 +221,10 @@ $baseUrl = rtrim((string)base_url(), '/');
             </button>
             <button type="button" class="btn ghost" id="btnVistaDanados" onclick="cambiarVista('danados')">
                 <i class="fas fa-triangle-exclamation"></i> PRODUCTOS DAÑADOS
+            </button>
+            <button type="button" class="venc-alert-button" id="btnAlertasVencidosDanados" onclick="mostrarAlertaVencimientosEnPanel()" title="Mostrar alerta de productos vencidos y dañados" aria-label="Mostrar alerta de productos vencidos y dañados" disabled>
+                <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+                <span class="venc-alert-count" id="contadorAlertasVencidosDanados" aria-live="polite">0</span>
             </button>
         </div>
 
@@ -268,6 +337,31 @@ $baseUrl = rtrim((string)base_url(), '/');
             contenedor.innerHTML = `
                 <div class="venc-card rojo"><strong>${danados.length}</strong><span>PRODUCTOS DAÑADOS REGISTRADOS</span></div>
             `;
+        }
+
+        function obtenerLotesEnAlerta() {
+            return lotes.filter((lote) => ['vencido', 'critico'].includes(lote.estado));
+        }
+
+        function actualizarContadorAlertas() {
+            const contador = document.getElementById('contadorAlertasVencidosDanados');
+            if (!contador) return;
+            const total = obtenerLotesEnAlerta().length + danados.length;
+            contador.textContent = total > 99 ? '99+' : String(total);
+            contador.setAttribute('aria-label', `${total} alertas de productos vencidos o dañados`);
+            document.getElementById('btnAlertasVencidosDanados').disabled = false;
+        }
+
+        function mostrarAlertaVencimientosEnPanel() {
+            if (window.parent !== window) {
+                window.parent.postMessage({
+                    tipo: 'mostrar-alerta-vencimientos',
+                    lotes: obtenerLotesEnAlerta(),
+                    danados
+                }, window.location.origin);
+                return;
+            }
+            window.mostrarAlertaVencimientos({ lotes: obtenerLotesEnAlerta(), danados, fondoClaro: true });
         }
 
         function pintarTarjetasArchivados() {
@@ -439,6 +533,7 @@ $baseUrl = rtrim((string)base_url(), '/');
                     ['fecha_salida', 'id']
                 );
                 archivados = window.EstrellaPaginacion.recientesPrimero(Array.isArray(datosArchivados?.data) ? datosArchivados.data : [], ['fecha_archivado', 'id']);
+                actualizarContadorAlertas();
                 actualizarVista();
             } catch (error) {
                 document.getElementById('cuerpo').innerHTML = `<tr><td colspan="10" class="vacio">${escapar(error.message)}</td></tr>`;

@@ -191,12 +191,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'impo
     $backupPath = $temporaryRoot . DIRECTORY_SEPARATOR . 'mecanica_before_import_' . bin2hex(random_bytes(8)) . '.db';
     $temporaryPath = $temporaryRoot . DIRECTORY_SEPARATOR . 'mecanica_import_db_' . bin2hex(random_bytes(8)) . '.db';
     $temporaryDirectory = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'mecanica_import_' . bin2hex(random_bytes(8));
+    $databaseReplacementStarted = false;
     try {
         if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
             throw new RuntimeException('No se pudo preparar la carpeta de la base de datos.');
         }
-        if (file_exists($databasePath) && !copy($databasePath, $backupPath)) {
-            throw new RuntimeException('No se pudo crear la copia de seguridad.');
+        if (file_exists($databasePath)) {
+            if ($db instanceof PDO && strtolower((string)$db->getAttribute(PDO::ATTR_DRIVER_NAME)) === 'sqlite') {
+                $db->exec('PRAGMA busy_timeout = 15000');
+                $db->exec('VACUUM INTO ' . $db->quote($backupPath));
+            } elseif (!copy($databasePath, $backupPath)) {
+                throw new RuntimeException('No se pudo crear la copia de seguridad.');
+            }
         }
         $sourceDatabase = $uploaded['tmp_name'];
         $sourceImages = '';
@@ -254,10 +260,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'impo
 .');
             }
         }
+        unset($tables);
+        $journalModeImport = strtolower((string)$check->query('PRAGMA journal_mode = DELETE')->fetchColumn());
+        if ($journalModeImport !== 'delete') {
+            throw new RuntimeException('No se pudo preparar la base importada de forma segura.');
+        }
         $check = null;
         unset($check);
         gc_collect_cycles();
         clearstatcache(true, $databasePath);
+        if ($db instanceof PDO && strtolower((string)$db->getAttribute(PDO::ATTR_DRIVER_NAME)) === 'sqlite') {
+            unset($stmt, $result);
+            $checkpoint = $db->query('PRAGMA wal_checkpoint(TRUNCATE)')->fetch(PDO::FETCH_NUM);
+            if (!is_array($checkpoint)
+                || (int)($checkpoint[0] ?? 1) !== 0
+                || (int)($checkpoint[1] ?? 0) !== (int)($checkpoint[2] ?? 0)) {
+                throw new RuntimeException('La base de datos está ocupada. Intenta importar nuevamente.');
+            }
+            $journalModeActual = strtolower((string)$db->query('PRAGMA journal_mode = DELETE')->fetchColumn());
+            if ($journalModeActual !== 'delete') {
+                throw new RuntimeException('No se pudo cerrar SQLite de forma segura para importar.');
+            }
+            $db = null;
+            Database::clearConnections();
+        }
+        $databaseReplacementStarted = true;
         if (!copy($temporaryPath, $databasePath)) {
             throw new RuntimeException('No se pudo finalizar la importación. Verifica que database.db no esté bloqueada por otra instancia.');
         }
@@ -290,7 +317,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (($_POST['action'] ?? '') === 'impo
         echo json_encode(['success' => true, 'message' => 'Base de datos e imágenes importadas correctamente.']);
     } catch (Throwable $e) {
         @unlink($temporaryPath);
-        if (file_exists($backupPath)) {
+        if (isset($check) && $check instanceof PDO) {
+            $check = null;
+        }
+        if (isset($db) && $db instanceof PDO) {
+            unset($stmt, $result, $tables);
+            $db = null;
+            Database::clearConnections();
+        }
+        if ($databaseReplacementStarted && file_exists($backupPath)) {
+            @unlink($databasePath . '-wal');
+            @unlink($databasePath . '-shm');
             @copy($backupPath, $databasePath);
         }
         http_response_code(500);

@@ -473,14 +473,17 @@ function getWritableDatabasePath() {
         return `${sourceStats.size}:${sourceStats.mtimeMs}`;
       })()
     : null;
-  const previousFingerprint = fs.existsSync(seedMarkerPath)
-    ? fs.readFileSync(seedMarkerPath, 'utf8').trim()
-    : '';
-  const mustCopySeed = sourceDbPath && (!fs.existsSync(writableDbPath)
-    || (app.isPackaged && previousFingerprint !== sourceFingerprint));
+  const mustCopySeed = sourceDbPath && !fs.existsSync(writableDbPath);
 
   if (mustCopySeed) {
     try {
+      for (const sidecar of [`${writableDbPath}-wal`, `${writableDbPath}-shm`]) {
+        try {
+          fs.unlinkSync(sidecar);
+        } catch (error) {
+          if (error.code !== 'ENOENT') throw error;
+        }
+      }
       fs.copyFileSync(sourceDbPath, writableDbPath);
       if (sourceFingerprint) {
         fs.writeFileSync(seedMarkerPath, sourceFingerprint, 'utf8');
@@ -519,6 +522,8 @@ function buildPhpEnvironment(port) {
     CONNECTION_CONFIG_PATH: getConnectionConfigPath(),
     DB_CONNECTION: process.env.DB_CONNECTION || 'sqlite',
     SQLITE_PATH: sqlitePath,
+    SQLITE_JOURNAL_MODE: 'WAL',
+    SQLITE_SYNCHRONOUS: 'FULL',
     DB_CHARSET: 'utf8mb4',
     // Permite que el servidor PHP integrado atienda varias cajas a la vez.
     PHP_CLI_SERVER_WORKERS: process.env.PHP_CLI_SERVER_WORKERS || String(workers)

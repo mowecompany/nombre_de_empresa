@@ -55,8 +55,16 @@ if (!class_exists('Database', false)) {
 
                     $conexion = new PDO($dsn, null, null, $options);
                     $conexion->exec('PRAGMA foreign_keys = ON');
-                    $conexion->exec('PRAGMA journal_mode = DELETE');
-                    $conexion->exec('PRAGMA synchronous = FULL');
+                    $journalMode = strtoupper(trim((string)self::env('SQLITE_JOURNAL_MODE', 'DELETE')));
+                    if (!in_array($journalMode, ['DELETE', 'WAL'], true)) {
+                        $journalMode = 'DELETE';
+                    }
+                    $synchronousMode = strtoupper(trim((string)self::env('SQLITE_SYNCHRONOUS', 'FULL')));
+                    if (!in_array($synchronousMode, ['NORMAL', 'FULL', 'EXTRA'], true)) {
+                        $synchronousMode = 'FULL';
+                    }
+                    $conexion->exec('PRAGMA journal_mode = ' . $journalMode);
+                    $conexion->exec('PRAGMA synchronous = ' . $synchronousMode);
                     $conexion->exec('PRAGMA busy_timeout = 5000');
                     // Caché en memoria por conexión: 64 MB (antes 20 MB).
                     $conexion->exec('PRAGMA cache_size = -65536');
@@ -259,8 +267,6 @@ try {
         // Esto evita que siga intentando migrar cuando no hay entradas
         file_put_contents($lockFile, date('Y-m-d H:i:s'));
         error_log("PRECIO_COMPRA: Lock creado");
-    } else {
-        error_log("PRECIO_COMPRA: Lock existe - No se requiere migración");
     }
     
 } catch (Exception $e) {

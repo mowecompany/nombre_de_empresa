@@ -2724,6 +2724,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<?= htmlspecialchars(rtrim((string)base_url(), '/'), ENT_QUOTES, 'UTF-8') ?>/Assets/js/alerta-vencimientos.js"></script>
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8'); ?>/Assets/js/main.js"></script>
     <script src="<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8'); ?>/Assets/js/presence.js" defer></script>
     <style>
@@ -11803,6 +11804,22 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             // puede pedirnos la operación por mensajes y nosotros la ejecutamos aquí.
             window.addEventListener('message', async (evento) => {
                 const datos = evento.data;
+                if (
+                    moduleFrame
+                    && evento.source === moduleFrame.contentWindow
+                    && evento.origin === window.location.origin
+                    && datos?.tipo === 'mostrar-alerta-vencimientos'
+                ) {
+                    await window.mostrarAlertaVencimientos({
+                        lotes: Array.isArray(datos.lotes) ? datos.lotes : [],
+                        danados: Array.isArray(datos.danados) ? datos.danados : [],
+                        fondoClaro: true,
+                        alConfirmar: () => window.openDashboardModule?.('vencimientos.php', {
+                            vista: 'vencidos'
+                        })
+                    });
+                    return;
+                }
                 if (!datos || datos.tipo !== 'electron-bridge-request') return;
                 if (!moduleFrame || evento.source !== moduleFrame.contentWindow) return;
 
@@ -11851,7 +11868,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             // La báscula la administra el proceso principal de Electron, por lo que
             // navegar entre módulos ya no requiere liberar el puerto COM.
 
-            const openModule = async (link) => {
+            const openModule = async (link, queryParams = {}) => {
                 if (!link || !moduleFrame || !modulePanel || !homePanel) return;
                 const href = link.getAttribute('href');
                 if (!href) return;
@@ -11870,6 +11887,11 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 }, 6000);
 
                 const moduleUrl = new URL(href, window.location.href);
+                Object.entries(queryParams).forEach(([key, value]) => {
+                    if (value !== undefined && value !== null && String(value) !== '') {
+                        moduleUrl.searchParams.set(key, String(value));
+                    }
+                });
                 // Pasar la cookie de sesión al iframe para que pueda acceder a la sesión
                 const sessionCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('PHPSESSID='));
                 if (sessionCookie) {
@@ -11883,6 +11905,13 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 menuLinks.forEach((item) => item.classList.remove('active'));
                 link.classList.add('active');
                 history.replaceState(null, '', `dashboard.php?vista=${encodeURIComponent(href)}`);
+            };
+
+            window.openDashboardModule = (href, queryParams = {}) => {
+                const link = menuLinks.find((item) => item.getAttribute('href') === href);
+                if (!link) return false;
+                openModule(link, queryParams);
+                return true;
             };
 
             menuLinks.forEach((link) => {
@@ -14374,7 +14403,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     ? `${baseAlertaStock}/Assets/images/productos/${encodeURI(nombreImagen.replace(/\\/g, '/'))}`
                     : `${baseAlertaStock}/favicon.ico`;
                 const stock = `<td style="width:62px;padding:6px 7px;text-align:center;color:${color};font-weight:800;font-size:13px;vertical-align:middle;">${producto.stock}</td>`;
-                return `<tr style="border-bottom:1px solid #f0f2f4;text-transform:uppercase;"><td style="width:62px;padding:6px 5px;"><img src="${imagen}" alt="" style="width:46px;height:46px;object-fit:contain;border-radius:7px;border:1px solid #e5e7eb;background:#fff;" onerror="this.src='${baseAlertaStock}/favicon.ico'"></td><td style="width:125px;padding:6px 7px;text-align:left;color:#263238;font-weight:700;font-size:13px;vertical-align:middle;word-break:break-word;">${producto.codigo}</td><td style="padding:6px 7px;text-align:left;color:#53636d;font-size:13px;vertical-align:middle;overflow-wrap:anywhere;">${producto.nombre}</td>${stock}</tr>`;
+                return `<tr style="border-bottom:1px solid #f0f2f4;text-transform:uppercase;"><td style="width:62px;padding:6px 5px;"><img data-src="${imagen}" alt="" width="46" height="46" loading="lazy" decoding="async" fetchpriority="low" style="width:46px;height:46px;object-fit:contain;border-radius:7px;border:1px solid #e5e7eb;background:#fff;" onerror="this.onerror=null;this.src='${baseAlertaStock}/favicon.ico'"></td><td style="width:125px;padding:6px 7px;text-align:left;color:#263238;font-weight:700;font-size:13px;vertical-align:middle;word-break:break-word;">${producto.codigo}</td><td style="padding:6px 7px;text-align:left;color:#53636d;font-size:13px;vertical-align:middle;overflow-wrap:anywhere;">${producto.nombre}</td>${stock}</tr>`;
             }).join('');
             return `<section style="margin:0 0 12px;padding:12px;border:1px solid ${color}55;border-left:5px solid ${color};border-radius:10px;background:#fff;text-transform:uppercase;"><div style="font-size:14px;font-weight:800;color:${color};text-align:left;margin-bottom:7px;">${mostrarStock ? 'URGENTES' : 'CRÍTICOS'}</div><table style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px;"><thead><tr style="border-bottom:2px solid #e5e7eb;color:#7a8790;font-size:11px;"><th style="width:62px;padding:5px;text-align:left;position:sticky;top:0;z-index:2;background:#fff;">IMG</th><th style="width:125px;padding:5px 7px;text-align:left;position:sticky;top:0;z-index:2;background:#fff;">CÓDIGO</th><th style="padding:5px 7px;text-align:left;position:sticky;top:0;z-index:2;background:#fff;">NOMBRE</th><th style="width:62px;padding:5px 7px;text-align:center;position:sticky;top:0;z-index:2;background:#fff;">STOCK</th></tr></thead><tbody>${filas}</tbody></table></section>`;
         }
@@ -14395,7 +14424,39 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 if (!resultado.success || resultado.count_total <= 0) return;
                 const contenido = construirTablaAlertaStock(resultado.criticos || [], '#d33', false) + construirTablaAlertaStock(resultado.urgentes || [], '#ef8b00', true);
                 sessionStorage.setItem('alertaStockMostrada', esInicioSesion ? alertaStockLoginToken : claveHorario);
-                Swal.fire({ title: 'PRODUCTOS CRÍTICOS SIN STOCK', html: `<div style="max-height:380px;overflow-y:auto;padding:2px 4px;">${contenido}</div>`, icon: resultado.count_criticos > 0 ? 'error' : 'warning', showCloseButton: true, confirmButtonText: 'Entendido', confirmButtonColor: resultado.count_criticos > 0 ? '#d33' : '#ef8b00', allowOutsideClick: true, allowEscapeKey: true, width: 680 });
+                let observer = null;
+                Swal.fire({
+                    title: 'PRODUCTOS CRÍTICOS SIN STOCK',
+                    html: `<div style="max-height:380px;overflow-y:auto;padding:2px 4px;">${contenido}</div>`,
+                    icon: resultado.count_criticos > 0 ? 'error' : 'warning',
+                    showCloseButton: true,
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: resultado.count_criticos > 0 ? '#d33' : '#ef8b00',
+                    allowOutsideClick: true,
+                    allowEscapeKey: true,
+                    width: 680,
+                    didOpen: (popup) => {
+                        const scroller = popup.querySelector('.swal2-html-container > div');
+                        const images = popup.querySelectorAll('img[data-src]');
+                        const loadImage = (image) => {
+                            image.src = image.dataset.src;
+                            image.removeAttribute('data-src');
+                        };
+                        if (!scroller || !('IntersectionObserver' in window)) {
+                            images.forEach(loadImage);
+                            return;
+                        }
+                        observer = new IntersectionObserver((entries) => {
+                            entries.forEach((entry) => {
+                                if (!entry.isIntersecting) return;
+                                observer.unobserve(entry.target);
+                                loadImage(entry.target);
+                            });
+                        }, { root: scroller, rootMargin: '40px 0px' });
+                        images.forEach((image) => observer.observe(image));
+                    },
+                    willClose: () => observer?.disconnect()
+                });
             } catch (error) {
                 console.error('Error verificando stock de productos:', error);
             }
@@ -14411,26 +14472,26 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 if (!resultado.success) return;
                 const lotes = (Array.isArray(resultado.data) ? resultado.data : [])
                     .filter(lote => lote.estado === 'vencido' || lote.estado === 'critico');
-                if (!lotes.length) return;
+                let danados = [];
+                try {
+                    const respuestaDanados = await fetch(`${baseAlertaStock}/Controllers/InventarioController.php?action=obtenerSalidas&tipo_salida=${encodeURIComponent('dañado')}`, { cache: 'no-store' });
+                    const datosDanados = await respuestaDanados.json();
+                    danados = (Array.isArray(datosDanados?.data) ? datosDanados.data : [])
+                        .filter(item => String(item.tipo_salida || '').trim().toLowerCase() === 'dañado' && !String(item.referencia || '').toUpperCase().startsWith('VENCIDO-'));
+                } catch (error) {
+                    console.warn('No se pudieron cargar los productos dañados para la alerta:', error);
+                }
+                if (!lotes.length && !danados.length) return;
                 sessionStorage.setItem(clave, '1');
-                const filas = lotes.map(lote => {
-                    const estado = lote.estado === 'vencido' ? 'VENCIDO' : `${Number(lote.dias) || 0} DÍA(S)`;
-                    const color = lote.estado === 'vencido' ? '#b91c1c' : '#b45309';
-                    const partes = String(lote.fecha_vencimiento || '').slice(0, 10).split('-');
-                    const fecha = partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : lote.fecha_vencimiento;
-                    return `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:8px;text-align:left;font-weight:700;">${String(lote.producto || '')}</td><td style="padding:8px;">${String(lote.codigo || '')}</td><td style="padding:8px;text-align:center;">${Number(lote.cantidad) || 0}</td><td style="padding:8px;text-align:center;">${fecha}</td><td style="padding:8px;text-align:center;color:${color};font-weight:800;">${estado}</td></tr>`;
-                }).join('');
-                const alerta = await Swal.fire({
-                    icon: (resultado.resumen?.vencidos || 0) > 0 ? 'error' : 'warning',
-                    title: 'PRODUCTOS PRÓXIMOS A VENCER',
-                    html: `<div style="max-height:380px;overflow:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr><th style="padding:8px;text-align:left;">PRODUCTO</th><th>CÓDIGO</th><th>CANT.</th><th>VENCE</th><th>ESTADO</th></tr></thead><tbody>${filas}</tbody></table></div>`,
-                    showCancelButton: true,
-                    confirmButtonText: 'VER PRODUCTOS A VENCER',
-                    cancelButtonText: 'CERRAR',
-                    confirmButtonColor: '#b45309',
-                    width: 760
+                await window.mostrarAlertaVencimientos({
+                    lotes,
+                    danados,
+                    alConfirmar: () => {
+                        window.openDashboardModule?.('vencimientos.php', {
+                            vista: 'vencidos'
+                        });
+                    }
                 });
-                if (alerta.isConfirmed) window.location.href = 'vencimientos.php';
             } catch (error) {
                 console.error('Error verificando vencimientos:', error);
             }
