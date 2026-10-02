@@ -6621,6 +6621,15 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             font-weight: 800;
         }
 
+        #selectionBadge-ventasChart.is-visible {
+            border-color: #3b82f6;
+            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.16);
+        }
+
+        #selectionBadge-ventasChart.is-visible .badge-text {
+            color: #2563eb;
+        }
+
         .chart-body {
             display: flex;
             flex-direction: column;
@@ -6636,6 +6645,15 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
         .chart-body.chart-body-bar-mode {
             max-height: 400px;
+        }
+
+        .chart-data-summary {
+            min-height: 18px;
+            padding: 2px 4px 0;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 700;
+            text-align: right;
         }
 
         .chart-inline-list-panel-selected {
@@ -6740,7 +6758,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             max-width: 200px;
         }
 
-        .chart-canvas-wrapper.chart-bar-mode {
+        .chart-canvas-wrapper.chart-bar-mode,
+        .chart-canvas-wrapper.chart-dot-mode {
             height: 400px;
             max-height: 400px;
             overflow-y: auto;
@@ -6748,8 +6767,23 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             justify-content: flex-start;
         }
 
-        .chart-canvas-wrapper.chart-bar-mode canvas {
+        .chart-canvas-wrapper.chart-bar-mode canvas,
+        .chart-canvas-wrapper.chart-dot-mode canvas {
             max-height: none;
+        }
+
+        .chart-empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            min-height: 220px;
+            padding: 20px;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
         }
 
         .chart-list-panel-wrapper {
@@ -6985,6 +7019,192 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             text-align: center;
             color: #475569;
             font-size: 14px;
+        }
+
+        .chart-category-modal-popup {
+            width: min(900px, calc(100vw - 24px)) !important;
+            max-height: 90vh;
+        }
+
+        .chart-category-modal-popup .swal2-title {
+            max-width: 100%;
+            padding: 0 48px;
+            font-size: 18px;
+            line-height: 1.3;
+            overflow-wrap: anywhere;
+        }
+
+        .chart-category-modal-html {
+            margin: 0 !important;
+            max-height: 68vh !important;
+            overflow: hidden !important;
+            text-align: left !important;
+        }
+
+        .chart-category-modal-popup .swal2-html-container {
+            max-height: 68vh !important;
+            overflow: hidden !important;
+        }
+
+        .chart-category-modal-list {
+            display: grid;
+            gap: 8px;
+            max-height: 62vh;
+            overflow-y: auto;
+            padding: 2px;
+        }
+
+        .chart-category-modal-option {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 3px 14px;
+            align-items: center;
+            width: 100%;
+            padding: 11px 13px;
+            border: 1px solid #dce4e9;
+            border-left: 4px solid var(--category-color, #2f4a5a);
+            border-radius: 8px;
+            background: #fff;
+            color: #243447;
+            font: inherit;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .chart-category-modal-option:hover,
+        .chart-category-modal-option:focus-visible {
+            background: #f6f9fa;
+            border-color: #9aabb5;
+            outline: none;
+        }
+
+        .chart-category-modal-option.is-current {
+            border-color: #3b82f6;
+            border-left-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .chart-category-modal-name {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .chart-category-modal-count {
+            color: #64748b;
+            font-size: 11px;
+        }
+
+        .chart-category-modal-total {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            color: #334155;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .chart-category-hover-tooltip {
+            position: absolute;
+            z-index: 1100;
+            display: none;
+            max-width: 220px;
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            background: #243b49;
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
+            pointer-events: none;
+            text-align: left;
+            text-transform: uppercase;
+        }
+
+        .chart-category-hover-tooltip strong {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 12px;
+        }
+
+        .chart-category-hover-tooltip span {
+            display: block;
+            color: #e2e8f0;
+            font-size: 10px;
+        }
+
+        .chart-category-modal-summary {
+            padding: 4px 0 12px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 8px;
+        }
+
+        .chart-category-modal-summary h3 {
+            margin: 0 0 4px;
+            color: #243447;
+            font-size: 17px;
+        }
+
+        .chart-category-modal-summary p {
+            margin: 0;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .chart-category-modal-back {
+            margin-top: 12px;
+            padding: 8px 0;
+            border: 0;
+            background: transparent;
+            color: #2f4a5a;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .chart-category-modal-table-wrap {
+            max-height: 55vh;
+            overflow: auto;
+        }
+
+        .chart-category-modal-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .chart-category-modal-table th,
+        .chart-category-modal-table td {
+            padding: 9px 10px;
+            border-bottom: 1px solid #e8edf0;
+            font-size: 12px;
+        }
+
+        .chart-category-product-image-cell {
+            width: 54px;
+        }
+
+        .chart-category-product-image {
+            display: block;
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: #fff;
+        }
+
+        .chart-category-modal-table th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: #f7f9fa;
+            color: #64748b;
+            font-size: 10px;
+        }
+
+        .chart-category-modal-table td:last-child,
+        .chart-category-modal-table th:last-child {
+            text-align: right;
+            white-space: nowrap;
         }
 
         .modal-chart-list .modal-header {
@@ -9309,6 +9529,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                                 <button type="button" class="chart-list-btn" data-chart-list-target="entradasChart" onclick="toggleChartListPanel('entradasChart')">LISTA</button>
                             </div>
                         </div>
+                        <div id="chartSummary-entradasChart" class="chart-data-summary" aria-live="polite"></div>
                         <div class="chart-body">
                             <div class="chart-canvas-wrapper">
                                 <canvas id="entradasChart" width="300" height="180"></canvas>
@@ -9332,6 +9553,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                                 <button type="button" class="chart-list-btn" data-chart-list-target="salidasChart" onclick="toggleChartListPanel('salidasChart')">LISTA</button>
                             </div>
                         </div>
+                        <div id="chartSummary-salidasChart" class="chart-data-summary" aria-live="polite"></div>
                         <div class="chart-body">
                             <div class="chart-canvas-wrapper">
                                 <canvas id="salidasChart" width="300" height="180"></canvas>
@@ -9355,6 +9577,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                                 <button type="button" class="chart-list-btn" data-chart-list-target="stockChart" onclick="toggleChartListPanel('stockChart')">LISTA</button>
                             </div>
                         </div>
+                        <div id="chartSummary-stockChart" class="chart-data-summary" aria-live="polite"></div>
                         <div class="chart-body">
                             <div class="chart-canvas-wrapper">
                                 <canvas id="stockChart" width="300" height="180"></canvas>
@@ -11670,13 +11893,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             });
 
             if (menuHome) {
-                menuHome.addEventListener('click', async () => {
-                    try {
-                        await liberarBasculaAntesDeNavegar();
-                    } catch (error) {
-                        console.error('[BASCULA] no se pudo liberar al volver al inicio', error);
-                        return;
-                    }
+                menuHome.addEventListener('click', () => {
                     if (moduleLoadTimer) {
                         clearTimeout(moduleLoadTimer);
                         moduleLoadTimer = null;
@@ -12113,11 +12330,41 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             stockChart: 'pie'
         };
         const charts = [];
+        const categoryTooltipHandlers = new Map();
         const chartProductSummaries = {};
+        const chartCategoryProducts = {};
         let movimientosTipo = 'entradas';
         let lastResumenProductos = null;
         let lastVentasPorMes = null;
         const productColorPalette = ['#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51', '#6a4c93', '#1b3b5f', '#3b3f5c', '#4f6d7a', '#7d3c98'];
+        const MAX_PRODUCTOS_GRAFICA = 12;
+        const chartPlotProductSummaries = {};
+
+        const getChartProductsForDisplay = (chartId) => {
+            const productos = Array.isArray(chartProductSummaries[chartId]) ? chartProductSummaries[chartId] : [];
+            if (chartId === 'ventasChart') return productos;
+
+            const esGraficaCategoria = ['salidasChart', 'stockChart'].includes(chartId);
+            const visibles = esGraficaCategoria ? productos.slice() : productos.slice(0, MAX_PRODUCTOS_GRAFICA);
+            const seleccionado = String(chartSelectionState[chartId] || '').trim().toUpperCase();
+            if (seleccionado && !visibles.some((producto) => String(producto.nombre || '').trim().toUpperCase() === seleccionado)) {
+                const productoSeleccionado = productos.find((producto) => String(producto.nombre || '').trim().toUpperCase() === seleccionado);
+                if (productoSeleccionado && visibles.length) visibles[visibles.length - 1] = productoSeleccionado;
+            }
+
+            chartPlotProductSummaries[chartId] = visibles;
+            const resumen = document.getElementById(`chartSummary-${chartId}`);
+            if (resumen) {
+                if (esGraficaCategoria) {
+                    resumen.textContent = `${productos.length.toLocaleString('es-CO')} CATEGORÍAS`;
+                } else {
+                    resumen.textContent = productos.length > MAX_PRODUCTOS_GRAFICA
+                        ? `TOP ${visibles.length} DE ${productos.length.toLocaleString('es-CO')} PRODUCTOS · LISTA COMPLETA DISPONIBLE`
+                        : `${productos.length.toLocaleString('es-CO')} PRODUCTOS`;
+                }
+            }
+            return visibles;
+        };
 
         const formatQuantityColombia = (valor) => {
             const numero = Number(valor) || 0;
@@ -12136,6 +12383,14 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
         const formatQuantityWithUnit = (valor, product) => `${formatQuantityColombia(valor)} ${getQuantityUnit(product)}`;
 
+        const dashboardProductImageUrl = (image) => {
+            const normalized = String(image || '').trim().replace(/\\/g, '/');
+            if (!normalized || normalized.toLowerCase() === 'favicon.ico') return `${baseAlertaStock}/favicon.ico`;
+            if (/^(?:https?:|data:|blob:)/i.test(normalized)) return normalized;
+            const filename = normalized.split('/').pop() || '';
+            return filename ? `${baseAlertaStock}/Assets/images/productos/${encodeURIComponent(filename)}` : `${baseAlertaStock}/favicon.ico`;
+        };
+
         const formatSalesCurrency = (valor) => '$' + (Number(valor) || 0).toLocaleString('es-CO', {
             minimumFractionDigits: 0,
             maximumFractionDigits: 2
@@ -12149,6 +12404,58 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             });
         };
 
+        const setChartEmptyState = (canvas, message = '') => {
+            const wrapper = canvas?.parentElement;
+            if (!wrapper) return;
+            let state = wrapper.querySelector('.chart-empty-state');
+            if (!message) {
+                state?.remove();
+                canvas.style.display = '';
+                return;
+            }
+            if (!state) {
+                state = document.createElement('div');
+                state.className = 'chart-empty-state';
+                wrapper.appendChild(state);
+            }
+            state.textContent = message;
+            canvas.style.display = 'none';
+        };
+
+        const productLollipopPlugin = {
+            id: 'productLollipop',
+            beforeDatasetsDraw(chart) {
+                if (chart.config.type !== 'scatter') return;
+                const dataset = chart.data.datasets?.[0];
+                const points = chart.getDatasetMeta(0)?.data || [];
+                const xScale = chart.scales.x;
+                if (!dataset || !xScale || !points.length) return;
+                const baseline = xScale.getPixelForValue(0);
+                const selectedName = String(chartSelectionState[chart.canvas.id] || '').toUpperCase();
+                const context = chart.ctx;
+                context.save();
+                context.lineWidth = 1.5;
+                context.font = '600 10px Saira Condensed, Arial, sans-serif';
+                context.textBaseline = 'middle';
+                points.forEach((point, index) => {
+                    const row = dataset.data[index] || {};
+                    const value = Number(row.x) || 0;
+                    const product = chartPlotProductSummaries[chart.canvas.id]?.[index];
+                    const selected = String(chart.data.labels[index] || '').toUpperCase() === selectedName;
+                    context.strokeStyle = selected ? 'rgba(224, 139, 0, 0.7)' : 'rgba(47, 74, 90, 0.24)';
+                    context.beginPath();
+                    context.moveTo(baseline, point.y);
+                    context.lineTo(point.x, point.y);
+                    context.stroke();
+                    const label = formatQuantityWithUnit(value, product);
+                    const labelX = Math.min(point.x + 8, chart.chartArea.right - context.measureText(label).width);
+                    context.fillStyle = selected ? '#9a5b00' : '#475569';
+                    context.fillText(label, Math.max(chart.chartArea.left + 2, labelX), point.y);
+                });
+                context.restore();
+            }
+        };
+
         const getChartInstance = (canvas) => {
             if (!canvas) return null;
             return typeof Chart.getChart === 'function'
@@ -12159,6 +12466,12 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
         const destroyChartInstance = (chartId) => {
             const chartCanvas = document.getElementById(chartId);
             if (!chartCanvas) return null;
+            const categoryTooltipHandler = categoryTooltipHandlers.get(chartId);
+            if (categoryTooltipHandler) {
+                chartCanvas.removeEventListener('mousemove', categoryTooltipHandler.onMove);
+                chartCanvas.removeEventListener('mouseleave', categoryTooltipHandler.onLeave);
+                categoryTooltipHandlers.delete(chartId);
+            }
             const existingChart = getChartInstance(chartCanvas);
             if (!existingChart) return null;
             const existingIndex = charts.findIndex((entry) => entry && entry.canvas && entry.canvas.id === chartId);
@@ -12173,15 +12486,114 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             return existingChart;
         };
 
+        const findChartHitIndex = (chart, event, elements) => {
+            if (chart?.canvas?.id === 'ventasChart' && elements && elements.length) {
+                return Number(elements[0].index);
+            }
+            if (chart?.config?.type !== 'pie') {
+                return elements && elements.length ? Number(elements[0].index) : -1;
+            }
+
+            const canvas = chart.canvas;
+            const rect = canvas?.getBoundingClientRect();
+            if (!rect || rect.width <= 0 || rect.height <= 0) return -1;
+            const nativeEvent = event?.native || event;
+            const pointer = nativeEvent?.touches?.[0] || nativeEvent?.changedTouches?.[0] || nativeEvent;
+            const clientX = Number(pointer?.clientX);
+            const clientY = Number(pointer?.clientY);
+            const x = Number.isFinite(clientX)
+                ? (clientX - rect.left) * (chart.width / rect.width)
+                : Number(event?.x);
+            const y = Number.isFinite(clientY)
+                ? (clientY - rect.top) * (chart.height / rect.height)
+                : Number(event?.y);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return -1;
+
+            const arcs = chart.getDatasetMeta(0)?.data || [];
+            return arcs.findIndex((arc, index) => chart.getDataVisibility(index) !== false
+                && typeof arc?.inRange === 'function'
+                && arc.inRange(x, y));
+        };
+
+        const updateCategoryTooltip = (chart, event) => {
+            if (!chart?.canvas) return;
+            const rect = chart.canvas.getBoundingClientRect();
+            const nativeEvent = event?.native || event;
+            const pointer = nativeEvent?.touches?.[0] || nativeEvent?.changedTouches?.[0] || nativeEvent;
+            const clientX = Number(pointer?.clientX);
+            const clientY = Number(pointer?.clientY);
+            const tooltipId = 'chartCategoryHoverTooltip';
+            let tooltip = document.getElementById(tooltipId);
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = tooltipId;
+                tooltip.className = 'chart-category-hover-tooltip';
+                document.body.appendChild(tooltip);
+            }
+            if (!Number.isFinite(clientX) || !Number.isFinite(clientY) || rect.width <= 0 || rect.height <= 0) {
+                tooltip.style.display = 'none';
+                return;
+            }
+
+            const index = findChartHitIndex(chart, event, []);
+            const chartId = chart.canvas.id;
+            const item = index >= 0 ? chartProductSummaries[chartId]?.[index] : null;
+            if (!item) {
+                tooltip.style.display = 'none';
+                return;
+            }
+
+            if (chartId === 'ventasChart') {
+                tooltip.innerHTML = `<strong>${escapeHtml(item.nombre)}</strong><span>${formatSalesCurrency(item.valor)} EN VENTAS</span>`;
+            } else {
+                const productCount = chartCategoryProducts[chartId]?.[item.nombre]?.length || 0;
+                tooltip.innerHTML = `<strong>${escapeHtml(item.nombre)}</strong><span>${productCount.toLocaleString('es-CO')} PRODUCTOS</span><span>${formatQuantityColombia(item.valor)} TOTAL</span>`;
+            }
+            tooltip.style.display = 'block';
+            const left = Math.max(8, Math.min(clientX + 14, window.innerWidth - tooltip.offsetWidth - 8));
+            const top = Math.max(8, Math.min(clientY + 14, window.innerHeight - tooltip.offsetHeight - 8));
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+        };
+
+        const bindCategoryTooltip = (chart) => {
+            const chartId = chart?.canvas?.id;
+            if (!chart || !['salidasChart', 'stockChart', 'ventasChart'].includes(chartId)) return;
+            const previous = categoryTooltipHandlers.get(chartId);
+            if (previous) {
+                chart.canvas.removeEventListener('mousemove', previous.onMove);
+                chart.canvas.removeEventListener('mouseleave', previous.onLeave);
+            }
+            const onMove = (event) => {
+                updateCategoryTooltip(chart, event);
+                if (chartId === 'ventasChart') {
+                    chart.canvas.style.cursor = findChartHitIndex(chart, event, []) >= 0 ? 'pointer' : 'default';
+                }
+            };
+            const onLeave = () => {
+                const tooltip = document.getElementById('chartCategoryHoverTooltip');
+                if (tooltip) tooltip.style.display = 'none';
+                if (chartId === 'ventasChart') chart.canvas.style.cursor = '';
+            };
+            chart.canvas.addEventListener('mousemove', onMove);
+            chart.canvas.addEventListener('mouseleave', onLeave);
+            categoryTooltipHandlers.set(chartId, { onMove, onLeave });
+        };
+
         const recreateChart = (chartId) => {
             const chartCanvas = document.getElementById(chartId);
             if (!chartCanvas) return;
 
-            const products = Array.isArray(chartProductSummaries[chartId]) ? chartProductSummaries[chartId] : [];
+            const products = getChartProductsForDisplay(chartId);
             const labels = products.map((product) => String(product.nombre || '').trim());
             const values = products.map((product) => Number(product.valor ?? product.ventas_30dias ?? product.entradas_30dias ?? 0));
             const productColors = products.map((product, index) => String(product.color || product.color_hex || product.color_producto || productColorPalette[index % productColorPalette.length] || '#3b82f6'));
-            const isBarChart = chartTypes[chartId] === 'bar';
+            const chartMode = chartTypes[chartId];
+            const isBarChart = chartMode === 'bar';
+            const isDotChart = chartMode === 'dot';
+            const isLineChart = chartMode === 'line';
+            const isHorizontalChart = isBarChart || isDotChart;
+            const chartJsType = isDotChart ? 'scatter' : chartMode;
             const ctx = chartCanvas.getContext('2d');
             const existingChart = getChartInstance(chartCanvas);
             if (existingChart) {
@@ -12190,12 +12602,17 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
             const wrapper = chartCanvas.parentElement;
             const wrapperWidth = wrapper?.clientWidth || chartCanvas.width || 300;
-            if (isBarChart) {
+            if (isHorizontalChart) {
                 chartCanvas.width = wrapperWidth;
                 chartCanvas.style.width = '100%';
-                const canvasHeight = Math.max(400, labels.length * 42 + 60);
+                const canvasHeight = Math.max(isBarChart ? 400 : 280, labels.length * (isBarChart ? 42 : 34) + 60);
                 chartCanvas.height = canvasHeight;
                 chartCanvas.style.height = `${canvasHeight}px`;
+            } else if (isLineChart) {
+                chartCanvas.width = wrapperWidth;
+                chartCanvas.height = 220;
+                chartCanvas.style.width = '100%';
+                chartCanvas.style.height = '220px';
             } else {
                 const pieSize = Math.min(Math.max(wrapperWidth * 0.68, 200), 240);
                 chartCanvas.width = pieSize;
@@ -12204,25 +12621,47 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 chartCanvas.style.height = `${pieSize}px`;
             }
             if (wrapper) {
-                wrapper.parentElement?.classList.toggle('chart-body-bar-mode', isBarChart);
+                wrapper.parentElement?.classList.toggle('chart-body-bar-mode', isHorizontalChart);
                 wrapper.classList.toggle('chart-wrapper-fixed-height', isBarChart && labels.length > 8);
                 wrapper.classList.toggle('chart-bar-mode', isBarChart);
-                wrapper.classList.toggle('chart-circle-mode', !isBarChart);
+                wrapper.classList.toggle('chart-dot-mode', isDotChart);
+                wrapper.classList.toggle('chart-circle-mode', chartMode === 'pie');
             }
+
+            if (labels.length === 0) {
+                const emptyMessage = chartId === 'entradasChart'
+                    ? 'SIN ENTRADAS DE PRODUCTOS EN LOS ÚLTIMOS 30 DÍAS'
+                    : chartId === 'salidasChart'
+                        ? 'SIN SALIDAS DE PRODUCTOS EN LOS ÚLTIMOS 30 DÍAS'
+                        : 'NO HAY PRODUCTOS PARA MOSTRAR';
+                setChartEmptyState(chartCanvas, emptyMessage);
+                return;
+            }
+            setChartEmptyState(chartCanvas);
 
             const chartLabels = isBarChart && labels.length > 8 ? labels.slice(0, 8) : labels;
             const chartData = isBarChart && values.length > 8 ? values.slice(0, 8) : values;
             const chartColors = isBarChart && productColors.length > 8 ? productColors.slice(0, 8) : productColors;
             const chartLabelsFull = labels;
-            const chartDataFull = values;
+            const chartDataFull = isDotChart
+                ? values.map((value, index) => ({ x: value, y: index }))
+                : values;
             const chartColorsFull = productColors;
 
             const dataset = {
                 label: chartValueLabels[chartId] || '',
-                data: chartDataFull,    
-                backgroundColor: chartColorsFull,
-                borderColor: chartColorsFull,
-                borderWidth: chartLabelsFull.map(() => 1),
+                data: chartDataFull,
+                backgroundColor: isLineChart ? 'rgba(42, 157, 143, 0.16)' : chartColorsFull,
+                borderColor: isLineChart ? '#2a9d8f' : chartColorsFull,
+                borderWidth: isLineChart ? 2.5 : chartLabelsFull.map(() => 1),
+                fill: isLineChart,
+                tension: isLineChart ? 0.32 : 0,
+                showLine: !isDotChart,
+                pointRadius: isLineChart ? 3 : (isDotChart ? 5 : 0),
+                pointHoverRadius: isDotChart ? 7 : 5,
+                pointBackgroundColor: chartColorsFull,
+                pointBorderColor: isLineChart ? '#ffffff' : chartColorsFull,
+                pointBorderWidth: isLineChart ? 1.5 : 0,
                 borderRadius: 6,
                 minBarLength: 0,
                 maxBarThickness: isBarChart ? 20 : 56,
@@ -12243,23 +12682,23 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 stepSize: smallStepScale ? 1 : undefined,
                 callback: (value) => {
                     if (!Number.isInteger(value)) return '';
-                    return value;
+                    return chartId === 'ventasChart' ? formatSalesCurrency(value) : formatAxisQuantityColombia(value);
                 }
             };
 
             const chart = new Chart(ctx, {
-                type: chartTypes[chartId],
+                type: chartJsType,
                 data: {
                     labels: chartLabelsFull,
                     datasets: [dataset]
                 },
-                plugins: [],
+                plugins: isDotChart ? [productLollipopPlugin] : [],
                 options: {
                     responsive: false,
                     maintainAspectRatio: false,
-                        devicePixelRatio: isBarChart ? Math.max(window.devicePixelRatio || 1, 1.5) : undefined,
+                        devicePixelRatio: isHorizontalChart ? Math.max(window.devicePixelRatio || 1, 1.5) : undefined,
                     animation: { duration: 260 },
-                    interaction: { mode: 'nearest', intersect: false },
+                    interaction: { mode: 'nearest', intersect: chartJsType === 'pie' },
                     indexAxis: isBarChart ? 'y' : 'x',
                     layout: {
                         padding: { top: 10, bottom: 10, left: 8, right: 8 }
@@ -12267,15 +12706,36 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            enabled: !['salidasChart', 'stockChart', 'ventasChart'].includes(chartId),
+                            mode: 'nearest',
+                            intersect: false,
+                            animation: { duration: 0 },
                             displayColors: false,
                             callbacks: {
+                                title: (contexts) => {
+                                    const context = contexts?.[0];
+                                    if (!context) return '';
+                                    const label = String(context.label || context.chart.data.labels[context.dataIndex] || '');
+                                    if (!['salidasChart', 'stockChart'].includes(chartId)) return label;
+                                    const category = chartProductSummaries[chartId]?.find((item) => String(item.nombre || '').trim().toUpperCase() === label.trim().toUpperCase());
+                                    return category?.nombre || label;
+                                },
                                 label: (context) => {
-                                    const parsedValue = context.parsed?.x ?? context.parsed?.y ?? context.parsed;
-                                    const product = chartProductSummaries[chartId]?.[context.dataIndex];
+                                    const parsedValue = isLineChart ? context.parsed?.y : (context.parsed?.x ?? context.parsed?.y ?? context.parsed);
+                                    const product = chartPlotProductSummaries[chartId]?.[context.dataIndex];
+                                    if (['salidasChart', 'stockChart'].includes(chartId)) {
+                                        const categoryName = String(context.label || context.chart.data.labels[context.dataIndex] || '').trim().toUpperCase();
+                                        const category = chartProductSummaries[chartId]?.find((item) => String(item.nombre || '').trim().toUpperCase() === categoryName);
+                                        const count = chartCategoryProducts[chartId]?.[category?.nombre]?.length || 0;
+                                        return `${count.toLocaleString('es-CO')} PRODUCTOS · ${formatQuantityColombia(parsedValue)} TOTAL`;
+                                    }
                                     const valueLabel = chartId === 'ventasChart'
                                         ? formatSalesCurrency(parsedValue)
-                                        : formatQuantityWithUnit(parsedValue, product);
-                                    return `${context.label}: ${valueLabel}`;
+                                        : ['salidasChart', 'stockChart'].includes(chartId)
+                                            ? `${formatQuantityColombia(parsedValue)} TOTAL`
+                                            : formatQuantityWithUnit(parsedValue, product);
+                                    const label = isDotChart ? labels[context.dataIndex] : context.label;
+                                    return `${label}: ${valueLabel}`;
                                 }
                             }
                         }
@@ -12298,28 +12758,66 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                             },
                             grid: { display: false }
                         }
+                    } : isDotChart ? {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { color: '#64748b', callback: (value) => Number(value).toLocaleString('es-CO', { maximumFractionDigits: 2 }) },
+                            grid: { color: 'rgba(148, 163, 184, 0.16)' }
+                        },
+                        y: {
+                            type: 'linear',
+                            min: labels.length === 1 ? -0.5 : 0,
+                            max: labels.length === 1 ? 0.5 : Math.max(labels.length - 1, 1),
+                            reverse: true,
+                            ticks: {
+                                stepSize: 1,
+                                autoSkip: false,
+                                color: '#475569',
+                                font: { size: 10, weight: '600' },
+                                callback: (value) => labels.length === 1 && value === 0 ? labels[0] : (Number.isInteger(value) ? labels[value] || '' : '')
+                            },
+                            grid: { display: false }
+                        }
+                    } : isLineChart ? {
+                        x: {
+                            ticks: { color: '#64748b', autoSkip: true, maxTicksLimit: 8, maxRotation: 0, font: { size: 9 } },
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#64748b', maxTicksLimit: 5, callback: (value) => formatSalesCurrency(value) },
+                            grid: { color: 'rgba(148, 163, 184, 0.16)' }
+                        }
                     } : {
                         x: { display: false, grid: { display: false }, ticks: { display: false } },
                         y: { display: false, beginAtZero: true, ticks: { display: false }, grid: { display: false } }
                     },
                     onClick: (event, elements) => {
-                        if (!elements || !elements.length) return;
-                        const activeElement = elements[0];
-                        const selectedLabel = labels[activeElement.index];
+                        if (['salidasChart', 'stockChart', 'ventasChart'].includes(chartId)) return;
+                        const index = findChartHitIndex(chart, event, elements);
+                        if (index < 0) return;
+                        const selectedLabel = chart.data.labels[index];
+                        const category = ['salidasChart', 'stockChart'].includes(chartId)
+                            ? chartProductSummaries[chartId]?.find((item) => String(item.nombre || '').trim().toUpperCase() === String(selectedLabel || '').trim().toUpperCase())
+                            : null;
                         if (selectedLabel) {
                             highlightChartProduct(chartId, selectedLabel);
+                            if (category) {
+                                openChartCategoryModal(chartId, category.nombre);
+                            }
                         }
                     }
                 }
             });
 
             charts.push(chart);
+            bindCategoryTooltip(chart);
             applySelectionStateToChart(chartId, chart, false);
 
             try {
                 const panelEl = document.getElementById(`chartListPanel-${chartId}`);
                 if (panelEl) {
-                    if (isBarChart) {
+                    if (isHorizontalChart) {
                         panelEl.classList.add('scrollable');
                     } else {
                         panelEl.classList.remove('scrollable');
@@ -12359,7 +12857,9 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             const selectedProduct = (chartProductSummaries[chartId] || []).find((product) => String(product.nombre || '').trim().toUpperCase() === normalizedName);
             const badgeValue = chartId === 'ventasChart'
                 ? formatSalesCurrency(resolvedValue)
-                : formatQuantityWithUnit(resolvedValue, selectedProduct);
+                : ['salidasChart', 'stockChart'].includes(chartId)
+                    ? `${formatQuantityColombia(resolvedValue)} TOTAL`
+                    : formatQuantityWithUnit(resolvedValue, selectedProduct);
             badge.innerHTML = `<span class="badge-dot" style="background:${escapeHtml(resolvedColor)}"></span><span class="badge-text" style="color:${escapeHtml(resolvedColor)}">${escapeHtml(normalizedName)}</span><span class="badge-value" style="color:${escapeHtml(resolvedColor)}">${escapeHtml(badgeValue)}</span>`;
         };
 
@@ -12393,14 +12893,14 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             if (!mes) return '';
             const parts = String(mes).split('-');
             if (parts.length !== 2) return mes;
-            const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
             const m = Number(parts[1]) - 1;
-            const anio = String(parts[0] || '').slice(-2);
+            const anio = String(parts[0] || '');
             return `${meses[m] || parts[1]} ${anio}`;
         }
 
         const chartListTitles = {
-            ventasChart: 'Productos más vendidos',
+            ventasChart: 'Comparativo mensual de ventas',
             entradasChart: 'Productos que entran',
             salidasChart: 'Productos que salen',
             movimientosChart: 'Productos con movimiento',
@@ -12449,6 +12949,67 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             const clearButtonHtml = '';
             const closeButtonHtml = `<button type="button" class="chart-close-panel-btn" onclick="closeChartListPanel('${chartId}')">✕</button>`;
 
+            if (['salidasChart', 'stockChart'].includes(chartId)) {
+                const categoryTitle = chartId === 'salidasChart' ? 'CATEGORÍAS DE PRODUCTOS VENDIDOS' : 'CATEGORÍAS DE STOCK';
+                const selectedCategory = normalizedItems.find((item) => item.nombre.toUpperCase() === selectedProduct);
+                const productsInCategory = selectedCategory
+                    ? (chartCategoryProducts[chartId]?.[selectedCategory.nombre] || []).slice().sort((a, b) => Number(b.valor) - Number(a.valor))
+                    : [];
+
+                if (selectedCategory) {
+                    panel.innerHTML = `
+                        <div class="chart-inline-list-header">
+                            <div class="chart-inline-list-title">${escapeHtml(selectedCategory.nombre)}</div>
+                            <div class="chart-inline-list-controls">
+                                <button type="button" class="chart-close-panel-btn" data-category-back="true"><i class="fas fa-arrow-left"></i> CATEGORÍAS</button>
+                                ${closeButtonHtml}
+                            </div>
+                        </div>
+                        <div class="chart-inline-list-group-title">${productsInCategory.length} PRODUCTOS</div>
+                        ${productsInCategory.length ? productsInCategory.map((product) => `
+                            <div class="chart-inline-list-item" style="cursor:default;">
+                                <div class="chart-inline-list-item-main">
+                                    <span class="product-color-chip" style="background:${escapeHtml(product.color || '#d1d5db')};"></span>
+                                    <span class="product-label">${escapeHtml(product.nombre)}</span>
+                                </div>
+                                <span class="product-value">${formatQuantityWithUnit(product.valor, product)}</span>
+                            </div>
+                        `).join('') : '<div class="chart-list-empty">NO HAY PRODUCTOS EN ESTA CATEGORÍA.</div>'}
+                    `;
+                    panel.querySelector('[data-category-back]')?.addEventListener('click', () => clearChartSelection(chartId));
+                    return;
+                }
+
+                const categories = normalizedItems.slice().sort((a, b) => Number(b.valor) - Number(a.valor));
+                panel.innerHTML = `
+                    <div class="chart-inline-list-header">
+                        <div class="chart-inline-list-title">${categoryTitle}</div>
+                        <div class="chart-inline-list-controls">${closeButtonHtml}</div>
+                    </div>
+                    ${categories.length ? categories.map((category) => {
+                        const productCount = chartCategoryProducts[chartId]?.[category.nombre]?.length || 0;
+                        return `
+                            <button type="button" class="chart-inline-list-item" data-chart-category="${escapeHtml(category.nombre)}" style="text-align:left;">
+                                <span class="chart-inline-list-item-main">
+                                    <span class="product-color-chip" style="background:${escapeHtml(category.color || '#d1d5db')};"></span>
+                                    <span class="product-label">${escapeHtml(category.nombre)} <small>(${productCount} PRODUCTOS)</small></span>
+                                </span>
+                                <span class="product-value">${formatQuantityColombia(category.valor)} TOTAL</span>
+                            </button>
+                        `;
+                    }).join('') : '<div class="chart-list-empty">NO HAY CATEGORÍAS PARA MOSTRAR.</div>'}
+                `;
+                panel.querySelectorAll('[data-chart-category]').forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const category = String(button.dataset.chartCategory || '').trim();
+                        if (!category) return;
+                        highlightChartProduct(chartId, category);
+                        window.toggleChartListPanel(chartId);
+                    });
+                });
+                return;
+            }
+
             if (normalizedItems.length === 0) {
                 panel.innerHTML = `
                     <div class="chart-inline-list-header">
@@ -12461,7 +13022,9 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 const groupedItems = groupItemsByCategory(normalizedItems)
                     .map(({ category, categoryItems }) => ({
                         category,
-                        categoryItems: categoryItems.sort((a, b) => Number(b.valor) - Number(a.valor))
+                        categoryItems: chartId === 'ventasChart'
+                            ? categoryItems
+                            : categoryItems.sort((a, b) => Number(b.valor) - Number(a.valor))
                     }))
                     .sort((a, b) => a.category.localeCompare(b.category, 'es', { sensitivity: 'base' }));
                 panel.innerHTML = `
@@ -12471,7 +13034,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     </div>
                     ${groupedItems.map(({ category, categoryItems }) => `
                         <div class="chart-inline-list-group">
-                            <div class="chart-inline-list-group-title">${escapeHtml(category)}</div>
+                            ${category.toUpperCase() !== 'SIN CATEGORÍA' ? `<div class="chart-inline-list-group-title">${escapeHtml(category)}</div>` : ''}
                             ${categoryItems.map((item) => `
                                 <div class="chart-inline-list-item" data-chart-product="${escapeHtml(item.nombre)}" data-chart-id="${escapeHtml(chartId)}" data-chart-value="${escapeHtml(String(item.valor))}">
                                     <div class="chart-inline-list-item-main">
@@ -12595,7 +13158,20 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 ? targetChart.data.datasets[0].backgroundColor
                 : labels.map((_, index) => productColorPalette[index % productColorPalette.length]);
             const selectionColors = buildSelectionAwareColors(chartId, labels, baseColors);
-            if (targetChart.data.datasets?.[0]) {
+            if (targetChart.data.datasets?.[0] && chartTypes[chartId] === 'line') {
+                const dataset = targetChart.data.datasets[0];
+                dataset.backgroundColor = 'rgba(42, 157, 143, 0.16)';
+                dataset.borderColor = '#2a9d8f';
+                dataset.borderWidth = 2.5;
+                const basePointColors = Array.isArray(dataset.pointBackgroundColor) ? dataset.pointBackgroundColor : labels.map(() => '#2a9d8f');
+                dataset.pointBackgroundColor = labels.map((label, index) => String(label || '').trim().toUpperCase() === selectedName ? '#e9c46a' : basePointColors[index] || '#2a9d8f');
+                dataset.pointBorderColor = labels.map((label) => String(label || '').trim().toUpperCase() === selectedName ? '#243447' : '#ffffff');
+                dataset.pointBorderWidth = labels.map((label) => String(label || '').trim().toUpperCase() === selectedName ? 2.5 : 1.5);
+            } else if (targetChart.data.datasets?.[0] && chartTypes[chartId] === 'dot') {
+                const dataset = targetChart.data.datasets[0];
+                dataset.pointBorderColor = labels.map((label) => String(label || '').trim().toUpperCase() === selectedName ? '#e9c46a' : '#ffffff');
+                dataset.pointBorderWidth = labels.map((label) => String(label || '').trim().toUpperCase() === selectedName ? 3 : 1);
+            } else if (targetChart.data.datasets?.[0]) {
                 const selectedFillColor = '#ffffff';
                 targetChart.data.datasets[0].backgroundColor = labels.map((label) => {
                     const normalizedLabel = String(label || '').trim().toUpperCase();
@@ -12654,7 +13230,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             chartSelectionState[chartId] = normalizedName;
             const chart = charts.find((entry) => entry && entry.canvas && entry.canvas.id === chartId);
             applySelectionStateToChart(chartId, chart, false);
-            if (chart && chartTypes[chartId] === 'bar') {
+            if (chart && ['bar', 'dot'].includes(chartTypes[chartId])) {
                 const selectedIndex = chart.data.labels.findIndex((label) => String(label || '').trim().toUpperCase() === normalizedName);
                 const wrapper = chart.canvas?.parentElement;
                 const point = selectedIndex >= 0 ? chart.getDatasetMeta(0)?.data?.[selectedIndex] : null;
@@ -12784,7 +13360,158 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             });
         };
 
+        const openChartCategoryModal = (chartId, categoryName = '') => {
+            const categories = Array.isArray(chartProductSummaries[chartId]) ? chartProductSummaries[chartId] : [];
+            const isSalesChart = chartId === 'salidasChart';
+            const modalTitle = isSalesChart ? 'PRODUCTOS VENDIDOS POR CATEGORÍA' : 'STOCK POR CATEGORÍA';
+            const category = categories.find((item) => String(item.nombre || '').toUpperCase() === String(categoryName || '').toUpperCase());
+
+            if (category) {
+                const products = (chartCategoryProducts[chartId]?.[category.nombre] || []).slice().sort((a, b) => Number(b.valor) - Number(a.valor));
+                const productRows = products.map((product) => `
+                    <tr>
+                        <td class="chart-category-product-image-cell"><img class="chart-category-product-image" src="${escapeHtml(dashboardProductImageUrl(product.imagen))}" alt="${escapeHtml(product.nombre)}" loading="lazy" onerror="this.onerror=null;this.src='${escapeHtml(dashboardProductImageUrl(''))}'"></td>
+                        <td>${escapeHtml(product.nombre)}</td>
+                        <td>${formatQuantityWithUnit(product.valor, product)}</td>
+                    </tr>
+                `).join('');
+                Swal.fire({
+                    title: category.nombre,
+                    html: `
+                        <div class="chart-category-modal-summary">
+                            <p>${products.length.toLocaleString('es-CO')} PRODUCTOS EN ESTA CATEGORÍA</p>
+                        </div>
+                        <div class="chart-category-modal-table-wrap">
+                            <table class="chart-category-modal-table">
+                                <thead><tr><th>IMG</th><th>PRODUCTO</th><th>${isSalesChart ? 'VENDIDO (30 DÍAS)' : 'STOCK ACTUAL'}</th></tr></thead>
+                                <tbody>${productRows || '<tr><td colspan="3">NO HAY PRODUCTOS EN ESTA CATEGORÍA.</td></tr>'}</tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="chart-category-modal-back" data-chart-category-back><i class="fas fa-arrow-left"></i> VOLVER A CATEGORÍAS</button>
+                    `,
+                    width: 820,
+                    showCloseButton: true,
+                    confirmButtonText: 'CERRAR',
+                    confirmButtonColor: '#2f4a5a',
+                    customClass: { popup: 'chart-category-modal-popup', htmlContainer: 'chart-category-modal-html' },
+                    didOpen: (popup) => {
+                        popup.querySelector('[data-chart-category-back]')?.addEventListener('click', () => {
+                            clearChartSelection(chartId);
+                            openChartCategoryModal(chartId);
+                        });
+                    }
+                });
+                return;
+            }
+
+            const categoryOptions = categories.map((item) => {
+                const productCount = chartCategoryProducts[chartId]?.[item.nombre]?.length || 0;
+                return `
+                    <button type="button" class="chart-category-modal-option" data-chart-category="${escapeHtml(item.nombre)}" style="--category-color:${escapeHtml(item.color || '#2f4a5a')};">
+                        <span class="chart-category-modal-name">${escapeHtml(item.nombre)}</span>
+                        <span class="chart-category-modal-count">${productCount.toLocaleString('es-CO')} PRODUCTOS</span>
+                        <span class="chart-category-modal-total">${formatQuantityColombia(item.valor)} TOTAL</span>
+                    </button>
+                `;
+            }).join('');
+
+            Swal.fire({
+                title: modalTitle,
+                html: `<div class="chart-category-modal-list">${categoryOptions || '<div class="chart-list-empty">NO HAY CATEGORÍAS PARA MOSTRAR.</div>'}</div>`,
+                width: 820,
+                showCloseButton: true,
+                confirmButtonText: 'CERRAR',
+                confirmButtonColor: '#2f4a5a',
+                customClass: { popup: 'chart-category-modal-popup', htmlContainer: 'chart-category-modal-html' },
+                didOpen: (popup) => {
+                    popup.querySelectorAll('[data-chart-category]').forEach((button) => {
+                        button.addEventListener('click', () => {
+                            const selectedCategory = button.dataset.chartCategory || '';
+                            if (!selectedCategory) return;
+                            highlightChartProduct(chartId, selectedCategory);
+                            openChartCategoryModal(chartId, selectedCategory);
+                        });
+                    });
+                }
+            });
+        };
+
+        const openChartSalesModal = async () => {
+            const selector = document.getElementById('dashboardMesFiltro');
+            const selectedPeriod = String(selector?.value || '').trim();
+            Swal.fire({
+                title: 'CARGANDO MESES CON VENTAS',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            let salesByMonth = [];
+            try {
+                const response = await fetch('<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8'); ?>/Controllers/InventarioController.php?action=obtenerHistorialVentasPorMes');
+                if (!response.ok) throw new Error('No se pudo cargar el historial mensual de ventas.');
+                const result = await response.json();
+                if (!result.success || !Array.isArray(result.data)) {
+                    throw new Error(result.message || 'No se pudo cargar el historial mensual de ventas.');
+                }
+                salesByMonth = result.data;
+            } catch (error) {
+                console.error('Error cargando historial mensual de ventas:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'NO SE PUDO CARGAR',
+                    text: error.message || 'Intenta de nuevo.'
+                });
+                return;
+            }
+
+            const rows = salesByMonth.map((month) => `
+                <button type="button" class="chart-category-modal-option${String(month.periodo || '') === selectedPeriod ? ' is-current' : ''}" data-sales-month="${escapeHtml(month.periodo || '')}" aria-pressed="${String(month.periodo || '') === selectedPeriod}" style="--category-color:#2f4a5a;">
+                    <span class="chart-category-modal-name">${escapeHtml(formatMesLabel(month.periodo) || month.periodo || '')}</span>
+                    <span class="chart-category-modal-count">${String(month.periodo || '') === selectedPeriod ? 'MES SELECCIONADO' : 'MES CON VENTAS'}</span>
+                    <span class="chart-category-modal-total">${formatSalesCurrency(month.valor)}</span>
+                </button>
+            `).join('');
+
+            Swal.fire({
+                title: 'VENTAS POR MES',
+                html: `<div class="chart-category-modal-list">${rows || '<div class="chart-list-empty">NO HAY MESES CON VENTAS.</div>'}</div>`,
+                width: 820,
+                showCloseButton: true,
+                confirmButtonText: 'CERRAR',
+                confirmButtonColor: '#2f4a5a',
+                customClass: { popup: 'chart-category-modal-popup', htmlContainer: 'chart-category-modal-html' },
+                didOpen: (popup) => {
+                    popup.querySelectorAll('[data-sales-month]').forEach((button) => {
+                        button.addEventListener('click', () => {
+                            const periodo = String(button.dataset.salesMonth || '').trim();
+                            if (!periodo || !selector) return;
+                            let option = Array.from(selector.options).find((item) => item.value === periodo);
+                            if (!option) {
+                                option = document.createElement('option');
+                                option.value = periodo;
+                                option.textContent = formatMesLabel(periodo) || periodo;
+                                selector.appendChild(option);
+                            }
+                            selector.value = periodo;
+                            chartSelectionState.ventasChart = (formatMesLabel(periodo) || periodo).toUpperCase();
+                            Swal.close();
+                            closeChartListPanels();
+                            refrescarDashboard();
+                        });
+                    });
+                }
+            });
+        };
+
         window.toggleChartListPanel = (chartId) => {
+            if (chartId === 'ventasChart') {
+                openChartSalesModal();
+                return;
+            }
+            if (['salidasChart', 'stockChart'].includes(chartId)) {
+                openChartCategoryModal(chartId);
+                return;
+            }
             const panel = document.getElementById(`chartListPanel-${chartId}`);
             const button = document.querySelector(`[data-chart-list-target="${chartId}"]`);
             if (!panel) return;
@@ -12826,7 +13553,25 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             const chartId = chartCanvas.id;
             const chart = charts.find((entry) => entry && entry.canvas && entry.canvas.id === chartId);
             if (!chart) return;
-            const activePoints = chart.getElementsAtEventForMode(event, 'nearest', { intersect: false }, true);
+            if (['salidasChart', 'stockChart'].includes(chartId)) {
+                const index = findChartHitIndex(chart, event, []);
+                if (index < 0) return;
+                const selectedLabel = chart.data.labels[index];
+                const category = chartProductSummaries[chartId]?.find((item) => String(item.nombre || '').trim().toUpperCase() === String(selectedLabel || '').trim().toUpperCase());
+                if (!category) return;
+                highlightChartProduct(chartId, category.nombre);
+                openChartCategoryModal(chartId, category.nombre);
+                return;
+            }
+            if (chartId === 'ventasChart') {
+                const activePoints = chart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, true);
+                const index = findChartHitIndex(chart, event, activePoints);
+                if (index < 0) return;
+                const selectedLabel = chart.data.labels[index];
+                if (selectedLabel) highlightChartProduct(chartId, selectedLabel);
+                return;
+            }
+            const activePoints = chart.getElementsAtEventForMode(event, 'nearest', { intersect: chartId === 'ventasChart' }, true);
             if (!activePoints || activePoints.length === 0) return;
             const point = activePoints[0];
             const selectedLabel = chart.data.labels[point.index];
@@ -12854,102 +13599,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             const chart = chartCanvas && typeof Chart.getChart === 'function'
                 ? Chart.getChart(chartCanvas)
                 : charts.find(c => c.canvas.id === chartId);
-            if (!chart) {
-                return;
-            }
-
-            const isBarChart = chartTypes[chartId] === 'bar';
-            const currentChartType = chart.config.type;
-            if (currentChartType !== chartTypes[chartId]) {
-                destroyChartInstance(chartId);
-                recreateChart(chartId);
-                return;
-            }
-            chart.config.type = chartTypes[chartId];
-            chart.config.options.indexAxis = isBarChart ? 'y' : 'x';
-            chart.config.options.maintainAspectRatio = false;
-            chart.config.options.animation = {
-                duration: 260
-            };
-            chart.config.options.plugins.tooltip.displayColors = false;
-            chart.config.options.plugins.tooltip.callbacks.label = (context) => {
-                const parsedValue = context.parsed?.x ?? context.parsed?.y ?? context.parsed;
-                                    return `${context.label}: ${formatQuantityColombia(parsedValue)}`;
-            };
-
-            if (isBarChart) {
-                chart.config.data.datasets[0].barThickness = 16;
-                chart.config.data.datasets[0].maxBarThickness = 20;
-                chart.config.data.datasets[0].borderRadius = 6;
-                chart.config.data.datasets[0].minBarLength = 0;
-                const barMaxValue = Math.max(...(chart.config.data.datasets[0].data || []).map((x) => Number(x) || 0));
-                const isTinyRange = barMaxValue > 0 && barMaxValue <= 10;
-                const barStep = isTinyRange ? 1 : 5;
-                const xTickOptions = {
-                    color: '#666',
-                    autoSkip: false,
-                    maxRotation: 0,
-                    minRotation: 0,
-                    font: { size: 8 },
-                    precision: 0,
-                    stepSize: barMaxValue > 0 ? barStep : undefined,
-                    callback: (value) => {
-                        if (!Number.isInteger(value)) return '';
-                        return chartId === 'ventasChart' ? formatSalesCurrency(value) : formatAxisQuantityColombia(value);
-                    }
-                };
-                chart.config.options.scales = {
-                    x: {
-                        beginAtZero: true,
-                        min: 0,
-                        suggestedMax: barMaxValue > 0 ? Math.ceil((barMaxValue + 1) / barStep) * barStep : undefined,
-                        ticks: xTickOptions,
-                        grid: {
-                            color: 'rgba(148, 163, 184, 0.16)'
-                        }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#666',
-                            autoSkip: false,
-                            maxRotation: 0,
-                            minRotation: 0,
-                            font: { size: 12, weight: '600' }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    }
-                };
-                destroyChartInstance(chartId);
-                recreateChart(chartId);
-                return;
-            } else {
-                chart.config.options.scales = {
-                    x: {
-                        display: false,
-                        grid: {
-                            display: false
-                        },
-                        ticks: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        display: false,
-                        beginAtZero: true,
-                        ticks: {
-                            display: false
-                        },
-                        grid: {
-                            display: false
-                        }
-                    }
-                };
-            }
-
-            chart.update();
-            applySelectionStateToChart(chartId, chart, false);
+            if (chart) destroyChartInstance(chartId);
+            recreateChart(chartId);
         }
 
         // Inicializar gráficas
@@ -12964,7 +13615,6 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             console.log('Dashboard: refrescando datos...');
 
             const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#F67019', '#1E8FBE', '#8E44AD'];
-            const topCount = 6;
 
             const syncSelectionStateWithLabels = (chartId, labels) => {
                 const selectedName = String(chartSelectionState[chartId] || '').trim().toUpperCase();
@@ -12988,16 +13638,37 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 if (existingChart) {
                     existingChart.destroy();
                 }
+                for (let index = charts.length - 1; index >= 0; index -= 1) {
+                    if (charts[index]?.canvas?.id === chartId) {
+                        charts.splice(index, 1);
+                    }
+                }
 
-                const isBarChart = chartTypes[chartId] === 'bar';
+                const chartMode = chartTypes[chartId];
+                const isBarChart = chartMode === 'bar';
+                const isDotChart = chartMode === 'dot';
+                const isLineChart = chartMode === 'line';
+                const isHorizontalChart = isBarChart || isDotChart;
+                const chartJsType = isDotChart ? 'scatter' : chartMode;
+                const productosVisibles = getChartProductsForDisplay(chartId);
+                if (chartId !== 'ventasChart') {
+                    labels = productosVisibles.map((producto) => String(producto.nombre || '').trim());
+                    data = productosVisibles.map((producto) => Number(producto.valor) || 0);
+                    colors = productosVisibles.map((producto) => producto.color || productColorPalette[0]);
+                }
                 const canvasWidth = ctx?.canvas?.parentElement?.clientWidth || ctx?.canvas?.width || 300;
                 if (ctx && ctx.canvas) {
-                    if (isBarChart) {
+                    if (isHorizontalChart) {
                         ctx.canvas.width = canvasWidth;
                         ctx.canvas.style.width = '100%';
-                        const canvasHeight = Math.max(400, labels.length * 42 + 60);
+                        const canvasHeight = Math.max(isBarChart ? 400 : 280, labels.length * (isBarChart ? 42 : 34) + 60);
                         ctx.canvas.height = canvasHeight;
                         ctx.canvas.style.height = `${canvasHeight}px`;
+                    } else if (isLineChart) {
+                        ctx.canvas.width = canvasWidth;
+                        ctx.canvas.height = 220;
+                        ctx.canvas.style.width = '100%';
+                        ctx.canvas.style.height = '220px';
                     } else {
                         const pieSize = Math.min(Math.max(canvasWidth * 0.68, 200), 240);
                         ctx.canvas.width = pieSize;
@@ -13016,21 +13687,42 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 const chartData = isBarChart && data.length > 8 ? data.slice(0, 8) : data;
                 const chartColors = isBarChart && backgroundColors.length > 8 ? backgroundColors.slice(0, 8) : backgroundColors;
                 if (wrapper) {
-                    wrapper.parentElement?.classList.toggle('chart-body-bar-mode', isBarChart);
+                    wrapper.parentElement?.classList.toggle('chart-body-bar-mode', isHorizontalChart);
                     wrapper.classList.toggle('chart-wrapper-fixed-height', isBarChart && labels.length > 8);
                     wrapper.classList.toggle('chart-bar-mode', isBarChart);
-                    wrapper.classList.toggle('chart-circle-mode', !isBarChart);
+                    wrapper.classList.toggle('chart-dot-mode', isDotChart);
+                    wrapper.classList.toggle('chart-circle-mode', chartMode === 'pie');
                 }
+                if (labels.length === 0) {
+                    const emptyMessage = chartId === 'entradasChart'
+                        ? 'SIN ENTRADAS DE PRODUCTOS EN LOS ÚLTIMOS 30 DÍAS'
+                        : chartId === 'salidasChart'
+                            ? 'SIN SALIDAS DE PRODUCTOS EN LOS ÚLTIMOS 30 DÍAS'
+                            : 'NO HAY PRODUCTOS PARA MOSTRAR';
+                    setChartEmptyState(ctx.canvas, emptyMessage);
+                    return;
+                }
+                setChartEmptyState(ctx.canvas);
                 const chartLabelsFull = labels;
-                const chartDataFull = data;
+                const chartDataFull = isDotChart
+                    ? data.map((value, index) => ({ x: Number(value) || 0, y: index }))
+                    : data;
                 const chartColorsFull = backgroundColors;
 
                 const dataset = {
                     label: chartValueLabels[chartId] || '',
                     data: chartDataFull,
-                    backgroundColor: chartColorsFull,
-                    borderColor: chartColorsFull,
-                    borderWidth: chartLabelsFull.map(() => 1),
+                    backgroundColor: isLineChart ? 'rgba(42, 157, 143, 0.16)' : chartColorsFull,
+                    borderColor: isLineChart ? '#2a9d8f' : chartColorsFull,
+                    borderWidth: isLineChart ? 2.5 : chartLabelsFull.map(() => 1),
+                    fill: isLineChart,
+                    tension: isLineChart ? 0.32 : 0,
+                    showLine: !isDotChart,
+                    pointRadius: isLineChart ? 3 : (isDotChart ? 5 : 0),
+                    pointHoverRadius: isDotChart ? 7 : 5,
+                    pointBackgroundColor: chartColorsFull,
+                    pointBorderColor: isLineChart ? '#ffffff' : chartColorsFull,
+                    pointBorderWidth: isLineChart ? 1.5 : 0,
                     borderRadius: 6,
                     minBarLength: 0,
                     maxBarThickness: isBarChart ? 20 : 56,
@@ -13040,22 +13732,22 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 };
 
                 const chart = new Chart(ctx, {
-                    type: chartTypes[chartId],
+                    type: chartJsType,
                     data: {
                         labels: chartLabelsFull,
                         datasets: [dataset]
                     },
-                    plugins: [],
+                    plugins: isDotChart ? [productLollipopPlugin] : [],
                     options: {
                         responsive: false,
                         maintainAspectRatio: false,
-                        devicePixelRatio: isBarChart ? Math.max(window.devicePixelRatio || 1, 1.5) : undefined,
+                        devicePixelRatio: isHorizontalChart ? Math.max(window.devicePixelRatio || 1, 1.5) : undefined,
                         animation: {
                             duration: 260
                         },
                         interaction: {
                             mode: 'nearest',
-                            intersect: false
+                            intersect: chartJsType === 'pie'
                         },
                         indexAxis: isBarChart ? 'y' : 'x',
                         layout: {
@@ -13071,15 +13763,36 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                                 display: false
                             },
                             tooltip: {
+                                enabled: !['salidasChart', 'stockChart', 'ventasChart'].includes(chartId),
+                                mode: 'nearest',
+                                intersect: false,
+                                animation: { duration: 0 },
                                 displayColors: false,
                                 callbacks: {
+                                    title: (contexts) => {
+                                        const context = contexts?.[0];
+                                        if (!context) return '';
+                                        const label = String(context.label || context.chart.data.labels[context.dataIndex] || '');
+                                        if (!['salidasChart', 'stockChart'].includes(chartId)) return label;
+                                        const category = chartProductSummaries[chartId]?.find((item) => String(item.nombre || '').trim().toUpperCase() === label.trim().toUpperCase());
+                                        return category?.nombre || label;
+                                    },
                                     label: (context) => {
-                                        const parsedValue = context.parsed?.x ?? context.parsed?.y ?? context.parsed;
-                                        const product = chartProductSummaries[chartId]?.[context.dataIndex];
+                                        const parsedValue = isLineChart ? context.parsed?.y : (context.parsed?.x ?? context.parsed?.y ?? context.parsed);
+                                        const product = chartPlotProductSummaries[chartId]?.[context.dataIndex];
+                                        if (['salidasChart', 'stockChart'].includes(chartId)) {
+                                            const categoryName = String(context.label || context.chart.data.labels[context.dataIndex] || '').trim().toUpperCase();
+                                            const category = chartProductSummaries[chartId]?.find((item) => String(item.nombre || '').trim().toUpperCase() === categoryName);
+                                            const count = chartCategoryProducts[chartId]?.[category?.nombre]?.length || 0;
+                                            return `${count.toLocaleString('es-CO')} PRODUCTOS · ${formatQuantityColombia(parsedValue)} TOTAL`;
+                                        }
                                         const valueLabel = chartId === 'ventasChart'
                                             ? formatSalesCurrency(parsedValue)
-                                            : formatQuantityWithUnit(parsedValue, product);
-                                        return `${context.label}: ${valueLabel}`;
+                                            : ['salidasChart', 'stockChart'].includes(chartId)
+                                                ? `${formatQuantityColombia(parsedValue)} TOTAL`
+                                                : formatQuantityWithUnit(parsedValue, product);
+                                        const label = isDotChart ? labels[context.dataIndex] : context.label;
+                                        return `${label}: ${valueLabel}`;
                                     }
                                 }
                             }
@@ -13129,7 +13842,37 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                                     }
                                 }
                             };
-                        })() : {
+                        })() : isDotChart ? {
+                            x: {
+                                beginAtZero: true,
+                                ticks: { color: '#64748b', callback: (value) => Number(value).toLocaleString('es-CO', { maximumFractionDigits: 2 }) },
+                                grid: { color: 'rgba(148, 163, 184, 0.16)' }
+                            },
+                            y: {
+                                type: 'linear',
+                                min: labels.length === 1 ? -0.5 : 0,
+                                max: labels.length === 1 ? 0.5 : Math.max(labels.length - 1, 1),
+                                reverse: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    autoSkip: false,
+                                    color: '#475569',
+                                    font: { size: 10, weight: '600' },
+                                    callback: (value) => labels.length === 1 && value === 0 ? labels[0] : (Number.isInteger(value) ? labels[value] || '' : '')
+                                },
+                                grid: { display: false }
+                            }
+                        } : isLineChart ? {
+                            x: {
+                                ticks: { color: '#64748b', autoSkip: true, maxTicksLimit: 8, maxRotation: 0, font: { size: 9 } },
+                                grid: { display: false }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: '#64748b', maxTicksLimit: 5, callback: (value) => formatSalesCurrency(value) },
+                                grid: { color: 'rgba(148, 163, 184, 0.16)' }
+                            }
+                        } : {
                             x: {
                                 display: false,
                                 grid: {
@@ -13151,13 +13894,18 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                             }
                         },
                         onClick: (event, elements) => {
-                            if (!elements || !elements.length) {
-                                return;
-                            }
-                            const activeElement = elements[0];
-                            const selectedLabel = labels[activeElement.index];
+                            if (['salidasChart', 'stockChart'].includes(chartId)) return;
+                            const index = findChartHitIndex(chart, event, elements);
+                            if (index < 0) return;
+                            const selectedLabel = chart.data.labels[index];
+                            const category = ['salidasChart', 'stockChart'].includes(chartId)
+                                ? chartProductSummaries[chartId]?.find((item) => String(item.nombre || '').trim().toUpperCase() === String(selectedLabel || '').trim().toUpperCase())
+                                : null;
                             if (selectedLabel) {
                                 highlightChartProduct(chartId, selectedLabel);
+                                if (category) {
+                                    openChartCategoryModal(chartId, category.nombre);
+                                }
                             }
                         }
                     }
@@ -13168,6 +13916,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 } else {
                     charts.push(chart);
                 }
+                bindCategoryTooltip(chart);
                 syncSelectionStateWithLabels(chartId, labels);
                 applySelectionStateToChart(chartId, chart, false);
 
@@ -13185,7 +13934,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 try {
                     const panelEl = document.getElementById(`chartListPanel-${chartId}`);
                     if (panelEl) {
-                        if (isBarChart) {
+                        if (isHorizontalChart) {
                             panelEl.classList.add('scrollable');
                         } else {
                             panelEl.classList.remove('scrollable');
@@ -13203,6 +13952,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     .map((item) => ({
                         nombre: String(item[labelKey] || 'SIN NOMBRE').toUpperCase(),
                         valor: Number(item[valueKey] || 0),
+                        imagen: String(item.imagen || ''),
+                        codigo: String(item.codigo || ''),
                         venta_por_kilo: item.venta_por_kilo ?? 0,
                         categoria: String(item.categoria || item.categoria_nombre || item.category || item.grupo || 'SIN CATEGORÍA').toUpperCase(),
                         color: getColorForKey(item[labelKey], item.color || item.color_hex || item.color_producto)
@@ -13213,6 +13964,31 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     labels: products.map((product) => product.nombre),
                     values: products.map((product) => product.valor),
                     products
+                };
+            }
+
+            function buildCategoryChartSeries(series) {
+                const groups = new Map();
+                series.products.forEach((product) => {
+                    const category = String(product.categoria || 'SIN CATEGORÍA').trim().toUpperCase() || 'SIN CATEGORÍA';
+                    if (category === 'SIN CATEGORÍA') return;
+                    if (!groups.has(category)) {
+                        groups.set(category, { nombre: category, categoria: category, valor: 0, productos: [], color: getColorForKey(category) });
+                    }
+                    const group = groups.get(category);
+                    group.valor += Number(product.valor) || 0;
+                    group.productos.push(product);
+                });
+
+                const products = Array.from(groups.values())
+                    .map((group) => ({ ...group, valor: Number(group.valor.toFixed(3)) }))
+                    .sort((a, b) => Number(b.valor) - Number(a.valor) || a.nombre.localeCompare(b.nombre, 'es'));
+
+                return {
+                    labels: products.map((product) => product.nombre),
+                    values: products.map((product) => product.valor),
+                    products,
+                    productosPorCategoria: Object.fromEntries(products.map((product) => [product.nombre, product.productos]))
                 };
             }
 
@@ -13253,10 +14029,18 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                     const mesLabel = formatMesLabel(mesActual) || 'Mes actual';
 
                     if (mesActual) {
+                        const fechaMes = new Date(`${mesActual}-01T12:00:00`);
+                        fechaMes.setMonth(fechaMes.getMonth() - 1);
+                        const mesAnterior = `${fechaMes.getFullYear()}-${String(fechaMes.getMonth() + 1).padStart(2, '0')}`;
+                        const mesAnteriorLabel = formatMesLabel(mesAnterior) || 'Mes anterior';
+                        const ventasAnterior = Number(lastVentasPorMes.ventas_mes_anterior || 0);
                         ventas = {
-                            labels: [mesLabel],
-                            values: [ventasVal],
-                            products: [{ nombre: mesLabel, valor: ventasVal, color: productColorPalette[0] }]
+                            labels: [mesLabel, mesAnteriorLabel],
+                            values: [ventasVal, ventasAnterior],
+                            products: [
+                                { nombre: mesLabel, periodo: mesActual, valor: ventasVal, color: '#2a9d8f' },
+                                { nombre: mesAnteriorLabel, periodo: mesAnterior, valor: ventasAnterior, color: '#72b7ae' }
+                            ]
                         };
                     } else {
                         ventas = buildChartSeries(ventasOrdenadas, 'nombre', 'ventas_30dias');
@@ -13268,11 +14052,15 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 const salidas = buildChartSeries(ventasOrdenadas, 'nombre', 'ventas_30dias');
                 const movimientos = buildChartSeries(movimientosOrdenados, 'nombre', 'movimientos_30dias');
                 const stock = buildChartSeries(stockOrdenado, 'nombre', 'stock', true);
+                const salidasPorCategoria = buildCategoryChartSeries(salidas);
+                const stockPorCategoria = buildCategoryChartSeries(stock);
 
                 chartProductSummaries.ventasChart = ventas.products;
                 chartProductSummaries.entradasChart = entradas.products;
-                chartProductSummaries.salidasChart = salidas.products;
-                chartProductSummaries.stockChart = stock.products;
+                chartProductSummaries.salidasChart = salidasPorCategoria.products;
+                chartProductSummaries.stockChart = stockPorCategoria.products;
+                chartCategoryProducts.salidasChart = salidasPorCategoria.productosPorCategoria;
+                chartCategoryProducts.stockChart = stockPorCategoria.productosPorCategoria;
 
                 // Guardar último resumen para permitir re-render sin re-fetch
                 lastResumenProductos = productos;
@@ -13284,8 +14072,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
                 buildChartConfig(ventasCtx, 'ventasChart', ventas.labels, ventas.values, ventas.products.map((product) => product.color));
                 buildChartConfig(entradasCtx, 'entradasChart', entradas.labels, entradas.values, entradas.products.map((product) => product.color));
-                buildChartConfig(salidasCtx, 'salidasChart', salidas.labels, salidas.values, salidas.products.map((product) => product.color));
-                buildChartConfig(stockCtx, 'stockChart', stock.labels, stock.values, stock.products.map((product) => product.color));
+                buildChartConfig(salidasCtx, 'salidasChart', salidasPorCategoria.labels, salidasPorCategoria.values, salidasPorCategoria.products.map((category) => category.color));
+                buildChartConfig(stockCtx, 'stockChart', stockPorCategoria.labels, stockPorCategoria.values, stockPorCategoria.products.map((category) => category.color));
                 reapplyPersistedChartSelection();
             }
 
@@ -13339,8 +14127,8 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                         console.warn('No se pudo actualizar ventas por mes card', e);
                     }
                     if (productos.length === 0) {
-                        lastResumenProductos = [{ nombre: 'Sin datos', ventas_30dias: 0, entradas_30dias: 0, stock: 0 }];
-                        return buildSummary(lastResumenProductos);
+                        lastResumenProductos = [];
+                        return buildSummary([]);
                     }
                     lastResumenProductos = productos;
                     buildSummary(productos);
@@ -13348,7 +14136,7 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 })
                 .catch((error) => {
                     console.error('Error refrescando datos de inventario:', error);
-                    buildSummary([{ nombre: 'Sin datos', ventas_30dias: 0, entradas_30dias: 0, stock: 0 }]);
+                    buildSummary([]);
                 });
         };
 
@@ -13443,7 +14231,6 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             const currentMonthValue = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
             const currentMonthLabel = `${meses[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
-            selector.innerHTML = '';
             try {
                 const response = await fetch('<?= htmlspecialchars(base_url(), ENT_QUOTES, 'UTF-8'); ?>/Controllers/InventarioController.php?action=obtenerMesesInventario');
                 if (!response.ok) {
@@ -13451,9 +14238,10 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                 }
                 const data = await response.json();
                         if (data.success && Array.isArray(data.data)) {
-                        const mesesExistentes = new Set(data.data);
-                        const labelMap = {};
-                        data.data
+                    const mesSeleccionadoAntes = selector.value;
+                    const mesesUnicos = Array.from(new Set(data.data.map((mes) => String(mes || '').trim()).filter(Boolean)));
+                    selector.replaceChildren();
+                    mesesUnicos
                             .filter((mes) => String(mes) <= currentMonthValue)
                             .forEach((mes) => {
                             const [anio, mesNumero] = String(mes).split('-');
@@ -13463,30 +14251,16 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
                             option.value = mes;
                             option.textContent = `${nombreMes} ${anio}`;
                             selector.appendChild(option);
-                            labelMap[mes] = option.textContent;
                         });
 
-                        if (!selector.value && selector.options.length > 0) {
-                            const hasCurrent = Array.from(selector.options).some(o => o.value === currentMonthValue);
-                            if (hasCurrent) {
-                                selector.value = currentMonthValue;
-                            } else {
-                                selector.value = selector.options[0].value;
-                            }
-                        }
-
-                        // Log en cambio de selección y reset de selección global cuando se cambia mes
-                        selector.addEventListener('change', function() {
-                            const val2 = selector.value || '';
-                            console.log('Dashboard: selector changed ->', val2, labelMap[val2] || '');
-                            try {
-                                closeChartListPanels();
-                            } catch (e) {
-                                console.warn('Error cerrando paneles al cambiar mes', e);
-                            }
-                            // refrescar datos para el nuevo mes
-                            try { refrescarDashboard(); } catch (e) { console.warn(e); }
-                        });
+                    const mesSeleccionadoDisponible = Array.from(selector.options).some((option) => option.value === mesSeleccionadoAntes);
+                    const mesActualDisponible = Array.from(selector.options).some((option) => option.value === currentMonthValue);
+                    if (mesSeleccionadoDisponible) {
+                        selector.value = mesSeleccionadoAntes;
+                    } else if (mesActualDisponible) {
+                        selector.value = currentMonthValue;
+                    } else if (selector.options.length > 0) {
+                        selector.value = selector.options[0].value;
                     }
 
                     // Actualizar render de movimientos según filtro sin necesidad de re-fetch
@@ -13502,27 +14276,42 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
 
                     // Manejar cambio del selector de tipo de movimientos
                     const movimientosFiltroEl = document.getElementById('movimientosTipoFiltro');
-                    if (movimientosFiltroEl) {
+                    if (movimientosFiltroEl && movimientosFiltroEl.dataset.dashboardListener !== 'true') {
                         movimientosFiltroEl.addEventListener('change', function(e) {
                             movimientosTipo = String(e.target.value || 'both');
                             console.log('Dashboard: movimientosTipo cambiado a', movimientosTipo);
                             actualizarMovimientosPorFiltro();
                         });
+                        movimientosFiltroEl.dataset.dashboardListener = 'true';
+                    }
                     }
             } catch (error) {
                 console.warn('No se pudo cargar meses de inventario:', error);
             }
-            // Estilo blanco y selección por defecto: sólo seleccionar mes actual si existe
+            if (selector.dataset.dashboardMonthListener !== 'true') {
+                selector.addEventListener('change', function() {
+                    console.log('Dashboard: selector changed ->', selector.value || '');
+                    try {
+                        closeChartListPanels();
+                    } catch (e) {
+                        console.warn('Error cerrando paneles al cambiar mes', e);
+                    }
+                    try { refrescarDashboard(); } catch (e) { console.warn(e); }
+                });
+                selector.dataset.dashboardMonthListener = 'true';
+            }
+
             selector.style.background = '#ffffff';
             selector.style.color = '#0f172a';
-            const hasCurrent = Array.from(selector.options).some(o => o.value === currentMonthValue);
-            if (hasCurrent) {
-                selector.value = currentMonthValue;
-            } else {
+            const hasCurrent = Array.from(selector.options).some((option) => option.value === currentMonthValue);
+            if (!hasCurrent) {
                 const option = document.createElement('option');
                 option.value = currentMonthValue;
                 option.textContent = currentMonthLabel;
                 selector.appendChild(option);
+            }
+            const selectedValueIsValid = Array.from(selector.options).some((option) => option.value === selector.value);
+            if (!selectedValueIsValid) {
                 selector.value = currentMonthValue;
             }
         }
@@ -13532,11 +14321,24 @@ if ($mostrarPanelErrores && $usarDiagnosticoAjax) {
             const chart = charts.find((entry) => entry && entry.canvas && entry.canvas.id === chartId);
             if (chart) {
                 if (chart.data.datasets?.[0]) {
-                    chart.data.datasets[0].backgroundColor = chart.data.labels.map((_, index) => {
-                        const baseColor = chart.data.datasets[0].backgroundColor[index] || productColorPalette[index % productColorPalette.length];
-                        return typeof baseColor === 'string' ? baseColor : productColorPalette[index % productColorPalette.length];
-                    });
-                    chart.data.datasets[0].borderWidth = chart.data.labels.map(() => 1);
+                    const dataset = chart.data.datasets[0];
+                    if (chartTypes[chartId] === 'line') {
+                        dataset.backgroundColor = 'rgba(42, 157, 143, 0.16)';
+                        dataset.borderColor = '#2a9d8f';
+                        dataset.borderWidth = 2.5;
+                        dataset.pointBackgroundColor = chart.data.labels.map((_, index) => chartProductSummaries[chartId]?.[index]?.color || '#2a9d8f');
+                        dataset.pointBorderColor = '#ffffff';
+                        dataset.pointBorderWidth = 1.5;
+                    } else if (chartTypes[chartId] === 'dot') {
+                        dataset.pointBorderColor = chart.data.labels.map(() => '#ffffff');
+                        dataset.pointBorderWidth = chart.data.labels.map(() => 1);
+                    } else {
+                        dataset.backgroundColor = chart.data.labels.map((_, index) => {
+                            const baseColor = dataset.backgroundColor[index] || productColorPalette[index % productColorPalette.length];
+                            return typeof baseColor === 'string' ? baseColor : productColorPalette[index % productColorPalette.length];
+                        });
+                        dataset.borderWidth = chart.data.labels.map(() => 1);
+                    }
                 }
                 const chartOptions = chart.config?.options || chart.options;
                 if (chartOptions) {

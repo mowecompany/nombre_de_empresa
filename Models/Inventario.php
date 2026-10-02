@@ -3257,6 +3257,36 @@ class Inventario {
         }
     }
 
+    public function obtenerHistorialVentasPorMes() {
+        try {
+            $filtroSalidas = $this->construirFiltroTenant('salidas_inventario', 'si');
+            $filtroProductos = $this->construirFiltroTenant('productos', 'p');
+            $exprPeriodo = $this->dbDateFormat('si.fecha_salida', '%Y-%m');
+            $exprTotalVenta = $this->exprTotalVenta('si', 'p');
+            $sql = "SELECT {$exprPeriodo} AS periodo,
+                           COALESCE(SUM({$exprTotalVenta}), 0) AS valor
+                    FROM salidas_inventario si
+                    INNER JOIN productos p ON si.producto_id = p.id
+                    WHERE si.fecha_salida IS NOT NULL
+                    AND LOWER(COALESCE(NULLIF(TRIM(IFNULL(si.tipo_salida,'')), ''), 'venta')) = 'venta'
+                    " . $filtroSalidas . $filtroProductos . "
+                    GROUP BY {$exprPeriodo}
+                    HAVING SUM(COALESCE(si.cantidad, 0)) > 0
+                    ORDER BY periodo DESC";
+
+            $query = $this->db->prepare($sql);
+            if (!$query->execute()) {
+                $error = $query->errorInfo();
+                throw new Exception('Error al consultar el historial mensual de ventas: ' . ($error[2] ?? 'desconocido'));
+            }
+
+            return $query->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            error_log('PDOException en obtenerHistorialVentasPorMes: ' . $e->getMessage());
+            throw new Exception('Error en base de datos: ' . $e->getMessage());
+        }
+    }
+
     public function obtenerPrimerMesConVentas() {
         try {
             $filtroSalidas = $this->construirFiltroTenant('salidas_inventario');

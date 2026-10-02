@@ -721,6 +721,23 @@ try {
             }
         }
 
+        public function obtenerHistorialVentasPorMes() {
+            try {
+                $ventas = $this->inventario->obtenerHistorialVentasPorMes();
+
+                echo json_encode([
+                    'success' => true,
+                    'data' => $ventas
+                ]);
+            } catch (Exception $e) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'data' => []
+                ]);
+            }
+        }
+
         public function reiniciarInventario() {
             try {
                 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

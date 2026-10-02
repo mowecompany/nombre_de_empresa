@@ -1068,6 +1068,85 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         }
 
+        #cambioContrasenaModal {
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 16px !important;
+            box-sizing: border-box;
+        }
+
+        #cambioContrasenaModal .modal-content {
+            width: min(560px, calc(100vw - 32px)) !important;
+            max-width: 560px !important;
+            max-height: calc(100vh - 32px) !important;
+            margin: auto !important;
+            padding: 22px 24px !important;
+            box-sizing: border-box;
+        }
+
+        #cambioContrasenaModal .modal-content h2 {
+            margin: 0 0 16px !important;
+            padding: 0 26px 12px !important;
+            font-size: 19px !important;
+            line-height: 1.3;
+            letter-spacing: 0 !important;
+        }
+
+        #cambioContrasenaModal .close {
+            top: 12px;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            font-size: 22px !important;
+        }
+
+        #cambioContrasenaModal form > div:not([style*="display: flex"]) {
+            margin-bottom: 10px !important;
+        }
+
+        #cambioContrasenaModal label {
+            margin-bottom: 4px !important;
+            font-size: 11px !important;
+            line-height: 1.35;
+        }
+
+        #cambioContrasenaModal input[type="password"],
+        #cambioContrasenaModal input[type="text"] {
+            min-height: 38px;
+            padding: 8px 36px 8px 11px !important;
+            font-size: 12px !important;
+            text-align: left;
+        }
+
+        #cambioContrasenaModal form > div[style*="display: flex"] {
+            justify-content: center !important;
+            margin-top: 14px !important;
+        }
+
+        #cambioContrasenaModal button[type="submit"] {
+            width: auto !important;
+            max-width: 100%;
+            margin: 0 auto !important;
+            padding: 9px 14px !important;
+            font-size: 11px !important;
+            line-height: 1.3;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 480px) {
+            #cambioContrasenaModal .modal-content {
+                padding: 18px 16px !important;
+            }
+
+            #cambioContrasenaModal .modal-content h2 {
+                font-size: 16px !important;
+            }
+
+            #cambioContrasenaModal button[type="submit"] {
+                white-space: normal;
+            }
+        }
+
         h2 {
             margin: 0 0 20px;
             font-size: 24px;
@@ -2575,6 +2654,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if (mode === 'crear') {
                     // Solo limpiar cuando es modo crear
                     limpiarFormulario();
+
+                    Array.from(selectRol.options).forEach(option => {
+                        if (!option.hasAttribute('data-static')) {
+                            option.remove();
+                        } else {
+                            option.disabled = false;
+                        }
+                    });
                     
                     titulo.innerHTML = '<i class="fas fa-user-plus"></i> REGISTRAR USUARIO';
                     botonSubmit.innerHTML = '<i class="fas fa-user-plus" style="margin-right: 8px;"></i>REGISTRAR USUARIO';
@@ -2966,26 +3053,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 const setRolSelectValue = (selectElement, rolObjetivo) => {
                     if (!selectElement) return;
-                    const objetivo = String(rolObjetivo || '').trim().toLowerCase();
+                    const objetivo = String(rolObjetivo || '').trim();
+                    const normalizarRol = (valor) => String(valor || '')
+                        .normalize('NFD')
+                        .replace(/[\u0300-\u036f]/g, '')
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '');
+                    const objetivoNormalizado = normalizarRol(objetivo);
                     const opciones = Array.from(selectElement.options);
-                    let encontrado = false;
+                    let opcionObjetivo = opciones.find((option) => normalizarRol(option.value) === objetivoNormalizado);
 
-                    opciones.forEach((option) => {
-                        const valor = String(option.value || '').trim().toLowerCase();
-                        if (valor === objetivo) {
-                            option.selected = true;
-                            encontrado = true;
-                        } else if (option.selected && valor !== '') {
-                            option.selected = false;
-                        }
-                    });
-
-                    if (!encontrado) {
-                        const opcionFallback = opciones.find((option) => String(option.value || '').trim() !== '');
-                        if (opcionFallback) {
-                            opcionFallback.selected = true;
-                        }
+                    if (!opcionObjetivo && objetivo !== '') {
+                        opcionObjetivo = document.createElement('option');
+                        opcionObjetivo.value = objetivo;
+                        opcionObjetivo.textContent = objetivo.toLocaleUpperCase();
+                        opcionObjetivo.dataset.editCurrentRole = 'true';
+                        selectElement.appendChild(opcionObjetivo);
                     }
+
+                    selectElement.value = opcionObjetivo ? opcionObjetivo.value : '';
                 };
 
                 // Verificar permisos de edición

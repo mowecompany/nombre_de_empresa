@@ -60,7 +60,12 @@ $baseUrl = rtrim((string)base_url(), '/');
         .venc-card {
             background: #fff; border: 1px solid var(--line); border-left: 6px solid var(--navy);
             border-radius: 10px; padding: 14px 16px;
+            appearance: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
         }
+        .venc-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(36, 52, 71, 0.1); }
+        .venc-card:focus-visible { outline: 3px solid rgba(47, 74, 90, 0.35); outline-offset: 2px; }
+        .venc-card[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--navy); }
         .venc-card strong { display: block; font-size: 2rem; line-height: 1; margin-bottom: 6px; }
         .venc-card span { font-size: 12px; color: var(--muted); font-weight: 700; }
         .venc-card.rojo { border-left-color: var(--rojo); } .venc-card.rojo strong { color: var(--rojo); }
@@ -194,6 +199,7 @@ $baseUrl = rtrim((string)base_url(), '/');
         let resumen = {};
         let danados = [];
         let archivados = [];
+        let estadoFiltroVencimientos = 'todos';
         let vencimientosPagina = 0;
         let vencimientosPorPagina = 50;
         let vistaActiva = new URLSearchParams(window.location.search).get('vista') === 'danados'
@@ -250,10 +256,10 @@ $baseUrl = rtrim((string)base_url(), '/');
             const contenedor = document.getElementById('tarjetas');
             const vigentes = Math.max(0, (Number(resumen.total) || 0) - (Number(resumen.vencidos) || 0) - (Number(resumen.criticos) || 0) - (Number(resumen.proximos) || 0));
             contenedor.innerHTML = `
-                <div class="venc-card rojo"><strong>${Number(resumen.vencidos) || 0}</strong><span>YA VENCIDOS</span></div>
-                <div class="venc-card naranja"><strong>${Number(resumen.criticos) || 0}</strong><span>CRÍTICOS (${Number(resumen.dias_alerta) || 5} DÍAS O MENOS)</span></div>
-                <div class="venc-card"><strong>${Number(resumen.proximos) || 0}</strong><span>PRÓXIMOS (${Number(resumen.dias_aviso) || 7} DÍAS)</span></div>
-                <div class="venc-card verde"><strong>${vigentes}</strong><span>VIGENTES</span></div>
+                <button type="button" class="venc-card rojo" data-estado="vencido" aria-pressed="${estadoFiltroVencimientos === 'vencido'}"><strong>${Number(resumen.vencidos) || 0}</strong><span>YA VENCIDOS</span></button>
+                <button type="button" class="venc-card naranja" data-estado="critico" aria-pressed="${estadoFiltroVencimientos === 'critico'}"><strong>${Number(resumen.criticos) || 0}</strong><span>CRÍTICOS (${Number(resumen.dias_alerta) || 5} DÍAS O MENOS)</span></button>
+                <button type="button" class="venc-card" data-estado="proximo" aria-pressed="${estadoFiltroVencimientos === 'proximo'}"><strong>${Number(resumen.proximos) || 0}</strong><span>PRÓXIMOS (${Number(resumen.dias_aviso) || 7} DÍAS)</span></button>
+                <button type="button" class="venc-card verde" data-estado="vigente" aria-pressed="${estadoFiltroVencimientos === 'vigente'}"><strong>${vigentes}</strong><span>VIGENTES</span></button>
             `;
         }
 
@@ -366,7 +372,7 @@ $baseUrl = rtrim((string)base_url(), '/');
             if (vistaActiva === 'archivados') return pintarTablaArchivados();
             const cuerpo = document.getElementById('cuerpo');
             const texto = document.getElementById('buscador').value || '';
-            const estadoFiltro = 'todos';
+            const estadoFiltro = estadoFiltroVencimientos;
 
             const visibles = lotes.filter((lote) => {
                 if (estadoFiltro !== 'todos' && lote.estado !== estadoFiltro) return false;
@@ -417,7 +423,14 @@ $baseUrl = rtrim((string)base_url(), '/');
                 const datosDanados = await respuestaDanados.json();
                 const datosArchivados = await respuestaArchivados.json();
                 if (!datos.success) throw new Error(datos.message || 'No se pudieron cargar los lotes');
-                lotes = window.EstrellaPaginacion.recientesPrimero(Array.isArray(datos.data) ? datos.data : [], ['entrada_id', 'id']);
+                const prioridadEstado = { vencido: 0, critico: 1, proximo: 2, vigente: 3 };
+                lotes = (Array.isArray(datos.data) ? datos.data : []).slice().sort((a, b) => {
+                    const prioridadA = prioridadEstado[a.estado] ?? 4;
+                    const prioridadB = prioridadEstado[b.estado] ?? 4;
+                    return prioridadA - prioridadB
+                        || String(a.fecha_vencimiento || '').localeCompare(String(b.fecha_vencimiento || ''))
+                        || String(a.producto || '').localeCompare(String(b.producto || ''));
+                });
                 resumen = datos.resumen || {};
                 danados = window.EstrellaPaginacion.recientesPrimero(
                     Array.isArray(datosDanados?.data)
@@ -493,6 +506,15 @@ $baseUrl = rtrim((string)base_url(), '/');
         }
 
         document.getElementById('buscador').addEventListener('input', () => { vencimientosPagina = 0; pintarTabla(); });
+        document.getElementById('tarjetas').addEventListener('click', (event) => {
+            const tarjeta = event.target.closest('[data-estado]');
+            if (!tarjeta || vistaActiva !== 'vencidos') return;
+            const estadoSeleccionado = tarjeta.dataset.estado;
+            estadoFiltroVencimientos = estadoFiltroVencimientos === estadoSeleccionado ? 'todos' : estadoSeleccionado;
+            vencimientosPagina = 0;
+            pintarTarjetas();
+            pintarTabla();
+        });
         document.getElementById('vencimientosPorPagina').addEventListener('change', (event) => {
             const tamanoAnterior = vencimientosPorPagina;
             const indiceLoteAncla = vencimientosPagina * tamanoAnterior;
